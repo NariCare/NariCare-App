@@ -1,0 +1,256 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Growth Tracking</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="openAddRecordModal()">
+        <ion-icon name="add" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    
+    <!-- Baby Info Header -->
+    <div class="baby-info-card" *ngIf="user && user.babies && user.babies.length > 0">
+      <div class="baby-avatar">
+        <ion-icon name="baby"></ion-icon>
+      </div>
+      <div class="baby-details">
+        <h2>{{ user.babies[0].name }}</h2>
+        <p>{{ calculateBabyAge() }}</p>
+        <p class="birth-info">Born {{ formatDate(user.babies[0].dateOfBirth) }}</p>
+      </div>
+    </div>
+
+    <!-- Chart Type Selector -->
+    <div class="chart-selector">
+      <ion-segment [(ngModel)]="selectedChartType" (ionChange)="onChartTypeChange($event)">
+        <ion-segment-button value="weight">
+          <ion-label>Weight</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="height">
+          <ion-label>Height</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="head-circumference">
+          <ion-label>Head</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Chart Placeholder -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <h3>{{ getChartTitle() }}</h3>
+        <span class="chart-unit">{{ getChartUnit() }}</span>
+      </div>
+      <div class="chart-placeholder">
+        <ion-icon name="analytics"></ion-icon>
+        <p>Chart visualization will appear here</p>
+        <p class="chart-note">Add more records to see growth trends</p>
+      </div>
+    </div>
+
+    <!-- Recent Records -->
+    <div class="section">
+      <h3 class="section-title">Recent Records</h3>
+      <div class="records-list" *ngIf="growthRecords$ | async as records; else noRecords">
+        <div *ngFor="let record of records | slice:0:5" class="record-card">
+          <div class="record-date">
+            <span class="date">{{ formatDate(record.date) }}</span>
+          </div>
+          <div class="record-metrics">
+            <div class="metric">
+              <span class="metric-label">Weight</span>
+              <span class="metric-value">{{ record.weight }} kg</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Height</span>
+              <span class="metric-value">{{ record.height }} cm</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Feeding</span>
+              <span class="metric-value">{{ record.feedingFrequency }}x/day</span>
+            </div>
+          </div>
+          <div class="record-notes" *ngIf="record.notes">
+            <p>{{ record.notes }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <ng-template #noRecords>
+        <div class="empty-state">
+          <ion-icon name="trending-up"></ion-icon>
+          <h4>No growth records yet</h4>
+          <p>Start tracking your baby's growth by adding your first record</p>
+          <ion-button fill="outline" (click)="openAddRecordModal()">
+            Add First Record
+          </ion-button>
+        </div>
+      </ng-template>
+    </div>
+
+  </div>
+
+  <!-- Add Record Modal -->
+  <ion-modal [isOpen]="showAddRecordModal" (didDismiss)="closeAddRecordModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Add Growth Record</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeAddRecordModal()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content>
+        <form [formGroup]="addRecordForm" class="add-record-form">
+          <div class="form-section">
+            <h4>Basic Measurements</h4>
+            
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+                <ion-datetime-button datetime="recordDate">
+                  <ion-label>Date</ion-label>
+                </ion-datetime-button>
+              </ion-item>
+              <ion-modal [keepContentsMounted]="true">
+                <ng-template>
+                  <ion-datetime 
+                    id="recordDate" 
+                    formControlName="date"
+                    presentation="date"
+                    max="2025-12-31"
+                    min="2020-01-01">
+                  </ion-datetime>
+                </ng-template>
+              </ion-modal>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group half-width">
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="weight"
+                    type="number"
+                    placeholder="Weight (kg)"
+                    step="0.1"
+                    [class.error]="addRecordForm.get('weight')?.invalid && addRecordForm.get('weight')?.touched">
+                  </ion-input>
+                </ion-item>
+                <div class="error-message" *ngIf="addRecordForm.get('weight')?.invalid && addRecordForm.get('weight')?.touched">
+                  {{ getErrorMessage('weight') }}
+                </div>
+              </div>
+              
+              <div class="form-group half-width">
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="height"
+                    type="number"
+                    placeholder="Height (cm)"
+                    step="0.1"
+                    [class.error]="addRecordForm.get('height')?.invalid && addRecordForm.get('height')?.touched">
+                  </ion-input>
+                </ion-item>
+                <div class="error-message" *ngIf="addRecordForm.get('height')?.invalid && addRecordForm.get('height')?.touched">
+                  {{ getErrorMessage('height') }}
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-input
+                  formControlName="headCircumference"
+                  type="number"
+                  placeholder="Head circumference (cm) - Optional"
+                  step="0.1">
+                </ion-input>
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Daily Activities</h4>
+            
+            <div class="form-row">
+              <div class="form-group half-width">
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="feedingFrequency"
+                    type="number"
+                    placeholder="Feedings/day"
+                    [class.error]="addRecordForm.get('feedingFrequency')?.invalid && addRecordForm.get('feedingFrequency')?.touched">
+                  </ion-input>
+                </ion-item>
+                <div class="error-message" *ngIf="addRecordForm.get('feedingFrequency')?.invalid && addRecordForm.get('feedingFrequency')?.touched">
+                  {{ getErrorMessage('feedingFrequency') }}
+                </div>
+              </div>
+              
+              <div class="form-group half-width">
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="sleepHours"
+                    type="number"
+                    placeholder="Sleep hours"
+                    step="0.5"
+                    [class.error]="addRecordForm.get('sleepHours')?.invalid && addRecordForm.get('sleepHours')?.touched">
+                  </ion-input>
+                </ion-item>
+                <div class="error-message" *ngIf="addRecordForm.get('sleepHours')?.invalid && addRecordForm.get('sleepHours')?.touched">
+                  {{ getErrorMessage('sleepHours') }}
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-input
+                  formControlName="diaperChanges"
+                  type="number"
+                  placeholder="Diaper changes"
+                  [class.error]="addRecordForm.get('diaperChanges')?.invalid && addRecordForm.get('diaperChanges')?.touched">
+                </ion-input>
+              </ion-item>
+              <div class="error-message" *ngIf="addRecordForm.get('diaperChanges')?.invalid && addRecordForm.get('diaperChanges')?.touched">
+                {{ getErrorMessage('diaperChanges') }}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h4>Notes</h4>
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-textarea
+                  formControlName="notes"
+                  placeholder="Any observations or notes..."
+                  rows="3"
+                  maxlength="500">
+                </ion-textarea>
+              </ion-item>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <ion-button 
+              expand="block" 
+              (click)="saveGrowthRecord()"
+              [disabled]="!addRecordForm.valid"
+              class="save-button">
+              Save Record
+            </ion-button>
+          </div>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

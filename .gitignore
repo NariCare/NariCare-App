@@ -1,0 +1,61 @@
+# Specifies intentionally untracked files to ignore when using Git
+# http://git-scm.com/docs/gitignore
+
+*~
+*.sw[mnpcod]
+.tmp
+.tmp.*
+*.tmp
+*.tmp.*
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+UserInterfaceState.xcuserstate
+$RECYCLE.BIN/
+
+*.log
+log.txt
+npm-debug.log*
+
+/.angular
+/.sass-cache
+/connect.lock
+/coverage
+/dist
+/e2e
+/libpeerconnection.log
+/node_modules
+/platforms
+/plugins
+/www
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# misc
+/.angular/cache
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.firebase
+*firebase-debug.log*
+*firestore-debug.log*
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Capacitor
+ios/
+android/
+/ios
+/android
+
+# Environment files (should be configured per environment)
+/src/environments/environment.ts
+/src/environments/environment.prod.ts

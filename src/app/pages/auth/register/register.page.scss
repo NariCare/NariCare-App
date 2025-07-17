@@ -1,0 +1,260 @@
+.register-content {
+  --padding-start: 0;
+  --padding-end: 0;
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+}
+
+.register-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo-container {
+  margin-bottom: 1rem;
+}
+
+.logo-icon {
+  font-size: 2.5rem;
+  color: #e91e63;
+  margin-bottom: 0.5rem;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #2d3748;
+  letter-spacing: -0.025em;
+}
+
+.welcome-text {
+  margin: 0 0 1.5rem 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.progress-container {
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #e91e63;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.register-form {
+  flex: 1;
+  margin-bottom: 2rem;
+}
+
+.form-step {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.step-title {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+  text-align: center;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+
+  &.half-width {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+.input-item {
+  --background: #ffffff;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 48px;
+  margin-bottom: 0.5rem;
+
+  &.error {
+    --border-color: #ef4444;
+    --border-width: 1px;
+  }
+}
+
+.input-icon {
+  color: #94a3b8;
+  margin-right: 12px;
+}
+
+.password-toggle {
+  --color: #94a3b8;
+  margin: 0;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-left: 16px;
+  margin-top: 4px;
+}
+
+.tier-selection {
+  margin-bottom: 1.5rem;
+}
+
+.tier-option {
+  background: #ffffff;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  ion-item {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --min-height: auto;
+    padding: 1rem 0;
+  }
+
+  h3 {
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+
+    &.price {
+      color: #e91e63;
+      font-weight: 600;
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+.terms-label {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #64748b;
+}
+
+.terms-link {
+  color: #e91e63;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.next-button, .submit-button {
+  --background: #e91e63;
+  --background-hover: #d81b60;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+  --color: #ffffff;
+  margin-top: 1rem;
+  height: 48px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.back-button {
+  --color: #64748b;
+  --border-color: #cbd5e1;
+  --border-radius: 12px;
+  flex: 1;
+  height: 48px;
+}
+
+.submit-button {
+  flex: 2;
+
+  &:disabled {
+    --background: #e2e8f0;
+    --color: #94a3b8;
+    --box-shadow: none;
+  }
+}
+
+.footer-section {
+  text-align: center;
+  margin-top: auto;
+}
+
+.login-prompt {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.login-link {
+  --color: #e91e63;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline;
+  height: auto;
+  margin: 0;
+  vertical-align: baseline;
+}
+
+@media (min-width: 768px) {
+  .register-container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .form-row {
+    gap: 1rem;
+  }
+}

@@ -1,0 +1,199 @@
+<ion-content class="register-content">
+  <div class="register-container">
+    <!-- Header -->
+    <div class="header-section">
+      <div class="logo-container">
+        <ion-icon name="heart" class="logo-icon"></ion-icon>
+        <h1 class="app-title">NariCare</h1>
+      </div>
+      <p class="welcome-text">Join our supportive community of mothers</p>
+      
+      <!-- Progress indicator -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="(currentStep / totalSteps) * 100"></div>
+        </div>
+        <p class="progress-text">Step {{ currentStep }} of {{ totalSteps }}</p>
+      </div>
+    </div>
+
+    <!-- Registration Form -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      
+      <!-- Step 1: Personal Information -->
+      <div class="form-step" *ngIf="currentStep === 1">
+        <h2 class="step-title">Personal Information</h2>
+        
+        <div class="form-row">
+          <div class="form-group half-width">
+            <ion-item lines="none" class="input-item">
+              <ion-input
+                formControlName="firstName"
+                placeholder="First name"
+                [class.error]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+              {{ getErrorMessage('firstName') }}
+            </div>
+          </div>
+          
+          <div class="form-group half-width">
+            <ion-item lines="none" class="input-item">
+              <ion-input
+                formControlName="lastName"
+                placeholder="Last name"
+                [class.error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+              {{ getErrorMessage('lastName') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="email"
+              type="email"
+              placeholder="Email address"
+              [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+            </ion-input>
+          </ion-item>
+          <div class="error-message" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+            {{ getErrorMessage('email') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="call-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="phoneNumber"
+              type="tel"
+              placeholder="Phone number (optional)">
+            </ion-input>
+          </ion-item>
+        </div>
+
+        <div class="form-group">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="password"
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="Password"
+              [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+            </ion-input>
+            <ion-button fill="clear" slot="end" (click)="togglePasswordVisibility('password')" class="password-toggle">
+              <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <div class="error-message" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+            {{ getErrorMessage('password') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="confirmPassword"
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              placeholder="Confirm password"
+              [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+            </ion-input>
+            <ion-button fill="clear" slot="end" (click)="togglePasswordVisibility('confirmPassword')" class="password-toggle">
+              <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            </ion-button>
+          </ion-item>
+          <div class="error-message" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+            {{ getErrorMessage('confirmPassword') }}
+          </div>
+        </div>
+
+        <ion-button expand="block" (click)="nextStep()" class="next-button">
+          Continue
+        </ion-button>
+      </div>
+
+      <!-- Step 2: Program Selection -->
+      <div class="form-step" *ngIf="currentStep === 2">
+        <h2 class="step-title">Choose Your Program</h2>
+        
+        <div class="tier-selection">
+          <ion-radio-group formControlName="tierType">
+            <div class="tier-option">
+              <ion-item lines="none">
+                <ion-radio slot="start" value="basic"></ion-radio>
+                <ion-label>
+                  <h3>Basic (Free)</h3>
+                  <p>Access to knowledge base and community chat</p>
+                </ion-label>
+              </ion-item>
+            </div>
+            
+            <div class="tier-option">
+              <ion-item lines="none">
+                <ion-radio slot="start" value="one-month"></ion-radio>
+                <ion-label>
+                  <h3>1-Month Program</h3>
+                  <p>Everything in Basic + 2 expert consultations</p>
+                  <p class="price">$29.99/month</p>
+                </ion-label>
+              </ion-item>
+            </div>
+            
+            <div class="tier-option">
+              <ion-item lines="none">
+                <ion-radio slot="start" value="three-month"></ion-radio>
+                <ion-label>
+                  <h3>3-Month Program</h3>
+                  <p>Everything in 1-Month + 6 consultations + priority support</p>
+                  <p class="price">$79.99 (Save $10)</p>
+                </ion-label>
+              </ion-item>
+            </div>
+          </ion-radio-group>
+        </div>
+
+        <div class="form-group">
+          <ion-item lines="none">
+            <ion-checkbox formControlName="agreeToTerms" slot="start"></ion-checkbox>
+            <ion-label class="terms-label">
+              I agree to the <a href="#" class="terms-link">Terms of Service</a> and 
+              <a href="#" class="terms-link">Privacy Policy</a>
+            </ion-label>
+          </ion-item>
+          <div class="error-message" *ngIf="registerForm.get('agreeToTerms')?.invalid && registerForm.get('agreeToTerms')?.touched">
+            You must agree to the terms and conditions
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button 
+            type="submit" 
+            [disabled]="!registerForm.valid"
+            class="submit-button">
+            Create Account
+          </ion-button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Footer -->
+    <div class="footer-section">
+      <p class="login-prompt">
+        Already have an account? 
+        <ion-button fill="clear" (click)="navigateToLogin()" class="login-link">
+          Sign in here
+        </ion-button>
+      </p>
+    </div>
+  </div>
+</ion-content>

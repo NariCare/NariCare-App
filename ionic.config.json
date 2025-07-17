@@ -1,0 +1,8 @@
+{
+  "name": "breastfeeding-support",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular",
+  "id": "breastfeeding-support"
+}

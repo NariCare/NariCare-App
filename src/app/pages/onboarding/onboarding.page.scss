@@ -1,0 +1,266 @@
+.onboarding-content {
+  --padding-start: 0;
+  --padding-end: 0;
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+}
+
+.onboarding-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo-container {
+  margin-bottom: 1.5rem;
+}
+
+.logo-icon {
+  font-size: 3rem;
+  color: #e91e63;
+  margin-bottom: 0.5rem;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #2d3748;
+  letter-spacing: -0.025em;
+}
+
+.progress-container {
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #e91e63;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.onboarding-form {
+  flex: 1;
+}
+
+.form-step {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.step-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  text-align: center;
+}
+
+.step-description {
+  margin: 0 0 2rem 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+
+  &.half-width {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+.input-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.input-item {
+  --background: #ffffff;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 52px;
+  margin-bottom: 0.5rem;
+
+  &.error {
+    --border-color: #ef4444;
+    --border-width: 1px;
+  }
+}
+
+.input-icon {
+  color: #94a3b8;
+  margin-right: 12px;
+}
+
+.datetime-button {
+  // width: 100%;
+  // text-align: left;
+
+  ion-label {
+    color: #64748b;
+  }
+}
+
+.radio-item {
+  --background: #ffffff;
+  --border-radius: 8px;
+  --box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  margin-bottom: 0.5rem;
+  --padding-start: 16px;
+  --min-height: 48px;
+}
+
+.gender-options,
+.preferences-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.challenge-options,
+.topic-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+ion-chip {
+  --background: #ffffff;
+  --color: #64748b;
+  --border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.selected {
+    --background: #e91e63;
+    --color: #ffffff;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.preference-item {
+  --background: #ffffff;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 0.75rem;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  padding: 0.75rem 0;
+
+  h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-left: 16px;
+  margin-top: 4px;
+}
+
+.next-button,
+.complete-button {
+  --background: #e91e63;
+  --background-hover: #d81b60;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+  --color: #ffffff;
+  margin-top: 1rem;
+  height: 52px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.button-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.back-button {
+  --color: #64748b;
+  --border-color: #cbd5e1;
+  --border-radius: 12px;
+  flex: 1;
+  height: 52px;
+}
+
+.next-button,
+.complete-button {
+  flex: 2;
+}
+
+@media (min-width: 768px) {
+  .onboarding-container {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .form-row {
+    gap: 1rem;
+  }
+
+  .challenge-options,
+  .topic-options {
+    gap: 0.75rem;
+  }
+}

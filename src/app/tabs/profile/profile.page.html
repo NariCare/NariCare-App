@@ -1,0 +1,72 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Profile</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    
+    <!-- Profile Header -->
+    <div class="profile-header" *ngIf="user">
+      <div class="profile-avatar">
+        <ion-icon name="person" *ngIf="!user.profileImage"></ion-icon>
+        <img [src]="user.profileImage" [alt]="user.firstName" *ngIf="user.profileImage">
+      </div>
+      <div class="profile-info">
+        <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+        <p class="email">{{ user.email }}</p>
+        <div class="tier-info">
+          <ion-chip [color]="getTierColor()" size="small">
+            {{ getTierDisplay() }}
+          </ion-chip>
+          <span class="consultations" *ngIf="getConsultationsRemaining() > 0">
+            {{ getConsultationsRemaining() }} consultations remaining
+          </span>
+        </div>
+        <p class="join-date">Member since {{ formatJoinDate() }}</p>
+      </div>
+    </div>
+
+    <!-- Profile Sections -->
+    <div class="profile-sections">
+      <div *ngFor="let section of profileSections" class="section">
+        <h3 class="section-title">{{ section.title }}</h3>
+        <div class="section-items">
+          <div 
+            *ngFor="let item of section.items"
+            class="section-item"
+            (click)="handleAction(item.action)">
+            <div class="item-icon">
+              <ion-icon [name]="item.icon"></ion-icon>
+            </div>
+            <div class="item-content">
+              <span class="item-label">{{ item.label }}</span>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="item-arrow"></ion-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="logout-section">
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        color="danger"
+        (click)="logout()"
+        class="logout-button">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Sign Out
+      </ion-button>
+    </div>
+
+    <!-- App Info -->
+    <div class="app-info">
+      <p>NariCare v1.0.0</p>
+      <p>© 2025 NariCare. All rights reserved.</p>
+    </div>
+
+  </div>
+</ion-content>

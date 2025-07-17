@@ -1,0 +1,246 @@
+<ion-content class="onboarding-content">
+  <div class="onboarding-container">
+    
+    <!-- Header -->
+    <div class="header-section">
+      <div class="logo-container">
+        <ion-icon name="heart" class="logo-icon"></ion-icon>
+        <h1 class="app-title">Welcome to NariCare</h1>
+      </div>
+      
+      <!-- Progress indicator -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="(currentStep / totalSteps) * 100"></div>
+        </div>
+        <p class="progress-text">Step {{ currentStep }} of {{ totalSteps }}</p>
+      </div>
+    </div>
+
+    <!-- Onboarding Form -->
+    <form [formGroup]="onboardingForm" class="onboarding-form">
+      
+      <!-- Step 1: Baby Information -->
+      <div class="form-step" *ngIf="currentStep === 1">
+        <h2 class="step-title">Tell us about your baby</h2>
+        <p class="step-description">This helps us provide personalized guidance for your journey</p>
+        
+        <div class="form-group">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="babyName"
+              placeholder="Baby's name"
+              [class.error]="onboardingForm.get('babyName')?.invalid && onboardingForm.get('babyName')?.touched">
+            </ion-input>
+          </ion-item>
+          <div class="error-message" *ngIf="onboardingForm.get('babyName')?.invalid && onboardingForm.get('babyName')?.touched">
+            {{ getErrorMessage('babyName') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="input-label">Gender</label>
+          <ion-radio-group formControlName="babyGender" class="gender-options">
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" value="male"></ion-radio>
+              <ion-label>Boy</ion-label>
+            </ion-item>
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" value="female"></ion-radio>
+              <ion-label>Girl</ion-label>
+            </ion-item>
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" value="other"></ion-radio>
+              <ion-label>Prefer not to say</ion-label>
+            </ion-item>
+          </ion-radio-group>
+        </div>
+
+        <div class="form-group">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-datetime-button datetime="birthDate" class="datetime-button">
+              <ion-label>Date of Birth</ion-label>
+            </ion-datetime-button>
+          </ion-item>
+          <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime 
+                id="birthDate" 
+                formControlName="dateOfBirth"
+                presentation="date"
+                max="2027-01-01"
+                min="2020-01-01">
+              </ion-datetime>
+            </ng-template>
+          </ion-modal>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group half-width">
+            <ion-item lines="none" class="input-item">
+              <ion-input
+                formControlName="birthWeight"
+                type="number"
+                placeholder="Weight (kg)"
+                step="0.1"
+                [class.error]="onboardingForm.get('birthWeight')?.invalid && onboardingForm.get('birthWeight')?.touched">
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="onboardingForm.get('birthWeight')?.invalid && onboardingForm.get('birthWeight')?.touched">
+              {{ getErrorMessage('birthWeight') }}
+            </div>
+          </div>
+          
+          <div class="form-group half-width">
+            <ion-item lines="none" class="input-item">
+              <ion-input
+                formControlName="birthHeight"
+                type="number"
+                placeholder="Height (cm)"
+                step="0.1"
+                [class.error]="onboardingForm.get('birthHeight')?.invalid && onboardingForm.get('birthHeight')?.touched">
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="onboardingForm.get('birthHeight')?.invalid && onboardingForm.get('birthHeight')?.touched">
+              {{ getErrorMessage('birthHeight') }}
+            </div>
+          </div>
+        </div>
+
+        <ion-button expand="block" (click)="nextStep()" class="next-button">
+          Continue
+        </ion-button>
+      </div>
+
+      <!-- Step 2: Breastfeeding Experience -->
+      <div class="form-step" *ngIf="currentStep === 2">
+        <h2 class="step-title">Your breastfeeding journey</h2>
+        <p class="step-description">Help us understand your experience and challenges</p>
+        
+        <div class="form-group">
+          <label class="input-label">Breastfeeding experience</label>
+          <ion-radio-group formControlName="breastfeedingExperience">
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" value="first-time"></ion-radio>
+              <ion-label>This is my first baby</ion-label>
+            </ion-item>
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" value="experienced"></ion-radio>
+              <ion-label>I have breastfed before</ion-label>
+            </ion-item>
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" value="struggling"></ion-radio>
+              <ion-label>I had challenges before</ion-label>
+            </ion-item>
+          </ion-radio-group>
+        </div>
+
+        <div class="form-group">
+          <label class="input-label">Current challenges (select all that apply)</label>
+          <div class="challenge-options">
+            <ion-chip 
+              *ngFor="let challenge of ['Latching difficulties', 'Low milk supply', 'Sore nipples', 'Engorgement', 'Pumping issues', 'Sleep deprivation', 'Time management']"
+              [class.selected]="isChallengeSelected(challenge)"
+              (click)="toggleChallenge(challenge)">
+              {{ challenge }}
+            </ion-chip>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="input-label">Feeding schedule</label>
+          <ion-radio-group formControlName="feedingSchedule">
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" value="on-demand"></ion-radio>
+              <ion-label>On-demand feeding</ion-label>
+            </ion-item>
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" value="scheduled"></ion-radio>
+              <ion-label>Scheduled feeding</ion-label>
+            </ion-item>
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" value="combination"></ion-radio>
+              <ion-label>Combination feeding</ion-label>
+            </ion-item>
+          </ion-radio-group>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button (click)="nextStep()" class="next-button">
+            Continue
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Step 3: Preferences -->
+      <div class="form-step" *ngIf="currentStep === 3">
+        <h2 class="step-title">Customize your experience</h2>
+        <p class="step-description">Set your preferences for notifications and content</p>
+        
+        <div class="form-group">
+          <label class="input-label">Notification preferences</label>
+          <div formGroupName="notificationPreferences" class="preferences-list">
+            <ion-item lines="none" class="preference-item">
+              <ion-checkbox formControlName="articleUpdates" slot="start"></ion-checkbox>
+              <ion-label>
+                <h3>Article updates</h3>
+                <p>Get notified about new articles and guides</p>
+              </ion-label>
+            </ion-item>
+            
+            <ion-item lines="none" class="preference-item">
+              <ion-checkbox formControlName="callReminders" slot="start"></ion-checkbox>
+              <ion-label>
+                <h3>Consultation reminders</h3>
+                <p>Reminders for scheduled expert calls</p>
+              </ion-label>
+            </ion-item>
+            
+            <ion-item lines="none" class="preference-item">
+              <ion-checkbox formControlName="groupMessages" slot="start"></ion-checkbox>
+              <ion-label>
+                <h3>Group chat notifications</h3>
+                <p>Notifications for group messages and replies</p>
+              </ion-label>
+            </ion-item>
+            
+            <ion-item lines="none" class="preference-item">
+              <ion-checkbox formControlName="growthReminders" slot="start"></ion-checkbox>
+              <ion-label>
+                <h3>Growth tracking reminders</h3>
+                <p>Regular reminders to log baby's growth</p>
+              </ion-label>
+            </ion-item>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="input-label">Topics of interest (optional)</label>
+          <div class="topic-options">
+            <ion-chip 
+              *ngFor="let topic of ['Newborn care', 'Sleep training', 'Nutrition', 'Pumping', 'Return to work', 'Baby development', 'Maternal health']"
+              [class.selected]="isTopicSelected(topic)"
+              (click)="toggleTopic(topic)">
+              {{ topic }}
+            </ion-chip>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button (click)="completeOnboarding()" class="complete-button">
+            Get Started
+          </ion-button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</ion-content>

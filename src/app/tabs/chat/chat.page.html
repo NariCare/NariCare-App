@@ -1,0 +1,131 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Chat & Support</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="chat-container">
+    
+    <!-- Tab Selector -->
+    <div class="tab-selector">
+      <ion-segment [(ngModel)]="selectedTab" (ionChange)="onTabChange($event)">
+        <ion-segment-button value="groups">
+          <ion-label>Groups</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="ai">
+          <ion-label>AI Assistant</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Group Chat Tab -->
+    <div class="tab-content" *ngIf="selectedTab === 'groups'">
+      <div class="groups-header">
+        <h2>Mom-to-Mom Support Groups</h2>
+        <p>Connect with other mothers in topic-based chat rooms</p>
+      </div>
+
+      <div class="chat-rooms-list">
+        <div 
+          *ngFor="let room of chatRooms$ | async"
+          class="room-card"
+          (click)="joinRoom(room)">
+          <div class="room-icon">
+            <ion-icon [name]="getRoomIcon(room.topic)"></ion-icon>
+          </div>
+          <div class="room-content">
+            <div class="room-header">
+              <h3>{{ room.name }}</h3>
+              <span class="participant-count">{{ room.participants.length }} members</span>
+            </div>
+            <p class="room-description">{{ room.description }}</p>
+            <div class="room-footer" *ngIf="room.lastMessage">
+              <span class="last-message">{{ room.lastMessage.senderName }}: {{ room.lastMessage.message }}</span>
+              <span class="last-time">{{ getMessageTime(room.lastMessage.timestamp) }}</span>
+            </div>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="room-arrow"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Assistant Tab -->
+    <div class="tab-content ai-chat" *ngIf="selectedTab === 'ai'">
+      <div class="ai-header">
+        <div class="ai-avatar">
+          <ion-icon name="chatbot"></ion-icon>
+        </div>
+        <div class="ai-info">
+          <h3>AI Lactation Assistant</h3>
+          <p>Get instant help with breastfeeding questions</p>
+        </div>
+      </div>
+
+      <div class="messages-container" #messagesContainer>
+        <div 
+          *ngFor="let message of chatbotMessages$ | async"
+          class="message"
+          [class.user-message]="message.sender === 'user'"
+          [class.bot-message]="message.sender === 'bot'"
+          [class.typing]="message.isTyping">
+          
+          <div class="message-avatar" *ngIf="message.sender === 'bot'">
+            <ion-icon name="chatbot"></ion-icon>
+          </div>
+          
+          <div class="message-content">
+            <div class="message-bubble">
+              <p *ngIf="!message.isTyping">{{ message.content }}</p>
+              <div class="typing-indicator" *ngIf="message.isTyping">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+            <span class="message-time">{{ getMessageTime(message.timestamp) }}</span>
+          </div>
+          
+          <div class="message-avatar user-avatar" *ngIf="message.sender === 'user'">
+            <ion-icon name="person"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="expert-help-banner" *ngIf="(chatbotMessages$ | async) && (chatbotMessages$ | async)!.length > 4">
+        <div class="banner-content">
+          <ion-icon name="people"></ion-icon>
+          <div class="banner-text">
+            <h4>Need personalized help?</h4>
+            <p>Connect with our lactation experts</p>
+          </div>
+        </div>
+        <ion-button fill="outline" size="small" (click)="requestExpertHelp()">
+          Get Expert Help
+        </ion-button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Message Input (for AI chat) -->
+  <div class="message-input-container" *ngIf="selectedTab === 'ai'">
+    <div class="message-input">
+      <ion-textarea
+        [(ngModel)]="messageText"
+        placeholder="Ask about breastfeeding, baby care, or any concerns..."
+        rows="1"
+        autoGrow="true"
+        maxlength="500"
+        class="message-textarea">
+      </ion-textarea>
+      <ion-button 
+        fill="clear" 
+        (click)="sendMessage()"
+        [disabled]="!messageText.trim()"
+        class="send-button">
+        <ion-icon name="send" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

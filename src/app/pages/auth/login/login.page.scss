@@ -1,0 +1,132 @@
+.login-content {
+  --padding-start: 0;
+  --padding-end: 0;
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  justify-content: center;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.logo-container {
+  margin-bottom: 1rem;
+}
+
+.logo-icon {
+  font-size: 3rem;
+  color: #e91e63;
+  margin-bottom: 0.5rem;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2d3748;
+  letter-spacing: -0.025em;
+}
+
+.welcome-text {
+  margin: 0;
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.login-form {
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-item {
+  --background: #ffffff;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 56px;
+  margin-bottom: 0.5rem;
+
+  &.error {
+    --border-color: #ef4444;
+    --border-width: 1px;
+  }
+}
+
+.input-icon {
+  color: #94a3b8;
+  margin-right: 12px;
+}
+
+.password-toggle {
+  --color: #94a3b8;
+  margin: 0;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-left: 16px;
+  margin-top: 4px;
+}
+
+.login-button {
+  --background: #e91e63;
+  --background-hover: #d81b60;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+  --color: #ffffff;
+  margin-top: 1rem;
+  height: 56px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+
+  &:disabled {
+    --background: #e2e8f0;
+    --color: #94a3b8;
+    --box-shadow: none;
+  }
+}
+
+.footer-section {
+  text-align: center;
+  margin-top: auto;
+}
+
+.register-prompt {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.register-link {
+  --color: #e91e63;
+  --padding-start: 4px;
+  --padding-end: 4px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline;
+  height: auto;
+  margin: 0;
+  vertical-align: baseline;
+}
+
+@media (min-width: 768px) {
+  .login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+}

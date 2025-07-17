@@ -1,0 +1,113 @@
+<ion-header [translucent]="true" class="dashboard-header">
+  <ion-toolbar>
+    <ion-title>
+      <div class="header-content">
+        <div class="greeting-section">
+          <h1 class="greeting">{{ getGreeting() }}</h1>
+          <p class="tier-badge">{{ getTierDisplay() }}</p>
+        </div>
+        <ion-button fill="clear" (click)="navigateToProfile()" class="profile-button">
+          <ion-icon name="person-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="dashboard-content">
+  <div class="content-container">
+    
+    <!-- Quick Actions -->
+    <div class="section">
+      <h2 class="section-title">Quick Actions</h2>
+      <div class="quick-actions-grid">
+        <div 
+          *ngFor="let action of quickActions"
+          class="action-card"
+          [class]="'action-card-' + action.color"
+          (click)="handleQuickAction(action.action)">
+          <div class="action-icon">
+            <ion-icon [name]="action.icon"></ion-icon>
+          </div>
+          <div class="action-content">
+            <h3>{{ action.title }}</h3>
+            <p>{{ action.description }}</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's Insights -->
+    <div class="section" *ngIf="user && user.babies && user.babies.length > 0">
+      <h2 class="section-title">Today's Insights</h2>
+      <div class="insights-container">
+        <div class="insight-card">
+          <div class="insight-header">
+            <ion-icon name="heart" class="insight-icon"></ion-icon>
+            <h3>Baby's Progress</h3>
+          </div>
+          <div class="insight-content">
+            <p class="insight-text">{{ user.babies[0].name }} is developing beautifully! Remember to track feeding patterns today.</p>
+            <ion-button fill="clear" size="small" class="insight-action">
+              View Details
+              <ion-icon name="arrow-forward" slot="end"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <div class="insight-header">
+            <ion-icon name="bulb" class="insight-icon"></ion-icon>
+            <h3>Daily Tip</h3>
+          </div>
+          <div class="insight-content">
+            <p class="insight-text">Skin-to-skin contact helps regulate your baby's temperature and promotes bonding.</p>
+            <ion-button fill="clear" size="small" class="insight-action">
+              Learn More
+              <ion-icon name="arrow-forward" slot="end"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Reminders -->
+    <div class="section" *ngIf="upcomingReminders.length > 0">
+      <h2 class="section-title">Upcoming Reminders</h2>
+      <div class="reminders-list">
+        <div *ngFor="let reminder of upcomingReminders" class="reminder-item">
+          <div class="reminder-icon">
+            <ion-icon 
+              [name]="reminder.type === 'growth' ? 'trending-up' : 'videocam'"
+              [class]="'reminder-icon-' + reminder.type">
+            </ion-icon>
+          </div>
+          <div class="reminder-content">
+            <h4>{{ reminder.title }}</h4>
+            <p>{{ reminder.time }}</p>
+          </div>
+          <ion-button fill="clear" size="small">
+            <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="section">
+      <h2 class="section-title">Continue Learning</h2>
+      <div class="activity-card">
+        <div class="activity-content">
+          <ion-icon name="book" class="activity-icon"></ion-icon>
+          <div class="activity-text">
+            <h3>Breastfeeding Basics</h3>
+            <p>Complete your reading progress • 3 articles remaining</p>
+          </div>
+        </div>
+        <ion-button fill="outline" size="small">Continue</ion-button>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

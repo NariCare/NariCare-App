@@ -1,0 +1,72 @@
+<ion-content class="login-content">
+  <div class="login-container">
+    <!-- Header -->
+    <div class="header-section">
+      <div class="logo-container">
+        <ion-icon name="heart" class="logo-icon"></ion-icon>
+        <h1 class="app-title">NariCare</h1>
+      </div>
+      <p class="welcome-text">Welcome back! Sign in to continue your breastfeeding journey.</p>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <ion-item lines="none" class="input-item">
+          <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input
+            formControlName="email"
+            type="email"
+            placeholder="Email address"
+            autocomplete="email"
+            [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+          </ion-input>
+        </ion-item>
+        <div class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+          {{ getErrorMessage('email') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <ion-item lines="none" class="input-item">
+          <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input
+            formControlName="password"
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="Password"
+            autocomplete="current-password"
+            [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          </ion-input>
+          <ion-button 
+            fill="clear" 
+            slot="end" 
+            (click)="togglePasswordVisibility()"
+            class="password-toggle">
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </ion-button>
+        </ion-item>
+        <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          {{ getErrorMessage('password') }}
+        </div>
+      </div>
+
+      <ion-button
+        type="submit"
+        expand="block"
+        class="login-button"
+        [disabled]="!loginForm.valid">
+        Sign In
+      </ion-button>
+    </form>
+
+    <!-- Footer -->
+    <div class="footer-section">
+      <p class="register-prompt">
+        Don't have an account? 
+        <ion-button fill="clear" (click)="navigateToRegister()" class="register-link">
+          Sign up here
+        </ion-button>
+      </p>
+    </div>
+  </div>
+</ion-content>
