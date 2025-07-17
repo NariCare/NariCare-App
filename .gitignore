@@ -57,5 +57,5 @@ android/
 /android
 
 # Environment files (should be configured per environment)
-/src/environments/environment.ts
-/src/environments/environment.prod.ts
+# /src/environments/environment.ts
+# /src/environments/environment.prod.ts
