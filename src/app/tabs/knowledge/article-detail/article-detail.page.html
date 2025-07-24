@@ -114,7 +114,7 @@
             <div class="media-info">
               <h4>{{ media.title }}</h4>
               <p>{{ media.description }}</p>
-              <ion-button fill="outline" size="small" (click)="openVideo(media.url)">
+              <ion-button fill="outline" size="small" (click)="openVideo(media.url, media.title)">
                 <ion-icon name="play" slot="start"></ion-icon>
                 Watch Video
               </ion-button>

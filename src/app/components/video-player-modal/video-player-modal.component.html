@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="openInBrowser()">
+        <ion-icon name="open-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" (click)="closeModal()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="video-container">
+    <iframe 
+      *ngIf="safeVideoUrl"
+      [src]="safeVideoUrl"
+      frameborder="0"
+      allowfullscreen
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      class="video-iframe">
+    </iframe>
+    
+    <div *ngIf="!safeVideoUrl" class="video-error">
+      <ion-icon name="videocam-off"></ion-icon>
+      <h3>Unable to load video</h3>
+      <p>The video format is not supported for in-app playback.</p>
+      <ion-button fill="outline" (click)="openInBrowser()">
+        <ion-icon name="open-outline" slot="start"></ion-icon>
+        Open in Browser
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

@@ -34,8 +34,7 @@ export class KnowledgePage implements OnInit {
   }
 
   onCategorySelect(categoryId: string) {
-    // Navigate to category view or filter articles
-    this.knowledgeService.searchArticles('', categoryId);
+    this.router.navigate(['/tabs/knowledge/category', categoryId]);
   }
 
   onArticleSelect(article: Article) {

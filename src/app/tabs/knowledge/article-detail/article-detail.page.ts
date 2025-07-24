@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { KnowledgeBaseService } from '../../../services/knowledge-base.service';
 import { AuthService } from '../../../services/auth.service';
 import { Article } from '../../../models/knowledge-base.model';
 import { User } from '../../../models/user.model';
+import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
 
 @Component({
   selector: 'app-article-detail',
@@ -21,7 +23,8 @@ export class ArticleDetailPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private knowledgeService: KnowledgeBaseService,
-    private authService: AuthService
+    private authService: AuthService,
+    private modalController: ModalController
   ) {
     this.article$ = new Observable();
   }
@@ -103,7 +106,16 @@ export class ArticleDetailPage implements OnInit {
     return `${minutes} min read`;
   }
 
-  openVideo(url: string) {
-    window.open(url, '_blank');
+  async openVideo(url: string, title?: string) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: url,
+        title: title || 'Video'
+      },
+      cssClass: 'video-modal'
+    });
+    
+    await modal.present();
   }
 }
