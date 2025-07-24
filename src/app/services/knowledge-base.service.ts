@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Observable, BehaviorSubject, combineLatest, of } from 'rxjs';
+import { map, switchMap, catchError } from 'rxjs/operators';
 import { Article, ArticleCategory, SearchResult, SearchFacets } from '../models/knowledge-base.model';
 
 @Injectable({
@@ -11,102 +11,169 @@ export class KnowledgeBaseService {
   private searchTermSubject = new BehaviorSubject<string>('');
   private selectedCategorySubject = new BehaviorSubject<string>('');
   private selectedDifficultySubject = new BehaviorSubject<string>('');
+  
+  private knowledgeData: any = null;
 
-  constructor(private firestore: AngularFirestore) {}
+  constructor(private http: HttpClient) {
+    this.loadKnowledgeData();
+  }
+
+  private async loadKnowledgeData() {
+    try {
+      this.knowledgeData = await this.http.get('/assets/data/knowledge-base.json').toPromise();
+    } catch (error) {
+      console.error('Failed to load knowledge base data:', error);
+      this.knowledgeData = { categories: [], articles: [] };
+    }
+  }
+
+  private ensureDataLoaded(): Observable<any> {
+    if (this.knowledgeData) {
+      return of(this.knowledgeData);
+    }
+    return this.http.get('/assets/data/knowledge-base.json').pipe(
+      map(data => {
+        this.knowledgeData = data;
+        return data;
+      }),
+      catchError(error => {
+        console.error('Failed to load knowledge base data:', error);
+        return of({ categories: [], articles: [] });
+      })
+    );
+  }
 
   getCategories(): Observable<ArticleCategory[]> {
-    return this.firestore.collection<ArticleCategory>('article-categories', ref => 
-      ref.orderBy('name')
-    ).valueChanges({ idField: 'id' });
+    return this.ensureDataLoaded().pipe(
+      map(data => data.categories || [])
+    );
   }
 
   getFeaturedArticles(limit: number = 5): Observable<Article[]> {
-    return this.firestore.collection<Article>('articles', ref => 
-      ref.where('featured', '==', true)
-         .orderBy('publishedAt', 'desc')
-         .limit(limit)
-    ).valueChanges({ idField: 'id' });
+    return this.ensureDataLoaded().pipe(
+      map(data => {
+        const articles = data.articles || [];
+        return articles
+          .filter((article: Article) => article.featured)
+          .slice(0, limit)
+          .map((article: any) => this.transformArticle(article));
+      })
+    );
   }
 
   getRecentArticles(limit: number = 10): Observable<Article[]> {
-    return this.firestore.collection<Article>('articles', ref => 
-      ref.orderBy('publishedAt', 'desc').limit(limit)
-    ).valueChanges({ idField: 'id' });
+    return this.ensureDataLoaded().pipe(
+      map(data => {
+        const articles = data.articles || [];
+        return articles
+          .sort((a: any, b: any) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+          .slice(0, limit)
+          .map((article: any) => this.transformArticle(article));
+      })
+    );
   }
 
   getArticlesByCategory(categoryId: string): Observable<Article[]> {
-    return this.firestore.collection<Article>('articles', ref => 
-      ref.where('category.id', '==', categoryId)
-         .orderBy('publishedAt', 'desc')
-    ).valueChanges({ idField: 'id' });
+    return this.ensureDataLoaded().pipe(
+      map(data => {
+        const articles = data.articles || [];
+        return articles
+          .filter((article: any) => article.category === categoryId)
+          .map((article: any) => this.transformArticle(article));
+      })
+    );
   }
 
   getArticle(id: string): Observable<Article | undefined> {
-    return this.firestore.doc<Article>(`articles/${id}`).valueChanges({ idField: 'id' });
+    return this.ensureDataLoaded().pipe(
+      map(data => {
+        const articles = data.articles || [];
+        const article = articles.find((a: any) => a.id === id);
+        return article ? this.transformArticle(article) : undefined;
+      })
+    );
   }
 
   searchArticles(searchTerm?: string, categoryId?: string, difficulty?: string): Observable<SearchResult> {
-    if (searchTerm) this.searchTermSubject.next(searchTerm);
-    if (categoryId) this.selectedCategorySubject.next(categoryId);
-    if (difficulty) this.selectedDifficultySubject.next(difficulty);
+    if (searchTerm !== undefined) this.searchTermSubject.next(searchTerm);
+    if (categoryId !== undefined) this.selectedCategorySubject.next(categoryId);
+    if (difficulty !== undefined) this.selectedDifficultySubject.next(difficulty);
 
     return combineLatest([
       this.searchTermSubject,
       this.selectedCategorySubject,
-      this.selectedDifficultySubject
+      this.selectedDifficultySubject,
+      this.ensureDataLoaded()
     ]).pipe(
-      switchMap(([term, category, diff]) => {
-        let query = this.firestore.collection<Article>('articles', ref => {
-          let q = ref.orderBy('publishedAt', 'desc');
-          
-          if (category) {
-            q = q.where('category.id', '==', category);
-          }
-          
-          if (diff) {
-            q = q.where('difficulty', '==', diff);
-          }
-          
-          return q;
-        });
-
-        return query.valueChanges({ idField: 'id' });
-      }),
-      map(articles => {
-        const searchTerm = this.searchTermSubject.value.toLowerCase();
+      map(([term, category, diff, data]) => {
+        let articles = data.articles || [];
         
-        // Filter articles by search term if provided
-        const filteredArticles = searchTerm ? 
-          articles.filter(article => 
-            article.title.toLowerCase().includes(searchTerm) ||
-            article.content.toLowerCase().includes(searchTerm) ||
-            article.tags.some(tag => tag.toLowerCase().includes(searchTerm))
-          ) : articles;
+        // Apply category filter
+        if (category) {
+          articles = articles.filter((article: any) => article.category === category);
+        }
+        
+        // Apply difficulty filter
+        if (diff) {
+          articles = articles.filter((article: any) => article.difficulty === diff);
+        }
+        
+        // Apply search term filter
+        if (term) {
+          const searchLower = term.toLowerCase();
+          articles = articles.filter((article: any) => 
+            article.title.toLowerCase().includes(searchLower) ||
+            article.summary.toLowerCase().includes(searchLower) ||
+            article.tags.some((tag: string) => tag.toLowerCase().includes(searchLower))
+          );
+        }
 
+        // Transform articles
+        const transformedArticles = articles.map((article: any) => this.transformArticle(article));
+        
         // Generate facets
-        const facets = this.generateFacets(articles);
+        const facets = this.generateFacets(data.articles || []);
 
         return {
-          articles: filteredArticles,
-          totalCount: filteredArticles.length,
+          articles: transformedArticles,
+          totalCount: transformedArticles.length,
           facets
         } as SearchResult;
       })
     );
   }
 
-  private generateFacets(articles: Article[]): SearchFacets {
+  private transformArticle(article: any): Article {
+    // Find category details
+    const categoryData = this.knowledgeData?.categories?.find((cat: any) => cat.id === article.category);
+    
+    return {
+      ...article,
+      publishedAt: new Date(article.publishedAt),
+      updatedAt: new Date(article.updatedAt),
+      category: categoryData || { 
+        id: article.category, 
+        name: article.category, 
+        description: '', 
+        icon: 'document', 
+        color: '#64748b' 
+      }
+    };
+  }
+
+  private generateFacets(articles: any[]): SearchFacets {
     const categories: { [key: string]: number } = {};
     const tags: { [key: string]: number } = {};
     const difficulty: { [key: string]: number } = {};
 
     articles.forEach(article => {
       // Count categories
-      const categoryName = article.category.name;
+      const categoryData = this.knowledgeData?.categories?.find((cat: any) => cat.id === article.category);
+      const categoryName = categoryData?.name || article.category;
       categories[categoryName] = (categories[categoryName] || 0) + 1;
 
       // Count tags
-      article.tags.forEach(tag => {
+      article.tags.forEach((tag: string) => {
         tags[tag] = (tags[tag] || 0) + 1;
       });
 
@@ -118,22 +185,20 @@ export class KnowledgeBaseService {
   }
 
   bookmarkArticle(articleId: string, userId: string): Promise<void> {
-    return this.firestore.doc(`users/${userId}/bookmarks/${articleId}`).set({
-      articleId,
-      bookmarkedAt: new Date()
-    });
+    // Mock implementation - in real app would save to backend
+    console.log('Bookmarking article:', articleId, 'for user:', userId);
+    return Promise.resolve();
   }
 
   removeBookmark(articleId: string, userId: string): Promise<void> {
-    return this.firestore.doc(`users/${userId}/bookmarks/${articleId}`).delete();
+    // Mock implementation - in real app would remove from backend
+    console.log('Removing bookmark:', articleId, 'for user:', userId);
+    return Promise.resolve();
   }
 
   getUserBookmarks(userId: string): Observable<string[]> {
-    return this.firestore.collection(`users/${userId}/bookmarks`)
-      .valueChanges({ idField: 'articleId' })
-      .pipe(
-        map(bookmarks => bookmarks.map(b => (b as any).articleId))
-      );
+    // Mock implementation - in real app would fetch from backend
+    return of([]);
   }
 
   clearSearchFilters(): void {

@@ -76,13 +76,42 @@
           
           <div class="message-content">
             <div class="message-bubble">
-              <p *ngIf="!message.isTyping">{{ message.content }}</p>
+              <div *ngIf="!message.isTyping" class="message-text">
+                <div *ngIf="message.formattedContent?.formatting?.sections; else simpleContent">
+                  <div *ngFor="let section of message.formattedContent.formatting.sections" class="content-section">
+                    <h4 *ngIf="section.title" class="section-title">{{ section.title }}</h4>
+                    <div [ngSwitch]="section.type">
+                      <p *ngSwitchCase="'text'" [innerHTML]="formatText(section.content)"></p>
+                      <ul *ngSwitchCase="'list'" class="message-list">
+                        <li *ngFor="let item of parseListItems(section.content)" [innerHTML]="formatText(item)"></li>
+                      </ul>
+                      <div *ngSwitchCase="'callout'" class="message-callout" [innerHTML]="formatText(section.content)"></div>
+                    </div>
+                  </div>
+                </div>
+                <ng-template #simpleContent>
+                  <div [innerHTML]="formatText(message.content)"></div>
+                </ng-template>
+              </div>
               <div class="typing-indicator" *ngIf="message.isTyping">
                 <span></span>
                 <span></span>
                 <span></span>
               </div>
             </div>
+            
+            <!-- Follow-up Options -->
+            <div *ngIf="message.followUpOptions && message.followUpOptions.length > 0" class="follow-up-options">
+              <ion-button 
+                *ngFor="let option of message.followUpOptions"
+                fill="outline" 
+                size="small"
+                (click)="handleFollowUpAction(option.action, option.text)"
+                class="follow-up-button">
+                {{ option.text }}
+              </ion-button>
+            </div>
+            
             <span class="message-time">{{ getMessageTime(message.timestamp) }}</span>
           </div>
           

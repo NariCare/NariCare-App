@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { KnowledgeBaseService } from '../../services/knowledge-base.service';
 import { Article, ArticleCategory } from '../../models/knowledge-base.model';
@@ -14,7 +15,10 @@ export class KnowledgePage implements OnInit {
   recentArticles$: Observable<Article[]>;
   searchTerm = '';
 
-  constructor(private knowledgeService: KnowledgeBaseService) {
+  constructor(
+    private knowledgeService: KnowledgeBaseService,
+    private router: Router
+  ) {
     this.categories$ = this.knowledgeService.getCategories();
     this.featuredArticles$ = this.knowledgeService.getFeaturedArticles();
     this.recentArticles$ = this.knowledgeService.getRecentArticles();
@@ -35,8 +39,7 @@ export class KnowledgePage implements OnInit {
   }
 
   onArticleSelect(article: Article) {
-    // Navigate to article detail
-    console.log('Selected article:', article);
+    this.router.navigate(['/tabs/knowledge/article', article.id]);
   }
 
   getDifficultyColor(difficulty: string): string {

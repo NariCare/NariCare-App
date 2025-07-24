@@ -262,10 +262,131 @@
   margin-bottom: 0.25rem;
   word-wrap: break-word;
 
-  p {
-    margin: 0;
+  .message-text {
     font-size: 0.9rem;
-    line-height: 1.4;
+    line-height: 1.5;
+
+    p {
+      margin: 0 0 0.75rem 0;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .content-section {
+      margin-bottom: 1rem;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .section-title {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: inherit;
+    }
+
+    .message-list {
+      margin: 0;
+      padding-left: 1.25rem;
+      
+      li {
+        margin-bottom: 0.25rem;
+        line-height: 1.4;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+
+    .message-callout {
+      background: rgba(255, 255, 255, 0.1);
+      border-left: 3px solid currentColor;
+      padding: 0.75rem;
+      border-radius: 0 6px 6px 0;
+      margin: 0.5rem 0;
+    }
+
+    strong, b {
+      font-weight: 600;
+    }
+
+    em, i {
+      font-style: italic;
+    }
+  }
+}
+
+.follow-up-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.follow-up-button {
+  --border-radius: 16px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  height: 32px;
+  font-size: 0.8rem;
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.user-message .follow-up-options {
+  display: none;
+}
+
+.bot-message {
+  .message-bubble {
+    background: #f8fafc;
+    color: #2d3748;
+    
+    .message-text {
+      .section-title {
+        color: #2d3748;
+      }
+      
+      .message-callout {
+        background: rgba(233, 30, 99, 0.1);
+        border-left-color: #e91e63;
+      }
+    }
+  }
+  
+  .follow-up-button {
+    --color: #e91e63;
+    --border-color: #e91e63;
+    
+    &:hover {
+      --background: rgba(233, 30, 99, 0.1);
+    }
+  }
+}
+
+.user-message {
+  .message-bubble {
+    margin: 0;
+    background: #e91e63;
+    color: #ffffff;
+    
+    .message-text {
+      .section-title {
+        color: #ffffff;
+      }
+      
+      .message-callout {
+        background: rgba(255, 255, 255, 0.2);
+        border-left-color: #ffffff;
+      }
+    }
   }
 }
 
