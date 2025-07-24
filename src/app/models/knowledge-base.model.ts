@@ -1,7 +1,25 @@
+export interface MediaContent {
+  type: 'image' | 'video';
+  url: string;
+  alt?: string;
+  caption?: string;
+}
+
+export interface ArticleContentSection {
+  type: 'text' | 'list' | 'callout' | 'table' | 'media';
+  content: string | string[] | MediaContent | any;
+  title?: string;
+  variant?: string;
+}
+
+export interface ArticleContent {
+  sections: ArticleContentSection[];
+}
+
 export interface Article {
   id: string;
   title: string;
-  content: string;
+  content: ArticleContent;
   summary: string;
   category: ArticleCategory;
   tags: string[];
