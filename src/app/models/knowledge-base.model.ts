@@ -13,6 +13,9 @@ export interface ArticleContentSection {
   level?: number;
   style?: string;
   items?: string[];
+  headers?: string;
+  rows?: any;
+  media?: any;
 }
 
 export interface ArticleContent {
