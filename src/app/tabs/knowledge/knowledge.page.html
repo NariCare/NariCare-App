@@ -86,8 +86,8 @@
               <span class="date">{{ article.publishedAt | date:'MMM d' }}</span>
             </div>
           </div>
-          <ion-button fill="clear" size="small" class="bookmark-button">
-            <ion-icon name="bookmark-outline" slot="icon-only"></ion-icon>
+          <ion-button fill="clear" size="small" class="bookmark-button" (click)="toggleBookmark(article.id, $event)">
+            <ion-icon [name]="isBookmarked(article.id) ? 'bookmark' : 'bookmark-outline'" slot="icon-only"></ion-icon>
           </ion-button>
         </div>
       </div>

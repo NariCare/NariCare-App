@@ -118,4 +118,10 @@ export class ArticleDetailPage implements OnInit {
     
     await modal.present();
   }
+
+  onTagClick(tag: string) {
+    this.router.navigate(['/tabs/knowledge/search'], { 
+      queryParams: { tag: tag } 
+    });
+  }
 }

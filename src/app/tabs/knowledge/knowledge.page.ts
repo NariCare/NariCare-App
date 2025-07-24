@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { KnowledgeBaseService } from '../../services/knowledge-base.service';
+import { AuthService } from '../../services/auth.service';
 import { Article, ArticleCategory } from '../../models/knowledge-base.model';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-knowledge',
@@ -14,9 +16,12 @@ export class KnowledgePage implements OnInit {
   featuredArticles$: Observable<Article[]>;
   recentArticles$: Observable<Article[]>;
   searchTerm = '';
+  user: User | null = null;
+  bookmarkedArticles: string[] = [];
 
   constructor(
     private knowledgeService: KnowledgeBaseService,
+    private authService: AuthService,
     private router: Router
   ) {
     this.categories$ = this.knowledgeService.getCategories();
@@ -24,7 +29,22 @@ export class KnowledgePage implements OnInit {
     this.recentArticles$ = this.knowledgeService.getRecentArticles();
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.user = user;
+      if (user) {
+        this.loadBookmarks();
+      }
+    });
+  }
+
+  private loadBookmarks() {
+    if (this.user) {
+      this.knowledgeService.getUserBookmarks(this.user.uid).subscribe(bookmarks => {
+        this.bookmarkedArticles = bookmarks;
+      });
+    }
+  }
 
   onSearchChange(event: any) {
     this.searchTerm = event.detail.value;
@@ -52,5 +72,27 @@ export class KnowledgePage implements OnInit {
 
   formatReadTime(minutes: number): string {
     return `${minutes} min read`;
+  }
+
+  async toggleBookmark(articleId: string, event: Event) {
+    event.stopPropagation();
+    if (!this.user) return;
+
+    try {
+      const isCurrentlyBookmarked = this.bookmarkedArticles.includes(articleId);
+      if (isCurrentlyBookmarked) {
+        await this.knowledgeService.removeBookmark(articleId, this.user.uid);
+        this.bookmarkedArticles = this.bookmarkedArticles.filter(id => id !== articleId);
+      } else {
+        await this.knowledgeService.bookmarkArticle(articleId, this.user.uid);
+        this.bookmarkedArticles.push(articleId);
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+    }
+  }
+
+  isBookmarked(articleId: string): boolean {
+    return this.bookmarkedArticles.includes(articleId);
   }
 }

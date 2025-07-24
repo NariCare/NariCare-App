@@ -14,6 +14,10 @@ const routes: Routes = [
   {
     path: 'category/:id',
     loadChildren: () => import('./category-detail/category-detail.module').then(m => m.CategoryDetailPageModule)
+  },
+  {
+    path: 'search',
+    loadChildren: () => import('./search/search.module').then(m => m.SearchPageModule)
   }
 ];
 

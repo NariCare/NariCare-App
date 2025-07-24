@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, combineLatest, of } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest, of, from } from 'rxjs';
 import { map, switchMap, catchError } from 'rxjs/operators';
 import { Article, ArticleCategory, SearchResult, SearchFacets } from '../models/knowledge-base.model';
+import { Storage } from '@ionic/storage-angular';
 
 @Injectable({
   providedIn: 'root'
@@ -14,8 +15,16 @@ export class KnowledgeBaseService {
   
   private knowledgeData: any = null;
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private storage: Storage
+  ) {
     this.loadKnowledgeData();
+    this.initStorage();
+  }
+
+  private async initStorage() {
+    await this.storage.create();
   }
 
   private async loadKnowledgeData() {
@@ -185,20 +194,53 @@ export class KnowledgeBaseService {
   }
 
   bookmarkArticle(articleId: string, userId: string): Promise<void> {
-    // Mock implementation - in real app would save to backend
-    console.log('Bookmarking article:', articleId, 'for user:', userId);
-    return Promise.resolve();
+    return this.storage.get('bookmarks').then(bookmarks => {
+      const userBookmarks = bookmarks || {};
+      if (!userBookmarks[userId]) {
+        userBookmarks[userId] = [];
+      }
+      if (!userBookmarks[userId].includes(articleId)) {
+        userBookmarks[userId].push(articleId);
+      }
+      return this.storage.set('bookmarks', userBookmarks);
+    });
   }
 
   removeBookmark(articleId: string, userId: string): Promise<void> {
-    // Mock implementation - in real app would remove from backend
-    console.log('Removing bookmark:', articleId, 'for user:', userId);
-    return Promise.resolve();
+    return this.storage.get('bookmarks').then(bookmarks => {
+      const userBookmarks = bookmarks || {};
+      if (userBookmarks[userId]) {
+        const index = userBookmarks[userId].indexOf(articleId);
+        if (index > -1) {
+          userBookmarks[userId].splice(index, 1);
+        }
+      }
+      return this.storage.set('bookmarks', userBookmarks);
+    });
   }
 
   getUserBookmarks(userId: string): Observable<string[]> {
-    // Mock implementation - in real app would fetch from backend
-    return of([]);
+    return from(this.storage.get('bookmarks')).pipe(
+      map(bookmarks => {
+        const userBookmarks = bookmarks || {};
+        return userBookmarks[userId] || [];
+      })
+    );
+  }
+
+  searchArticlesByTag(tag: string): Observable<Article[]> {
+    return this.ensureDataLoaded().pipe(
+      map(data => {
+        const articles = data.articles || [];
+        return articles
+          .filter((article: any) => 
+            article.tags.some((articleTag: string) => 
+              articleTag.toLowerCase().includes(tag.toLowerCase())
+            )
+          )
+          .map((article: any) => this.transformArticle(article));
+      })
+    );
   }
 
   clearSearchFilters(): void {

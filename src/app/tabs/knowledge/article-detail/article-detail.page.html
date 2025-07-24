@@ -129,7 +129,12 @@
     <div class="article-tags" *ngIf="article.tags && article.tags.length > 0">
       <h3>Related Topics</h3>
       <div class="tags-list">
-        <ion-chip *ngFor="let tag of article.tags" color="light" size="small">
+        <ion-chip 
+          *ngFor="let tag of article.tags" 
+          color="light" 
+          size="small"
+          (click)="onTagClick(tag)"
+          class="clickable-tag">
           {{ tag }}
         </ion-chip>
       </div>

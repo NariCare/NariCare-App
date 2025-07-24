@@ -298,6 +298,20 @@
   gap: 0.5rem;
 }
 
+.clickable-tag {
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    --background: #e2e8f0;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
   .article-container {
     padding: 0.75rem;
