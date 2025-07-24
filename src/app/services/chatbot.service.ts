@@ -127,7 +127,7 @@ export class ChatbotService {
     }
   }
 
-  private async getAIResponse(userQuery: string): Promise<string> {
+  private async getAIResponse(userQuery: string): Promise<any> {
   }
   private async getStructuredAIResponse(userQuery: string): Promise<ChatbotContent> {
     const prompt = this.buildPrompt(userQuery);
@@ -233,7 +233,7 @@ export class ChatbotService {
     };
   }
 
-  private getMockResponse(userQuery: string): ChatbotContent {
+  private getMockResponse(userQuery: string): any {
     const mockResponses = {
       'latch': {
         text: `**Getting a Good Latch**\n\nA proper latch is essential for comfortable breastfeeding. Here are the key steps:\n\n**Positioning Tips:**\n- Support your baby's neck and shoulders\n- Bring baby to breast, not breast to baby\n- Wait for baby to open mouth wide\n- Ensure baby takes good portion of areola\n\n**Signs of Good Latch:**\n- No pain after initial few seconds\n- You can hear swallowing sounds\n- Baby's lips are flanged outward\n\nIf you're experiencing persistent pain, please consult a lactation consultant.`,
