@@ -7,10 +7,12 @@ export interface MediaContent {
 
 export interface ArticleContentSection {
   type: 'text' | 'list' | 'callout' | 'table' | 'media' | 'heading';
-  content: string | string[] | MediaContent | any;
+  content?: string | string[] | MediaContent | any;
   title?: string;
   variant?: string;
   level?: number;
+  style?: string;
+  items?: string[];
 }
 
 export interface ArticleContent {
