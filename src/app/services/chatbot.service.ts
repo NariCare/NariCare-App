@@ -128,6 +128,7 @@ export class ChatbotService {
   }
 
   private async getAIResponse(userQuery: string): Promise<string> {
+  }
   private async getStructuredAIResponse(userQuery: string): Promise<ChatbotContent> {
     const prompt = this.buildPrompt(userQuery);
     
