@@ -264,6 +264,17 @@ export class ArticleDetailPage implements OnInit {
     this.stopReading();
   }
 
+  isVideoUrl(url: string): boolean {
+    return url.includes('youtube.com') || 
+           url.includes('youtu.be') || 
+           url.includes('vimeo.com') || 
+           url.includes('facebook.com') || 
+           url.includes('instagram.com') ||
+           url.endsWith('.mp4') || 
+           url.endsWith('.webm') || 
+           url.endsWith('.ogg');
+  }
+
   async openVideo(videoUrl: string, title?: string) {
     const modal = await this.modalController.create({
       component: VideoPlayerModalComponent,
