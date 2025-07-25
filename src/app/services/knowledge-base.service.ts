@@ -228,17 +228,26 @@ export class KnowledgeBaseService {
     );
   }
 
-  searchArticlesByTag(tag: string): Observable<Article[]> {
+  searchArticlesByTag(tag: string): Observable<SearchResult> {
     return this.ensureDataLoaded().pipe(
       map(data => {
         const articles = data.articles || [];
-        return articles
+        const filteredArticles = articles
           .filter((article: any) => 
             article.tags.some((articleTag: string) => 
               articleTag.toLowerCase().includes(tag.toLowerCase())
             )
           )
           .map((article: any) => this.transformArticle(article));
+        
+        // Generate facets from all articles for consistency
+        const facets = this.generateFacets(data.articles || []);
+        
+        return {
+          articles: filteredArticles,
+          totalCount: filteredArticles.length,
+          facets
+        } as SearchResult;
       })
     );
   }
