@@ -263,4 +263,15 @@ export class ArticleDetailPage implements OnInit {
     // Clean up speech synthesis when component is destroyed
     this.stopReading();
   }
+
+  async openVideo(videoUrl: string, title?: string) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: videoUrl,
+        title: title || 'Video'
+      }
+    });
+    return await modal.present();
+  }
 }

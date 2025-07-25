@@ -157,9 +157,9 @@
             <div class="media-info">
               <h4>{{ media.title }}</h4>
               <p>{{ media.description }}</p>
-              <ion-button fill="outline" size="small" (click)="window.open(media.url, '_blank')">
+              <ion-button fill="outline" size="small" (click)="openVideo(media.url, media.title)">
                 <ion-icon name="open-outline" slot="start"></ion-icon>
-                Open in New Tab
+                Play Video
               </ion-button>
             </div>
           </div>
