@@ -10,5 +10,5 @@ export const environment = {
     measurementId: "G-PYV60K3B2D"
   },
   // Encrypted OpenAI API Key - decrypt using EncryptionService
-  encryptedOpenaiApiKey: "QlVGRkVSX0VOQ1JZUFRFRF9LRVlfSEVSRQ=="
+  encryptedOpenaiApiKey: "PQpfGjUCEwZRRB9XHzA5NBYYJQ9NcSgXbBcHE2RxEC8CGyF2DgISfEdXciZSADoNLCgwDhU1E2xABnJCZWQMCzYtIFgQIAdiAl4mFSYwMAwDDiwScXcXZzJEQW5jIz4BHiwIBhRcWFF8PT9UFDcROy0WTAd7chABak5MTgcMOgMADCckS1tZAhcAIUoLBAA/LFMwZxNuaRRFbGc2FCM/GRkqLX8IRXQ="
 };

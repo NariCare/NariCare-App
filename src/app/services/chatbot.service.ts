@@ -147,7 +147,7 @@ export class ChatbotService {
     });
 
     const body = {
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4.1-mini',
       messages: [
         {
           role: 'system',
