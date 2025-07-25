@@ -67,8 +67,13 @@
             (click)="toggleVoiceMode()"
             *ngIf="isVoiceModeSupported()"
             class="voice-mode-button"
-            [class.voice-mode-active]="(voiceMode$ | async)?.isActive">
-            <ion-icon [name]="(voiceMode$ | async)?.isActive ? 'mic' : 'mic-outline'" slot="icon-only"></ion-icon>
+            [class.voice-mode-active]="(voiceMode$ | async)?.isActive"
+            [class.voice-mode-listening]="(voiceMode$ | async)?.isListening">
+            <ion-icon 
+              [name]="(voiceMode$ | async)?.isActive ? 'mic' : 'mic-outline'" 
+              slot="icon-only"
+              [class.listening-pulse]="(voiceMode$ | async)?.isListening">
+            </ion-icon>
           </ion-button>
           <ion-button 
             fill="clear" 
@@ -159,37 +164,6 @@
             <ion-icon name="volume-high" slot="start"></ion-icon>
             Test Voice
           </ion-button>
-        </div>
-      </div>
-
-      <!-- Voice Mode Status Panel -->
-      <div class="voice-mode-status" *ngIf="(voiceMode$ | async)?.isActive" 
-           [class.listening]="(voiceMode$ | async)?.isListening"
-           [class.speaking]="(voiceMode$ | async)?.isSpeaking">
-        <div class="status-indicator">
-          <div class="listening-animation" *ngIf="(voiceMode$ | async)?.isListening">
-            <div class="sound-bars">
-              <div class="bar bar-1"></div>
-              <div class="bar bar-2"></div>
-              <div class="bar bar-3"></div>
-              <div class="bar bar-4"></div>
-              <div class="bar bar-5"></div>
-            </div>
-          </div>
-          <ion-icon 
-            [name]="(voiceMode$ | async)?.isListening ? 'mic' : (voiceMode$ | async)?.isSpeaking ? 'volume-high' : 'mic-outline'" 
-            class="status-icon"
-            [class.pulsing]="(voiceMode$ | async)?.isListening">
-          </ion-icon>
-        </div>
-        <div class="status-text">
-          <span *ngIf="(voiceMode$ | async)?.isListening" class="listening-text">
-            <span class="listening-dots">Listening</span><span class="dots">...</span>
-          </span>
-          <span *ngIf="(voiceMode$ | async)?.isSpeaking">AI is speaking...</span>
-          <span *ngIf="!(voiceMode$ | async)?.isListening && !(voiceMode$ | async)?.isSpeaking">
-            Voice mode active - Ready to listen
-          </span>
         </div>
       </div>
       <div class="messages-container" #messagesContainer>
