@@ -357,15 +357,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   hasMultipleTypingMessages(): boolean {
     const currentMessages = this.chatbotService.getCurrentMessages();
     const typingMessages = currentMessages.filter(m => m.isTyping);
-
-  hasMessages(): boolean {
-    const currentMessages = this.chatbotService.getCurrentMessages();
-    return currentMessages && currentMessages.length > 0;
-  }
-
-  ngOnDestroy() {
-    // Clean up speech synthesis when component is destroyed
-    this.chatbotService.stopSpeaking();
-  }
     return typingMessages.length > 1;
   }
+
+}
