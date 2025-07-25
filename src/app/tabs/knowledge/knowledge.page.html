@@ -10,8 +10,10 @@
     <!-- Search Bar -->
     <div class="search-section">
       <ion-searchbar
+        [(ngModel)]="searchTerm"
         placeholder="Search articles, tips, and guides..."
         (ionInput)="onSearchChange($event)"
+        (ionFocus)="onSearchFocus()"
         class="custom-searchbar">
       </ion-searchbar>
     </div>

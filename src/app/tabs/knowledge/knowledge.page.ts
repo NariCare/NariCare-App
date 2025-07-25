@@ -49,8 +49,18 @@ export class KnowledgePage implements OnInit {
   onSearchChange(event: any) {
     this.searchTerm = event.detail.value;
     if (this.searchTerm.length > 2) {
-      this.knowledgeService.searchArticles(this.searchTerm);
+      this.router.navigate(['/tabs/knowledge/search'], { 
+        queryParams: { q: this.searchTerm } 
+      });
+    } else if (this.searchTerm.length === 0) {
+      // Clear search when input is empty
+      this.router.navigate(['/tabs/knowledge']);
     }
+  }
+
+  onSearchFocus() {
+    // Navigate to search page when user focuses on search bar
+    this.router.navigate(['/tabs/knowledge/search']);
   }
 
   onCategorySelect(categoryId: string) {
