@@ -1,5 +1,4 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { AfterViewChecked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
@@ -12,7 +11,7 @@ import { ChatRoom } from '../../models/chat.model';
   templateUrl: './chat.page.html',
   styleUrls: ['./chat.page.scss'],
 })
-export class ChatPage implements OnInit, AfterViewChecked {
+export class ChatPage implements OnInit {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   
   selectedTab = 'groups';
@@ -30,6 +29,7 @@ export class ChatPage implements OnInit, AfterViewChecked {
   showVoiceSettings = false;
   availableVoices: SpeechSynthesisVoice[] = [];
   selectedVoiceIndex = 0;
+  isInitializing = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -290,11 +290,6 @@ export class ChatPage implements OnInit, AfterViewChecked {
     this.chatbotService.setSpeechPitch(pitch);
   }
 
-  setSpeechPitch(pitch: number): void {
-    this.speechPitch = pitch;
-    this.chatbotService.setSpeechPitch(pitch);
-  }
-
   onNaturalSpeechToggle(event: any): void {
     this.naturalSpeechEnabled = event.detail.checked;
     this.chatbotService.setNaturalSpeechEnabled(this.naturalSpeechEnabled);
@@ -364,23 +359,14 @@ export class ChatPage implements OnInit, AfterViewChecked {
     return typingMessages.length > 1;
   }
 
-  private scrollToBottom() {
-    setTimeout(() => {
-      if (this.messagesContainer) {
-        const element = this.messagesContainer.nativeElement;
-        element.scrollTop = element.scrollHeight;
-      }
-    }, 100);
-  }
-
   ngAfterViewChecked() {
     // Auto-scroll when messages change
     if (this.selectedTab === 'ai') {
       this.scrollToBottom();
     }
   }
-      return false;
-    }
+
+  hasMessages(): boolean {
     const currentMessages = this.chatbotService.getCurrentMessages();
     return currentMessages.filter(m => m.id !== 'typing').length > 0;
   }
