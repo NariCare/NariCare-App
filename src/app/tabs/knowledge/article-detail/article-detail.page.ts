@@ -78,6 +78,12 @@ export class ArticleDetailPage implements OnInit {
       ) || this.availableVoices[0] || null;
     }
   }
+
+  loadVideo(media: any) {
+    media.isLoaded = true;
+    media.safeUrl = this.getSafeVideoEmbedUrl(media.url);
+  }
+
   private checkBookmarkStatus() {
     if (this.user) {
       this.knowledgeService.getUserBookmarks(this.user.uid).subscribe(bookmarks => {

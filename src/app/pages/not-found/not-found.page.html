@@ -1,0 +1,76 @@
+<ion-content class="not-found-content">
+  <div class="not-found-container">
+    
+    <!-- 404 Illustration -->
+    <div class="illustration-section">
+      <div class="error-code">404</div>
+      <div class="error-icon">
+        <ion-icon name="search-outline"></ion-icon>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div class="message-section">
+      <h1>Page Not Found</h1>
+      <p class="error-description">
+        Oops! The page you're looking for doesn't exist or has been moved.
+      </p>
+      <p class="help-text">
+        Don't worry, let's get you back on track with your breastfeeding journey.
+      </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions-section">
+      <ion-button 
+        expand="block" 
+        (click)="goHome()"
+        class="primary-action">
+        <ion-icon name="home" slot="start"></ion-icon>
+        Go to Dashboard
+      </ion-button>
+
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        (click)="searchKnowledge()"
+        class="secondary-action">
+        <ion-icon name="library" slot="start"></ion-icon>
+        Browse Knowledge Base
+      </ion-button>
+
+      <ion-button 
+        expand="block" 
+        fill="clear" 
+        (click)="goBack()"
+        class="tertiary-action">
+        <ion-icon name="arrow-back" slot="start"></ion-icon>
+        Go Back
+      </ion-button>
+    </div>
+
+    <!-- Helpful Links -->
+    <div class="helpful-links">
+      <h3>Popular Resources</h3>
+      <div class="links-grid">
+        <div class="link-item" (click)="router.navigate(['/tabs/knowledge/category/breastfeeding-basics'])">
+          <ion-icon name="heart" class="link-icon"></ion-icon>
+          <span>Breastfeeding Basics</span>
+        </div>
+        <div class="link-item" (click)="router.navigate(['/tabs/chat'])">
+          <ion-icon name="chatbubbles" class="link-icon"></ion-icon>
+          <span>Ask AI Assistant</span>
+        </div>
+        <div class="link-item" (click)="router.navigate(['/tabs/growth'])">
+          <ion-icon name="trending-up" class="link-icon"></ion-icon>
+          <span>Track Growth</span>
+        </div>
+        <div class="link-item" (click)="router.navigate(['/tabs/profile'])">
+          <ion-icon name="person" class="link-icon"></ion-icon>
+          <span>Your Profile</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>
