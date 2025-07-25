@@ -23,7 +23,7 @@ export class ArticleSpeechControlsComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
 
   constructor(
-    protected speechService: ArticleSpeechService,
+    private speechService: ArticleSpeechService,
     private translationService: TranslationService
   ) {
     this.speechState$ = this.speechService.speechState$;
@@ -138,9 +138,5 @@ export class ArticleSpeechControlsComponent implements OnInit, OnDestroy {
 
   isSpeechSupported(): boolean {
     return this.speechService.isSpeechSupported();
-  }
-
-  getVoiceDisplayName(voice: SpeechSynthesisVoice): string {
-    return this.speechService.getVoiceDisplayName(voice);
   }
 }

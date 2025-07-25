@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { KnowledgeBaseService } from '../../services/knowledge-base.service';
 import { AuthService } from '../../services/auth.service';
-import { ArticleSpeechService } from '../../services/article-speech.service';
 import { Article, ArticleCategory } from '../../models/knowledge-base.model';
 import { User } from '../../models/user.model';
 
@@ -23,8 +22,7 @@ export class KnowledgePage implements OnInit {
   constructor(
     private knowledgeService: KnowledgeBaseService,
     private authService: AuthService,
-    private router: Router,
-    private speechService: ArticleSpeechService
+    private router: Router
   ) {
     this.categories$ = this.knowledgeService.getCategories();
     this.featuredArticles$ = this.knowledgeService.getFeaturedArticles();
