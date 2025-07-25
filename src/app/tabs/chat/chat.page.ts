@@ -373,8 +373,10 @@ export class ChatPage implements OnInit, AfterViewChecked {
 
   hasMessages(): boolean {
     const currentMessages = this.chatbotService.getCurrentMessages();
+  }
 
   ngOnDestroy() {
     // Clean up speech synthesis when component is destroyed
     this.chatbotService.stopSpeaking();
+  }
 }
