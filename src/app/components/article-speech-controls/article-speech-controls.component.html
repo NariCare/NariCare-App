@@ -74,13 +74,17 @@
   </div>
 
   <!-- Progress Indicator -->
-  <div class="progress-section" *ngIf="(speechState$ | async) as state && isCurrentArticle(state) && state.isPlaying">
-    <div class="progress-info">
-      <span class="progress-text">{{ getProgressText(state) }}</span>
-      <span class="progress-percentage">{{ state.progress | number:'1.0-0' }}%</span>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" [style.width.%]="state.progress"></div>
+  <div class="progress-section" *ngIf="speechState$ | async as state">
+    <ng-container *ngIf="isCurrentArticle(state) && state.isPlaying">
+      <div class="progress-info">
+        <span class="progress-text">{{ getProgressText(state) }}</span>
+        <span class="progress-percentage">{{ state.progress | number:'1.0-0' }}%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="state.progress"></div>
+      </div>
+    </ng-container>
+  </div>
     </div>
   </div>
 
@@ -147,7 +151,7 @@
           <ion-select-option 
             *ngFor="let voice of availableVoices" 
             [value]="voice.name">
-            {{ speechService.getVoiceDisplayName(voice) }}
+            {{ getVoiceDisplayName(voice) }}
           </ion-select-option>
         </ion-select>
       </div>
