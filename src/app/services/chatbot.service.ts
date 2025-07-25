@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { ApiKeyService } from './api-key.service';
 
 export interface ChatbotMessage {
   id: string;
@@ -64,7 +64,10 @@ export class ChatbotService {
     previousQueries: []
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private apiKeyService: ApiKeyService
+  ) {}
 
   initializeChat(userId: string, babyAge?: number): void {
     this.context = {
@@ -132,9 +135,15 @@ export class ChatbotService {
   private async getStructuredAIResponse(userQuery: string): Promise<ChatbotContent> {
     const prompt = this.buildPrompt(userQuery);
     
+    const apiKey = this.apiKeyService.getOpenAIKey();
+    if (!this.apiKeyService.isOpenAIKeyValid()) {
+      console.warn('OpenAI API key is not properly configured');
+      return this.getMockResponse(userQuery);
+    }
+    
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${environment.openaiApiKey}`
+      'Authorization': `Bearer ${apiKey}`
     });
 
     const body = {
