@@ -247,12 +247,35 @@ export class ArticleDetailPage implements OnInit {
         return url;
       }
       
-      return `https://www.youtube.com/embed/${videoId}?rel=0`;
+      return `https://www.youtube.com/embed/${videoId}?rel=0&autoplay=1`;
     }
     
     return url;
   }
 
+  getVideoThumbnail(url: string): string {
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      let videoId = '';
+      
+      if (url.includes('youtube.com/watch?v=')) {
+        videoId = url.split('v=')[1].split('&')[0];
+      } else if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1].split('?')[0];
+      }
+      
+      if (videoId) {
+        return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+      }
+    }
+    
+    // Fallback thumbnail for non-YouTube videos
+    return 'https://images.pexels.com/photos/3985062/pexels-photo-3985062.jpeg?auto=compress&cs=tinysrgb&w=800';
+  }
+
+  loadVideo(media: any): void {
+    // Mark video as loaded to show the iframe
+    media.isLoaded = true;
+  }
   onTagClick(tag: string) {
     this.router.navigate(['/tabs/knowledge/search'], { 
       queryParams: { tag: tag } 
