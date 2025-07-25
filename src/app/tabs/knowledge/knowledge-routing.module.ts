@@ -6,6 +6,18 @@ const routes: Routes = [
   {
     path: '',
     component: KnowledgePage
+  },
+  {
+    path: 'article/:id',
+    loadChildren: () => import('./article-detail/article-detail.module').then(m => m.ArticleDetailPageModule)
+  },
+  {
+    path: 'category/:id',
+    loadChildren: () => import('./category-detail/category-detail.module').then(m => m.CategoryDetailPageModule)
+  },
+  {
+    path: 'search',
+    loadChildren: () => import('./search/search.module').then(m => m.SearchPageModule)
   }
 ];
 

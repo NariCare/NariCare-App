@@ -1,0 +1,144 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Article</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="toggleBookmark()">
+        <ion-icon [name]="isBookmarked ? 'bookmark' : 'bookmark-outline'" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" (click)="shareArticle()">
+        <ion-icon name="share-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="article-container" *ngIf="article$ | async as article">
+    
+    <!-- Article Header -->
+    <div class="article-header">
+      <div class="article-meta">
+        <ion-chip [color]="getDifficultyColor(article.difficulty)" size="small">
+          {{ article.difficulty }}
+        </ion-chip>
+        <span class="read-time">{{ formatReadTime(article.readTime) }}</span>
+      </div>
+      
+      <h1 class="article-title">{{ article.title }}</h1>
+      
+      <p class="article-summary">{{ article.summary }}</p>
+      
+      <div class="article-info">
+        <div class="author-info">
+          <span class="author">By {{ article.author }}</span>
+          <span class="date">{{ article.publishedAt | date:'MMM d, y' }}</span>
+        </div>
+        <div class="category-info">
+          <ion-chip color="medium" size="small">
+            <ion-icon [name]="article.category.icon" slot="start"></ion-icon>
+            {{ article.category.name }}
+          </ion-chip>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article Content -->
+    <div class="article-content">
+      <div *ngFor="let section of article.content?.sections">
+        
+        <!-- Text Content -->
+        <p *ngIf="section.type === 'text'" class="content-text">
+          {{ section.content }}
+        </p>
+
+        <!-- Headings -->
+        <h2 *ngIf="section.type === 'heading' && section.level === 2" class="content-heading-2">
+          {{ section.content }}
+        </h2>
+        <h3 *ngIf="section.type === 'heading' && section.level === 3" class="content-heading-3">
+          {{ section.content }}
+        </h3>
+
+        <!-- Lists -->
+        <ul *ngIf="section.type === 'list' && section.style === 'bullet'" class="content-list-bullet">
+          <li *ngFor="let item of section.items">{{ item }}</li>
+        </ul>
+        <ol *ngIf="section.type === 'list' && section.style === 'numbered'" class="content-list-numbered">
+          <li *ngFor="let item of section.items">{{ item }}</li>
+        </ol>
+
+        <!-- Callouts -->
+        <div *ngIf="section.type === 'callout'" 
+             class="content-callout"
+             [class.callout-info]="section.style === 'info'"
+             [class.callout-warning]="section.style === 'warning'"
+             [class.callout-success]="section.style === 'success'"
+             [class.callout-danger]="section.style === 'danger'">
+          <div class="callout-header" *ngIf="section.title">
+            <ion-icon [name]="getCalloutIcon(section.style)"></ion-icon>
+            <h4>{{ section.title }}</h4>
+          </div>
+          <p>{{ section.content }}</p>
+        </div>
+
+        <!-- Tables -->
+        <div *ngIf="section.type === 'table'" class="content-table-wrapper">
+          <table class="content-table">
+            <thead *ngIf="section.headers">
+              <tr>
+                <th *ngFor="let header of section.headers">{{ header }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of section.rows">
+                <td *ngFor="let cell of row">{{ cell }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Media Content -->
+        <div *ngIf="section.type === 'media'" class="content-media">
+          <div *ngFor="let media of section.media" class="media-item">
+            <div class="media-thumbnail" (click)="openVideo(media.url)">
+              <img [src]="media.thumbnail" [alt]="media.title" />
+              <div class="media-play-button">
+                <ion-icon name="play"></ion-icon>
+              </div>
+            </div>
+            <div class="media-info">
+              <h4>{{ media.title }}</h4>
+              <p>{{ media.description }}</p>
+              <ion-button fill="outline" size="small" (click)="openVideo(media.url, media.title)">
+                <ion-icon name="play" slot="start"></ion-icon>
+                Watch Video
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Article Tags -->
+    <div class="article-tags" *ngIf="article.tags && article.tags.length > 0">
+      <h3>Related Topics</h3>
+      <div class="tags-list">
+        <ion-chip 
+          *ngFor="let tag of article.tags" 
+          color="light" 
+          size="small"
+          (click)="onTagClick(tag)"
+          class="clickable-tag">
+          {{ tag }}
+        </ion-chip>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage } from '../../services/chatbot.service';
 import { ChatService } from '../../services/chat.service';
@@ -19,32 +19,116 @@ export class ChatPage implements OnInit {
   chatbotMessages$: Observable<ChatbotMessage[]>;
   messageText = '';
   currentUser: any;
+  isRecording = false;
+  recognition: any;
 
   constructor(
     private route: ActivatedRoute,
     private chatbotService: ChatbotService,
     private chatService: ChatService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {
     this.chatRooms$ = this.chatService.getChatRooms();
     this.chatbotMessages$ = this.chatbotService.messages$;
+    this.initializeSpeechRecognition();
   }
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
+      
+      // Initialize chatbot if user is available and AI tab is selected
+      if (user && this.selectedTab === 'ai') {
+        this.initializeChatbot();
+      }
     });
 
     // Check if we should open AI chat directly
     this.route.queryParams.subscribe(params => {
       if (params['tab'] === 'ai') {
         this.selectedTab = 'ai';
+        if (this.currentUser) {
+          this.initializeChatbot();
+        }
       }
     });
   }
 
+  private initializeChatbot() {
+    if (this.currentUser) {
+      const babyAge = this.currentUser.babies.length > 0 ? 
+        this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
+      this.chatbotService.initializeChat(this.currentUser.uid, babyAge);
+    }
+  }
+
+  private calculateBabyAge(birthDate: Date): number {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
+  }
+
   onTabChange(event: any) {
     this.selectedTab = event.detail.value;
+    
+    // Initialize chatbot when switching to AI tab
+    if (this.selectedTab === 'ai' && this.currentUser) {
+      this.initializeChatbot();
+    }
+  }
+
+  private initializeSpeechRecognition() {
+    // Check if speech recognition is supported
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      this.recognition = new SpeechRecognition();
+      this.recognition.continuous = false;
+      this.recognition.interimResults = false;
+      this.recognition.lang = 'en-US';
+      
+      this.recognition.onstart = () => {
+        this.isRecording = true;
+      };
+      
+      this.recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        this.messageText = transcript;
+        this.isRecording = false;
+      };
+      
+      this.recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        this.isRecording = false;
+      };
+      
+      this.recognition.onend = () => {
+        this.isRecording = false;
+      };
+    }
+  }
+
+  toggleVoiceInput() {
+    if (!this.recognition) {
+      console.warn('Speech recognition not supported in this browser');
+      return;
+    }
+
+    if (this.isRecording) {
+      this.recognition.stop();
+    } else {
+      this.recognition.start();
+    }
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      if (this.messageText.trim()) {
+        this.sendMessage();
+      }
+    }
   }
 
   async sendMessage() {
@@ -58,6 +142,56 @@ export class ChatPage implements OnInit {
       this.messageText = '';
       this.scrollToBottom();
     }
+  }
+
+  async handleFollowUpAction(action: string, text: string) {
+    switch (action) {
+      case 'positioning':
+        await this.chatbotService.sendMessage('Show me different breastfeeding positions');
+        break;
+      case 'latch_problems':
+        await this.chatbotService.sendMessage('My baby won\'t latch properly, what should I do?');
+        break;
+      case 'supply_foods':
+        await this.chatbotService.sendMessage('What foods can help increase my milk supply?');
+        break;
+      case 'pumping':
+        await this.chatbotService.sendMessage('Give me tips for effective pumping');
+        break;
+      case 'knowledge_base':
+        this.router.navigate(['/tabs/knowledge']);
+        break;
+      case 'join_groups':
+        this.selectedTab = 'groups';
+        break;
+      case 'expert_help':
+        this.requestExpertHelp();
+        break;
+      default:
+        await this.chatbotService.sendMessage(text);
+    }
+    this.scrollToBottom();
+  }
+
+  formatText(text: string): string {
+    if (!text) return '';
+    
+    // Convert **bold** to <strong>
+    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Convert *italic* to <em>
+    formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Convert line breaks to <br>
+    formatted = formatted.replace(/\n/g, '<br>');
+    
+    return formatted;
+  }
+
+  parseListItems(content: string): string[] {
+    return content.split('\n')
+      .filter(line => line.trim())
+      .map(line => line.replace(/^[-•]\s*/, '').trim());
   }
 
   requestExpertHelp() {

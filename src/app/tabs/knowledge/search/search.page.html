@@ -1,0 +1,83 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Search Articles</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="clearSearch()" *ngIf="searchTerm || selectedTag">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-container">
+    
+    <!-- Search Bar -->
+    <div class="search-section">
+      <ion-searchbar
+        [(ngModel)]="searchTerm"
+        placeholder="Search articles, tips, and guides..."
+        (ionInput)="onSearchChange($event)"
+        class="custom-searchbar">
+      </ion-searchbar>
+    </div>
+
+    <!-- Active Filters -->
+    <div class="active-filters" *ngIf="selectedTag">
+      <h3>Filtering by tag:</h3>
+      <ion-chip color="primary" (click)="clearSearch()">
+        <ion-icon name="pricetag" slot="start"></ion-icon>
+        {{ selectedTag }}
+        <ion-icon name="close" slot="end"></ion-icon>
+      </ion-chip>
+    </div>
+
+    <!-- Search Results -->
+    <div class="search-results" *ngIf="searchResults$ | async as results">
+      <div class="results-header">
+        <h2>{{ results.totalCount }} article{{ results.totalCount !== 1 ? 's' : '' }} found</h2>
+      </div>
+
+      <div class="articles-list" *ngIf="results.articles.length > 0; else noResults">
+        <div 
+          *ngFor="let article of results.articles"
+          class="article-card"
+          (click)="onArticleSelect(article)">
+          <div class="article-content">
+            <div class="article-meta">
+              <ion-chip [color]="getDifficultyColor(article.difficulty)" size="small">
+                {{ article.difficulty }}
+              </ion-chip>
+              <span class="read-time">{{ formatReadTime(article.readTime) }}</span>
+            </div>
+            <h3>{{ article.title }}</h3>
+            <p>{{ article.summary }}</p>
+            <div class="article-footer">
+              <span class="category-tag">{{ article.category.name }}</span>
+              <span class="date">{{ article.publishedAt | date:'MMM d, y' }}</span>
+            </div>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="article-arrow"></ion-icon>
+        </div>
+      </div>
+
+      <ng-template #noResults>
+        <div class="no-results">
+          <ion-icon name="search"></ion-icon>
+          <h3>No articles found</h3>
+          <p *ngIf="searchTerm">Try searching with different keywords</p>
+          <p *ngIf="selectedTag">No articles found with this tag</p>
+          <ion-button fill="outline" (click)="clearSearch()">
+            Clear Search
+          </ion-button>
+        </div>
+      </ng-template>
+    </div>
+
+  </div>
+</ion-content>
