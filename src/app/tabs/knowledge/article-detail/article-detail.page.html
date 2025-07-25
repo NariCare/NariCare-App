@@ -1,16 +1,19 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="goBack()">
+      <ion-button (click)="goBack()" class="header-button">
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>Article</ion-title>
     <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="toggleBookmark()">
+      <ion-button fill="clear" (click)="toggleReading()" class="header-button" [class.button-active]="isReading">
+        <ion-icon [name]="isReading ? 'stop' : 'volume-high'" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" (click)="toggleBookmark()" class="header-button" [class.button-active]="isBookmarked">
         <ion-icon [name]="isBookmarked ? 'bookmark' : 'bookmark-outline'" slot="icon-only"></ion-icon>
       </ion-button>
-      <ion-button fill="clear" (click)="shareArticle()">
+      <ion-button fill="clear" (click)="shareArticle()" class="header-button">
         <ion-icon name="share-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -20,6 +23,43 @@
 <ion-content [fullscreen]="true">
   <div class="article-container" *ngIf="article$ | async as article">
     
+    <!-- Reading Controls -->
+    <div class="reading-controls" *ngIf="isReading">
+      <div class="reading-indicator">
+        <div class="pulse-dot"></div>
+        <span>Reading article...</span>
+      </div>
+      <div class="speed-controls">
+        <ion-button 
+          fill="clear" 
+          size="small"
+          [class.active]="readingSpeed === 0.5"
+          (click)="adjustReadingSpeed(0.5)">
+          0.5x
+        </ion-button>
+        <ion-button 
+          fill="clear" 
+          size="small"
+          [class.active]="readingSpeed === 1"
+          (click)="adjustReadingSpeed(1)">
+          1x
+        </ion-button>
+        <ion-button 
+          fill="clear" 
+          size="small"
+          [class.active]="readingSpeed === 1.5"
+          (click)="adjustReadingSpeed(1.5)">
+          1.5x
+        </ion-button>
+        <ion-button 
+          fill="clear" 
+          size="small"
+          [class.active]="readingSpeed === 2"
+          (click)="adjustReadingSpeed(2)">
+          2x
+        </ion-button>
+      </div>
+    </div>
     <!-- Article Header -->
     <div class="article-header">
       <div class="article-meta">
@@ -105,18 +145,21 @@
         <!-- Media Content -->
         <div *ngIf="section.type === 'media'" class="content-media">
           <div *ngFor="let media of section.media" class="media-item">
-            <div class="media-thumbnail" (click)="openVideo(media.url)">
-              <img [src]="media.thumbnail" [alt]="media.title" />
-              <div class="media-play-button">
-                <ion-icon name="play"></ion-icon>
-              </div>
+            <div class="video-container">
+              <iframe 
+                [src]="getVideoEmbedUrl(media.url)"
+                frameborder="0"
+                allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                class="video-iframe">
+              </iframe>
             </div>
             <div class="media-info">
               <h4>{{ media.title }}</h4>
               <p>{{ media.description }}</p>
               <ion-button fill="outline" size="small" (click)="openVideo(media.url, media.title)">
-                <ion-icon name="play" slot="start"></ion-icon>
-                Watch Video
+                <ion-icon name="open-outline" slot="start"></ion-icon>
+                Play Video
               </ion-button>
             </div>
           </div>

@@ -242,6 +242,50 @@ ion-toolbar {
   --background: linear-gradient(135deg, #e91e63 0%, #f06292 100%);
   --color: #ffffff;
   --border-width: 0;
+
+  /* Make header buttons more prominent */
+  ion-button {
+    --color: #ffffff;
+    --color-hover: #f8f9fa;
+    --background-hover: rgba(255, 255, 255, 0.1);
+    --border-radius: 8px;
+    // --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0 2px;
+    font-weight: 500;
+    
+    ion-icon {
+      font-size: 1.3rem;
+      color: #ffffff;
+    }
+    
+    &:hover {
+      --background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+      --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    &:active {
+      transform: translateY(0);
+      --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Special styling for active states */
+    &.button-active {
+      --background: rgba(255, 255, 255, 0.2);
+      --color: #ffffff;
+      
+      ion-icon {
+        color: #ffffff;
+      }
+    }
+  }
+  
+  /* Title styling to ensure it remains visible */
+  ion-title {
+    --color: #ffffff;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
 }
 
 /* Responsive Design Helpers */

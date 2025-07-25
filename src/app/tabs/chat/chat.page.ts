@@ -1,7 +1,8 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { AfterViewChecked, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { ChatbotService, ChatbotMessage } from '../../services/chatbot.service';
+import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { ChatRoom } from '../../models/chat.model';
@@ -11,16 +12,25 @@ import { ChatRoom } from '../../models/chat.model';
   templateUrl: './chat.page.html',
   styleUrls: ['./chat.page.scss'],
 })
-export class ChatPage implements OnInit {
+export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   
   selectedTab = 'groups';
   chatRooms$: Observable<ChatRoom[]>;
   chatbotMessages$: Observable<ChatbotMessage[]>;
+  voiceMode$: Observable<VoiceMode>;
   messageText = '';
   currentUser: any;
   isRecording = false;
   recognition: any;
+  autoSpeakEnabled = false;
+  speechRate = 1;
+  speechPitch = 1;
+  naturalSpeechEnabled = true;
+  showVoiceSettings = false;
+  availableVoices: SpeechSynthesisVoice[] = [];
+  selectedVoiceIndex = 0;
+  isInitializing = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -31,6 +41,7 @@ export class ChatPage implements OnInit {
   ) {
     this.chatRooms$ = this.chatService.getChatRooms();
     this.chatbotMessages$ = this.chatbotService.messages$;
+    this.voiceMode$ = this.chatbotService.voiceMode$;
     this.initializeSpeechRecognition();
   }
 
@@ -44,6 +55,12 @@ export class ChatPage implements OnInit {
       }
     });
 
+    // Auto-scroll when new messages arrive
+    this.chatbotMessages$.subscribe(messages => {
+      if (messages && messages.length > 0) {
+        this.scrollToBottom();
+      }
+    });
     // Check if we should open AI chat directly
     this.route.queryParams.subscribe(params => {
       if (params['tab'] === 'ai') {
@@ -53,13 +70,50 @@ export class ChatPage implements OnInit {
         }
       }
     });
+
+    // Initialize speech rate from service
+    this.speechRate = this.chatbotService.getSpeechRate();
+    this.speechPitch = this.chatbotService.getSpeechPitch();
+    this.naturalSpeechEnabled = this.chatbotService.getNaturalSpeechEnabled();
+    
+    // Load available voices
+    this.loadAvailableVoices();
+  }
+
+  private loadAvailableVoices() {
+    // Load voices immediately if available
+    this.availableVoices = this.chatbotService.getVoicesByLanguage('en');
+    
+    // Set initial selected voice index
+    const currentVoice = this.chatbotService.getSelectedVoice();
+    if (currentVoice) {
+      this.selectedVoiceIndex = this.availableVoices.findIndex(v => v.name === currentVoice.name);
+      if (this.selectedVoiceIndex === -1) this.selectedVoiceIndex = 0;
+    }
+    
+    // Some browsers load voices asynchronously
+    if (this.availableVoices.length === 0 && 'speechSynthesis' in window) {
+      setTimeout(() => {
+        this.availableVoices = this.chatbotService.getVoicesByLanguage('en');
+        if (this.availableVoices.length > 0 && currentVoice) {
+          this.selectedVoiceIndex = this.availableVoices.findIndex(v => v.name === currentVoice.name);
+          if (this.selectedVoiceIndex === -1) this.selectedVoiceIndex = 0;
+        }
+      }, 1000);
+    }
   }
 
   private initializeChatbot() {
     if (this.currentUser) {
+      this.isInitializing = true;
       const babyAge = this.currentUser.babies.length > 0 ? 
         this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
       this.chatbotService.initializeChat(this.currentUser.uid, babyAge);
+      
+      // Hide loading state after initialization
+      setTimeout(() => {
+        this.isInitializing = false;
+      }, 1500);
     }
   }
 
@@ -135,12 +189,12 @@ export class ChatPage implements OnInit {
     if (this.messageText.trim()) {
       if (this.selectedTab === 'ai') {
         await this.chatbotService.sendMessage(this.messageText);
+        this.scrollToBottom();
       } else {
         // Handle group chat message
         console.log('Sending group message:', this.messageText);
       }
       this.messageText = '';
-      this.scrollToBottom();
     }
   }
 
@@ -209,7 +263,7 @@ export class ChatPage implements OnInit {
       if (this.messagesContainer) {
         this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
       }
-    }, 100);
+    }, 300);
   }
 
   getMessageTime(timestamp: Date): string {
@@ -224,5 +278,97 @@ export class ChatPage implements OnInit {
       case 'sleep': return 'moon';
       default: return 'chatbubbles';
     }
+  }
+
+  // Voice chat methods
+  setSpeechRate(rate: number): void {
+    this.speechRate = rate;
+    this.chatbotService.setSpeechRate(rate);
+  }
+
+  setSpeechPitch(pitch: number): void {
+    this.speechPitch = pitch;
+    this.chatbotService.setSpeechPitch(pitch);
+  }
+
+  onNaturalSpeechToggle(event: any): void {
+    this.naturalSpeechEnabled = event.detail.checked;
+    this.chatbotService.setNaturalSpeechEnabled(this.naturalSpeechEnabled);
+  }
+
+  toggleVoiceSettings(): void {
+    this.showVoiceSettings = !this.showVoiceSettings;
+    
+    // Prevent body scroll when modal is open
+    if (this.showVoiceSettings) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+
+  onAutoSpeakToggle(event: any): void {
+    this.autoSpeakEnabled = event.detail.checked;
+    this.chatbotService.setAutoSpeakEnabled(this.autoSpeakEnabled);
+  }
+
+  toggleMessageSpeech(messageId: string, content: string): void {
+    this.chatbotService.toggleMessageSpeech(messageId, content);
+  }
+
+  isSpeechSupported(): boolean {
+    return this.chatbotService.isSpeechSupported();
+  }
+
+  // Voice Mode Methods
+  toggleVoiceMode(): void {
+    this.chatbotService.toggleVoiceMode();
+  }
+
+  isVoiceModeSupported(): boolean {
+    return this.chatbotService.isVoiceModeSupported();
+  }
+
+  // Voice selection methods
+  onVoiceSelectionChange(event: any): void {
+    const selectedIndex = parseInt(event.detail.value);
+    this.selectedVoiceIndex = selectedIndex;
+    
+    if (this.availableVoices[selectedIndex]) {
+      this.chatbotService.setSelectedVoice(this.availableVoices[selectedIndex]);
+      
+      // Save preference to localStorage
+      localStorage.setItem('selectedVoiceIndex', selectedIndex.toString());
+    }
+  }
+
+  getVoiceDisplayName(voice: SpeechSynthesisVoice): string {
+    return this.chatbotService.getVoiceDisplayName(voice);
+  }
+
+  testSelectedVoice(): void {
+    const testText = this.chatbotService.getNaturalSpeechEnabled() ? 
+      "Hi there! I'm your AI lactation assistant. I'm here to support you on your breastfeeding journey with gentle, caring guidance. How does my voice sound to you?" :
+      "Hello! This is how I sound. I'm here to help you with breastfeeding questions.";
+    this.chatbotService.speakMessage('test-voice', testText);
+  }
+
+  hasMultipleTypingMessages(): boolean {
+    const currentMessages = this.chatbotService.getCurrentMessages();
+    const typingMessages = currentMessages.filter(m => m.isTyping);
+    return typingMessages.length > 1;
+  }
+
+  hasMessages(): boolean {
+    const currentMessages = this.chatbotService.getCurrentMessages();
+    return currentMessages && currentMessages.length > 0;
+  }
+
+  ngAfterViewChecked() {
+  }
+
+  ngOnDestroy() {
+    // Clean up speech synthesis when component is destroyed
+    this.chatbotService.stopSpeaking();
   }
 }

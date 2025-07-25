@@ -11,6 +11,8 @@ export interface ChatbotMessage {
   timestamp: Date;
   isTyping?: boolean;
   followUpOptions?: FollowUpOption[];
+  isPlaying?: boolean;
+  audioUrl?: string;
 }
 
 export interface ChatbotContent {
@@ -52,6 +54,13 @@ export interface ChatbotContext {
   currentTopic?: string;
 }
 
+export interface VoiceMode {
+  isActive: boolean;
+  isListening: boolean;
+  isSpeaking: boolean;
+  autoListen: boolean;
+  conversationFlow: boolean;
+}
 @Injectable({
   providedIn: 'root'
 })
@@ -64,10 +73,132 @@ export class ChatbotService {
     previousQueries: []
   };
 
+  // Voice mode state
+  private voiceModeSubject = new BehaviorSubject<VoiceMode>({
+    isActive: false,
+    isListening: false,
+    isSpeaking: false,
+    autoListen: true,
+    conversationFlow: true
+  });
+  public voiceMode$ = this.voiceModeSubject.asObservable();
+  // Speech synthesis properties
+  private speechSynthesis: SpeechSynthesis | null = null;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
+  private selectedVoice: SpeechSynthesisVoice | null = null;
+  private availableVoices: SpeechSynthesisVoice[] = [];
+  private speechRate = 1;
+  private speechPitch = 1;
+  private naturalSpeechEnabled = true;
+  private autoSpeakEnabled = false;
+
+  // Speech recognition properties
+  private recognition: any = null;
+  private isRecognitionActive = false;
+  private silenceTimer: any = null;
+  private voiceModeTimeout: any = null;
   constructor(
     private http: HttpClient,
     private apiKeyService: ApiKeyService
-  ) {}
+  ) {
+    this.initializeSpeechSynthesis();
+    this.initializeSpeechRecognition();
+    
+    // Load saved preferences
+    const savedRate = localStorage.getItem('speechRate');
+    if (savedRate) {
+      this.speechRate = parseFloat(savedRate);
+    }
+    
+    const savedPitch = localStorage.getItem('speechPitch');
+    if (savedPitch) {
+      this.speechPitch = parseFloat(savedPitch);
+    }
+    
+    const savedNaturalSpeech = localStorage.getItem('naturalSpeechEnabled');
+    if (savedNaturalSpeech !== null) {
+      this.naturalSpeechEnabled = savedNaturalSpeech === 'true';
+    }
+    
+    const savedAutoSpeak = localStorage.getItem('autoSpeakEnabled');
+    if (savedAutoSpeak !== null) {
+      this.autoSpeakEnabled = savedAutoSpeak === 'true';
+    }
+  }
+
+  private initializeSpeechSynthesis() {
+    if ('speechSynthesis' in window) {
+      this.speechSynthesis = window.speechSynthesis;
+      
+      // Load voices
+      this.loadVoices();
+      
+      // Some browsers load voices asynchronously
+      if (this.speechSynthesis.onvoiceschanged !== undefined) {
+        this.speechSynthesis.onvoiceschanged = () => {
+          this.loadVoices();
+        };
+      }
+    }
+  }
+
+  private initializeSpeechRecognition() {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      this.recognition = new SpeechRecognition();
+      this.recognition.continuous = true;
+      this.recognition.interimResults = true;
+      this.recognition.lang = 'en-US';
+      this.recognition.maxAlternatives = 1;
+      
+      this.recognition.onstart = () => {
+        this.updateVoiceMode({ isListening: true });
+        console.log('Voice recognition started');
+      };
+      
+      this.recognition.onresult = (event: any) => {
+        this.handleSpeechResult(event);
+      };
+      
+      this.recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        this.updateVoiceMode({ isListening: false });
+        
+        // Auto-restart if in voice mode and error is not fatal, and AI is not speaking
+        if (this.voiceModeSubject.value.isActive && 
+            event.error !== 'not-allowed' && 
+            !this.voiceModeSubject.value.isSpeaking) {
+          setTimeout(() => this.startListening(), 1000);
+        }
+      };
+      
+      this.recognition.onend = () => {
+        this.updateVoiceMode({ isListening: false });
+        console.log('Speech recognition ended');
+        
+        // Auto-restart listening if voice mode is active, not manually stopped, and AI is not speaking
+        if (this.voiceModeSubject.value.isActive && 
+            this.isRecognitionActive && 
+            !this.voiceModeSubject.value.isSpeaking) {
+          setTimeout(() => this.startListening(), 500);
+        }
+      };
+    }
+  }
+
+  private loadVoices() {
+    if (this.speechSynthesis) {
+      this.availableVoices = this.speechSynthesis.getVoices();
+      
+      // Prefer high-quality, natural-sounding voices
+      this.selectedVoice = this.findBestVoice() || this.availableVoices[0] || null;
+      
+      // Set more natural default settings
+      this.speechRate = 0.9; // Slightly slower for more natural feel
+      this.speechPitch = 0.95; // Slightly lower pitch for warmth
+    }
+  }
 
   initializeChat(userId: string, babyAge?: number): void {
     this.context = {
@@ -97,21 +228,24 @@ export class ChatbotService {
     const currentMessages = this.messagesSubject.value;
     this.messagesSubject.next([...currentMessages, userMessage]);
 
-    // Show typing indicator
-    const typingMessage: ChatbotMessage = {
-      id: 'typing',
-      content: 'Thinking...',
-      sender: 'bot',
-      timestamp: new Date(),
-      isTyping: true
-    };
-    this.messagesSubject.next([...this.messagesSubject.value, typingMessage]);
+    // Show typing indicator only if one doesn't already exist
+    const hasTypingIndicator = this.messagesSubject.value.some(m => m.isTyping);
+    if (!hasTypingIndicator) {
+      const typingMessage: ChatbotMessage = {
+        id: 'typing-' + Date.now(),
+        content: 'Thinking...',
+        sender: 'bot',
+        timestamp: new Date(),
+        isTyping: true
+      };
+      this.messagesSubject.next([...this.messagesSubject.value, typingMessage]);
+    }
 
     try {
       const response = await this.getStructuredAIResponse(content);
       
-      // Remove typing indicator
-      const messagesWithoutTyping = this.messagesSubject.value.filter(m => m.id !== 'typing');
+      // Remove all typing indicators
+      const messagesWithoutTyping = this.messagesSubject.value.filter(m => !m.isTyping);
       
       const botResponse: ChatbotMessage = {
         id: this.generateId(),
@@ -119,17 +253,92 @@ export class ChatbotService {
         formattedContent: response,
         sender: 'bot',
         timestamp: new Date(),
-        followUpOptions: this.generateFollowUpOptions(content)
+        followUpOptions: this.generateFollowUpOptions(content),
+        isPlaying: false
       };
 
       this.messagesSubject.next([...messagesWithoutTyping, botResponse]);
       this.context.previousQueries.push(content);
+      
+      // Auto-speak bot response only if auto-speak is enabled
+      if (this.autoSpeakEnabled) {
+        setTimeout(() => {
+          this.speakMessage(botResponse.id, response.text);
+        }, 800);
+      }
     } catch (error) {
       console.error('Error getting AI response:', error);
       this.handleAIError();
     }
   }
 
+  private handleSpeechResult(event: any) {
+    // Don't process speech if AI is speaking
+    if (this.voiceModeSubject.value.isSpeaking) {
+      console.log('Ignoring speech input - AI is speaking');
+      return;
+    }
+    
+    let finalTranscript = '';
+    let interimTranscript = '';
+    
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript;
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+    
+    // Clear any existing silence timer
+    if (this.silenceTimer) {
+      clearTimeout(this.silenceTimer);
+    }
+    
+    // If we have a final result, process it
+    if (finalTranscript.trim()) {
+      console.log('Final transcript received:', finalTranscript.trim());
+      this.processFinalTranscript(finalTranscript.trim());
+    }
+    
+    // Set a timer to detect end of speech
+    if (interimTranscript.trim() || finalTranscript.trim()) {
+      this.silenceTimer = setTimeout(() => {
+        if (interimTranscript.trim() && !finalTranscript.trim()) {
+          console.log('Processing interim transcript after silence:', interimTranscript.trim());
+          this.processFinalTranscript(interimTranscript.trim());
+        }
+      }, 2500); // Increased to 2.5 seconds of silence for better accuracy
+    }
+  }
+  
+  private async processFinalTranscript(transcript: string) {
+    if (transcript.length < 3) {
+      console.log('Ignoring short utterance:', transcript);
+      return; // Ignore very short utterances
+    }
+    
+    // Check if transcript contains common AI speech patterns to avoid feedback
+    const aiPhrases = ['here to help', 'breastfeeding', 'lactation', 'baby care', 'milk supply'];
+    const isLikelyAIFeedback = aiPhrases.some(phrase => 
+      transcript.toLowerCase().includes(phrase.toLowerCase())
+    );
+    
+    if (isLikelyAIFeedback && transcript.length > 20) {
+      console.log('Possible AI feedback detected, ignoring:', transcript);
+      return;
+    }
+    
+    console.log('Processing voice input:', transcript);
+    
+    // Stop listening temporarily while processing
+    this.stopListening();
+    
+    // Send the message
+    await this.sendMessage(transcript);
+  }
   private async getAIResponse(userQuery: string): Promise<any> {
   }
   private async getStructuredAIResponse(userQuery: string): Promise<ChatbotContent> {
@@ -347,16 +556,148 @@ export class ChatbotService {
   }
 
   private handleAIError(): void {
-    const messagesWithoutTyping = this.messagesSubject.value.filter(m => m.id !== 'typing');
+    // Remove all typing indicators
+    const messagesWithoutTyping = this.messagesSubject.value.filter(m => !m.isTyping);
     
     const errorMessage: ChatbotMessage = {
       id: this.generateId(),
       content: "I'm having trouble processing your question right now. Would you like me to connect you with one of our lactation experts for personalized help?",
       sender: 'bot',
-      timestamp: new Date()
+      timestamp: new Date(),
+      isPlaying: false
     };
 
     this.messagesSubject.next([...messagesWithoutTyping, errorMessage]);
+    
+    // Speak error message
+    setTimeout(() => {
+      this.speakMessage(errorMessage.id, errorMessage.content);
+    }, 500);
+  }
+
+  // Voice Mode Methods
+  toggleVoiceMode(): void {
+    const currentMode = this.voiceModeSubject.value;
+    
+    if (currentMode.isActive) {
+      this.deactivateVoiceMode();
+    } else {
+      this.activateVoiceMode();
+    }
+  }
+  
+  activateVoiceMode(): void {
+    if (!this.recognition) {
+      console.warn('Speech recognition not supported');
+      return;
+    }
+    
+    // Stop any current speech before activating voice mode
+    this.stopSpeaking();
+    
+    this.updateVoiceMode({ 
+      isActive: true,
+      autoListen: true,
+      conversationFlow: true
+    });
+    
+    // Add welcome message for voice mode
+    const welcomeMessage: ChatbotMessage = {
+      id: this.generateId(),
+      content: "Voice mode activated! I'm listening. You can speak naturally and I'll respond with voice. Say 'stop voice mode' to exit.",
+      sender: 'bot',
+      timestamp: new Date(),
+      isPlaying: false
+    };
+    
+    this.messagesSubject.next([...this.messagesSubject.value, welcomeMessage]);
+    
+    // Speak the welcome message
+    setTimeout(() => {
+      this.speakMessage(welcomeMessage.id, welcomeMessage.content).then(() => {
+        // Start listening after welcome message is spoken
+        setTimeout(() => {
+          this.startListening();
+        }, 1000);
+      });
+    }, 500);
+  }
+  
+  deactivateVoiceMode(): void {
+    this.updateVoiceMode({ 
+      isActive: false,
+      isListening: false,
+      isSpeaking: false
+    });
+    
+    this.stopListening();
+    this.stopSpeaking();
+    
+    // Clear any timers
+    if (this.silenceTimer) {
+      clearTimeout(this.silenceTimer);
+    }
+    if (this.voiceModeTimeout) {
+      clearTimeout(this.voiceModeTimeout);
+    }
+  }
+  
+  startListening(): void {
+    if (!this.recognition || !this.voiceModeSubject.value.isActive) return;
+    
+    // Don't start listening if AI is currently speaking
+    if (this.voiceModeSubject.value.isSpeaking) {
+      console.log('Cannot start listening - AI is speaking');
+      return;
+    }
+    
+    // Additional check to ensure speech synthesis is not active
+    if (this.speechSynthesis && this.speechSynthesis.speaking) {
+      console.log('Cannot start listening - Speech synthesis is active');
+      setTimeout(() => {
+        this.startListening();
+      }, 500);
+      return;
+    }
+
+    try {
+      this.isRecognitionActive = true;
+      console.log('Starting speech recognition...');
+      this.recognition.start();
+    } catch (error) {
+      console.error('Error starting speech recognition:', error);
+      // Retry after a short delay if recognition fails to start
+      if (this.voiceModeSubject.value.isActive) {
+        setTimeout(() => {
+          this.startListening();
+        }, 1000);
+      }
+    }
+  }
+  
+  stopListening(): void {
+    if (!this.recognition) return;
+    
+    try {
+      this.isRecognitionActive = false;
+      console.log('Stopping speech recognition...');
+      this.recognition.stop();
+    } catch (error) {
+      console.error('Error stopping speech recognition:', error);
+    }
+  }
+  
+  private updateVoiceMode(updates: Partial<VoiceMode>): void {
+    const currentMode = this.voiceModeSubject.value;
+    this.voiceModeSubject.next({ ...currentMode, ...updates });
+  }
+  
+  getVoiceMode(): VoiceMode {
+    return this.voiceModeSubject.value;
+  }
+  
+  isVoiceModeSupported(): boolean {
+    return !!(this.recognition && this.speechSynthesis);
   }
 
   requestExpertHelp(): void {
@@ -364,15 +705,338 @@ export class ChatbotService {
       id: this.generateId(),
       content: "I've connected you with our expert team. They'll be with you shortly to provide personalized assistance.",
       sender: 'bot',
-      timestamp: new Date()
+      timestamp: new Date(),
+      isPlaying: false
     };
 
     this.messagesSubject.next([...this.messagesSubject.value, expertMessage]);
+    
+    // Speak expert help message
+    setTimeout(() => {
+      this.speakMessage(expertMessage.id, expertMessage.content);
+    }, 500);
   }
 
+  // Voice chat methods
+  async speakMessage(messageId: string, text: string): Promise<void> {
+    if (!this.speechSynthesis || !this.selectedVoice) {
+      console.warn('Speech synthesis not available');
+      return;
+    }
+
+    // Stop listening while speaking to prevent feedback loop
+    const wasListening = this.voiceModeSubject.value.isListening;
+    if (wasListening) {
+      this.stopListening();
+    }
+
+    // Stop any current speech
+    this.stopSpeaking();
+
+    // Clean text for better speech
+    const cleanText = this.cleanTextForSpeech(text);
+    
+    this.currentUtterance = new SpeechSynthesisUtterance(cleanText);
+    this.currentUtterance.voice = this.selectedVoice;
+    this.currentUtterance.rate = this.speechRate;
+    this.currentUtterance.pitch = this.speechPitch;
+    this.currentUtterance.volume = 1;
+
+    // Update message playing state
+    this.updateMessagePlayingState(messageId, true);
+    this.updateVoiceMode({ isSpeaking: true });
+
+    this.currentUtterance.onstart = () => {
+      this.updateMessagePlayingState(messageId, true);
+      this.updateVoiceMode({ isSpeaking: true });
+      console.log('AI started speaking - listening disabled');
+    };
+
+    this.currentUtterance.onend = () => {
+      this.updateMessagePlayingState(messageId, false);
+      this.updateVoiceMode({ isSpeaking: false });
+      this.currentUtterance = null;
+      console.log('AI finished speaking');
+      
+      // Auto-resume listening in voice mode after speaking
+      if (this.voiceModeSubject.value.isActive && this.voiceModeSubject.value.autoListen) {
+        console.log('Resuming listening after AI speech...');
+        setTimeout(() => {
+          this.startListening();
+        }, 1500); // Increased delay to ensure speech has fully stopped
+      }
+    };
+
+    this.currentUtterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
+      this.updateMessagePlayingState(messageId, false);
+      this.updateVoiceMode({ isSpeaking: false });
+      this.currentUtterance = null;
+      
+      // Resume listening even after error if in voice mode
+      if (this.voiceModeSubject.value.isActive && this.voiceModeSubject.value.autoListen) {
+        setTimeout(() => {
+          this.startListening();
+        }, 1000);
+      }
+    };
+
+    this.speechSynthesis.speak(this.currentUtterance);
+  }
+
+  stopSpeaking(): void {
+    if (this.speechSynthesis && this.currentUtterance) {
+      this.speechSynthesis.cancel();
+      
+      // Update all messages to not playing
+      const messages = this.messagesSubject.value.map(msg => ({
+        ...msg,
+        isPlaying: false
+      }));
+      this.messagesSubject.next(messages);
+      
+      this.updateVoiceMode({ isSpeaking: false });
+      this.currentUtterance = null;
+      console.log('Speech stopped manually');
+    }
+  }
+
+  toggleMessageSpeech(messageId: string, text: string): void {
+    const message = this.messagesSubject.value.find(m => m.id === messageId);
+    if (message?.isPlaying) {
+      this.stopSpeaking();
+    } else {
+      this.speakMessage(messageId, text);
+    }
+  }
+
+  private updateMessagePlayingState(messageId: string, isPlaying: boolean): void {
+    const messages = this.messagesSubject.value.map(msg => ({
+      ...msg,
+      isPlaying: msg.id === messageId ? isPlaying : false
+    }));
+    this.messagesSubject.next(messages);
+  }
+
+  private cleanTextForSpeech(text: string): string {
+    if (!this.naturalSpeechEnabled) {
+      // Basic cleaning only
+      let cleaned = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
+      cleaned = cleaned.replace(/\*(.*?)\*/g, '$1'); // Italic
+      cleaned = cleaned.replace(/#{1,6}\s/g, ''); // Headers
+      cleaned = cleaned.replace(/[-•]\s/g, ''); // Bullet points
+      cleaned = cleaned.replace(/\n+/g, ' '); // Line breaks to spaces
+      cleaned = cleaned.replace(/\s+/g, ' '); // Multiple spaces
+      return cleaned.trim();
+    }
+    
+    // Remove markdown formatting
+    let cleaned = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
+    cleaned = cleaned.replace(/\*(.*?)\*/g, '$1'); // Italic
+    cleaned = cleaned.replace(/#{1,6}\s/g, ''); // Headers
+    cleaned = cleaned.replace(/[-•]\s/g, ''); // Bullet points
+    cleaned = cleaned.replace(/\n+/g, ', '); // Line breaks to natural pauses
+    cleaned = cleaned.replace(/\s+/g, ' '); // Multiple spaces
+    cleaned = cleaned.trim();
+    
+    // Add more natural pauses and breathing
+    cleaned = cleaned.replace(/([.!?])\s/g, '$1, '); // Natural pause after sentences
+    cleaned = cleaned.replace(/:\s/g, ': '); // Pause after colons
+    cleaned = cleaned.replace(/;\s/g, ', '); // Convert semicolons to commas
+    
+    // Make numbers more natural
+    cleaned = cleaned.replace(/\b(\d+)\s*-\s*(\d+)\b/g, '$1 to $2'); // "8-12" becomes "8 to 12"
+    cleaned = cleaned.replace(/\b(\d+)x\b/g, '$1 times'); // "8x" becomes "8 times"
+    
+    // Replace abbreviations with full words for better pronunciation
+    cleaned = cleaned.replace(/\be\.g\.\s*/gi, 'for example, ');
+    cleaned = cleaned.replace(/\bi\.e\.\s*/gi, 'that is, ');
+    cleaned = cleaned.replace(/\betc\.\s*/gi, 'and so on, ');
+    cleaned = cleaned.replace(/\bvs\.\s*/gi, 'versus ');
+    
+    return cleaned;
+  }
+
+  // Voice settings
+  setSpeechRate(rate: number): void {
+    this.speechRate = Math.max(0.5, Math.min(2, rate));
+    localStorage.setItem('speechRate', this.speechRate.toString());
+  }
+
+  setSpeechPitch(pitch: number): void {
+    this.speechPitch = Math.max(0.5, Math.min(2, pitch));
+    localStorage.setItem('speechPitch', this.speechPitch.toString());
+  }
+
+  setNaturalSpeechEnabled(enabled: boolean): void {
+    this.naturalSpeechEnabled = enabled;
+    localStorage.setItem('naturalSpeechEnabled', enabled.toString());
+  }
+
+  getNaturalSpeechEnabled(): boolean {
+    return this.naturalSpeechEnabled;
+  }
+
+  setAutoSpeakEnabled(enabled: boolean): void {
+    this.autoSpeakEnabled = enabled;
+    localStorage.setItem('autoSpeakEnabled', enabled.toString());
+  }
+
+  getAutoSpeakEnabled(): boolean {
+    return this.autoSpeakEnabled;
+  }
+
+  getSpeechRate(): number {
+    return this.speechRate;
+  }
+
+  getSpeechPitch(): number {
+    return this.speechPitch;
+  }
+
+  getAvailableVoices(): SpeechSynthesisVoice[] {
+    return this.availableVoices;
+  }
+
+  setSelectedVoice(voice: SpeechSynthesisVoice): void {
+    this.selectedVoice = voice;
+  }
+
+  getSelectedVoice(): SpeechSynthesisVoice | null {
+    return this.selectedVoice;
+  }
+
+  getCurrentMessages(): ChatbotMessage[] {
+    return this.messagesSubject.value;
+  }
+
+  hasMultipleTypingMessages(): boolean {
+    const currentMessages = this.messagesSubject.value;
+    const typingMessages = currentMessages.filter(m => m.isTyping);
+    return typingMessages.length > 1;
+  }
+
+  // Method to get voices filtered by language
+  getVoicesByLanguage(language: string = 'en'): SpeechSynthesisVoice[] {
+    return this.availableVoices.filter(voice => 
+      voice.lang.toLowerCase().startsWith(language.toLowerCase())
+    );
+  }
+
+  // Method to get voice display name
+  getVoiceDisplayName(voice: SpeechSynthesisVoice): string {
+    // Clean up voice names for better display
+    let name = voice.name;
+    
+    // Remove common prefixes
+    name = name.replace(/^(Microsoft|Google|Apple)\s+/, '');
+    
+    // Add quality and gender indicators
+    const quality = this.getVoiceQuality(voice);
+    const gender = this.getVoiceGender(voice);
+    
+    let suffix = '';
+    if (quality === 'premium') {
+      suffix += ' ⭐ Premium';
+    } else if (quality === 'enhanced') {
+      suffix += ' ✨ Enhanced';
+    }
+    
+    if (gender) {
+      suffix += ` (${gender})`;
+    }
+    
+    return name + suffix;
+  }
+
+  private findBestVoice(): SpeechSynthesisVoice | null {
+    const englishVoices = this.availableVoices.filter(voice => 
+      voice.lang.toLowerCase().startsWith('en')
+    );
+    
+    if (englishVoices.length === 0) return null;
+    
+    // Priority order for natural-sounding voices
+    const preferredVoices = [
+      // iOS/macOS high-quality voices
+      'Samantha', 'Alex', 'Victoria', 'Allison', 'Ava', 'Susan', 'Zoe',
+      // Google high-quality voices
+      'Google UK English Female', 'Google US English', 'Google UK English Male',
+      // Microsoft enhanced voices
+      'Microsoft Zira', 'Microsoft David', 'Microsoft Mark', 'Microsoft Hazel',
+      // Chrome OS voices
+      'Chrome OS US English Female', 'Chrome OS UK English Female'
+    ];
+    
+    // First, try to find a preferred high-quality voice
+    for (const preferredName of preferredVoices) {
+      const voice = englishVoices.find(v => 
+        v.name.includes(preferredName) || 
+        v.name.toLowerCase().includes(preferredName.toLowerCase())
+      );
+      if (voice) return voice;
+    }
+    
+    // Fallback: find any female voice (generally more nurturing for healthcare)
+    const femaleVoice = englishVoices.find(voice => 
+      this.getVoiceGender(voice) === 'Female'
+    );
+    if (femaleVoice) return femaleVoice;
+    
+    // Final fallback: any English voice
+    return englishVoices[0];
+  }
+
+  private getVoiceQuality(voice: SpeechSynthesisVoice): 'premium' | 'enhanced' | 'standard' {
+    const name = voice.name.toLowerCase();
+    
+    // Premium voices (highest quality)
+    if (name.includes('neural') || 
+        name.includes('premium') || 
+        name.includes('enhanced') ||
+        ['samantha', 'alex', 'victoria', 'allison', 'ava'].some(n => name.includes(n))) {
+      return 'premium';
+    }
+    
+    // Enhanced voices (good quality)
+    if (name.includes('google') || 
+        name.includes('microsoft') || 
+        name.includes('chrome os') ||
+        name.includes('zira') || 
+        name.includes('david') || 
+        name.includes('hazel')) {
+      return 'enhanced';
+    }
+    
+    return 'standard';
+  }
+
+  private getVoiceGender(voice: SpeechSynthesisVoice): string {
+    const name = voice.name.toLowerCase();
+    
+    // Female voice indicators
+    if (name.includes('female') || 
+        ['samantha', 'karen', 'susan', 'victoria', 'allison', 'ava', 'zoe', 'zira', 'hazel', 'heather'].some(n => name.includes(n))) {
+      return 'Female';
+    }
+    
+    // Male voice indicators
+    if (name.includes('male') || 
+        ['alex', 'daniel', 'tom', 'fred', 'david', 'mark', 'james'].some(n => name.includes(n))) {
+      return 'Male';
+    }
+    
+    return '';
+  }
+
+  isSpeechSupported(): boolean {
+    return !!this.speechSynthesis;
+  }
   clearChat(): void {
     this.messagesSubject.next([]);
     this.context.previousQueries = [];
+    this.stopSpeaking();
+    this.deactivateVoiceMode();
   }
 
   private generateId(): string {
