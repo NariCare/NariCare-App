@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Observable } from 'rxjs';
 import { KnowledgeBaseService } from '../../../services/knowledge-base.service';
 import { AuthService } from '../../../services/auth.service';
@@ -28,6 +29,7 @@ export class ArticleDetailPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private sanitizer: DomSanitizer,
     private knowledgeService: KnowledgeBaseService,
     private authService: AuthService,
     private modalController: ModalController,
@@ -235,7 +237,7 @@ export class ArticleDetailPage implements OnInit {
     return `${minutes} min read`;
   }
 
-  getVideoEmbedUrl(url: string): string {
+  getVideoEmbedUrl(url: string): SafeResourceUrl {
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
       let videoId = '';
       
@@ -244,13 +246,14 @@ export class ArticleDetailPage implements OnInit {
       } else if (url.includes('youtu.be/')) {
         videoId = url.split('youtu.be/')[1].split('?')[0];
       } else if (url.includes('youtube.com/embed/')) {
-        return url;
+        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
       }
       
-      return `https://www.youtube.com/embed/${videoId}?rel=0&autoplay=1`;
+      const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&autoplay=1`;
+      return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
     }
     
-    return url;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   getVideoThumbnail(url: string): string {
