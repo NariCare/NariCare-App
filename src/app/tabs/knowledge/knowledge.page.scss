@@ -211,38 +211,6 @@
   flex-shrink: 0;
 }
 
-.mini-speech-controls {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 10;
-}
-
-.mini-speech-button {
-  --color: #94a3b8;
-  --background: rgba(255, 255, 255, 0.9);
-  --border-radius: 50%;
-  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 32px;
-  height: 32px;
-  margin: 0;
-  backdrop-filter: blur(4px);
-
-  &:hover {
-    --color: #e91e63;
-    --background: rgba(255, 255, 255, 0.95);
-    transform: scale(1.1);
-  }
-
-  ion-icon {
-    font-size: 1rem;
-  }
-}
-
-.article-card.compact {
-  position: relative;
-}
-
 @media (min-width: 768px) {
   .categories-grid {
     grid-template-columns: repeat(2, 1fr);
