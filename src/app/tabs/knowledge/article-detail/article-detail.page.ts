@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { KnowledgeBaseService } from '../../../services/knowledge-base.service';
 import { AuthService } from '../../../services/auth.service';
@@ -18,15 +18,23 @@ export class ArticleDetailPage implements OnInit {
   articleId: string = '';
   user: User | null = null;
   isBookmarked = false;
+  isReading = false;
+  speechSynthesis: SpeechSynthesis | null = null;
+  currentUtterance: SpeechSynthesisUtterance | null = null;
+  readingSpeed = 1;
+  selectedVoice: SpeechSynthesisVoice | null = null;
+  availableVoices: SpeechSynthesisVoice[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private knowledgeService: KnowledgeBaseService,
     private authService: AuthService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private toastController: ToastController
   ) {
     this.article$ = new Observable();
+    this.initializeSpeechSynthesis();
   }
 
   ngOnInit() {
@@ -43,6 +51,33 @@ export class ArticleDetailPage implements OnInit {
     });
   }
 
+  private initializeSpeechSynthesis() {
+    if ('speechSynthesis' in window) {
+      this.speechSynthesis = window.speechSynthesis;
+      
+      // Load voices
+      this.loadVoices();
+      
+      // Some browsers load voices asynchronously
+      if (this.speechSynthesis.onvoiceschanged !== undefined) {
+        this.speechSynthesis.onvoiceschanged = () => {
+          this.loadVoices();
+        };
+      }
+    }
+  }
+
+  private loadVoices() {
+    if (this.speechSynthesis) {
+      this.availableVoices = this.speechSynthesis.getVoices();
+      // Prefer English voices
+      this.selectedVoice = this.availableVoices.find(voice => 
+        voice.lang.startsWith('en') && voice.name.includes('Female')
+      ) || this.availableVoices.find(voice => 
+        voice.lang.startsWith('en')
+      ) || this.availableVoices[0] || null;
+    }
+  }
   private checkBookmarkStatus() {
     if (this.user) {
       this.knowledgeService.getUserBookmarks(this.user.uid).subscribe(bookmarks => {
@@ -51,6 +86,100 @@ export class ArticleDetailPage implements OnInit {
     }
   }
 
+  async toggleReading() {
+    if (!this.speechSynthesis) {
+      const toast = await this.toastController.create({
+        message: 'Text-to-speech is not supported in this browser',
+        duration: 3000,
+        color: 'warning',
+        position: 'top'
+      });
+      await toast.present();
+      return;
+    }
+
+    if (this.isReading) {
+      this.stopReading();
+    } else {
+      this.startReading();
+    }
+  }
+
+  private async startReading() {
+    this.article$.subscribe(article => {
+      if (article && this.speechSynthesis) {
+        const textToRead = this.extractTextFromArticle(article);
+        
+        this.currentUtterance = new SpeechSynthesisUtterance(textToRead);
+        this.currentUtterance.rate = this.readingSpeed;
+        this.currentUtterance.pitch = 1;
+        this.currentUtterance.volume = 1;
+        
+        if (this.selectedVoice) {
+          this.currentUtterance.voice = this.selectedVoice;
+        }
+        
+        this.currentUtterance.onstart = () => {
+          this.isReading = true;
+        };
+        
+        this.currentUtterance.onend = () => {
+          this.isReading = false;
+          this.currentUtterance = null;
+        };
+        
+        this.currentUtterance.onerror = () => {
+          this.isReading = false;
+          this.currentUtterance = null;
+        };
+        
+        this.speechSynthesis.speak(this.currentUtterance);
+      }
+    }).unsubscribe();
+  }
+
+  private stopReading() {
+    if (this.speechSynthesis && this.currentUtterance) {
+      this.speechSynthesis.cancel();
+      this.isReading = false;
+      this.currentUtterance = null;
+    }
+  }
+
+  private extractTextFromArticle(article: Article): string {
+    let text = `${article.title}. `;
+    
+    if (article.content?.sections) {
+      article.content.sections.forEach(section => {
+        if (section.type === 'text' && section.content) {
+          text += `${section.content} `;
+        } else if (section.type === 'heading' && section.content) {
+          text += `${section.content}. `;
+        } else if (section.type === 'list' && section.items) {
+          section.items.forEach(item => {
+            text += `${item}. `;
+          });
+        } else if (section.type === 'callout' && section.content) {
+          text += `Important: ${section.content} `;
+        }
+      });
+    }
+    
+    // Clean up the text
+    return text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/\n/g, ' ').trim();
+  }
+
+  adjustReadingSpeed(speed: number) {
+    this.readingSpeed = speed;
+    if (this.currentUtterance && this.speechSynthesis) {
+      // Restart reading with new speed
+      const wasReading = this.isReading;
+      this.stopReading();
+      if (wasReading) {
+        setTimeout(() => this.startReading(), 100);
+      }
+    }
+  }
   goBack() {
     this.router.navigate(['/tabs/knowledge']);
   }
@@ -106,22 +235,32 @@ export class ArticleDetailPage implements OnInit {
     return `${minutes} min read`;
   }
 
-  async openVideo(url: string, title?: string) {
-    const modal = await this.modalController.create({
-      component: VideoPlayerModalComponent,
-      componentProps: {
-        videoUrl: url,
-        title: title || 'Video'
-      },
-      cssClass: 'video-modal'
-    });
+  getVideoEmbedUrl(url: string): string {
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      let videoId = '';
+      
+      if (url.includes('youtube.com/watch?v=')) {
+        videoId = url.split('v=')[1].split('&')[0];
+      } else if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1].split('?')[0];
+      } else if (url.includes('youtube.com/embed/')) {
+        return url;
+      }
+      
+      return `https://www.youtube.com/embed/${videoId}?rel=0`;
+    }
     
-    await modal.present();
+    return url;
   }
 
   onTagClick(tag: string) {
     this.router.navigate(['/tabs/knowledge/search'], { 
       queryParams: { tag: tag } 
     });
+  }
+
+  ngOnDestroy() {
+    // Clean up speech synthesis when component is destroyed
+    this.stopReading();
   }
 }
