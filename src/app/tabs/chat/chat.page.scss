@@ -403,13 +403,21 @@
   flex: 1;
   overflow-y: auto;
   padding: 0 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
+  scroll-behavior: smooth;
+  
+  /* Ensure proper scrolling on mobile */
+  -webkit-overflow-scrolling: touch;
 }
 
 .message {
   display: flex;
   margin-bottom: 1rem;
   align-items: flex-end;
+  
+  &.duplicate-hidden {
+    display: none;
+  }
 
   &.user-message {
     justify-content: flex-end;
@@ -877,10 +885,10 @@
 
 /* Adjust content padding to account for fixed input */
 .ai-chat {
-  padding-bottom: 120px; /* Adjust based on input container height */
+  padding-bottom: 140px; /* Increased padding for better spacing */
   
   &.voice-mode-active {
-    padding-bottom: 20px; /* Less padding when voice mode is active */
+    padding-bottom: 40px; /* Increased padding when voice mode is active */
   }
 }
 

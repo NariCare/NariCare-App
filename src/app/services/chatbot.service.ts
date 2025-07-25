@@ -241,7 +241,7 @@ export class ChatbotService {
       // Auto-speak bot response if speech is enabled
       setTimeout(() => {
         this.speakMessage(botResponse.id, response.text);
-      }, 500);
+      }, 800);
     } catch (error) {
       console.error('Error getting AI response:', error);
       this.handleAIError();

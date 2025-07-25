@@ -174,7 +174,8 @@
           class="message"
           [class.user-message]="message.sender === 'user'"
           [class.bot-message]="message.sender === 'bot'"
-          [class.typing]="message.isTyping">
+          [class.typing]="message.isTyping"
+          [class.duplicate-hidden]="message.id === 'typing' && (chatbotMessages$ | async)!.filter(m => m.id !== 'typing').length > 0">
           
           <div class="message-avatar" *ngIf="message.sender === 'bot'">
             <ion-icon name="chatbot"></ion-icon>

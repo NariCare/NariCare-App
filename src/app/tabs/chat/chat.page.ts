@@ -51,6 +51,12 @@ export class ChatPage implements OnInit {
       }
     });
 
+    // Auto-scroll when new messages arrive
+    this.chatbotMessages$.subscribe(messages => {
+      if (messages && messages.length > 0) {
+        this.scrollToBottom();
+      }
+    });
     // Check if we should open AI chat directly
     this.route.queryParams.subscribe(params => {
       if (params['tab'] === 'ai') {
@@ -171,12 +177,12 @@ export class ChatPage implements OnInit {
     if (this.messageText.trim()) {
       if (this.selectedTab === 'ai') {
         await this.chatbotService.sendMessage(this.messageText);
+        this.scrollToBottom();
       } else {
         // Handle group chat message
         console.log('Sending group message:', this.messageText);
       }
       this.messageText = '';
-      this.scrollToBottom();
     }
   }
 
@@ -245,7 +251,7 @@ export class ChatPage implements OnInit {
       if (this.messagesContainer) {
         this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
       }
-    }, 100);
+    }, 300);
   }
 
   getMessageTime(timestamp: Date): string {
