@@ -5,7 +5,6 @@ import { IonicModule } from '@ionic/angular';
 import { ArticleDetailPageRoutingModule } from './article-detail-routing.module';
 import { ArticleDetailPage } from './article-detail.page';
 import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
-import { ArticleSpeechControlsComponent } from '../../../components/article-speech-controls/article-speech-controls.component';
 
 @NgModule({
   imports: [
@@ -14,6 +13,6 @@ import { ArticleSpeechControlsComponent } from '../../../components/article-spee
     IonicModule,
     ArticleDetailPageRoutingModule
   ],
-  declarations: [ArticleDetailPage, VideoPlayerModalComponent, ArticleSpeechControlsComponent]
+  declarations: [ArticleDetailPage, VideoPlayerModalComponent]
 })
 export class ArticleDetailPageModule {}
