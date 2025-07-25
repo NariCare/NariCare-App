@@ -25,6 +25,8 @@ export class ChatPage implements OnInit {
   autoSpeakEnabled = true;
   speechRate = 1;
   showVoiceSettings = false;
+  availableVoices: SpeechSynthesisVoice[] = [];
+  selectedVoiceIndex = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -61,6 +63,32 @@ export class ChatPage implements OnInit {
 
     // Initialize speech rate from service
     this.speechRate = this.chatbotService.getSpeechRate();
+    
+    // Load available voices
+    this.loadAvailableVoices();
+  }
+
+  private loadAvailableVoices() {
+    // Load voices immediately if available
+    this.availableVoices = this.chatbotService.getVoicesByLanguage('en');
+    
+    // Set initial selected voice index
+    const currentVoice = this.chatbotService.getSelectedVoice();
+    if (currentVoice) {
+      this.selectedVoiceIndex = this.availableVoices.findIndex(v => v.name === currentVoice.name);
+      if (this.selectedVoiceIndex === -1) this.selectedVoiceIndex = 0;
+    }
+    
+    // Some browsers load voices asynchronously
+    if (this.availableVoices.length === 0 && 'speechSynthesis' in window) {
+      setTimeout(() => {
+        this.availableVoices = this.chatbotService.getVoicesByLanguage('en');
+        if (this.availableVoices.length > 0 && currentVoice) {
+          this.selectedVoiceIndex = this.availableVoices.findIndex(v => v.name === currentVoice.name);
+          if (this.selectedVoiceIndex === -1) this.selectedVoiceIndex = 0;
+        }
+      }, 1000);
+    }
   }
 
   private initializeChatbot() {
@@ -265,5 +293,27 @@ export class ChatPage implements OnInit {
 
   isVoiceModeSupported(): boolean {
     return this.chatbotService.isVoiceModeSupported();
+  }
+
+  // Voice selection methods
+  onVoiceSelectionChange(event: any): void {
+    const selectedIndex = parseInt(event.detail.value);
+    this.selectedVoiceIndex = selectedIndex;
+    
+    if (this.availableVoices[selectedIndex]) {
+      this.chatbotService.setSelectedVoice(this.availableVoices[selectedIndex]);
+      
+      // Save preference to localStorage
+      localStorage.setItem('selectedVoiceIndex', selectedIndex.toString());
+    }
+  }
+
+  getVoiceDisplayName(voice: SpeechSynthesisVoice): string {
+    return this.chatbotService.getVoiceDisplayName(voice);
+  }
+
+  testSelectedVoice(): void {
+    const testText = "Hello! This is how I sound. I'm here to help you with breastfeeding questions.";
+    this.chatbotService.speakMessage('test-voice', testText);
   }
 }

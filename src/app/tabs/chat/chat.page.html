@@ -137,6 +137,29 @@
             (ionChange)="onAutoSpeakToggle($event)">
           </ion-toggle>
         </div>
+
+        <div class="setting-group">
+          <label>Voice Selection</label>
+          <ion-select 
+            [(ngModel)]="selectedVoiceIndex"
+            (ionChange)="onVoiceSelectionChange($event)"
+            interface="popover"
+            placeholder="Select a voice">
+            <ion-select-option 
+              *ngFor="let voice of availableVoices; let i = index" 
+              [value]="i">
+              {{ getVoiceDisplayName(voice) }}
+            </ion-select-option>
+          </ion-select>
+          <ion-button 
+            fill="outline" 
+            size="small" 
+            (click)="testSelectedVoice()"
+            class="test-voice-button">
+            <ion-icon name="volume-high" slot="start"></ion-icon>
+            Test Voice
+          </ion-button>
+        </div>
       </div>
       <div class="messages-container" #messagesContainer>
         <div 

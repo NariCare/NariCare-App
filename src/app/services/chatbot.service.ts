@@ -766,6 +766,35 @@ export class ChatbotService {
     return this.selectedVoice;
   }
 
+  // Method to get voices filtered by language
+  getVoicesByLanguage(language: string = 'en'): SpeechSynthesisVoice[] {
+    return this.availableVoices.filter(voice => 
+      voice.lang.toLowerCase().startsWith(language.toLowerCase())
+    );
+  }
+
+  // Method to get voice display name
+  getVoiceDisplayName(voice: SpeechSynthesisVoice): string {
+    // Clean up voice names for better display
+    let name = voice.name;
+    
+    // Remove common prefixes
+    name = name.replace(/^(Microsoft|Google|Apple)\s+/, '');
+    
+    // Add gender indicators if available
+    if (name.toLowerCase().includes('female') || 
+        ['samantha', 'karen', 'susan', 'victoria', 'allison'].some(n => 
+          name.toLowerCase().includes(n))) {
+      name += ' (Female)';
+    } else if (name.toLowerCase().includes('male') || 
+               ['alex', 'daniel', 'tom', 'fred'].some(n => 
+                 name.toLowerCase().includes(n))) {
+      name += ' (Male)';
+    }
+    
+    return name;
+  }
+
   isSpeechSupported(): boolean {
     return !!this.speechSynthesis;
   }
