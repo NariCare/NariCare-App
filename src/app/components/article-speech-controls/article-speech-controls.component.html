@@ -1,0 +1,157 @@
+<div class="speech-controls" [class.compact]="compact">
+  
+  <!-- Main Controls -->
+  <div class="main-controls" *ngIf="speechState$ | async as state">
+    
+    <!-- Language Selector -->
+    <div class="language-selector" [class.active]="showLanguageSelector">
+      <ion-button 
+        fill="outline" 
+        size="small"
+        (click)="toggleLanguageSelector()"
+        class="language-button">
+        <span class="flag">{{ getSelectedLanguageInfo()?.flag }}</span>
+        <span class="language-name">{{ getSelectedLanguageInfo()?.nativeName }}</span>
+        <ion-icon name="chevron-down" slot="end"></ion-icon>
+      </ion-button>
+      
+      <!-- Language Dropdown -->
+      <div class="language-dropdown" *ngIf="showLanguageSelector">
+        <div class="dropdown-header">
+          <h4>Select Language</h4>
+          <ion-button fill="clear" size="small" (click)="toggleLanguageSelector()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        <div class="language-options">
+          <div 
+            *ngFor="let language of supportedLanguages"
+            class="language-option"
+            [class.selected]="language.code === selectedLanguage"
+            (click)="onLanguageChange(language.code)">
+            <span class="flag">{{ language.flag }}</span>
+            <div class="language-info">
+              <span class="name">{{ language.name }}</span>
+              <span class="native-name">{{ language.nativeName }}</span>
+            </div>
+            <ion-icon 
+              name="checkmark" 
+              *ngIf="language.code === selectedLanguage"
+              class="selected-icon">
+            </ion-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Play/Pause Button -->
+    <ion-button 
+      fill="solid"
+      (click)="toggleSpeech()"
+      [disabled]="!isSpeechSupported()"
+      class="play-button"
+      [class.playing]="isCurrentArticle(state) && state.isPlaying">
+      <ion-icon [name]="getPlayButtonIcon(state)" slot="start"></ion-icon>
+      {{ getPlayButtonText(state) }}
+    </ion-button>
+
+    <!-- Stop Button -->
+    <ion-button 
+      fill="outline"
+      (click)="stopSpeech()"
+      *ngIf="isCurrentArticle(state) && state.isPlaying"
+      class="stop-button">
+      <ion-icon name="stop" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <!-- Settings Button -->
+    <ion-button 
+      fill="clear"
+      (click)="toggleSpeechSettings()"
+      class="settings-button">
+      <ion-icon name="settings" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Progress Indicator -->
+  <div class="progress-section" *ngIf="(speechState$ | async) as state && isCurrentArticle(state) && state.isPlaying">
+    <div class="progress-info">
+      <span class="progress-text">{{ getProgressText(state) }}</span>
+      <span class="progress-percentage">{{ state.progress | number:'1.0-0' }}%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" [style.width.%]="state.progress"></div>
+    </div>
+  </div>
+
+  <!-- Speech Settings Panel -->
+  <div class="speech-settings-panel" *ngIf="showSpeechSettings" (click)="$event.stopPropagation()">
+    <div class="settings-header">
+      <h4>Speech Settings</h4>
+      <ion-button fill="clear" size="small" (click)="toggleSpeechSettings()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+    
+    <div class="settings-content" *ngIf="speechState$ | async as state">
+      <!-- Playback Rate -->
+      <div class="setting-group">
+        <label>Playback Speed</label>
+        <div class="rate-controls">
+          <ion-button 
+            fill="outline" 
+            size="small"
+            [class.active]="state.playbackRate === 0.5"
+            (click)="onPlaybackRateChange(0.5)">
+            0.5x
+          </ion-button>
+          <ion-button 
+            fill="outline" 
+            size="small"
+            [class.active]="state.playbackRate === 0.75"
+            (click)="onPlaybackRateChange(0.75)">
+            0.75x
+          </ion-button>
+          <ion-button 
+            fill="outline" 
+            size="small"
+            [class.active]="state.playbackRate === 1"
+            (click)="onPlaybackRateChange(1)">
+            1x
+          </ion-button>
+          <ion-button 
+            fill="outline" 
+            size="small"
+            [class.active]="state.playbackRate === 1.25"
+            (click)="onPlaybackRateChange(1.25)">
+            1.25x
+          </ion-button>
+          <ion-button 
+            fill="outline" 
+            size="small"
+            [class.active]="state.playbackRate === 1.5"
+            (click)="onPlaybackRateChange(1.5)">
+            1.5x
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Voice Selection -->
+      <div class="setting-group" *ngIf="availableVoices.length > 0">
+        <label>Voice Selection</label>
+        <ion-select 
+          [value]="state.selectedVoice"
+          (ionChange)="onVoiceChange($event.detail.value)"
+          interface="popover"
+          placeholder="Select a voice">
+          <ion-select-option 
+            *ngFor="let voice of availableVoices" 
+            [value]="voice.name">
+            {{ speechService.getVoiceDisplayName(voice) }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+  </div>
+
+</div>

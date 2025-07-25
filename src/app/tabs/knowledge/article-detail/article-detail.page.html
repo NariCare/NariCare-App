@@ -21,6 +21,12 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <!-- Article Speech Controls -->
+  <app-article-speech-controls 
+    [article]="article" 
+    *ngIf="article$ | async as article">
+  </app-article-speech-controls>
+
   <div class="article-container" *ngIf="article$ | async as article">
     
     <!-- Reading Controls -->

@@ -75,6 +75,17 @@
           class="article-card compact"
           (click)="onArticleSelect(article)">
           <div class="article-content">
+            <!-- Mini Speech Controls -->
+            <div class="mini-speech-controls" (click)="$event.stopPropagation()">
+              <ion-button 
+                fill="clear" 
+                size="small"
+                (click)="toggleArticleSpeech(article)"
+                class="mini-speech-button">
+                <ion-icon name="volume-high" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+            
             <div class="article-meta">
               <ion-chip [color]="getDifficultyColor(article.difficulty)" size="small">
                 {{ article.difficulty }}
