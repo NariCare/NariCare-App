@@ -21,9 +21,9 @@ export class ChatPage implements OnInit {
   currentUser: any;
   isRecording = false;
   recognition: any;
-  showVoiceSettings = false;
   autoSpeakEnabled = true;
   speechRate = 1;
+  showVoiceSettings = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -233,13 +233,13 @@ export class ChatPage implements OnInit {
   }
 
   // Voice chat methods
-  toggleVoiceSettings(): void {
-    this.showVoiceSettings = !this.showVoiceSettings;
-  }
-
   setSpeechRate(rate: number): void {
     this.speechRate = rate;
     this.chatbotService.setSpeechRate(rate);
+  }
+
+  toggleVoiceSettings(): void {
+    this.showVoiceSettings = !this.showVoiceSettings;
   }
 
   onAutoSpeakToggle(event: any): void {
