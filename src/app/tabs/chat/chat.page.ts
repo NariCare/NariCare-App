@@ -330,6 +330,14 @@ export class ChatPage implements OnInit {
     this.chatbotService.speakMessage('test-voice', testText);
   }
 
+  isDuplicateTypingMessage(message: ChatbotMessage): boolean {
+    if (message.id !== 'typing') {
+      return false;
+    }
+    const currentMessages = this.chatbotService.getCurrentMessages();
+    return currentMessages.filter(m => m.id !== 'typing').length > 0;
+  }
+
   ngOnDestroy() {
     // Clean up speech synthesis when component is destroyed
     this.chatbotService.stopSpeaking();

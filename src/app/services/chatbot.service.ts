@@ -838,6 +838,10 @@ export class ChatbotService {
     return this.selectedVoice;
   }
 
+  getCurrentMessages(): ChatbotMessage[] {
+    return this.messagesSubject.value;
+  }
+
   // Method to get voices filtered by language
   getVoicesByLanguage(language: string = 'en'): SpeechSynthesisVoice[] {
     return this.availableVoices.filter(voice => 
