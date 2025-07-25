@@ -877,6 +877,15 @@ export class ChatbotService {
     return this.naturalSpeechEnabled;
   }
 
+  setAutoSpeakEnabled(enabled: boolean): void {
+    this.autoSpeakEnabled = enabled;
+    localStorage.setItem('autoSpeakEnabled', enabled.toString());
+  }
+
+  getAutoSpeakEnabled(): boolean {
+    return this.autoSpeakEnabled;
+  }
+
   getSpeechRate(): number {
     return this.speechRate;
   }

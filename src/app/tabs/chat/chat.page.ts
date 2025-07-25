@@ -309,8 +309,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
 
   onAutoSpeakToggle(event: any): void {
     this.autoSpeakEnabled = event.detail.checked;
-    // You can store this preference in local storage or user settings
-    localStorage.setItem('autoSpeakEnabled', this.autoSpeakEnabled.toString());
+    this.chatbotService.setAutoSpeakEnabled(this.autoSpeakEnabled);
   }
 
   toggleMessageSpeech(messageId: string, content: string): void {
