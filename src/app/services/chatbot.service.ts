@@ -90,6 +90,7 @@ export class ChatbotService {
   private speechRate = 1;
   private speechPitch = 1;
   private naturalSpeechEnabled = true;
+  private autoSpeakEnabled = false;
 
   // Speech recognition properties
   private recognition: any = null;
@@ -117,6 +118,11 @@ export class ChatbotService {
     const savedNaturalSpeech = localStorage.getItem('naturalSpeechEnabled');
     if (savedNaturalSpeech !== null) {
       this.naturalSpeechEnabled = savedNaturalSpeech === 'true';
+    }
+    
+    const savedAutoSpeak = localStorage.getItem('autoSpeakEnabled');
+    if (savedAutoSpeak !== null) {
+      this.autoSpeakEnabled = savedAutoSpeak === 'true';
     }
   }
 
@@ -254,10 +260,12 @@ export class ChatbotService {
       this.messagesSubject.next([...messagesWithoutTyping, botResponse]);
       this.context.previousQueries.push(content);
       
-      // Auto-speak bot response if speech is enabled
-      setTimeout(() => {
-        this.speakMessage(botResponse.id, response.text);
-      }, 800);
+      // Auto-speak bot response only if auto-speak is enabled
+      if (this.autoSpeakEnabled) {
+        setTimeout(() => {
+          this.speakMessage(botResponse.id, response.text);
+        }, 800);
+      }
     } catch (error) {
       console.error('Error getting AI response:', error);
       this.handleAIError();
