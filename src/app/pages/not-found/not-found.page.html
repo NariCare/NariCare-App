@@ -53,19 +53,19 @@
     <div class="helpful-links">
       <h3>Popular Resources</h3>
       <div class="links-grid">
-        <div class="link-item" (click)="navigateToCategory()">
+        <div class="link-item" (click)="router.navigate(['/tabs/knowledge/category/breastfeeding-basics'])">
           <ion-icon name="heart" class="link-icon"></ion-icon>
           <span>Breastfeeding Basics</span>
         </div>
-        <div class="link-item" (click)="navigateToChat()">
+        <div class="link-item" (click)="router.navigate(['/tabs/chat'])">
           <ion-icon name="chatbubbles" class="link-icon"></ion-icon>
           <span>Ask AI Assistant</span>
         </div>
-        <div class="link-item" (click)="navigateToGrowth()">
+        <div class="link-item" (click)="router.navigate(['/tabs/growth'])">
           <ion-icon name="trending-up" class="link-icon"></ion-icon>
           <span>Track Growth</span>
         </div>
-        <div class="link-item" (click)="navigateToProfile()">
+        <div class="link-item" (click)="router.navigate(['/tabs/profile'])">
           <ion-icon name="person" class="link-icon"></ion-icon>
           <span>Your Profile</span>
         </div>

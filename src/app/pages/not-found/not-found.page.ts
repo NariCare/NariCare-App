@@ -25,20 +25,4 @@ export class NotFoundPage implements OnInit {
     this.router.navigate(['/tabs/knowledge']);
   }
 
-  navigateToCategory() {
-    this.router.navigate(['/tabs/knowledge/category/breastfeeding-basics']);
-  }
-
-  navigateToChat() {
-    this.router.navigate(['/tabs/chat']);
-  }
-
-  navigateToGrowth() {
-    this.router.navigate(['/tabs/growth']);
-  }
-
-  navigateToProfile() {
-    this.router.navigate(['/tabs/profile']);
-  }
-
 }
