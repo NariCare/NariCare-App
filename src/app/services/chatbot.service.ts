@@ -89,6 +89,7 @@ export class ChatbotService {
   private availableVoices: SpeechSynthesisVoice[] = [];
   private speechRate = 1;
   private speechPitch = 1;
+  private naturalSpeechEnabled = true;
 
   // Speech recognition properties
   private recognition: any = null;
@@ -101,6 +102,22 @@ export class ChatbotService {
   ) {
     this.initializeSpeechSynthesis();
     this.initializeSpeechRecognition();
+    
+    // Load saved preferences
+    const savedRate = localStorage.getItem('speechRate');
+    if (savedRate) {
+      this.speechRate = parseFloat(savedRate);
+    }
+    
+    const savedPitch = localStorage.getItem('speechPitch');
+    if (savedPitch) {
+      this.speechPitch = parseFloat(savedPitch);
+    }
+    
+    const savedNaturalSpeech = localStorage.getItem('naturalSpeechEnabled');
+    if (savedNaturalSpeech !== null) {
+      this.naturalSpeechEnabled = savedNaturalSpeech === 'true';
+    }
   }
 
   private initializeSpeechSynthesis() {
@@ -790,6 +807,17 @@ export class ChatbotService {
   }
 
   private cleanTextForSpeech(text: string): string {
+    if (!this.naturalSpeechEnabled) {
+      // Basic cleaning only
+      let cleaned = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
+      cleaned = cleaned.replace(/\*(.*?)\*/g, '$1'); // Italic
+      cleaned = cleaned.replace(/#{1,6}\s/g, ''); // Headers
+      cleaned = cleaned.replace(/[-•]\s/g, ''); // Bullet points
+      cleaned = cleaned.replace(/\n+/g, ' '); // Line breaks to spaces
+      cleaned = cleaned.replace(/\s+/g, ' '); // Multiple spaces
+      return cleaned.trim();
+    }
+    
     // Remove markdown formatting
     let cleaned = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
     cleaned = cleaned.replace(/\*(.*?)\*/g, '$1'); // Italic
@@ -826,6 +854,15 @@ export class ChatbotService {
   setSpeechPitch(pitch: number): void {
     this.speechPitch = Math.max(0.5, Math.min(2, pitch));
     localStorage.setItem('speechPitch', this.speechPitch.toString());
+  }
+
+  setNaturalSpeechEnabled(enabled: boolean): void {
+    this.naturalSpeechEnabled = enabled;
+    localStorage.setItem('naturalSpeechEnabled', enabled.toString());
+  }
+
+  getNaturalSpeechEnabled(): boolean {
+    return this.naturalSpeechEnabled;
   }
 
   getSpeechRate(): number {

@@ -24,6 +24,8 @@ export class ChatPage implements OnInit {
   recognition: any;
   autoSpeakEnabled = true;
   speechRate = 1;
+  speechPitch = 1;
+  naturalSpeechEnabled = true;
   showVoiceSettings = false;
   availableVoices: SpeechSynthesisVoice[] = [];
   selectedVoiceIndex = 0;
@@ -69,6 +71,8 @@ export class ChatPage implements OnInit {
 
     // Initialize speech rate from service
     this.speechRate = this.chatbotService.getSpeechRate();
+    this.speechPitch = this.chatbotService.getSpeechPitch();
+    this.naturalSpeechEnabled = this.chatbotService.getNaturalSpeechEnabled();
     
     // Load available voices
     this.loadAvailableVoices();
@@ -272,6 +276,16 @@ export class ChatPage implements OnInit {
   setSpeechRate(rate: number): void {
     this.speechRate = rate;
     this.chatbotService.setSpeechRate(rate);
+  }
+
+  setSpeechPitch(pitch: number): void {
+    this.speechPitch = pitch;
+    this.chatbotService.setSpeechPitch(pitch);
+  }
+
+  onNaturalSpeechToggle(event: any): void {
+    this.naturalSpeechEnabled = event.detail.checked;
+    this.chatbotService.setNaturalSpeechEnabled(this.naturalSpeechEnabled);
   }
 
   toggleVoiceSettings(): void {
