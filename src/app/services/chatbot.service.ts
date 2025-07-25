@@ -159,45 +159,6 @@ export class ChatbotService {
     }
   }
 
-  private initializeSpeechRecognition() {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
-    if (SpeechRecognition) {
-      this.recognition = new SpeechRecognition();
-      this.recognition.continuous = true;
-      this.recognition.interimResults = true;
-      this.recognition.lang = 'en-US';
-      this.recognition.maxAlternatives = 1;
-      
-      this.recognition.onstart = () => {
-        this.updateVoiceMode({ isListening: true });
-        console.log('Voice recognition started');
-      };
-      
-      this.recognition.onresult = (event: any) => {
-        this.handleSpeechResult(event);
-      };
-      
-      this.recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        this.updateVoiceMode({ isListening: false });
-        
-        // Auto-restart if in voice mode and error is not fatal
-        if (this.voiceModeSubject.value.isActive && event.error !== 'not-allowed') {
-          setTimeout(() => this.startListening(), 1000);
-        }
-      };
-      
-      this.recognition.onend = () => {
-        this.updateVoiceMode({ isListening: false });
-        
-        // Auto-restart listening if voice mode is active and not manually stopped
-        if (this.voiceModeSubject.value.isActive && this.isRecognitionActive) {
-          setTimeout(() => this.startListening(), 500);
-        }
-      };
-    }
-  }
   private loadVoices() {
     if (this.speechSynthesis) {
       this.availableVoices = this.speechSynthesis.getVoices();
@@ -562,90 +523,6 @@ export class ChatbotService {
     }, 500);
   }
 
-  requestExpertHelp(): void {
-    const expertMessage: ChatbotMessage = {
-      id: this.generateId(),
-      content: "I've connected you with our expert team. They'll be with you shortly to provide personalized assistance.",
-      sender: 'bot',
-      timestamp: new Date(),
-      isPlaying: false
-    };
-
-    this.messagesSubject.next([...this.messagesSubject.value, expertMessage]);
-    
-    // Speak expert help message
-    setTimeout(() => {
-      this.speakMessage(expertMessage.id, expertMessage.content);
-    }, 500);
-  }
-
-  // Voice chat methods
-  async speakMessage(messageId: string, text: string): Promise<void> {
-    if (!this.speechSynthesis || !this.selectedVoice) {
-      console.warn('Speech synthesis not available');
-      return;
-    }
-
-    // Stop any current speech
-    this.stopSpeaking();
-
-    // Clean text for better speech
-    const cleanText = this.cleanTextForSpeech(text);
-    
-    this.currentUtterance = new SpeechSynthesisUtterance(cleanText);
-    this.currentUtterance.voice = this.selectedVoice;
-    this.currentUtterance.rate = this.speechRate;
-    this.currentUtterance.pitch = this.speechPitch;
-    this.currentUtterance.volume = 1;
-
-    // Update message playing state
-    this.updateMessagePlayingState(messageId, true);
-    this.updateVoiceMode({ isSpeaking: true });
-
-    this.currentUtterance.onstart = () => {
-      this.updateMessagePlayingState(messageId, true);
-      this.updateVoiceMode({ isSpeaking: true });
-    };
-
-    this.currentUtterance.onend = () => {
-      this.updateMessagePlayingState(messageId, false);
-      this.updateVoiceMode({ isSpeaking: false });
-      this.currentUtterance = null;
-      
-      // Auto-resume listening in voice mode after speaking
-      if (this.voiceModeSubject.value.isActive && this.voiceModeSubject.value.autoListen) {
-        setTimeout(() => {
-          this.startListening();
-        }, 1000);
-      }
-    };
-
-    this.currentUtterance.onerror = (event) => {
-      console.error('Speech synthesis error:', event);
-      this.updateMessagePlayingState(messageId, false);
-      this.updateVoiceMode({ isSpeaking: false });
-      this.currentUtterance = null;
-    };
-
-    this.speechSynthesis.speak(this.currentUtterance);
-  }
-
-  stopSpeaking(): void {
-    if (this.speechSynthesis && this.currentUtterance) {
-      this.speechSynthesis.cancel();
-      
-      // Update all messages to not playing
-      const messages = this.messagesSubject.value.map(msg => ({
-        ...msg,
-        isPlaying: false
-      }));
-      this.messagesSubject.next(messages);
-      
-      this.updateVoiceMode({ isSpeaking: false });
-      this.currentUtterance = null;
-    }
-  }
-
   // Voice Mode Methods
   toggleVoiceMode(): void {
     const currentMode = this.voiceModeSubject.value;
@@ -742,6 +619,91 @@ export class ChatbotService {
   isVoiceModeSupported(): boolean {
     return !!(this.recognition && this.speechSynthesis);
   }
+
+  requestExpertHelp(): void {
+    const expertMessage: ChatbotMessage = {
+      id: this.generateId(),
+      content: "I've connected you with our expert team. They'll be with you shortly to provide personalized assistance.",
+      sender: 'bot',
+      timestamp: new Date(),
+      isPlaying: false
+    };
+
+    this.messagesSubject.next([...this.messagesSubject.value, expertMessage]);
+    
+    // Speak expert help message
+    setTimeout(() => {
+      this.speakMessage(expertMessage.id, expertMessage.content);
+    }, 500);
+  }
+
+  // Voice chat methods
+  async speakMessage(messageId: string, text: string): Promise<void> {
+    if (!this.speechSynthesis || !this.selectedVoice) {
+      console.warn('Speech synthesis not available');
+      return;
+    }
+
+    // Stop any current speech
+    this.stopSpeaking();
+
+    // Clean text for better speech
+    const cleanText = this.cleanTextForSpeech(text);
+    
+    this.currentUtterance = new SpeechSynthesisUtterance(cleanText);
+    this.currentUtterance.voice = this.selectedVoice;
+    this.currentUtterance.rate = this.speechRate;
+    this.currentUtterance.pitch = this.speechPitch;
+    this.currentUtterance.volume = 1;
+
+    // Update message playing state
+    this.updateMessagePlayingState(messageId, true);
+    this.updateVoiceMode({ isSpeaking: true });
+
+    this.currentUtterance.onstart = () => {
+      this.updateMessagePlayingState(messageId, true);
+      this.updateVoiceMode({ isSpeaking: true });
+    };
+
+    this.currentUtterance.onend = () => {
+      this.updateMessagePlayingState(messageId, false);
+      this.updateVoiceMode({ isSpeaking: false });
+      this.currentUtterance = null;
+      
+      // Auto-resume listening in voice mode after speaking
+      if (this.voiceModeSubject.value.isActive && this.voiceModeSubject.value.autoListen) {
+        setTimeout(() => {
+          this.startListening();
+        }, 1000);
+      }
+    };
+
+    this.currentUtterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
+      this.updateMessagePlayingState(messageId, false);
+      this.updateVoiceMode({ isSpeaking: false });
+      this.currentUtterance = null;
+    };
+
+    this.speechSynthesis.speak(this.currentUtterance);
+  }
+
+  stopSpeaking(): void {
+    if (this.speechSynthesis && this.currentUtterance) {
+      this.speechSynthesis.cancel();
+      
+      // Update all messages to not playing
+      const messages = this.messagesSubject.value.map(msg => ({
+        ...msg,
+        isPlaying: false
+      }));
+      this.messagesSubject.next(messages);
+      
+      this.updateVoiceMode({ isSpeaking: false });
+      this.currentUtterance = null;
+    }
+  }
+
   toggleMessageSpeech(messageId: string, text: string): void {
     const message = this.messagesSubject.value.find(m => m.id === messageId);
     if (message?.isPlaying) {
