@@ -146,8 +146,8 @@
         <div *ngIf="section.type === 'media'" class="content-media">
           <div *ngFor="let media of section.media" class="media-item">
             <div class="video-container">
-             <div class="video-thumbnail" *ngIf="!media.isLoaded" (click)="loadVideo(media)">
-               [src]="media.safeUrl"
+              <iframe 
+                [src]="getVideoEmbedUrl(media.url)"
                 frameborder="0"
                 allowfullscreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

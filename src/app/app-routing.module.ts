@@ -21,19 +21,6 @@ const routes: Routes = [
     path: 'tabs',
     loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule),
     canActivate: [AuthGuard]
-  },
-  {
-    path: '404',
-    loadChildren: () => import('./pages/not-found/not-found.module').then(m => m.NotFoundPageModule)
-  },
-  {
-    path: '',
-    redirectTo: '/auth/login',
-    pathMatch: 'full'
-  },
-  {
-    path: '**',
-    redirectTo: '/404'
   }
 ];
 
