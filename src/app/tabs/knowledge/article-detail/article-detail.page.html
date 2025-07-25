@@ -1,19 +1,19 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="goBack()">
+      <ion-button (click)="goBack()" class="header-button">
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-title>Article</ion-title>
     <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="toggleReading()">
+      <ion-button fill="clear" (click)="toggleReading()" class="header-button" [class.button-active]="isReading">
         <ion-icon [name]="isReading ? 'stop' : 'volume-high'" slot="icon-only"></ion-icon>
       </ion-button>
-      <ion-button fill="clear" (click)="toggleBookmark()">
+      <ion-button fill="clear" (click)="toggleBookmark()" class="header-button" [class.button-active]="isBookmarked">
         <ion-icon [name]="isBookmarked ? 'bookmark' : 'bookmark-outline'" slot="icon-only"></ion-icon>
       </ion-button>
-      <ion-button fill="clear" (click)="shareArticle()">
+      <ion-button fill="clear" (click)="shareArticle()" class="header-button">
         <ion-icon name="share-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>

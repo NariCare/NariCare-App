@@ -1,3 +1,34 @@
+/* Header button specific styling */
+ion-header ion-toolbar {
+  .header-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --color: #ffffff !important;
+    margin: 0 4px;
+    transition: all 0.2s ease;
+    
+    ion-icon {
+      font-size: 1.4rem;
+      color: #ffffff !important;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    }
+    
+    &:hover {
+      --background: rgba(255, 255, 255, 0.2) !important;
+      transform: scale(1.05);
+    }
+    
+    &.button-active {
+      --background: rgba(255, 255, 255, 0.25) !important;
+      
+      ion-icon {
+        color: #ffffff !important;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+      }
+    }
+  }
+}
+
 .article-container {
   padding: 1rem;
   max-width: 800px;
