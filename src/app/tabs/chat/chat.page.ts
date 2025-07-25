@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { ChatbotService, ChatbotMessage } from '../../services/chatbot.service';
+import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { ChatRoom } from '../../models/chat.model';
@@ -17,6 +17,7 @@ export class ChatPage implements OnInit {
   selectedTab = 'groups';
   chatRooms$: Observable<ChatRoom[]>;
   chatbotMessages$: Observable<ChatbotMessage[]>;
+  voiceMode$: Observable<VoiceMode>;
   messageText = '';
   currentUser: any;
   isRecording = false;
@@ -34,6 +35,7 @@ export class ChatPage implements OnInit {
   ) {
     this.chatRooms$ = this.chatService.getChatRooms();
     this.chatbotMessages$ = this.chatbotService.messages$;
+    this.voiceMode$ = this.chatbotService.voiceMode$;
     this.initializeSpeechRecognition();
   }
 
@@ -254,5 +256,14 @@ export class ChatPage implements OnInit {
 
   isSpeechSupported(): boolean {
     return this.chatbotService.isSpeechSupported();
+  }
+
+  // Voice Mode Methods
+  toggleVoiceMode(): void {
+    this.chatbotService.toggleVoiceMode();
+  }
+
+  isVoiceModeSupported(): boolean {
+    return this.chatbotService.isVoiceModeSupported();
   }
 }

@@ -744,4 +744,8 @@
 /* Adjust content padding to account for fixed input */
 .ai-chat {
   padding-bottom: 120px; /* Adjust based on input container height */
+  
+  &.voice-mode-active {
+    padding-bottom: 20px; /* Less padding when voice mode is active */
+  }
 }
