@@ -105,4 +105,18 @@ export class KnowledgePage implements OnInit {
   isBookmarked(articleId: string): boolean {
     return this.bookmarkedArticles.includes(articleId);
   }
+
+  async toggleArticleSpeech(article: Article) {
+    try {
+      const currentState = this.speechService.getSpeechState();
+      
+      if (currentState.isPlaying && currentState.currentArticleId === article.id) {
+        this.speechService.stopSpeech();
+      } else {
+        await this.speechService.startArticleSpeech(article.id, article.content);
+      }
+    } catch (error) {
+      console.error('Error toggling article speech:', error);
+    }
+  }
 }
