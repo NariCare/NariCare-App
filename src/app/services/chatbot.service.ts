@@ -820,10 +820,12 @@ export class ChatbotService {
   // Voice settings
   setSpeechRate(rate: number): void {
     this.speechRate = Math.max(0.5, Math.min(2, rate));
+    localStorage.setItem('speechRate', this.speechRate.toString());
   }
 
   setSpeechPitch(pitch: number): void {
     this.speechPitch = Math.max(0.5, Math.min(2, pitch));
+    localStorage.setItem('speechPitch', this.speechPitch.toString());
   }
 
   getSpeechRate(): number {

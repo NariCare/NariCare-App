@@ -326,7 +326,9 @@ export class ChatPage implements OnInit {
   }
 
   testSelectedVoice(): void {
-    const testText = "Hello! This is how I sound. I'm here to help you with breastfeeding questions.";
+    const testText = this.naturalSpeechEnabled ? 
+      "Hi there! I'm your AI lactation assistant. I'm here to support you on your breastfeeding journey with gentle, caring guidance. How does my voice sound to you?" :
+      "Hello! This is how I sound. I'm here to help you with breastfeeding questions.";
     this.chatbotService.speakMessage('test-voice', testText);
   }
 

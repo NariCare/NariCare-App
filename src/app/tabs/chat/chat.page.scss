@@ -360,12 +360,24 @@
     color: #374151;
   }
 
+  .setting-description {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+
   ion-select {
     --background: #f8fafc;
     --border-radius: 8px;
     --padding-start: 12px;
     --padding-end: 12px;
     margin-bottom: 0.5rem;
+
+    &.voice-select {
+      --min-height: 44px;
+      font-size: 0.9rem;
+    }
   }
 
   ion-toggle {
@@ -373,6 +385,7 @@
     --background-checked: #e91e63;
     --handle-background: #ffffff;
     --handle-background-checked: #ffffff;
+    --handle-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 }
 
