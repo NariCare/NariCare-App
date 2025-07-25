@@ -145,35 +145,21 @@
         <!-- Media Content -->
         <div *ngIf="section.type === 'media'" class="content-media">
           <div *ngFor="let media of section.media" class="media-item">
-            <div class="video-container" *ngIf="isVideoUrl(media.url)">
-              <div class="video-thumbnail" *ngIf="!media.isLoaded" (click)="loadVideo(media)">
-                <img [src]="getVideoThumbnail(media.url)" alt="Video thumbnail" class="thumbnail-image">
-                <div class="play-button-overlay">
-                  <ion-icon name="play-circle" class="play-icon"></ion-icon>
-                </div>
-              </div>
-              <iframe 
-                *ngIf="media.isLoaded && media.safeUrl"
-                [src]="media.safeUrl"
+            <div class="video-container">
+             <div class="video-thumbnail" *ngIf="!media.isLoaded" (click)="loadVideo(media)">
+               [src]="media.safeUrl"
                 frameborder="0"
                 allowfullscreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 class="video-iframe">
               </iframe>
             </div>
-            <div class="image-container" *ngIf="!isVideoUrl(media.url)">
-              <img [src]="media.url" [alt]="media.title" class="media-image">
-            </div>
             <div class="media-info">
               <h4>{{ media.title }}</h4>
               <p>{{ media.description }}</p>
-              <ion-button fill="outline" size="small" *ngIf="!media.isLoaded" (click)="loadVideo(media)">
-                <ion-icon name="play" slot="start"></ion-icon>
-                Play Video
-              </ion-button>
-              <ion-button fill="outline" size="small" *ngIf="media.isLoaded" (click)="openInNewTab(media.url)">
+              <ion-button fill="outline" size="small" (click)="openVideo(media.url, media.title)">
                 <ion-icon name="open-outline" slot="start"></ion-icon>
-                Open in New Tab
+                Play Video
               </ion-button>
             </div>
           </div>
