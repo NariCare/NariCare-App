@@ -40,7 +40,17 @@ export class TranslationService {
     { code: 'ja', name: 'Japanese', nativeName: '日本語', flag: '🇯🇵', speechCode: 'ja-JP' },
     { code: 'ko', name: 'Korean', nativeName: '한국어', flag: '🇰🇷', speechCode: 'ko-KR' },
     { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', speechCode: 'ar-SA' },
-    { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳', speechCode: 'hi-IN' }
+    { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', flag: '🇮🇳', speechCode: 'hi-IN' },
+    { code: 'ta', name: 'Tamil', nativeName: 'தமிழ்', flag: '🇮🇳', speechCode: 'ta-IN' },
+    { code: 'te', name: 'Telugu', nativeName: 'తెలుగు', flag: '🇮🇳', speechCode: 'te-IN' },
+    { code: 'kn', name: 'Kannada', nativeName: 'ಕನ್ನಡ', flag: '🇮🇳', speechCode: 'kn-IN' },
+    { code: 'ml', name: 'Malayalam', nativeName: 'മലയാളം', flag: '🇮🇳', speechCode: 'ml-IN' },
+    { code: 'mr', name: 'Marathi', nativeName: 'मराठी', flag: '🇮🇳', speechCode: 'mr-IN' },
+    { code: 'gu', name: 'Gujarati', nativeName: 'ગુજરાતી', flag: '🇮🇳', speechCode: 'gu-IN' },
+    { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', flag: '🇮🇳', speechCode: 'bn-IN' },
+    { code: 'pa', name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ', flag: '🇮🇳', speechCode: 'pa-IN' },
+    { code: 'or', name: 'Odia', nativeName: 'ଓଡ଼ିଆ', flag: '🇮🇳', speechCode: 'or-IN' },
+    { code: 'as', name: 'Assamese', nativeName: 'অসমীয়া', flag: '🇮🇳', speechCode: 'as-IN' }
   ];
 
   private translationCache = new Map<string, TranslationResult>();
@@ -128,6 +138,7 @@ export class TranslationService {
 
     const prompt = `Translate the following ${sourceLangInfo.name} text about breastfeeding and baby care to ${targetLangInfo.name}. 
     Maintain the medical accuracy and caring tone. Preserve any formatting like **bold** text and bullet points.
+    For Indian regional languages, use culturally appropriate terms and consider local customs around breastfeeding and childcare.
     
     Text to translate:
     ${text}`;
@@ -188,6 +199,96 @@ export class TranslationService {
         'Growth': 'Croissance',
         'Hello': 'Bonjour',
         'How are you?': 'Comment allez-vous?'
+      },
+      'hi': {
+        'Breastfeeding': 'स्तनपान',
+        'Baby': 'बच्चा',
+        'Milk supply': 'दूध की आपूर्ति',
+        'Latch': 'लैच',
+        'Feeding': 'भोजन',
+        'Growth': 'विकास',
+        'Hello': 'नमस्ते',
+        'How are you?': 'आप कैसे हैं?'
+      },
+      'ta': {
+        'Breastfeeding': 'தாய்ப்பால் கொடுத்தல்',
+        'Baby': 'குழந்தை',
+        'Milk supply': 'பால் வழங்கல்',
+        'Latch': 'பிடிப்பு',
+        'Feeding': 'உணவு',
+        'Growth': 'வளர்ச்சி',
+        'Hello': 'வணக்கம்',
+        'How are you?': 'நீங்கள் எப்படி இருக்கிறீர்கள்?'
+      },
+      'te': {
+        'Breastfeeding': 'తల్లిపాలు ఇవ్వడం',
+        'Baby': 'పిల్లవాడు',
+        'Milk supply': 'పాల సరఫరా',
+        'Latch': 'లాచ్',
+        'Feeding': 'దాణా',
+        'Growth': 'పెరుగుదల',
+        'Hello': 'నమస్కారం',
+        'How are you?': 'మీరు ఎలా ఉన్నారు?'
+      },
+      'kn': {
+        'Breastfeeding': 'ಎದೆಹಾಲು ಕೊಡುವುದು',
+        'Baby': 'ಮಗು',
+        'Milk supply': 'ಹಾಲಿನ ಪೂರೈಕೆ',
+        'Latch': 'ಲ್ಯಾಚ್',
+        'Feeding': 'ಆಹಾರ',
+        'Growth': 'ಬೆಳವಣಿಗೆ',
+        'Hello': 'ನಮಸ್ಕಾರ',
+        'How are you?': 'ನೀವು ಹೇಗಿದ್ದೀರಿ?'
+      },
+      'ml': {
+        'Breastfeeding': 'മുലയൂട്ടൽ',
+        'Baby': 'കുഞ്ഞ്',
+        'Milk supply': 'പാൽ വിതരണം',
+        'Latch': 'ലാച്ച്',
+        'Feeding': 'ഭക്ഷണം',
+        'Growth': 'വളർച്ച',
+        'Hello': 'നമസ്കാരം',
+        'How are you?': 'നിങ്ങൾ എങ്ങനെയുണ്ട്?'
+      },
+      'mr': {
+        'Breastfeeding': 'स्तनपान',
+        'Baby': 'बाळ',
+        'Milk supply': 'दुधाचा पुरवठा',
+        'Latch': 'लॅच',
+        'Feeding': 'आहार',
+        'Growth': 'वाढ',
+        'Hello': 'नमस्कार',
+        'How are you?': 'तुम्ही कसे आहात?'
+      },
+      'gu': {
+        'Breastfeeding': 'સ્તનપાન',
+        'Baby': 'બાળક',
+        'Milk supply': 'દૂધનો પુરવઠો',
+        'Latch': 'લેચ',
+        'Feeding': 'ખોરાક',
+        'Growth': 'વૃદ્ધિ',
+        'Hello': 'નમસ્તે',
+        'How are you?': 'તમે કેમ છો?'
+      },
+      'bn': {
+        'Breastfeeding': 'বুকের দুধ খাওয়ানো',
+        'Baby': 'শিশু',
+        'Milk supply': 'দুধের সরবরাহ',
+        'Latch': 'ল্যাচ',
+        'Feeding': 'খাওয়ানো',
+        'Growth': 'বৃদ্ধি',
+        'Hello': 'নমস্কার',
+        'How are you?': 'আপনি কেমন আছেন?'
+      },
+      'pa': {
+        'Breastfeeding': 'ਛਾਤੀ ਦਾ ਦੁੱਧ ਪਿਲਾਉਣਾ',
+        'Baby': 'ਬੱਚਾ',
+        'Milk supply': 'ਦੁੱਧ ਦੀ ਸਪਲਾਈ',
+        'Latch': 'ਲੈਚ',
+        'Feeding': 'ਖੁਆਉਣਾ',
+        'Growth': 'ਵਿਕਾਸ',
+        'Hello': 'ਸਤ ਸ੍ਰੀ ਅਕਾਲ',
+        'How are you?': 'ਤੁਸੀਂ ਕਿਵੇਂ ਹੋ?'
       }
     };
 
