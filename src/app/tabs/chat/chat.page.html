@@ -175,7 +175,7 @@
           [class.user-message]="message.sender === 'user'"
           [class.bot-message]="message.sender === 'bot'"
           [class.typing]="message.isTyping"
-          [class.duplicate-hidden]="message.id === 'typing' && (chatbotMessages$ | async)!.filter(m => m.id !== 'typing').length > 0">
+          [class.duplicate-hidden]="message.id === 'typing' && (chatbotMessages$ | async)?.filter(m => m.id !== 'typing').length > 0">
           
           <div class="message-avatar" *ngIf="message.sender === 'bot'">
             <ion-icon name="chatbot"></ion-icon>
@@ -293,7 +293,7 @@
       <ion-button 
         fill="clear" 
         (click)="sendMessage()"
-        [disabled]="!messageText.trim()"
+        [disabled]="!messageText?.trim()"
         class="send-button">
         <ion-icon name="send" slot="icon-only"></ion-icon>
       </ion-button>
