@@ -893,6 +893,12 @@ export class ChatbotService {
     return this.messagesSubject.value;
   }
 
+  hasMultipleTypingMessages(): boolean {
+    const currentMessages = this.messagesSubject.value;
+    const typingMessages = currentMessages.filter(m => m.isTyping);
+    return typingMessages.length > 1;
+  }
+
   // Method to get voices filtered by language
   getVoicesByLanguage(language: string = 'en'): SpeechSynthesisVoice[] {
     return this.availableVoices.filter(voice => 

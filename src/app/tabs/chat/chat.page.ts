@@ -360,6 +360,10 @@ export class ChatPage implements OnInit, AfterViewChecked {
     return typingMessages.length > 1;
   }
 
+  hasMultipleTypingMessages(): boolean {
+    return this.chatbotService.hasMultipleTypingMessages();
+  }
+
   ngAfterViewChecked() {
     // Auto-scroll when messages change
     if (this.selectedTab === 'ai') {
@@ -369,18 +373,8 @@ export class ChatPage implements OnInit, AfterViewChecked {
 
   hasMessages(): boolean {
     const currentMessages = this.chatbotService.getCurrentMessages();
-    return currentMessages.filter(m => m.id !== 'typing').length > 0;
-  }
-
-  hasMultipleTypingMessages(): boolean {
-    return this.chatbotService.hasMultipleTypingMessages();
-  }
 
   ngOnDestroy() {
     // Clean up speech synthesis when component is destroyed
     this.chatbotService.stopSpeaking();
-    
-    // Restore body scroll
-    document.body.style.overflow = '';
-  }
 }
