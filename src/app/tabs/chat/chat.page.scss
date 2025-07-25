@@ -749,3 +749,22 @@
     padding-bottom: 20px; /* Less padding when voice mode is active */
   }
 }
+
+.test-voice-button {
+  --border-radius: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  height: 32px;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  --color: #e91e63;
+  --border-color: #e91e63;
+
+  &:hover {
+    --background: rgba(233, 30, 99, 0.1);
+  }
+
+  ion-icon {
+    font-size: 0.9rem;
+  }
+}
