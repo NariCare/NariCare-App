@@ -145,7 +145,7 @@
         <!-- Media Content -->
         <div *ngIf="section.type === 'media'" class="content-media">
           <div *ngFor="let media of section.media" class="media-item">
-            <div class="video-container" *ngIf="isVideoUrl(media.url)">
+            <div class="video-container">
               <iframe 
                 [src]="getVideoEmbedUrl(media.url)"
                 frameborder="0"
@@ -154,22 +154,13 @@
                 class="video-iframe">
               </iframe>
             </div>
-            <div class="image-container" *ngIf="!isVideoUrl(media.url)">
-              <img [src]="media.url" [alt]="media.title" class="media-image">
-            </div>
             <div class="media-info">
               <h4>{{ media.title }}</h4>
               <p>{{ media.description }}</p>
-              <div class="media-actions">
-                <ion-button fill="outline" size="small" (click)="openInNewTab(media.url)" *ngIf="isVideoUrl(media.url)">
-                  <ion-icon name="open-outline" slot="start"></ion-icon>
-                  Open in New Tab
-                </ion-button>
-                <ion-button fill="clear" size="small" (click)="shareMedia(media.url, media.title)">
-                  <ion-icon name="share-outline" slot="start"></ion-icon>
-                  Share
-                </ion-button>
-              </div>
+              <ion-button fill="outline" size="small" (click)="openVideo(media.url, media.title)">
+                <ion-icon name="open-outline" slot="start"></ion-icon>
+                Play Video
+              </ion-button>
             </div>
           </div>
         </div>

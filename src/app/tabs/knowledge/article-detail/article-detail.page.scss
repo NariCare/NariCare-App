@@ -333,19 +333,6 @@ ion-header ion-toolbar {
   border-radius: 8px;
 }
 
-.image-container {
-  margin-bottom: 1rem;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.media-image {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 8px;
-}
-
 .media-info {
   h4 {
     margin: 0 0 0.5rem 0;
@@ -362,11 +349,6 @@ ion-header ion-toolbar {
   }
 }
 
-.media-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
 .article-tags {
   padding-top: 1.5rem;
   border-top: 1px solid #f1f5f9;

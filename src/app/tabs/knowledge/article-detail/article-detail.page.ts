@@ -259,37 +259,6 @@ export class ArticleDetailPage implements OnInit {
     });
   }
 
-  openInNewTab(url: string) {
-    window.open(url, '_blank');
-  }
-
-  async shareMedia(url: string, title?: string) {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: title || 'NariCare Media',
-          url: url
-        });
-      } catch (error) {
-        // User cancelled sharing
-      }
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      try {
-        await navigator.clipboard.writeText(url);
-        const toast = await this.toastController.create({
-          message: 'Link copied to clipboard',
-          duration: 2000,
-          color: 'success',
-          position: 'top'
-        });
-        await toast.present();
-      } catch (error) {
-        console.error('Failed to copy to clipboard:', error);
-      }
-    }
-  }
-
   ngOnDestroy() {
     // Clean up speech synthesis when component is destroyed
     this.stopReading();
@@ -306,4 +275,14 @@ export class ArticleDetailPage implements OnInit {
            url.endsWith('.ogg');
   }
 
+  async openVideo(videoUrl: string, title?: string) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: videoUrl,
+        title: title || 'Video'
+      }
+    });
+    return await modal.present();
+  }
 }
