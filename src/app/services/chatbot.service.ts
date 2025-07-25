@@ -142,17 +142,22 @@ export class ChatbotService {
         console.error('Speech recognition error:', event.error);
         this.updateVoiceMode({ isListening: false });
         
-        // Auto-restart if in voice mode and error is not fatal
-        if (this.voiceModeSubject.value.isActive && event.error !== 'not-allowed') {
+        // Auto-restart if in voice mode and error is not fatal, and AI is not speaking
+        if (this.voiceModeSubject.value.isActive && 
+            event.error !== 'not-allowed' && 
+            !this.voiceModeSubject.value.isSpeaking) {
           setTimeout(() => this.startListening(), 1000);
         }
       };
       
       this.recognition.onend = () => {
         this.updateVoiceMode({ isListening: false });
+        console.log('Speech recognition ended');
         
-        // Auto-restart listening if voice mode is active and not manually stopped
-        if (this.voiceModeSubject.value.isActive && this.isRecognitionActive) {
+        // Auto-restart listening if voice mode is active, not manually stopped, and AI is not speaking
+        if (this.voiceModeSubject.value.isActive && 
+            this.isRecognitionActive && 
+            !this.voiceModeSubject.value.isSpeaking) {
           setTimeout(() => this.startListening(), 500);
         }
       };
@@ -244,6 +249,12 @@ export class ChatbotService {
   }
 
   private handleSpeechResult(event: any) {
+    // Don't process speech if AI is speaking
+    if (this.voiceModeSubject.value.isSpeaking) {
+      console.log('Ignoring speech input - AI is speaking');
+      return;
+    }
+    
     let finalTranscript = '';
     let interimTranscript = '';
     
@@ -264,6 +275,7 @@ export class ChatbotService {
     
     // If we have a final result, process it
     if (finalTranscript.trim()) {
+      console.log('Final transcript received:', finalTranscript.trim());
       this.processFinalTranscript(finalTranscript.trim());
     }
     
@@ -271,14 +283,29 @@ export class ChatbotService {
     if (interimTranscript.trim() || finalTranscript.trim()) {
       this.silenceTimer = setTimeout(() => {
         if (interimTranscript.trim() && !finalTranscript.trim()) {
+          console.log('Processing interim transcript after silence:', interimTranscript.trim());
           this.processFinalTranscript(interimTranscript.trim());
         }
-      }, 2000); // 2 seconds of silence
+      }, 2500); // Increased to 2.5 seconds of silence for better accuracy
     }
   }
   
   private async processFinalTranscript(transcript: string) {
-    if (transcript.length < 2) return; // Ignore very short utterances
+    if (transcript.length < 3) {
+      console.log('Ignoring short utterance:', transcript);
+      return; // Ignore very short utterances
+    }
+    
+    // Check if transcript contains common AI speech patterns to avoid feedback
+    const aiPhrases = ['here to help', 'breastfeeding', 'lactation', 'baby care', 'milk supply'];
+    const isLikelyAIFeedback = aiPhrases.some(phrase => 
+      transcript.toLowerCase().includes(phrase.toLowerCase())
+    );
+    
+    if (isLikelyAIFeedback && transcript.length > 20) {
+      console.log('Possible AI feedback detected, ignoring:', transcript);
+      return;
+    }
     
     console.log('Processing voice input:', transcript);
     
@@ -540,14 +567,14 @@ export class ChatbotService {
       return;
     }
     
+    // Stop any current speech before activating voice mode
+    this.stopSpeaking();
+    
     this.updateVoiceMode({ 
       isActive: true,
       autoListen: true,
       conversationFlow: true
     });
-    
-    // Start listening
-    this.startListening();
     
     // Add welcome message for voice mode
     const welcomeMessage: ChatbotMessage = {
@@ -562,7 +589,12 @@ export class ChatbotService {
     
     // Speak the welcome message
     setTimeout(() => {
-      this.speakMessage(welcomeMessage.id, welcomeMessage.content);
+      this.speakMessage(welcomeMessage.id, welcomeMessage.content).then(() => {
+        // Start listening after welcome message is spoken
+        setTimeout(() => {
+          this.startListening();
+        }, 1000);
+      });
     }, 500);
   }
   
@@ -588,11 +620,33 @@ export class ChatbotService {
   startListening(): void {
     if (!this.recognition || !this.voiceModeSubject.value.isActive) return;
     
+    // Don't start listening if AI is currently speaking
+    if (this.voiceModeSubject.value.isSpeaking) {
+      console.log('Cannot start listening - AI is speaking');
+      return;
+    }
+    
+    // Additional check to ensure speech synthesis is not active
+    if (this.speechSynthesis && this.speechSynthesis.speaking) {
+      console.log('Cannot start listening - Speech synthesis is active');
+      setTimeout(() => {
+        this.startListening();
+      }, 500);
+      return;
+    }
+
     try {
       this.isRecognitionActive = true;
+      console.log('Starting speech recognition...');
       this.recognition.start();
     } catch (error) {
       console.error('Error starting speech recognition:', error);
+      // Retry after a short delay if recognition fails to start
+      if (this.voiceModeSubject.value.isActive) {
+        setTimeout(() => {
+          this.startListening();
+        }, 1000);
+      }
     }
   }
   
@@ -601,6 +655,7 @@ export class ChatbotService {
     
     try {
       this.isRecognitionActive = false;
+      console.log('Stopping speech recognition...');
       this.recognition.stop();
     } catch (error) {
       console.error('Error stopping speech recognition:', error);
@@ -644,6 +699,12 @@ export class ChatbotService {
       return;
     }
 
+    // Stop listening while speaking to prevent feedback loop
+    const wasListening = this.voiceModeSubject.value.isListening;
+    if (wasListening) {
+      this.stopListening();
+    }
+
     // Stop any current speech
     this.stopSpeaking();
 
@@ -663,18 +724,21 @@ export class ChatbotService {
     this.currentUtterance.onstart = () => {
       this.updateMessagePlayingState(messageId, true);
       this.updateVoiceMode({ isSpeaking: true });
+      console.log('AI started speaking - listening disabled');
     };
 
     this.currentUtterance.onend = () => {
       this.updateMessagePlayingState(messageId, false);
       this.updateVoiceMode({ isSpeaking: false });
       this.currentUtterance = null;
+      console.log('AI finished speaking');
       
       // Auto-resume listening in voice mode after speaking
       if (this.voiceModeSubject.value.isActive && this.voiceModeSubject.value.autoListen) {
+        console.log('Resuming listening after AI speech...');
         setTimeout(() => {
           this.startListening();
-        }, 1000);
+        }, 1500); // Increased delay to ensure speech has fully stopped
       }
     };
 
@@ -683,6 +747,13 @@ export class ChatbotService {
       this.updateMessagePlayingState(messageId, false);
       this.updateVoiceMode({ isSpeaking: false });
       this.currentUtterance = null;
+      
+      // Resume listening even after error if in voice mode
+      if (this.voiceModeSubject.value.isActive && this.voiceModeSubject.value.autoListen) {
+        setTimeout(() => {
+          this.startListening();
+        }, 1000);
+      }
     };
 
     this.speechSynthesis.speak(this.currentUtterance);
@@ -701,6 +772,7 @@ export class ChatbotService {
       
       this.updateVoiceMode({ isSpeaking: false });
       this.currentUtterance = null;
+      console.log('Speech stopped manually');
     }
   }
 
