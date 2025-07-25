@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { AfterViewChecked } from '@angular/core';
+import { AfterViewChecked, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
@@ -12,7 +12,7 @@ import { ChatRoom } from '../../models/chat.model';
   templateUrl: './chat.page.html',
   styleUrls: ['./chat.page.scss'],
 })
-export class ChatPage implements OnInit, AfterViewChecked {
+export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   
   selectedTab = 'groups';
@@ -357,26 +357,15 @@ export class ChatPage implements OnInit, AfterViewChecked {
   hasMultipleTypingMessages(): boolean {
     const currentMessages = this.chatbotService.getCurrentMessages();
     const typingMessages = currentMessages.filter(m => m.isTyping);
-    return typingMessages.length > 1;
-  }
-
-  hasMultipleTypingMessages(): boolean {
-    return this.chatbotService.hasMultipleTypingMessages();
-  }
-
-  ngAfterViewChecked() {
-    // Auto-scroll when messages change
-    if (this.selectedTab === 'ai') {
-      this.scrollToBottom();
-    }
-  }
 
   hasMessages(): boolean {
     const currentMessages = this.chatbotService.getCurrentMessages();
+    return currentMessages && currentMessages.length > 0;
   }
 
   ngOnDestroy() {
     // Clean up speech synthesis when component is destroyed
     this.chatbotService.stopSpeaking();
   }
-}
+    return typingMessages.length > 1;
+  }
