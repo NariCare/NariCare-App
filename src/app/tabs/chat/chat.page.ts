@@ -19,6 +19,8 @@ export class ChatPage implements OnInit {
   chatbotMessages$: Observable<ChatbotMessage[]>;
   messageText = '';
   currentUser: any;
+  isRecording = false;
+  recognition: any;
 
   constructor(
     private route: ActivatedRoute,
@@ -29,6 +31,7 @@ export class ChatPage implements OnInit {
   ) {
     this.chatRooms$ = this.chatService.getChatRooms();
     this.chatbotMessages$ = this.chatbotService.messages$;
+    this.initializeSpeechRecognition();
   }
 
   ngOnInit() {
@@ -72,6 +75,59 @@ export class ChatPage implements OnInit {
     // Initialize chatbot when switching to AI tab
     if (this.selectedTab === 'ai' && this.currentUser) {
       this.initializeChatbot();
+    }
+  }
+
+  private initializeSpeechRecognition() {
+    // Check if speech recognition is supported
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      this.recognition = new SpeechRecognition();
+      this.recognition.continuous = false;
+      this.recognition.interimResults = false;
+      this.recognition.lang = 'en-US';
+      
+      this.recognition.onstart = () => {
+        this.isRecording = true;
+      };
+      
+      this.recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        this.messageText = transcript;
+        this.isRecording = false;
+      };
+      
+      this.recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        this.isRecording = false;
+      };
+      
+      this.recognition.onend = () => {
+        this.isRecording = false;
+      };
+    }
+  }
+
+  toggleVoiceInput() {
+    if (!this.recognition) {
+      console.warn('Speech recognition not supported in this browser');
+      return;
+    }
+
+    if (this.isRecording) {
+      this.recognition.stop();
+    } else {
+      this.recognition.start();
+    }
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      if (this.messageText.trim()) {
+        this.sendMessage();
+      }
     }
   }
 

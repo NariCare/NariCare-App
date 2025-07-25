@@ -138,7 +138,7 @@
   </div>
 
   <!-- Message Input (for AI chat) -->
-  <div class="message-input-container" *ngIf="selectedTab === 'ai'">
+  <div class="message-input-container fixed-bottom" *ngIf="selectedTab === 'ai'">
     <div class="message-input">
       <ion-textarea
         [(ngModel)]="messageText"
@@ -146,8 +146,17 @@
         rows="1"
         autoGrow="true"
         maxlength="500"
+        (keydown)="onKeyDown($event)"
         class="message-textarea">
       </ion-textarea>
+      <ion-button 
+        fill="clear" 
+        (click)="toggleVoiceInput()"
+        [disabled]="isRecording"
+        class="voice-button"
+        [class.recording]="isRecording">
+        <ion-icon [name]="isRecording ? 'stop' : 'mic'" slot="icon-only"></ion-icon>
+      </ion-button>
       <ion-button 
         fill="clear" 
         (click)="sendMessage()"
@@ -155,6 +164,12 @@
         class="send-button">
         <ion-icon name="send" slot="icon-only"></ion-icon>
       </ion-button>
+    </div>
+    <div class="voice-status" *ngIf="isRecording">
+      <div class="recording-indicator">
+        <div class="pulse"></div>
+        <span>Listening...</span>
+      </div>
     </div>
   </div>
 </ion-content>
