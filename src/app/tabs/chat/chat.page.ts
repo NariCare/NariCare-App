@@ -23,7 +23,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   currentUser: any;
   isRecording = false;
   recognition: any;
-  autoSpeakEnabled = true;
+  autoSpeakEnabled = false;
   speechRate = 1;
   speechPitch = 1;
   naturalSpeechEnabled = true;
