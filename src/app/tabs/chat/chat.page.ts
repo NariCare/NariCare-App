@@ -372,6 +372,10 @@ export class ChatPage implements OnInit, AfterViewChecked {
     return currentMessages.filter(m => m.id !== 'typing').length > 0;
   }
 
+  hasMultipleTypingMessages(): boolean {
+    return this.chatbotService.hasMultipleTypingMessages();
+  }
+
   ngOnDestroy() {
     // Clean up speech synthesis when component is destroyed
     this.chatbotService.stopSpeaking();
