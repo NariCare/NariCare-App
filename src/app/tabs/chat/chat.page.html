@@ -210,13 +210,30 @@
         </div>
       </div>
       <div class="messages-container" #messagesContainer>
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="isInitializing">
+          <div class="loading-avatar">
+            <ion-icon name="chatbot"></ion-icon>
+          </div>
+          <div class="loading-content">
+            <div class="loading-bubble">
+              <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+            <span class="loading-text">Initializing AI Assistant...</span>
+          </div>
+        </div>
+
         <div 
           *ngFor="let message of chatbotMessages$ | async"
           class="message"
           [class.user-message]="message.sender === 'user'"
           [class.bot-message]="message.sender === 'bot'"
           [class.typing]="message.isTyping"
-          [class.duplicate-hidden]="isDuplicateTypingMessage(message)">
+          [class.duplicate-hidden]="message.isTyping && hasMultipleTypingMessages()">
           
           <div class="message-avatar" *ngIf="message.sender === 'bot'">
             <ion-icon name="chatbot"></ion-icon>

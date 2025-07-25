@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { AfterViewChecked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
@@ -11,7 +12,7 @@ import { ChatRoom } from '../../models/chat.model';
   templateUrl: './chat.page.html',
   styleUrls: ['./chat.page.scss'],
 })
-export class ChatPage implements OnInit {
+export class ChatPage implements OnInit, AfterViewChecked {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   
   selectedTab = 'groups';
@@ -103,9 +104,15 @@ export class ChatPage implements OnInit {
 
   private initializeChatbot() {
     if (this.currentUser) {
+      this.isInitializing = true;
       const babyAge = this.currentUser.babies.length > 0 ? 
         this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
       this.chatbotService.initializeChat(this.currentUser.uid, babyAge);
+      
+      // Hide loading state after initialization
+      setTimeout(() => {
+        this.isInitializing = false;
+      }, 1500);
     }
   }
 
@@ -283,6 +290,11 @@ export class ChatPage implements OnInit {
     this.chatbotService.setSpeechPitch(pitch);
   }
 
+  setSpeechPitch(pitch: number): void {
+    this.speechPitch = pitch;
+    this.chatbotService.setSpeechPitch(pitch);
+  }
+
   onNaturalSpeechToggle(event: any): void {
     this.naturalSpeechEnabled = event.detail.checked;
     this.chatbotService.setNaturalSpeechEnabled(this.naturalSpeechEnabled);
@@ -340,14 +352,33 @@ export class ChatPage implements OnInit {
   }
 
   testSelectedVoice(): void {
-    const testText = this.naturalSpeechEnabled ? 
+    const testText = this.chatbotService.getNaturalSpeechEnabled() ? 
       "Hi there! I'm your AI lactation assistant. I'm here to support you on your breastfeeding journey with gentle, caring guidance. How does my voice sound to you?" :
       "Hello! This is how I sound. I'm here to help you with breastfeeding questions.";
     this.chatbotService.speakMessage('test-voice', testText);
   }
 
-  isDuplicateTypingMessage(message: ChatbotMessage): boolean {
-    if (message.id !== 'typing') {
+  hasMultipleTypingMessages(): boolean {
+    const currentMessages = this.chatbotService.getCurrentMessages();
+    const typingMessages = currentMessages.filter(m => m.isTyping);
+    return typingMessages.length > 1;
+  }
+
+  private scrollToBottom() {
+    setTimeout(() => {
+      if (this.messagesContainer) {
+        const element = this.messagesContainer.nativeElement;
+        element.scrollTop = element.scrollHeight;
+      }
+    }, 100);
+  }
+
+  ngAfterViewChecked() {
+    // Auto-scroll when messages change
+    if (this.selectedTab === 'ai') {
+      this.scrollToBottom();
+    }
+  }
       return false;
     }
     const currentMessages = this.chatbotService.getCurrentMessages();

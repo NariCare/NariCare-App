@@ -222,21 +222,24 @@ export class ChatbotService {
     const currentMessages = this.messagesSubject.value;
     this.messagesSubject.next([...currentMessages, userMessage]);
 
-    // Show typing indicator
-    const typingMessage: ChatbotMessage = {
-      id: 'typing',
-      content: 'Thinking...',
-      sender: 'bot',
-      timestamp: new Date(),
-      isTyping: true
-    };
-    this.messagesSubject.next([...this.messagesSubject.value, typingMessage]);
+    // Show typing indicator only if one doesn't already exist
+    const hasTypingIndicator = this.messagesSubject.value.some(m => m.isTyping);
+    if (!hasTypingIndicator) {
+      const typingMessage: ChatbotMessage = {
+        id: 'typing-' + Date.now(),
+        content: 'Thinking...',
+        sender: 'bot',
+        timestamp: new Date(),
+        isTyping: true
+      };
+      this.messagesSubject.next([...this.messagesSubject.value, typingMessage]);
+    }
 
     try {
       const response = await this.getStructuredAIResponse(content);
       
-      // Remove typing indicator
-      const messagesWithoutTyping = this.messagesSubject.value.filter(m => m.id !== 'typing');
+      // Remove all typing indicators
+      const messagesWithoutTyping = this.messagesSubject.value.filter(m => !m.isTyping);
       
       const botResponse: ChatbotMessage = {
         id: this.generateId(),
@@ -545,7 +548,8 @@ export class ChatbotService {
   }
 
   private handleAIError(): void {
-    const messagesWithoutTyping = this.messagesSubject.value.filter(m => m.id !== 'typing');
+    // Remove all typing indicators
+    const messagesWithoutTyping = this.messagesSubject.value.filter(m => !m.isTyping);
     
     const errorMessage: ChatbotMessage = {
       id: this.generateId(),
