@@ -21,6 +21,9 @@ export class ChatPage implements OnInit {
   currentUser: any;
   isRecording = false;
   recognition: any;
+  showVoiceSettings = false;
+  autoSpeakEnabled = true;
+  speechRate = 1;
 
   constructor(
     private route: ActivatedRoute,
@@ -53,6 +56,9 @@ export class ChatPage implements OnInit {
         }
       }
     });
+
+    // Initialize speech rate from service
+    this.speechRate = this.chatbotService.getSpeechRate();
   }
 
   private initializeChatbot() {
@@ -224,5 +230,29 @@ export class ChatPage implements OnInit {
       case 'sleep': return 'moon';
       default: return 'chatbubbles';
     }
+  }
+
+  // Voice chat methods
+  toggleVoiceSettings(): void {
+    this.showVoiceSettings = !this.showVoiceSettings;
+  }
+
+  setSpeechRate(rate: number): void {
+    this.speechRate = rate;
+    this.chatbotService.setSpeechRate(rate);
+  }
+
+  onAutoSpeakToggle(event: any): void {
+    this.autoSpeakEnabled = event.detail.checked;
+    // You can store this preference in local storage or user settings
+    localStorage.setItem('autoSpeakEnabled', this.autoSpeakEnabled.toString());
+  }
+
+  toggleMessageSpeech(messageId: string, content: string): void {
+    this.chatbotService.toggleMessageSpeech(messageId, content);
+  }
+
+  isSpeechSupported(): boolean {
+    return this.chatbotService.isSpeechSupported();
   }
 }

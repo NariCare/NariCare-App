@@ -11,6 +11,8 @@ export interface ChatbotMessage {
   timestamp: Date;
   isTyping?: boolean;
   followUpOptions?: FollowUpOption[];
+  isPlaying?: boolean;
+  audioUrl?: string;
 }
 
 export interface ChatbotContent {
@@ -64,10 +66,53 @@ export class ChatbotService {
     previousQueries: []
   };
 
+  // Speech synthesis properties
+  private speechSynthesis: SpeechSynthesis | null = null;
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
+  private selectedVoice: SpeechSynthesisVoice | null = null;
+  private availableVoices: SpeechSynthesisVoice[] = [];
+  private speechRate = 1;
+  private speechPitch = 1;
+
   constructor(
     private http: HttpClient,
     private apiKeyService: ApiKeyService
-  ) {}
+  ) {
+    this.initializeSpeechSynthesis();
+  }
+
+  private initializeSpeechSynthesis() {
+    if ('speechSynthesis' in window) {
+      this.speechSynthesis = window.speechSynthesis;
+      
+      // Load voices
+      this.loadVoices();
+      
+      // Some browsers load voices asynchronously
+      if (this.speechSynthesis.onvoiceschanged !== undefined) {
+        this.speechSynthesis.onvoiceschanged = () => {
+          this.loadVoices();
+        };
+      }
+    }
+  }
+
+  private loadVoices() {
+    if (this.speechSynthesis) {
+      this.availableVoices = this.speechSynthesis.getVoices();
+      // Prefer female English voices for a more nurturing feel
+      this.selectedVoice = this.availableVoices.find(voice => 
+        voice.lang.startsWith('en') && (
+          voice.name.toLowerCase().includes('female') ||
+          voice.name.toLowerCase().includes('samantha') ||
+          voice.name.toLowerCase().includes('karen') ||
+          voice.name.toLowerCase().includes('susan')
+        )
+      ) || this.availableVoices.find(voice => 
+        voice.lang.startsWith('en')
+      ) || this.availableVoices[0] || null;
+    }
+  }
 
   initializeChat(userId: string, babyAge?: number): void {
     this.context = {
@@ -119,11 +164,17 @@ export class ChatbotService {
         formattedContent: response,
         sender: 'bot',
         timestamp: new Date(),
-        followUpOptions: this.generateFollowUpOptions(content)
+        followUpOptions: this.generateFollowUpOptions(content),
+        isPlaying: false
       };
 
       this.messagesSubject.next([...messagesWithoutTyping, botResponse]);
       this.context.previousQueries.push(content);
+      
+      // Auto-speak bot response if speech is enabled
+      setTimeout(() => {
+        this.speakMessage(botResponse.id, response.text);
+      }, 500);
     } catch (error) {
       console.error('Error getting AI response:', error);
       this.handleAIError();
@@ -353,10 +404,16 @@ export class ChatbotService {
       id: this.generateId(),
       content: "I'm having trouble processing your question right now. Would you like me to connect you with one of our lactation experts for personalized help?",
       sender: 'bot',
-      timestamp: new Date()
+      timestamp: new Date(),
+      isPlaying: false
     };
 
     this.messagesSubject.next([...messagesWithoutTyping, errorMessage]);
+    
+    // Speak error message
+    setTimeout(() => {
+      this.speakMessage(errorMessage.id, errorMessage.content);
+    }, 500);
   }
 
   requestExpertHelp(): void {
@@ -364,15 +421,142 @@ export class ChatbotService {
       id: this.generateId(),
       content: "I've connected you with our expert team. They'll be with you shortly to provide personalized assistance.",
       sender: 'bot',
-      timestamp: new Date()
+      timestamp: new Date(),
+      isPlaying: false
     };
 
     this.messagesSubject.next([...this.messagesSubject.value, expertMessage]);
+    
+    // Speak expert help message
+    setTimeout(() => {
+      this.speakMessage(expertMessage.id, expertMessage.content);
+    }, 500);
   }
 
+  // Voice chat methods
+  async speakMessage(messageId: string, text: string): Promise<void> {
+    if (!this.speechSynthesis || !this.selectedVoice) {
+      console.warn('Speech synthesis not available');
+      return;
+    }
+
+    // Stop any current speech
+    this.stopSpeaking();
+
+    // Clean text for better speech
+    const cleanText = this.cleanTextForSpeech(text);
+    
+    this.currentUtterance = new SpeechSynthesisUtterance(cleanText);
+    this.currentUtterance.voice = this.selectedVoice;
+    this.currentUtterance.rate = this.speechRate;
+    this.currentUtterance.pitch = this.speechPitch;
+    this.currentUtterance.volume = 1;
+
+    // Update message playing state
+    this.updateMessagePlayingState(messageId, true);
+
+    this.currentUtterance.onstart = () => {
+      this.updateMessagePlayingState(messageId, true);
+    };
+
+    this.currentUtterance.onend = () => {
+      this.updateMessagePlayingState(messageId, false);
+      this.currentUtterance = null;
+    };
+
+    this.currentUtterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
+      this.updateMessagePlayingState(messageId, false);
+      this.currentUtterance = null;
+    };
+
+    this.speechSynthesis.speak(this.currentUtterance);
+  }
+
+  stopSpeaking(): void {
+    if (this.speechSynthesis && this.currentUtterance) {
+      this.speechSynthesis.cancel();
+      
+      // Update all messages to not playing
+      const messages = this.messagesSubject.value.map(msg => ({
+        ...msg,
+        isPlaying: false
+      }));
+      this.messagesSubject.next(messages);
+      
+      this.currentUtterance = null;
+    }
+  }
+
+  toggleMessageSpeech(messageId: string, text: string): void {
+    const message = this.messagesSubject.value.find(m => m.id === messageId);
+    if (message?.isPlaying) {
+      this.stopSpeaking();
+    } else {
+      this.speakMessage(messageId, text);
+    }
+  }
+
+  private updateMessagePlayingState(messageId: string, isPlaying: boolean): void {
+    const messages = this.messagesSubject.value.map(msg => ({
+      ...msg,
+      isPlaying: msg.id === messageId ? isPlaying : false
+    }));
+    this.messagesSubject.next(messages);
+  }
+
+  private cleanTextForSpeech(text: string): string {
+    // Remove markdown formatting
+    let cleaned = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
+    cleaned = cleaned.replace(/\*(.*?)\*/g, '$1'); // Italic
+    cleaned = cleaned.replace(/#{1,6}\s/g, ''); // Headers
+    cleaned = cleaned.replace(/[-•]\s/g, ''); // Bullet points
+    cleaned = cleaned.replace(/\n+/g, '. '); // Line breaks to pauses
+    cleaned = cleaned.replace(/\s+/g, ' '); // Multiple spaces
+    cleaned = cleaned.trim();
+    
+    // Add natural pauses
+    cleaned = cleaned.replace(/([.!?])\s/g, '$1 ... ');
+    
+    return cleaned;
+  }
+
+  // Voice settings
+  setSpeechRate(rate: number): void {
+    this.speechRate = Math.max(0.5, Math.min(2, rate));
+  }
+
+  setSpeechPitch(pitch: number): void {
+    this.speechPitch = Math.max(0.5, Math.min(2, pitch));
+  }
+
+  getSpeechRate(): number {
+    return this.speechRate;
+  }
+
+  getSpeechPitch(): number {
+    return this.speechPitch;
+  }
+
+  getAvailableVoices(): SpeechSynthesisVoice[] {
+    return this.availableVoices;
+  }
+
+  setSelectedVoice(voice: SpeechSynthesisVoice): void {
+    this.selectedVoice = voice;
+  }
+
+  getSelectedVoice(): SpeechSynthesisVoice | null {
+    return this.selectedVoice;
+  }
+
+  isSpeechSupported(): boolean {
+    return !!this.speechSynthesis;
+  }
   clearChat(): void {
     this.messagesSubject.next([]);
     this.context.previousQueries = [];
+    this.stopSpeaking();
   }
 
   private generateId(): string {

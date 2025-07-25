@@ -60,8 +60,75 @@
           <h3>AI Lactation Assistant</h3>
           <p>Get instant help with breastfeeding questions</p>
         </div>
+        <div class="voice-controls">
+          <ion-button 
+            fill="clear" 
+            size="small"
+            (click)="toggleVoiceSettings()"
+            class="voice-settings-button">
+            <ion-icon name="settings" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
       </div>
 
+      <!-- Voice Settings Panel -->
+      <div class="voice-settings-panel" *ngIf="showVoiceSettings">
+        <div class="settings-header">
+          <h4>Voice Settings</h4>
+          <ion-button fill="clear" size="small" (click)="toggleVoiceSettings()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        
+        <div class="setting-group">
+          <label>Speech Rate</label>
+          <div class="rate-controls">
+            <ion-button 
+              fill="outline" 
+              size="small"
+              [class.active]="speechRate === 0.5"
+              (click)="setSpeechRate(0.5)">
+              0.5x
+            </ion-button>
+            <ion-button 
+              fill="outline" 
+              size="small"
+              [class.active]="speechRate === 0.75"
+              (click)="setSpeechRate(0.75)">
+              0.75x
+            </ion-button>
+            <ion-button 
+              fill="outline" 
+              size="small"
+              [class.active]="speechRate === 1"
+              (click)="setSpeechRate(1)">
+              1x
+            </ion-button>
+            <ion-button 
+              fill="outline" 
+              size="small"
+              [class.active]="speechRate === 1.25"
+              (click)="setSpeechRate(1.25)">
+              1.25x
+            </ion-button>
+            <ion-button 
+              fill="outline" 
+              size="small"
+              [class.active]="speechRate === 1.5"
+              (click)="setSpeechRate(1.5)">
+              1.5x
+            </ion-button>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <label>Auto-speak AI responses</label>
+          <ion-toggle 
+            [(ngModel)]="autoSpeakEnabled"
+            (ionChange)="onAutoSpeakToggle($event)">
+          </ion-toggle>
+        </div>
+      </div>
       <div class="messages-container" #messagesContainer>
         <div 
           *ngFor="let message of chatbotMessages$ | async"
@@ -75,6 +142,21 @@
           </div>
           
           <div class="message-content">
+            <!-- Voice Control for Bot Messages -->
+            <div class="message-voice-control" *ngIf="message.sender === 'bot' && !message.isTyping">
+              <ion-button 
+                fill="clear" 
+                size="small"
+                (click)="toggleMessageSpeech(message.id, message.content)"
+                [class.speaking]="message.isPlaying"
+                class="voice-control-button">
+                <ion-icon 
+                  [name]="message.isPlaying ? 'stop' : 'volume-high'" 
+                  slot="icon-only">
+                </ion-icon>
+              </ion-button>
+            </div>
+
             <div class="message-bubble">
               <div *ngIf="!message.isTyping" class="message-text">
                 <div *ngIf="message.formattedContent?.formatting?.sections; else simpleContent">
@@ -97,6 +179,17 @@
                 <span></span>
                 <span></span>
                 <span></span>
+              </div>
+              
+              <!-- Speaking Indicator -->
+              <div class="speaking-indicator" *ngIf="message.isPlaying">
+                <div class="sound-wave">
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                </div>
+                <span>Speaking...</span>
               </div>
             </div>
             
