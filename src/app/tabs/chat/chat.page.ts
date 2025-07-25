@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { AfterViewChecked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
@@ -11,7 +12,7 @@ import { ChatRoom } from '../../models/chat.model';
   templateUrl: './chat.page.html',
   styleUrls: ['./chat.page.scss'],
 })
-export class ChatPage implements OnInit {
+export class ChatPage implements OnInit, AfterViewChecked {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   
   selectedTab = 'groups';
