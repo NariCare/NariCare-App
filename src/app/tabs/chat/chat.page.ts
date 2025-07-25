@@ -326,7 +326,7 @@ export class ChatPage implements OnInit {
 
   ngOnDestroy() {
     // Clean up speech synthesis when component is destroyed
-    this.stopReading();
+    this.chatbotService.stopSpeaking();
     
     // Restore body scroll
     document.body.style.overflow = '';
