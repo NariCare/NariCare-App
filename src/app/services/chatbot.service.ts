@@ -167,17 +167,13 @@ export class ChatbotService {
   private loadVoices() {
     if (this.speechSynthesis) {
       this.availableVoices = this.speechSynthesis.getVoices();
-      // Prefer female English voices for a more nurturing feel
-      this.selectedVoice = this.availableVoices.find(voice => 
-        voice.lang.startsWith('en') && (
-          voice.name.toLowerCase().includes('female') ||
-          voice.name.toLowerCase().includes('samantha') ||
-          voice.name.toLowerCase().includes('karen') ||
-          voice.name.toLowerCase().includes('susan')
-        )
-      ) || this.availableVoices.find(voice => 
-        voice.lang.startsWith('en')
-      ) || this.availableVoices[0] || null;
+      
+      // Prefer high-quality, natural-sounding voices
+      this.selectedVoice = this.findBestVoice() || this.availableVoices[0] || null;
+      
+      // Set more natural default settings
+      this.speechRate = 0.9; // Slightly slower for more natural feel
+      this.speechPitch = 0.95; // Slightly lower pitch for warmth
     }
   }
 
@@ -799,12 +795,24 @@ export class ChatbotService {
     cleaned = cleaned.replace(/\*(.*?)\*/g, '$1'); // Italic
     cleaned = cleaned.replace(/#{1,6}\s/g, ''); // Headers
     cleaned = cleaned.replace(/[-•]\s/g, ''); // Bullet points
-    cleaned = cleaned.replace(/\n+/g, '. '); // Line breaks to pauses
+    cleaned = cleaned.replace(/\n+/g, ', '); // Line breaks to natural pauses
     cleaned = cleaned.replace(/\s+/g, ' '); // Multiple spaces
     cleaned = cleaned.trim();
     
-    // Add natural pauses
-    cleaned = cleaned.replace(/([.!?])\s/g, '$1 ... ');
+    // Add more natural pauses and breathing
+    cleaned = cleaned.replace(/([.!?])\s/g, '$1, '); // Natural pause after sentences
+    cleaned = cleaned.replace(/:\s/g, ': '); // Pause after colons
+    cleaned = cleaned.replace(/;\s/g, ', '); // Convert semicolons to commas
+    
+    // Make numbers more natural
+    cleaned = cleaned.replace(/\b(\d+)\s*-\s*(\d+)\b/g, '$1 to $2'); // "8-12" becomes "8 to 12"
+    cleaned = cleaned.replace(/\b(\d+)x\b/g, '$1 times'); // "8x" becomes "8 times"
+    
+    // Replace abbreviations with full words for better pronunciation
+    cleaned = cleaned.replace(/\be\.g\.\s*/gi, 'for example, ');
+    cleaned = cleaned.replace(/\bi\.e\.\s*/gi, 'that is, ');
+    cleaned = cleaned.replace(/\betc\.\s*/gi, 'and so on, ');
+    cleaned = cleaned.replace(/\bvs\.\s*/gi, 'versus ');
     
     return cleaned;
   }
@@ -857,18 +865,102 @@ export class ChatbotService {
     // Remove common prefixes
     name = name.replace(/^(Microsoft|Google|Apple)\s+/, '');
     
-    // Add gender indicators if available
-    if (name.toLowerCase().includes('female') || 
-        ['samantha', 'karen', 'susan', 'victoria', 'allison'].some(n => 
-          name.toLowerCase().includes(n))) {
-      name += ' (Female)';
-    } else if (name.toLowerCase().includes('male') || 
-               ['alex', 'daniel', 'tom', 'fred'].some(n => 
-                 name.toLowerCase().includes(n))) {
-      name += ' (Male)';
+    // Add quality and gender indicators
+    const quality = this.getVoiceQuality(voice);
+    const gender = this.getVoiceGender(voice);
+    
+    let suffix = '';
+    if (quality === 'premium') {
+      suffix += ' ⭐ Premium';
+    } else if (quality === 'enhanced') {
+      suffix += ' ✨ Enhanced';
     }
     
-    return name;
+    if (gender) {
+      suffix += ` (${gender})`;
+    }
+    
+    return name + suffix;
+  }
+
+  private findBestVoice(): SpeechSynthesisVoice | null {
+    const englishVoices = this.availableVoices.filter(voice => 
+      voice.lang.toLowerCase().startsWith('en')
+    );
+    
+    if (englishVoices.length === 0) return null;
+    
+    // Priority order for natural-sounding voices
+    const preferredVoices = [
+      // iOS/macOS high-quality voices
+      'Samantha', 'Alex', 'Victoria', 'Allison', 'Ava', 'Susan', 'Zoe',
+      // Google high-quality voices
+      'Google UK English Female', 'Google US English', 'Google UK English Male',
+      // Microsoft enhanced voices
+      'Microsoft Zira', 'Microsoft David', 'Microsoft Mark', 'Microsoft Hazel',
+      // Chrome OS voices
+      'Chrome OS US English Female', 'Chrome OS UK English Female'
+    ];
+    
+    // First, try to find a preferred high-quality voice
+    for (const preferredName of preferredVoices) {
+      const voice = englishVoices.find(v => 
+        v.name.includes(preferredName) || 
+        v.name.toLowerCase().includes(preferredName.toLowerCase())
+      );
+      if (voice) return voice;
+    }
+    
+    // Fallback: find any female voice (generally more nurturing for healthcare)
+    const femaleVoice = englishVoices.find(voice => 
+      this.getVoiceGender(voice) === 'Female'
+    );
+    if (femaleVoice) return femaleVoice;
+    
+    // Final fallback: any English voice
+    return englishVoices[0];
+  }
+
+  private getVoiceQuality(voice: SpeechSynthesisVoice): 'premium' | 'enhanced' | 'standard' {
+    const name = voice.name.toLowerCase();
+    
+    // Premium voices (highest quality)
+    if (name.includes('neural') || 
+        name.includes('premium') || 
+        name.includes('enhanced') ||
+        ['samantha', 'alex', 'victoria', 'allison', 'ava'].some(n => name.includes(n))) {
+      return 'premium';
+    }
+    
+    // Enhanced voices (good quality)
+    if (name.includes('google') || 
+        name.includes('microsoft') || 
+        name.includes('chrome os') ||
+        name.includes('zira') || 
+        name.includes('david') || 
+        name.includes('hazel')) {
+      return 'enhanced';
+    }
+    
+    return 'standard';
+  }
+
+  private getVoiceGender(voice: SpeechSynthesisVoice): string {
+    const name = voice.name.toLowerCase();
+    
+    // Female voice indicators
+    if (name.includes('female') || 
+        ['samantha', 'karen', 'susan', 'victoria', 'allison', 'ava', 'zoe', 'zira', 'hazel', 'heather'].some(n => name.includes(n))) {
+      return 'Female';
+    }
+    
+    // Male voice indicators
+    if (name.includes('male') || 
+        ['alex', 'daniel', 'tom', 'fred', 'david', 'mark', 'james'].some(n => name.includes(n))) {
+      return 'Male';
+    }
+    
+    return '';
   }
 
   isSpeechSupported(): boolean {

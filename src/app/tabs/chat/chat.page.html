@@ -97,47 +97,77 @@
         <div class="settings-content">
           <div class="setting-group">
             <label>Speech Rate</label>
+            <p class="setting-description">Adjust speaking speed for comfort</p>
             <div class="rate-controls">
               <ion-button 
                 fill="outline" 
                 size="small"
                 [class.active]="speechRate === 0.5"
                 (click)="setSpeechRate(0.5)">
-                0.5x
+                Slow
               </ion-button>
               <ion-button 
                 fill="outline" 
                 size="small"
                 [class.active]="speechRate === 0.75"
                 (click)="setSpeechRate(0.75)">
-                0.75x
+                Relaxed
               </ion-button>
               <ion-button 
                 fill="outline" 
                 size="small"
-                [class.active]="speechRate === 1"
-                (click)="setSpeechRate(1)">
-                1x
+                [class.active]="speechRate === 0.9"
+                (click)="setSpeechRate(0.9)">
+                Natural
               </ion-button>
               <ion-button 
                 fill="outline" 
                 size="small"
-                [class.active]="speechRate === 1.25"
-                (click)="setSpeechRate(1.25)">
-                1.25x
+                [class.active]="speechRate === 1.1"
+                (click)="setSpeechRate(1.1)">
+                Quick
               </ion-button>
               <ion-button 
                 fill="outline" 
                 size="small"
-                [class.active]="speechRate === 1.5"
-                (click)="setSpeechRate(1.5)">
-                1.5x
+                [class.active]="speechRate === 1.3"
+                (click)="setSpeechRate(1.3)">
+                Fast
+              </ion-button>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <label>Voice Warmth</label>
+            <p class="setting-description">Adjust voice tone for comfort</p>
+            <div class="rate-controls">
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechPitch === 0.8"
+                (click)="setSpeechPitch(0.8)">
+                Deep
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechPitch === 0.95"
+                (click)="setSpeechPitch(0.95)">
+                Warm
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechPitch === 1.1"
+                (click)="setSpeechPitch(1.1)">
+                Bright
               </ion-button>
             </div>
           </div>
 
           <div class="setting-group">
             <label>Auto-speak AI responses</label>
+            <p class="setting-description">Automatically read responses aloud</p>
             <ion-toggle 
               [(ngModel)]="autoSpeakEnabled"
               (ionChange)="onAutoSpeakToggle($event)">
@@ -146,11 +176,13 @@
 
           <div class="setting-group">
             <label>Voice Selection</label>
+            <p class="setting-description">Choose your preferred voice assistant</p>
             <ion-select 
               [(ngModel)]="selectedVoiceIndex"
               (ionChange)="onVoiceSelectionChange($event)"
               interface="popover"
-              placeholder="Select a voice">
+              placeholder="Select a voice"
+              class="voice-select">
               <ion-select-option 
                 *ngFor="let voice of availableVoices; let i = index" 
                 [value]="i">
@@ -165,6 +197,15 @@
               <ion-icon name="volume-high" slot="start"></ion-icon>
               Test Voice
             </ion-button>
+          </div>
+
+          <div class="setting-group">
+            <label>Natural Speech</label>
+            <p class="setting-description">Enable more conversational speech patterns</p>
+            <ion-toggle 
+              [(ngModel)]="naturalSpeechEnabled"
+              (ionChange)="onNaturalSpeechToggle($event)">
+            </ion-toggle>
           </div>
         </div>
       </div>
