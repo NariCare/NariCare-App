@@ -146,23 +146,13 @@
         <div *ngIf="section.type === 'media'" class="content-media">
           <div *ngFor="let media of section.media" class="media-item">
             <div class="video-container" *ngIf="isVideoUrl(media.url)">
-              <div class="video-player" [class.video-loaded]="media.isLoaded">
-                <div class="video-thumbnail" *ngIf="!media.isLoaded" (click)="loadVideo(media)">
-                  <img [src]="getVideoThumbnail(media.url)" [alt]="media.title" class="thumbnail-image">
-                  <div class="play-button">
-                    <ion-icon name="play"></ion-icon>
-                  </div>
-                  <div class="video-duration" *ngIf="media.duration">{{ media.duration }}</div>
-                </div>
-                <iframe 
-                  *ngIf="media.isLoaded"
-                  [src]="getVideoEmbedUrl(media.url)"
-                  frameborder="0"
-                  allowfullscreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  class="video-iframe">
-                </iframe>
-              </div>
+              <iframe 
+                [src]="getVideoEmbedUrl(media.url)"
+                frameborder="0"
+                allowfullscreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                class="video-iframe">
+              </iframe>
             </div>
             <div class="image-container" *ngIf="!isVideoUrl(media.url)">
               <img [src]="media.url" [alt]="media.title" class="media-image">
@@ -171,13 +161,9 @@
               <h4>{{ media.title }}</h4>
               <p>{{ media.description }}</p>
               <div class="media-actions">
-                <ion-button fill="outline" size="small" (click)="openInNewTab(media.url)" *ngIf="isVideoUrl(media.url) && media.isLoaded">
+                <ion-button fill="outline" size="small" (click)="openInNewTab(media.url)" *ngIf="isVideoUrl(media.url)">
                   <ion-icon name="open-outline" slot="start"></ion-icon>
                   Open in New Tab
-                </ion-button>
-                <ion-button fill="clear" size="small" (click)="loadVideo(media)" *ngIf="isVideoUrl(media.url) && !media.isLoaded">
-                  <ion-icon name="play" slot="start"></ion-icon>
-                  Play Video
                 </ion-button>
                 <ion-button fill="clear" size="small" (click)="shareMedia(media.url, media.title)">
                   <ion-icon name="share-outline" slot="start"></ion-icon>
