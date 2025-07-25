@@ -270,6 +270,13 @@ export class ChatPage implements OnInit {
 
   toggleVoiceSettings(): void {
     this.showVoiceSettings = !this.showVoiceSettings;
+    
+    // Prevent body scroll when modal is open
+    if (this.showVoiceSettings) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
   }
 
   onAutoSpeakToggle(event: any): void {
@@ -315,5 +322,13 @@ export class ChatPage implements OnInit {
   testSelectedVoice(): void {
     const testText = "Hello! This is how I sound. I'm here to help you with breastfeeding questions.";
     this.chatbotService.speakMessage('test-voice', testText);
+  }
+
+  ngOnDestroy() {
+    // Clean up speech synthesis when component is destroyed
+    this.stopReading();
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
   }
 }

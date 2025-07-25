@@ -275,18 +275,52 @@
 }
 
 .voice-settings-panel {
-  background: #f8fafc;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
   border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   border: 1px solid #e2e8f0;
+  z-index: 1000;
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: slideInUp 0.3s ease-out;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .settings-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+  border-radius: 12px 12px 0 0;
 
   h4 {
     margin: 0;
@@ -294,6 +328,20 @@
     font-weight: 600;
     color: #2d3748;
   }
+
+  ion-button {
+    --color: #64748b;
+    
+    &:hover {
+      --color: #e91e63;
+    }
+  }
+}
+
+.settings-content {
+  padding: 1rem;
+  max-height: calc(80vh - 80px);
+  overflow-y: auto;
 }
 
 .setting-group {
@@ -309,6 +357,21 @@
     font-size: 0.9rem;
     font-weight: 500;
     color: #374151;
+  }
+
+  ion-select {
+    --background: #f8fafc;
+    --border-radius: 8px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    margin-bottom: 0.5rem;
+  }
+
+  ion-toggle {
+    --background: #e2e8f0;
+    --background-checked: #e91e63;
+    --handle-background: #ffffff;
+    --handle-background-checked: #ffffff;
   }
 }
 
@@ -829,6 +892,7 @@
   margin-top: 0.5rem;
   --color: #e91e63;
   --border-color: #e91e63;
+  width: 100%;
 
   &:hover {
     --background: rgba(233, 30, 99, 0.1);

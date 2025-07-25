@@ -86,7 +86,7 @@
       </div>
 
       <!-- Voice Settings Panel -->
-      <div class="voice-settings-panel" *ngIf="showVoiceSettings">
+      <div class="voice-settings-panel" *ngIf="showVoiceSettings" (click)="$event.stopPropagation()">
         <div class="settings-header">
           <h4>Voice Settings</h4>
           <ion-button fill="clear" size="small" (click)="toggleVoiceSettings()">
@@ -94,76 +94,78 @@
           </ion-button>
         </div>
         
-        <div class="setting-group">
-          <label>Speech Rate</label>
-          <div class="rate-controls">
+        <div class="settings-content">
+          <div class="setting-group">
+            <label>Speech Rate</label>
+            <div class="rate-controls">
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 0.5"
+                (click)="setSpeechRate(0.5)">
+                0.5x
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 0.75"
+                (click)="setSpeechRate(0.75)">
+                0.75x
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 1"
+                (click)="setSpeechRate(1)">
+                1x
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 1.25"
+                (click)="setSpeechRate(1.25)">
+                1.25x
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 1.5"
+                (click)="setSpeechRate(1.5)">
+                1.5x
+              </ion-button>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <label>Auto-speak AI responses</label>
+            <ion-toggle 
+              [(ngModel)]="autoSpeakEnabled"
+              (ionChange)="onAutoSpeakToggle($event)">
+            </ion-toggle>
+          </div>
+
+          <div class="setting-group">
+            <label>Voice Selection</label>
+            <ion-select 
+              [(ngModel)]="selectedVoiceIndex"
+              (ionChange)="onVoiceSelectionChange($event)"
+              interface="popover"
+              placeholder="Select a voice">
+              <ion-select-option 
+                *ngFor="let voice of availableVoices; let i = index" 
+                [value]="i">
+                {{ getVoiceDisplayName(voice) }}
+              </ion-select-option>
+            </ion-select>
             <ion-button 
               fill="outline" 
-              size="small"
-              [class.active]="speechRate === 0.5"
-              (click)="setSpeechRate(0.5)">
-              0.5x
-            </ion-button>
-            <ion-button 
-              fill="outline" 
-              size="small"
-              [class.active]="speechRate === 0.75"
-              (click)="setSpeechRate(0.75)">
-              0.75x
-            </ion-button>
-            <ion-button 
-              fill="outline" 
-              size="small"
-              [class.active]="speechRate === 1"
-              (click)="setSpeechRate(1)">
-              1x
-            </ion-button>
-            <ion-button 
-              fill="outline" 
-              size="small"
-              [class.active]="speechRate === 1.25"
-              (click)="setSpeechRate(1.25)">
-              1.25x
-            </ion-button>
-            <ion-button 
-              fill="outline" 
-              size="small"
-              [class.active]="speechRate === 1.5"
-              (click)="setSpeechRate(1.5)">
-              1.5x
+              size="small" 
+              (click)="testSelectedVoice()"
+              class="test-voice-button">
+              <ion-icon name="volume-high" slot="start"></ion-icon>
+              Test Voice
             </ion-button>
           </div>
-        </div>
-
-        <div class="setting-group">
-          <label>Auto-speak AI responses</label>
-          <ion-toggle 
-            [(ngModel)]="autoSpeakEnabled"
-            (ionChange)="onAutoSpeakToggle($event)">
-          </ion-toggle>
-        </div>
-
-        <div class="setting-group">
-          <label>Voice Selection</label>
-          <ion-select 
-            [(ngModel)]="selectedVoiceIndex"
-            (ionChange)="onVoiceSelectionChange($event)"
-            interface="popover"
-            placeholder="Select a voice">
-            <ion-select-option 
-              *ngFor="let voice of availableVoices; let i = index" 
-              [value]="i">
-              {{ getVoiceDisplayName(voice) }}
-            </ion-select-option>
-          </ion-select>
-          <ion-button 
-            fill="outline" 
-            size="small" 
-            (click)="testSelectedVoice()"
-            class="test-voice-button">
-            <ion-icon name="volume-high" slot="start"></ion-icon>
-            Test Voice
-          </ion-button>
         </div>
       </div>
       <div class="messages-container" #messagesContainer>
