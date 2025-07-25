@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { ArticleDetailPageRoutingModule } from './article-detail-routing.module';
 import { ArticleDetailPage } from './article-detail.page';
-import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
 
 @NgModule({
   imports: [
@@ -13,6 +12,6 @@ import { VideoPlayerModalComponent } from '../../../components/video-player-moda
     IonicModule,
     ArticleDetailPageRoutingModule
   ],
-  declarations: [ArticleDetailPage, VideoPlayerModalComponent]
+  declarations: [ArticleDetailPage]
 })
 export class ArticleDetailPageModule {}
