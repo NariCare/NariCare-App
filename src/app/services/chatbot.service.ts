@@ -159,45 +159,6 @@ export class ChatbotService {
     }
   }
 
-  private initializeSpeechRecognition() {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
-    if (SpeechRecognition) {
-      this.recognition = new SpeechRecognition();
-      this.recognition.continuous = true;
-      this.recognition.interimResults = true;
-      this.recognition.lang = 'en-US';
-      this.recognition.maxAlternatives = 1;
-      
-      this.recognition.onstart = () => {
-        this.updateVoiceMode({ isListening: true });
-        console.log('Voice recognition started');
-      };
-      
-      this.recognition.onresult = (event: any) => {
-        this.handleSpeechResult(event);
-      };
-      
-      this.recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        this.updateVoiceMode({ isListening: false });
-        
-        // Auto-restart if in voice mode and error is not fatal
-        if (this.voiceModeSubject.value.isActive && event.error !== 'not-allowed') {
-          setTimeout(() => this.startListening(), 1000);
-        }
-      };
-      
-      this.recognition.onend = () => {
-        this.updateVoiceMode({ isListening: false });
-        
-        // Auto-restart listening if voice mode is active and not manually stopped
-        if (this.voiceModeSubject.value.isActive && this.isRecognitionActive) {
-          setTimeout(() => this.startListening(), 500);
-        }
-      };
-    }
-  }
   private loadVoices() {
     if (this.speechSynthesis) {
       this.availableVoices = this.speechSynthesis.getVoices();
