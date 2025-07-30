@@ -380,15 +380,13 @@
                     [class.error]="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
                   </ion-input>
                 </ion-item>
-                <ion-button 
-                 </ion-button>
                </div>
                <div class="error-message" *ngIf="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
                  {{ getErrorMessage('formulaIntake') }}
                </div>
              </div>
            </div>
-         </div>
+         <!-- </div> -->
        </form>
      </ion-content>
    </ng-template>
