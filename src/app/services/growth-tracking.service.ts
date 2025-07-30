@@ -110,6 +110,7 @@ export class GrowthTrackingService {
     const updatedRecords = [newRecord, ...currentRecords];
     
     this.weightRecordsSubject.next(updatedRecords);
+  }
   // Check if weight reminder should be sent
   shouldSendWeightReminder(babyId: string): Observable<boolean> {
     return this.getWeightRecords(babyId).pipe(
