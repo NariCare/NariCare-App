@@ -4,7 +4,7 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
-import { GrowthRecord, GrowthChart } from '../../models/growth-tracking.model';
+import { GrowthRecord, GrowthChart, WeightRecord, EmotionalState } from '../../models/growth-tracking.model';
 import { User } from '../../models/user.model';
 
 @Component({
@@ -15,9 +15,22 @@ import { User } from '../../models/user.model';
 export class GrowthPage implements OnInit {
   user: User | null = null;
   growthRecords$: Observable<GrowthRecord[]> | null = null;
+  weightRecords$: Observable<WeightRecord[]> | null = null;
   selectedChartType: 'weight' | 'height' | 'head-circumference' = 'weight';
-  showAddRecordModal = false;
+  selectedTab = 'daily';
+  showAddDailyRecordModal = false;
+  showAddWeightModal = false;
   addRecordForm: FormGroup;
+  addWeightForm: FormGroup;
+
+  moodOptions = [
+    { value: 'great', emoji: '😊', label: 'Great' },
+    { value: 'good', emoji: '🙂', label: 'Good' },
+    { value: 'okay', emoji: '😐', label: 'Okay' },
+    { value: 'tired', emoji: '😴', label: 'Tired' },
+    { value: 'worried', emoji: '😟', label: 'Worried' },
+    { value: 'overwhelmed', emoji: '😰', label: 'Overwhelmed' }
+  ];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -28,12 +41,21 @@ export class GrowthPage implements OnInit {
   ) {
     this.addRecordForm = this.formBuilder.group({
       date: [new Date().toISOString(), [Validators.required]],
+      directFeedingSessions: ['', [Validators.required, Validators.min(0), Validators.max(20)]],
+      avgFeedingDuration: ['', [Validators.required, Validators.min(5), Validators.max(60)]],
+      pumpingSessions: ['', [Validators.required, Validators.min(0), Validators.max(10)]],
+      totalPumpingOutput: ['', [Validators.required, Validators.min(0), Validators.max(2000)]],
+      formulaIntake: ['', [Validators.required, Validators.min(0), Validators.max(1000)]],
+      peeCount: ['', [Validators.required, Validators.min(0), Validators.max(30)]],
+      poopCount: ['', [Validators.required, Validators.min(0), Validators.max(15)]],
+      mood: [''],
+      moodDescription: [''],
+      notes: ['']
+    });
+
+    this.addWeightForm = this.formBuilder.group({
+      date: [new Date().toISOString(), [Validators.required]],
       weight: ['', [Validators.required, Validators.min(0.5), Validators.max(50)]],
-      height: ['', [Validators.required, Validators.min(20), Validators.max(150)]],
-      headCircumference: [''],
-      feedingFrequency: ['', [Validators.required, Validators.min(1), Validators.max(20)]],
-      sleepHours: ['', [Validators.required, Validators.min(0), Validators.max(24)]],
-      diaperChanges: ['', [Validators.required, Validators.min(0), Validators.max(30)]],
       notes: ['']
     });
   }
@@ -43,6 +65,7 @@ export class GrowthPage implements OnInit {
       this.user = user;
       if (user && user.babies.length > 0) {
         this.loadGrowthData(user.babies[0].id);
+        this.loadWeightData(user.babies[0].id);
       }
     });
   }
@@ -51,17 +74,36 @@ export class GrowthPage implements OnInit {
     this.growthRecords$ = this.growthService.getGrowthRecords(babyId);
   }
 
+  private loadWeightData(babyId: string) {
+    this.weightRecords$ = this.growthService.getWeightRecords(babyId);
+  }
+
+  onTabChange(event: any) {
+    this.selectedTab = event.detail.value;
+  }
+
   onChartTypeChange(event: any) {
     this.selectedChartType = event.detail.value;
   }
 
-  openAddRecordModal() {
-    this.showAddRecordModal = true;
+  openAddDailyRecordModal() {
+    this.showAddDailyRecordModal = true;
   }
 
-  closeAddRecordModal() {
-    this.showAddRecordModal = false;
+  openAddWeightModal() {
+    this.showAddWeightModal = true;
+  }
+
+  closeAddDailyRecordModal() {
+    this.showAddDailyRecordModal = false;
     this.addRecordForm.reset({
+      date: new Date().toISOString()
+    });
+  }
+
+  closeAddWeightModal() {
+    this.showAddWeightModal = false;
+    this.addWeightForm.reset({
       date: new Date().toISOString()
     });
   }
@@ -70,16 +112,30 @@ export class GrowthPage implements OnInit {
     if (this.addRecordForm.valid && this.user && this.user.babies.length > 0) {
       try {
         const formValue = this.addRecordForm.value;
+        
+        // Create emotional state if mood is selected
+        let emotionalState: EmotionalState | undefined;
+        if (formValue.mood) {
+          const selectedMood = this.moodOptions.find(m => m.value === formValue.mood);
+          emotionalState = {
+            mood: formValue.mood,
+            emoji: selectedMood?.emoji || '😐',
+            description: formValue.moodDescription
+          };
+        }
+
         const record: Omit<GrowthRecord, 'id'> = {
           babyId: this.user.babies[0].id,
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
-          weight: parseFloat(formValue.weight),
-          height: parseFloat(formValue.height),
-          headCircumference: formValue.headCircumference ? parseFloat(formValue.headCircumference) : undefined,
-          feedingFrequency: parseInt(formValue.feedingFrequency),
-          sleepHours: parseFloat(formValue.sleepHours),
-          diaperChanges: parseInt(formValue.diaperChanges),
+          directFeedingSessions: parseInt(formValue.directFeedingSessions),
+          avgFeedingDuration: parseInt(formValue.avgFeedingDuration),
+          pumpingSessions: parseInt(formValue.pumpingSessions),
+          totalPumpingOutput: parseInt(formValue.totalPumpingOutput),
+          formulaIntake: parseInt(formValue.formulaIntake),
+          peeCount: parseInt(formValue.peeCount),
+          poopCount: parseInt(formValue.poopCount),
+          emotionalState,
           notes: formValue.notes,
           milestones: []
         };
@@ -87,17 +143,52 @@ export class GrowthPage implements OnInit {
         await this.growthService.addGrowthRecord(record);
         
         const toast = await this.toastController.create({
-          message: 'Growth record saved successfully!',
+          message: 'Daily record saved successfully!',
           duration: 2000,
           color: 'success',
           position: 'top'
         });
         await toast.present();
 
-        this.closeAddRecordModal();
+        this.closeAddDailyRecordModal();
       } catch (error) {
         const toast = await this.toastController.create({
-          message: 'Failed to save growth record. Please try again.',
+          message: 'Failed to save daily record. Please try again.',
+          duration: 3000,
+          color: 'danger',
+          position: 'top'
+        });
+        await toast.present();
+      }
+    }
+  }
+
+  async saveWeightRecord() {
+    if (this.addWeightForm.valid && this.user && this.user.babies.length > 0) {
+      try {
+        const formValue = this.addWeightForm.value;
+        const record: Omit<WeightRecord, 'id'> = {
+          babyId: this.user.babies[0].id,
+          recordedBy: this.user.uid,
+          date: new Date(formValue.date),
+          weight: parseFloat(formValue.weight),
+          notes: formValue.notes
+        };
+
+        await this.growthService.addWeightRecord(record);
+        
+        const toast = await this.toastController.create({
+          message: 'Weight record saved successfully!',
+          duration: 2000,
+          color: 'success',
+          position: 'top'
+        });
+        await toast.present();
+
+        this.closeAddWeightModal();
+      } catch (error) {
+        const toast = await this.toastController.create({
+          message: 'Failed to save weight record. Please try again.',
           duration: 3000,
           color: 'danger',
           position: 'top'
@@ -110,17 +201,17 @@ export class GrowthPage implements OnInit {
   getChartTitle(): string {
     switch (this.selectedChartType) {
       case 'weight': return 'Weight Progress';
-      case 'height': return 'Height Progress';
-      case 'head-circumference': return 'Head Circumference';
-      default: return 'Growth Progress';
+      case 'height': return 'Feeding Sessions';
+      case 'head-circumference': return 'Pumping Output';
+      default: return 'Breastfeeding Progress';
     }
   }
 
   getChartUnit(): string {
     switch (this.selectedChartType) {
       case 'weight': return 'kg';
-      case 'height': return 'cm';
-      case 'head-circumference': return 'cm';
+      case 'height': return 'sessions/day';
+      case 'head-circumference': return 'ml/day';
       default: return '';
     }
   }
@@ -158,5 +249,23 @@ export class GrowthPage implements OnInit {
       return 'Value is too high';
     }
     return '';
+  }
+
+  getMoodEmoji(mood: string): string {
+    const moodOption = this.moodOptions.find(m => m.value === mood);
+    return moodOption?.emoji || '😐';
+  }
+
+  getMoodLabel(mood: string): string {
+    const moodOption = this.moodOptions.find(m => m.value === mood);
+    return moodOption?.label || mood;
+  }
+
+  selectMood(mood: string) {
+    this.addRecordForm.patchValue({ mood });
+  }
+
+  isMoodSelected(mood: string): boolean {
+    return this.addRecordForm.get('mood')?.value === mood;
   }
 }
