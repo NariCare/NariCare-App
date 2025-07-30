@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { GrowthRecord, GrowthChart, ChartDataPoint, Milestone, WeightRecord } from '../models/growth-tracking.model';
+import { GrowthRecord, GrowthChart, ChartDataPoint, Milestone } from '../models/growth-tracking.model';
 
 @Injectable({
   providedIn: 'root'
@@ -19,23 +19,8 @@ export class GrowthTrackingService {
     });
   }
 
-  addWeightRecord(record: Omit<WeightRecord, 'id'>): Promise<void> {
-    const id = this.firestore.createId();
-    return this.firestore.doc(`weight-records/${id}`).set({
-      ...record,
-      id
-    });
-  }
-
   getGrowthRecords(babyId: string): Observable<GrowthRecord[]> {
     return this.firestore.collection<GrowthRecord>('growth-records', ref => 
-      ref.where('babyId', '==', babyId)
-         .orderBy('date', 'desc')
-    ).valueChanges({ idField: 'id' });
-  }
-
-  getWeightRecords(babyId: string): Observable<WeightRecord[]> {
-    return this.firestore.collection<WeightRecord>('weight-records', ref => 
       ref.where('babyId', '==', babyId)
          .orderBy('date', 'desc')
     ).valueChanges({ idField: 'id' });
@@ -51,28 +36,18 @@ export class GrowthTrackingService {
     );
   }
 
-  getLatestWeightRecord(babyId: string): Observable<WeightRecord | null> {
-    return this.firestore.collection<WeightRecord>('weight-records', ref => 
-      ref.where('babyId', '==', babyId)
-         .orderBy('date', 'desc')
-         .limit(1)
-    ).valueChanges({ idField: 'id' }).pipe(
-      map(records => records.length > 0 ? records[0] : null)
-    );
-  }
-
   generateGrowthChart(babyId: string, chartType: 'weight' | 'height' | 'head-circumference'): Observable<GrowthChart> {
     return this.getGrowthRecords(babyId).pipe(
       map(records => {
         const data: ChartDataPoint[] = records.map(record => ({
           date: record.date,
-          value: chartType === 'weight' ? (record.weight || 0) : 
-                chartType === 'height' ? record.directFeedingSessions : 
-                record.totalPumpingOutput,
+          value: chartType === 'weight' ? record.weight : 
+                chartType === 'height' ? record.height : 
+                record.headCircumference || 0,
           percentile: this.calculatePercentile(
-            chartType === 'weight' ? (record.weight || 0) : 
-            chartType === 'height' ? record.directFeedingSessions : 
-            record.totalPumpingOutput,
+            chartType === 'weight' ? record.weight : 
+            chartType === 'height' ? record.height : 
+            record.headCircumference || 0,
             chartType,
             this.calculateAgeInWeeks(record.date, records[records.length - 1]?.date || new Date())
           )
@@ -130,13 +105,5 @@ export class GrowthTrackingService {
 
   deleteGrowthRecord(id: string): Promise<void> {
     return this.firestore.doc(`growth-records/${id}`).delete();
-  }
-
-  updateWeightRecord(id: string, updates: Partial<WeightRecord>): Promise<void> {
-    return this.firestore.doc(`weight-records/${id}`).update(updates);
-  }
-
-  deleteWeightRecord(id: string): Promise<void> {
-    return this.firestore.doc(`weight-records/${id}`).delete();
   }
 }
