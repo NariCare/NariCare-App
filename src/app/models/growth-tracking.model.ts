@@ -3,36 +3,14 @@ export interface GrowthRecord {
   babyId: string;
   recordedBy: string;
   date: Date;
-  weight?: number;
-  height?: number;
+  weight: number;
+  height: number;
   headCircumference?: number;
-  // Breastfeeding tracking fields
-  directFeedingSessions: number;
-  avgFeedingDuration: number; // in minutes
-  pumpingSessions: number;
-  totalPumpingOutput: number; // in ml
-  formulaIntake: number; // in ml
-  peeCount: number;
-  poopCount: number;
-  // Emotional state
-  emotionalState?: EmotionalState;
+  feedingFrequency: number;
+  sleepHours: number;
+  diaperChanges: number;
   notes?: string;
   milestones: Milestone[];
-}
-
-export interface EmotionalState {
-  mood: 'great' | 'good' | 'okay' | 'tired' | 'worried' | 'overwhelmed';
-  emoji: string;
-  description?: string;
-}
-
-export interface WeightRecord {
-  id: string;
-  babyId: string;
-  recordedBy: string;
-  date: Date;
-  weight: number;
-  notes?: string;
 }
 
 export interface Milestone {
