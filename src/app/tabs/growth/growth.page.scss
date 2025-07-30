@@ -1,3 +1,16 @@
+.quick-log-button {
+  --color: #ffffff;
+  --background: rgba(255, 255, 255, 0.2);
+  --border-radius: 20px;
+  margin-right: 8px;
+  font-size: 0.85rem;
+  height: 32px;
+  
+  &:hover {
+    --background: rgba(255, 255, 255, 0.3);
+  }
+}
+
 .content-container {
   padding: 1rem;
 }
@@ -49,9 +62,19 @@
       margin-top: 0.25rem;
     }
   }
+
+.star-performer-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: #ffd700;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
 }
 
-.chart-selector {
+.tab-selector {
   margin-bottom: 1.5rem;
 
   ion-segment {
@@ -62,7 +85,57 @@
   }
 }
 
+.recent-reference {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e2e8f0;
+
+  h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+}
+
+.reference-cards {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.reference-card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 0.75rem;
+  min-width: 120px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+
+  .reference-date {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+  }
+
+  .reference-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+}
+
+.tab-content {
+  min-height: 400px;
+}
+
 .chart-container {
+.weight-chart-container {
   background: #ffffff;
   border-radius: 16px;
   padding: 1.5rem;
@@ -156,6 +229,171 @@
   margin-bottom: 0.75rem;
 }
 
+.record-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.record-mood {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  .mood-emoji {
+    font-size: 1.2rem;
+  }
+  
+  .mood-label {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+}
+
+.daily-record {
+  .feeding-metrics {
+    margin-bottom: 1rem;
+  }
+  
+  .metric-group {
+    margin-bottom: 1rem;
+    
+    h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+  }
+  
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+}
+
+.weight-record {
+  .weight-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    
+    .weight-date {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+    
+    .weight-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #e91e63;
+    }
+  }
+  
+  .weight-notes {
+    font-size: 0.85rem;
+    color: #64748b;
+    
+    p {
+      margin: 0;
+    }
+  }
+}
+
+.voice-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #3b82f6;
+  
+  ion-icon {
+    font-size: 1rem;
+  }
+}
+
+.star-performers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.performer-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+  
+  &.current-user {
+    border-color: #e91e63;
+    background: linear-gradient(135deg, #fce4ec, #f8bbd9);
+  }
+}
+
+.performer-rank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 1rem;
+  
+  ion-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    
+    &.gold { color: #ffd700; }
+    &.silver { color: #c0c0c0; }
+    &.bronze { color: #cd7f32; }
+  }
+  
+  span {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+}
+
+.performer-info {
+  flex: 1;
+  
+  h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+  
+  p {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+}
+
+.elite-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #f59e0b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  
+  ion-icon {
+    font-size: 0.9rem;
+  }
+}
+
 .metric {
   text-align: center;
 
@@ -209,6 +447,92 @@
     margin: 0 0 1.5rem 0;
     font-size: 0.9rem;
     line-height: 1.4;
+  }
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.section-note {
+  margin: 0 0 1rem 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.voice-input-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  .input-item {
+    flex: 1;
+  }
+}
+
+.voice-button {
+  --color: #64748b;
+  --background: rgba(100, 116, 139, 0.1);
+  --border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  flex-shrink: 0;
+  
+  &:hover {
+    --color: #e91e63;
+    --background: rgba(233, 30, 99, 0.1);
+  }
+  
+  &.recording {
+    --color: #ef4444;
+    --background: rgba(239, 68, 68, 0.2);
+    animation: pulse 1.5s infinite;
+  }
+}
+
+.mood-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.mood-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &.selected {
+    border-color: #e91e63;
+    background: rgba(233, 30, 99, 0.1);
+  }
+  
+  &:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+  }
+  
+  .mood-emoji {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .mood-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #64748b;
   }
 }
 
@@ -290,11 +614,38 @@
 }
 
 @media (min-width: 768px) {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (min-width: 768px) {
   .record-metrics {
     grid-template-columns: repeat(4, 1fr);
   }
 
   .form-row {
     gap: 1rem;
+  }
+  
+  .mood-selector {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  .reference-cards {
+    gap: 1rem;
+  }
+  
+  .reference-card {
+    min-width: 140px;
   }
 }
