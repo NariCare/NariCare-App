@@ -335,6 +335,15 @@ export class AuthService {
 
   private async mockLogin(email: string, password: string): Promise<void> {
     console.log('Mock login for:', email);
+    
+    // Generate mock growth data for the past 7 days
+    const mockGrowthRecords = this.generateMockGrowthData();
+    const mockWeightRecords = this.generateMockWeightData();
+    
+    // Store mock data in localStorage for the growth service
+    localStorage.setItem('growthRecords', JSON.stringify(mockGrowthRecords));
+    localStorage.setItem('weightRecords', JSON.stringify(mockWeightRecords));
+    
     const mockUser: User = {
       uid: 'mock-user-123',
       email: email,
@@ -369,6 +378,87 @@ export class AuthService {
     this.router.navigate(['/tabs/dashboard']);
   }
 
+  private generateMockGrowthData(): any[] {
+    const records = [];
+    const babyId = 'baby-123';
+    const userId = 'mock-user-123';
+    
+    // Generate data for the past 7 days
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      
+      // Vary the data slightly for each day
+      const baseFeedings = 8 + Math.floor(Math.random() * 4); // 8-11 sessions
+      const baseDuration = 18 + Math.floor(Math.random() * 8); // 18-25 minutes
+      const basePumping = 2 + Math.floor(Math.random() * 3); // 2-4 sessions
+      const baseOutput = 100 + Math.floor(Math.random() * 100); // 100-200ml
+      
+      const moodOptions = [
+        { emoji: '😊', label: 'Great', value: 'great', color: '#10b981' },
+        { emoji: '🙂', label: 'Good', value: 'good', color: '#059669' },
+        { emoji: '😐', label: 'Okay', value: 'okay', color: '#6b7280' },
+        { emoji: '😴', label: 'Tired', value: 'tired', color: '#f59e0b' }
+      ];
+      
+      const randomMood = moodOptions[Math.floor(Math.random() * moodOptions.length)];
+      
+      records.push({
+        id: `record-${i}`,
+        babyId: babyId,
+        recordedBy: userId,
+        date: date.toISOString(),
+        directFeedingSessions: baseFeedings,
+        avgFeedingDuration: baseDuration,
+        pumpingSessions: basePumping,
+        totalPumpingOutput: baseOutput,
+        formulaIntake: i < 3 ? 0 : Math.floor(Math.random() * 50), // Some formula for older days
+        peeCount: 6 + Math.floor(Math.random() * 4), // 6-9 pees
+        poopCount: 2 + Math.floor(Math.random() * 3), // 2-4 poops
+        mood: randomMood,
+        moodDescription: i === 0 ? 'Feeling good today, baby is feeding well!' : 
+                        i === 2 ? 'A bit tired but managing okay' : '',
+        notes: i === 1 ? 'Baby seemed extra hungry today, had longer feeding sessions' : 
+               i === 4 ? 'Great day! Baby latched perfectly' : '',
+        enteredViaVoice: Math.random() > 0.7, // 30% chance of voice entry
+        createdAt: date.toISOString(),
+        updatedAt: date.toISOString()
+      });
+    }
+    
+    return records;
+  }
+  
+  private generateMockWeightData(): any[] {
+    const records = [];
+    const babyId = 'baby-123';
+    const userId = 'mock-user-123';
+    
+    // Generate weekly weight records for the past 6 weeks
+    let currentWeight = 3.2; // Starting birth weight
+    
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - (i * 7)); // Weekly intervals
+      
+      // Baby gains approximately 150-200g per week
+      currentWeight += 0.15 + (Math.random() * 0.05); // 150-200g gain
+      
+      records.push({
+        id: `weight-${i}`,
+        babyId: babyId,
+        recordedBy: userId,
+        date: date.toISOString(),
+        weight: Math.round(currentWeight * 100) / 100, // Round to 2 decimal places
+        notes: i === 0 ? 'Great weight gain this week!' : 
+               i === 2 ? 'Steady progress, doctor is happy' : 
+               i === 4 ? 'Back to birth weight!' : '',
+        createdAt: date.toISOString()
+      });
+    }
+    
+    return records;
+  }
   private async mockLogout(): Promise<void> {
     this.currentUserSubject.next(null);
     await this.storage.clear();
