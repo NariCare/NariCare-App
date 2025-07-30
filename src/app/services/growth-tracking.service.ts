@@ -110,18 +110,6 @@ export class GrowthTrackingService {
     const updatedRecords = [newRecord, ...currentRecords];
     
     this.weightRecordsSubject.next(updatedRecords);
-    await this.storage.set('weightRecords', updatedRecords);
-  }
-
-  getWeightRecords(babyId: string): Observable<WeightRecord[]> {
-    return this.weightRecordsSubject.pipe(
-      map(records => records
-        .filter(record => record.babyId === babyId)
-        .sort((a, b) => b.date.getTime() - a.date.getTime())
-      )
-    );
-  }
-
   // Check if weight reminder should be sent
   shouldSendWeightReminder(babyId: string): Observable<boolean> {
     return this.getWeightRecords(babyId).pipe(
