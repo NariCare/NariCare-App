@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ModalController, ToastController, AlertController, ViewChild, ElementRef } from '@ionic/angular';
+import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';

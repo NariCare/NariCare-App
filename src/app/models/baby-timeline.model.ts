@@ -19,6 +19,7 @@ export interface BabyTimelineItem {
 export interface BabyTimelineData {
   currentWeek: number;
   items: BabyTimelineItem[];
+  allWeeks: BabyTimelineItem[];
   upcomingMilestones: BabyTimelineItem[];
   recentlyCompleted: BabyTimelineItem[];
   allWeeks: BabyTimelineItem[];
