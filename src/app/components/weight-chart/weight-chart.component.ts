@@ -2,8 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChi
 import { CDCGrowthChartService } from '../../services/cdc-growth-chart.service';
 import { WeightRecord } from '../../models/growth-tracking.model';
 import { BabyGrowthPoint } from '../../models/cdc-growth-data.model';
-
-declare var Highcharts: any;
+import * as Highcharts from 'highcharts';
 
 @Component({
   selector: 'app-weight-chart',
@@ -24,9 +23,8 @@ export class WeightChartComponent implements OnInit, OnChanges {
   constructor(private cdcService: CDCGrowthChartService) {}
 
   ngOnInit() {
-    this.loadHighcharts().then(() => {
-      this.createChart();
-    });
+    this.isLoading = false;
+    this.createChart();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -37,32 +35,8 @@ export class WeightChartComponent implements OnInit, OnChanges {
     }
   }
 
-  private async loadHighcharts() {
-    try {
-      // Load Highcharts from CDN
-      if (typeof Highcharts === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://code.highcharts.com/highcharts.js';
-        script.onload = () => {
-          this.isLoading = false;
-        };
-        document.head.appendChild(script);
-        
-        // Wait for script to load
-        await new Promise(resolve => {
-          script.onload = resolve;
-        });
-      } else {
-        this.isLoading = false;
-      }
-    } catch (error) {
-      console.error('Failed to load Highcharts:', error);
-      this.isLoading = false;
-    }
-  }
-
   private createChart() {
-    if (!this.chartContainer || typeof Highcharts === 'undefined') {
+    if (!this.chartContainer) {
       return;
     }
 
