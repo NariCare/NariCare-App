@@ -1,0 +1,112 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()" class="header-button">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Baby's Timeline</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="timeline-container" *ngIf="timelineData$ | async as timelineData">
+    
+    <!-- Current Week Header -->
+    <div class="timeline-header">
+      <div class="week-indicator">
+        <div class="week-marker">
+          <ion-icon name="location"></ion-icon>
+        </div>
+        <div class="week-info">
+          <h2>Week {{ timelineData.currentWeek }}</h2>
+          <p>{{ calculateBabyAge() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Items -->
+    <div class="timeline-items">
+      <div *ngFor="let item of timelineData.items; let i = index" 
+           class="timeline-item"
+           [class.current-item]="timelineData.currentWeek >= item.weekStart && timelineData.currentWeek <= item.weekEnd"
+           [class.completed-item]="timelineData.currentWeek > item.weekEnd"
+           [class.upcoming-item]="timelineData.currentWeek < item.weekStart">
+        
+        <div class="timeline-connector" *ngIf="i > 0"></div>
+        
+        <div class="timeline-marker" [style.background-color]="item.color">
+          <ion-icon [name]="item.icon"></ion-icon>
+        </div>
+        
+        <div class="timeline-content">
+          <div class="timeline-card">
+            <div class="card-header">
+              <div class="week-range">
+                <span *ngIf="item.weekStart === item.weekEnd">Week {{ item.weekStart }}</span>
+                <span *ngIf="item.weekStart !== item.weekEnd">Weeks {{ item.weekStart }}-{{ item.weekEnd }}</span>
+              </div>
+              <ion-chip [color]="getCategoryColor(item.category)" size="small">
+                {{ getCategoryLabel(item.category) }}
+              </ion-chip>
+            </div>
+            
+            <h3>{{ item.title }}</h3>
+            <p class="description">{{ item.description }}</p>
+            
+            <!-- What to Expect -->
+            <div class="expectation-section" *ngIf="item.whatToExpect && item.whatToExpect.length > 0">
+              <h4>💕 What to Expect:</h4>
+              <ul class="expectation-list">
+                <li *ngFor="let expectation of item.whatToExpect">{{ expectation }}</li>
+              </ul>
+            </div>
+            
+            <!-- Tips -->
+            <div class="tips-section" *ngIf="item.tips && item.tips.length > 0">
+              <h4>✨ Helpful Tips:</h4>
+              <ul class="tips-list">
+                <li *ngFor="let tip of item.tips">{{ tip }}</li>
+              </ul>
+            </div>
+            
+            <!-- When to Worry -->
+            <div class="worry-section" *ngIf="item.whenToWorry && item.whenToWorry.length > 0">
+              <h4>🚨 When to Contact Your Doctor:</h4>
+              <ul class="worry-list">
+                <li *ngFor="let worry of item.whenToWorry">{{ worry }}</li>
+              </ul>
+            </div>
+            
+            <div class="card-footer">
+              <ion-button 
+                fill="clear" 
+                size="small" 
+                *ngIf="timelineData.currentWeek >= item.weekStart && timelineData.currentWeek <= item.weekEnd">
+                <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+                Mark as Experienced
+              </ion-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Upcoming Milestones -->
+    <div class="upcoming-section" *ngIf="timelineData.upcomingMilestones.length > 0">
+      <h3>🌟 Coming Up Next</h3>
+      <div class="upcoming-cards">
+        <div *ngFor="let milestone of timelineData.upcomingMilestones" class="upcoming-card">
+          <div class="upcoming-icon" [style.background-color]="milestone.color">
+            <ion-icon [name]="milestone.icon"></ion-icon>
+          </div>
+          <div class="upcoming-content">
+            <h4>{{ milestone.title }}</h4>
+            <p>Week {{ milestone.weekStart }}<span *ngIf="milestone.weekStart !== milestone.weekEnd">-{{ milestone.weekEnd }}</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</ion-content>

@@ -21,6 +21,11 @@ const routes: Routes = [
     path: 'tabs',
     loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'timeline',
+    loadChildren: () => import('./pages/timeline/timeline.module').then(m => m.TimelinePageModule),
+    canActivate: [AuthGuard]
   }
 ];
 

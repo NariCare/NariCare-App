@@ -20,8 +20,30 @@
     <!-- Quick Actions -->
     <div class="section">
       <h2 class="section-title">Quick Actions</h2>
+
+      <div class="quick-actions-grid">
+        <div 
+          *ngFor="let action of quickActions"
+          class="action-card"
+          [class]="'action-card-' + action.color"
+          (click)="handleQuickAction(action.action)">
+          <div class="action-icon">
+            <ion-icon [name]="action.icon"></ion-icon>
+          </div>
+          <div class="action-content">
+            <h3>{{ action.title }}</h3>
+            <p>{{ action.description }}</p>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's Insights -->
+    <div class="section" *ngIf="user && user.babies && user.babies.length > 0">
+      <h2 class="section-title">Today's Insights</h2>
       
-      <!-- LactApp-Style Timeline Header -->
+      <!-- Timeline Section -->
       <div class="timeline-header-section" (click)="navigateToTimeline()">
         <div class="timeline-background">
           <div class="timeline-title">
@@ -74,27 +96,6 @@
         </div>
       </div>
 
-      <div class="quick-actions-grid">
-        <div 
-          *ngFor="let action of quickActions"
-          class="action-card"
-          [class]="'action-card-' + action.color"
-          (click)="handleQuickAction(action.action)">
-          <div class="action-icon">
-            <ion-icon [name]="action.icon"></ion-icon>
-          </div>
-          <div class="action-content">
-            <h3>{{ action.title }}</h3>
-            <p>{{ action.description }}</p>
-          </div>
-          <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
-        </div>
-      </div>
-    </div>
-
-    <!-- Today's Insights -->
-    <div class="section" *ngIf="user && user.babies && user.babies.length > 0">
-      <h2 class="section-title">Today's Insights</h2>
       <div class="insights-container">
         <div class="insight-card">
           <div class="insight-header">
