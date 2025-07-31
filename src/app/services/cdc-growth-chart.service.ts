@@ -139,7 +139,7 @@ export class CDCGrowthChartService {
     console.log('Generating chart data for', gender, 'with', babyGrowthPoints.length, 'data points');
     
     // Generate percentile curves
-    const percentileCurves = this.chartConfig.showPercentiles.map(percentile => ({
+    const percentileCurves: Highcharts.SeriesOptionsType[] = this.chartConfig.showPercentiles.map(percentile => ({
       name: `${percentile}th percentile`,
       data: chartData.map(point => ({
         x: point.ageInWeeks,
@@ -151,10 +151,10 @@ export class CDCGrowthChartService {
       dashStyle: percentile === 50 ? 'Solid' : 'Dash',
       marker: { enabled: false },
       enableMouseTracking: true
-    }));
+    } as Highcharts.SeriesOptionsType));
 
     // Add baby's actual data points
-    const babyDataSeries = babyGrowthPoints.length > 0 ? {
+    const babyDataSeries: Highcharts.SeriesOptionsType | null = babyGrowthPoints.length > 0 ? {
       name: 'Baby\'s Weight',
       data: babyGrowthPoints.map(point => ({
         x: point.ageInWeeks,
@@ -170,9 +170,9 @@ export class CDCGrowthChartService {
         lineWidth: 2
       },
       zIndex: 10
-    } : null;
+    } as Highcharts.SeriesOptionsType : null;
 
-    const allSeries = [...percentileCurves];
+    const allSeries: Highcharts.SeriesOptionsType[] = [...percentileCurves];
     if (babyDataSeries) {
       allSeries.push(babyDataSeries);
     }
