@@ -77,7 +77,7 @@
 .timeline-header-section {
   background: linear-gradient(135deg, #f8f9fa, #e9ecef);
   border-radius: 20px;
-  margin: 0 1rem 1.5rem 1rem;
+  margin: 0 0 1.5rem 0;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -144,6 +144,7 @@
   flex-direction: column;
   align-items: center;
   animation: markerPulse 2s infinite ease-in-out;
+  cursor: pointer;
 
   &.current-week {
     z-index: 10;
@@ -225,6 +226,7 @@
   align-items: center;
   gap: 1rem;
   transition: all 0.2s ease;
+  cursor: pointer;
 
   &.active {
     border-color: #e91e63;
