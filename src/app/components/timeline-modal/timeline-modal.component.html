@@ -55,7 +55,7 @@
             <p class="description">{{ item.description }}</p>
             
             <!-- What to Expect -->
-            <div class="expectation-section" *ngIf="item.whatToExpect && item.whatToExpected.length > 0">
+            <div class="expectation-section" *ngIf="item.whatToExpect && item.whatToExpect.length > 0">
               <h4>💕 What to Expect:</h4>
               <ul class="expectation-list">
                 <li *ngFor="let expectation of item.whatToExpect">{{ expectation }}</li>

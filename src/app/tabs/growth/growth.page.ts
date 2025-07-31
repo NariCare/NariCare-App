@@ -10,6 +10,7 @@ import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { GrowthRecord, WeightRecord, MoodType, StarPerformer } from '../../models/growth-tracking.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
+import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
 
 @Component({
   selector: 'app-growth',
@@ -696,11 +697,6 @@ export class GrowthPage implements OnInit {
     if (!upcoming || !this.currentTimelineData) return 0;
     
     return upcoming.weekStart - this.currentTimelineData.currentWeek;
-  }
-
-  // Timeline navigation methods
-  navigateToTimeline() {
-    this.router.navigate(['/timeline']);
   }
 
   async openTimelineModal() {
