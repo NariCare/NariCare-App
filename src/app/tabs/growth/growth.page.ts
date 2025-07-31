@@ -29,6 +29,7 @@ export class GrowthPage implements OnInit {
   selectedMood: MoodType | null = null;
   moodOptions: MoodType[] = [];
   starPerformers: StarPerformer[] = [];
+  currentTimelineData: BabyTimelineData | null = null;
   isRecording = false;
   isProcessingVoice = false;
   recognition: any;
@@ -76,6 +77,11 @@ export class GrowthPage implements OnInit {
         this.loadTrackingData(user.babies[0].id);
         this.loadTimelineData(user.babies[0].dateOfBirth);
       }
+    });
+    
+    // Subscribe to timeline data for synchronous access
+    this.timelineData$?.subscribe(data => {
+      this.currentTimelineData = data;
     });
     
     this.moodOptions = this.growthService.getMoodOptions();
