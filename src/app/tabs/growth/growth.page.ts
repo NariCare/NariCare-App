@@ -659,11 +659,6 @@ export class GrowthPage implements OnInit {
     return categoryColors[category] || 'medium';
   }
 
-  // Timeline header methods
-  navigateToTimeline() {
-    this.selectedTab = 'timeline';
-  }
-
   getCurrentWeek(): number {
     return this.currentTimelineData?.currentWeek || 0;
   }
@@ -697,6 +692,11 @@ export class GrowthPage implements OnInit {
     if (!upcoming || !this.currentTimelineData) return 0;
     
     return upcoming.weekStart - this.currentTimelineData.currentWeek;
+  }
+
+  // Timeline navigation methods
+  navigateToTimeline() {
+    this.router.navigate(['/timeline']);
   }
 
   async openTimelineModal() {

@@ -33,7 +33,7 @@
     </div>
 
     <!-- LactApp-Style Timeline Header -->
-    <div class="timeline-header-section" (click)="navigateToTimeline()">
+    <div class="timeline-header-section">
       <div class="timeline-background">
         <div class="timeline-title">
           <h3>TIMELINE</h3>
@@ -63,7 +63,7 @@
               <p>{{ getCurrentTimelineItem()?.description }}</p>
             </div>
             <div class="see-more">
-              <span (click)="navigateToTimeline()">SEE MORE</span>
+              <span (click)="openTimelineModal()">SEE MORE</span>
               <ion-icon name="chevron-forward"></ion-icon>
             </div>
           </div>
@@ -80,7 +80,7 @@
         </div>
         
         <div class="timeline-action">
-          <span class="see-all-link" (click)="navigateToTimeline()">SEE ALL</span>
+          <span class="see-all-link" (click)="openTimelineModal()">SEE ALL</span>
         </div>
       </div>
     </div>
