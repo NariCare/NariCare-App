@@ -5,7 +5,9 @@ import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
 import { CDCGrowthChartService } from '../../services/cdc-growth-chart.service';
+import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { GrowthRecord, WeightRecord, MoodType, StarPerformer } from '../../models/growth-tracking.model';
+import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 
 @Component({
@@ -18,6 +20,7 @@ export class GrowthPage implements OnInit {
   growthRecords$: Observable<GrowthRecord[]> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
+  timelineData$: Observable<BabyTimelineData> | null = null;
   selectedTab: 'daily' | 'weight' = 'daily';
   showAddRecordModal = false;
   showAddWeightModal = false;
@@ -37,6 +40,7 @@ export class GrowthPage implements OnInit {
     private growthService: GrowthTrackingService,
     private authService: AuthService,
     private cdcService: CDCGrowthChartService,
+    private timelineService: BabyTimelineService,
     private modalController: ModalController,
     private toastController: ToastController,
     private alertController: AlertController
@@ -70,6 +74,7 @@ export class GrowthPage implements OnInit {
       this.user = user;
       if (user && user.babies.length > 0) {
         this.loadTrackingData(user.babies[0].id);
+        this.loadTimelineData(user.babies[0].dateOfBirth);
       }
     });
     
@@ -81,6 +86,10 @@ export class GrowthPage implements OnInit {
     this.growthRecords$ = this.growthService.getGrowthRecords(babyId);
     this.weightRecords$ = this.growthService.getWeightRecords(babyId);
     this.recentRecords$ = this.growthService.getRecentRecords(babyId, 3);
+  }
+
+  private loadTimelineData(birthDate: Date) {
+    this.timelineData$ = this.timelineService.getTimelineForBaby(birthDate);
   }
 
   private async loadStarPerformers() {
