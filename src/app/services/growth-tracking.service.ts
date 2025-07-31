@@ -36,7 +36,7 @@ export class GrowthTrackingService {
     this.loadStoredData();
   }
 
-  private async loadStoredData() {
+  public async loadStoredData() {
     try {
       const records = await this.storage.get('growthRecords') || [];
       const weightRecords = await this.storage.get('weightRecords') || [];

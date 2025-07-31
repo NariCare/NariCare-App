@@ -5,6 +5,7 @@ import { map, switchMap, take } from 'rxjs/operators';
 import { User } from '../models/user.model';
 import { Storage } from '@ionic/storage-angular';
 import { environment } from '../../environments/environment';
+import { GrowthTrackingService } from './growth-tracking.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +21,8 @@ export class AuthService {
 
   constructor(
     private router: Router,
-    private storage: Storage
+    private storage: Storage,
+    private growthTrackingService: GrowthTrackingService
   ) {
     this.initializeAuth();
   }
@@ -341,8 +343,11 @@ export class AuthService {
     const mockWeightRecords = this.generateMockWeightData();
     
     // Store mock data in localStorage for the growth service
-    localStorage.setItem('growthRecords', JSON.stringify(mockGrowthRecords));
-    localStorage.setItem('weightRecords', JSON.stringify(mockWeightRecords));
+    await this.storage.set('growthRecords', mockGrowthRecords);
+    await this.storage.set('weightRecords', mockWeightRecords);
+    
+    // Force growth tracking service to reload data
+    await this.growthTrackingService.loadStoredData();
     
     const mockUser: User = {
       uid: 'mock-user-123',
