@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ChatbotService } from '../../services/chatbot.service';
+import { BabyTimelineService } from '../../services/baby-timeline.service';
+import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
+import { Observable } from 'rxjs';
 import { User } from '../../models/user.model';
 
 @Component({
@@ -11,6 +14,8 @@ import { User } from '../../models/user.model';
 })
 export class DashboardPage implements OnInit {
   user: User | null = null;
+  timelineData$: Observable<BabyTimelineData> | null = null;
+  currentTimelineData: BabyTimelineData | null = null;
   quickActions = [
     {
       title: 'Ask AI Assistant',
@@ -121,5 +126,52 @@ export class DashboardPage implements OnInit {
 
   navigateToProfile() {
     this.router.navigate(['/tabs/profile']);
+  }
+
+  // Timeline methods
+  private loadTimelineData(birthDate: Date) {
+    this.timelineData$ = this.timelineService.getTimelineForBaby(birthDate);
+    this.timelineData$.subscribe(data => {
+      this.currentTimelineData = data;
+    });
+  }
+
+  navigateToTimeline() {
+    this.router.navigate(['/tabs/growth'], { queryParams: { tab: 'timeline' } });
+  }
+
+  getCurrentWeek(): number {
+    return this.currentTimelineData?.currentWeek || 0;
+  }
+
+  getTimelineProgress(): number {
+    const currentWeek = this.getCurrentWeek();
+    const maxWeeks = 52; // 1 year
+    return Math.min((currentWeek / maxWeeks) * 100, 100);
+  }
+
+  getCurrentTimelineItem(): BabyTimelineItem | null {
+    if (!this.currentTimelineData) return null;
+    
+    const currentWeek = this.currentTimelineData.currentWeek;
+    return this.currentTimelineData.items.find(item => 
+      currentWeek >= item.weekStart && currentWeek <= item.weekEnd
+    ) || null;
+  }
+
+  getUpcomingTimelineItem(): BabyTimelineItem | null {
+    if (!this.currentTimelineData) return null;
+    
+    const currentWeek = this.currentTimelineData.currentWeek;
+    return this.currentTimelineData.items.find(item => 
+      item.weekStart > currentWeek
+    ) || null;
+  }
+
+  getWeeksUntilUpcoming(): number {
+    const upcoming = this.getUpcomingTimelineItem();
+    if (!upcoming || !this.currentTimelineData) return 0;
+    
+    return upcoming.weekStart - this.currentTimelineData.currentWeek;
   }
 }

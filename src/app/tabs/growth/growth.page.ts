@@ -71,6 +71,13 @@ export class GrowthPage implements OnInit {
   }
 
   ngOnInit() {
+    // Check if we should open timeline tab directly
+    this.route.queryParams.subscribe(params => {
+      if (params['tab'] === 'timeline') {
+        this.selectedTab = 'timeline';
+      }
+    });
+
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
       if (user && user.babies.length > 0) {

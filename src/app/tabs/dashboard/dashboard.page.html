@@ -20,6 +20,60 @@
     <!-- Quick Actions -->
     <div class="section">
       <h2 class="section-title">Quick Actions</h2>
+      
+      <!-- LactApp-Style Timeline Header -->
+      <div class="timeline-header-section" (click)="navigateToTimeline()">
+        <div class="timeline-background">
+          <div class="timeline-title">
+            <h3>TIMELINE</h3>
+            <span class="timeline-subtitle">Baby's Development Journey</span>
+          </div>
+          
+          <div class="timeline-visual">
+            <div class="timeline-line"></div>
+            <div class="timeline-marker current-week" [style.left.%]="getTimelineProgress()">
+              <div class="marker-pin">
+                <ion-icon name="location"></ion-icon>
+              </div>
+              <div class="week-badge">
+                <span class="week-number">{{ getCurrentWeek() }}</span>
+                <span class="week-label">weeks</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="timeline-cards-preview">
+            <div class="preview-card active" *ngIf="getCurrentTimelineItem()">
+              <div class="card-icon" [style.background-color]="getCurrentTimelineItem()?.color">
+                <ion-icon [name]="getCurrentTimelineItem()?.icon"></ion-icon>
+              </div>
+              <div class="card-content">
+                <h4>{{ getCurrentTimelineItem()?.title }}</h4>
+                <p>{{ getCurrentTimelineItem()?.description }}</p>
+              </div>
+              <div class="see-more">
+                <span>SEE MORE</span>
+                <ion-icon name="chevron-forward"></ion-icon>
+              </div>
+            </div>
+            
+            <div class="preview-card upcoming" *ngIf="getUpcomingTimelineItem()">
+              <div class="card-icon locked" [style.background-color]="getUpcomingTimelineItem()?.color">
+                <ion-icon name="lock-closed"></ion-icon>
+              </div>
+              <div class="card-content">
+                <h4>{{ getUpcomingTimelineItem()?.title }}</h4>
+                <p>Coming in {{ getWeeksUntilUpcoming() }} week{{ getWeeksUntilUpcoming() !== 1 ? 's' : '' }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="timeline-action">
+            <span class="see-all-link">SEE ALL</span>
+          </div>
+        </div>
+      </div>
+
       <div class="quick-actions-grid">
         <div 
           *ngFor="let action of quickActions"
