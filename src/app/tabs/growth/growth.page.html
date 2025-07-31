@@ -42,7 +42,7 @@
         
         <div class="timeline-visual">
           <div class="timeline-line"></div>
-          <div class="timeline-marker current-week" [style.left.%]="getTimelineProgress()">
+          <div class="timeline-marker current-week" [style.left.%]="getTimelineProgress()" (click)="openTimelineModal()">
             <div class="marker-pin">
               <ion-icon name="location"></ion-icon>
             </div>
@@ -54,7 +54,7 @@
         </div>
         
         <div class="timeline-cards-preview">
-          <div class="preview-card active" *ngIf="getCurrentTimelineItem()">
+          <div class="preview-card active" *ngIf="getCurrentTimelineItem()" (click)="openTimelineModal()">
             <div class="card-icon" [style.background-color]="getCurrentTimelineItem()?.color">
               <ion-icon [name]="getCurrentTimelineItem()?.icon"></ion-icon>
             </div>
@@ -62,13 +62,13 @@
               <h4>{{ getCurrentTimelineItem()?.title }}</h4>
               <p>{{ getCurrentTimelineItem()?.description }}</p>
             </div>
-            <div class="see-more">
-              <span (click)="openTimelineModal()">SEE MORE</span>
+            <div class="see-more" (click)="openTimelineModal(); $event.stopPropagation()">
+              <span>SEE MORE</span>
               <ion-icon name="chevron-forward"></ion-icon>
             </div>
           </div>
           
-          <div class="preview-card upcoming" *ngIf="getUpcomingTimelineItem()">
+          <div class="preview-card upcoming" *ngIf="getUpcomingTimelineItem()" (click)="openTimelineModal()">
             <div class="card-icon locked" [style.background-color]="getUpcomingTimelineItem()?.color">
               <ion-icon name="lock-closed"></ion-icon>
             </div>

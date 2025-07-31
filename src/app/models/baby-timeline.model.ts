@@ -12,6 +12,7 @@ export interface BabyTimelineItem {
   tips?: string[];
   whatToExpect?: string[];
   whenToWorry?: string[];
+  whatToExpected?: string[];
 }
 
 export interface BabyTimelineData {
