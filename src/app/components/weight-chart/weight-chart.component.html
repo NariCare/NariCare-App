@@ -15,7 +15,7 @@
   </div>
 
   <!-- Chart Container -->
-  <div #chartContainer class="chart-content" *ngIf="!isLoading && !chartError"></div>
+  <div #chartContainer class="chart-content" [style.display]="isLoading || chartError ? 'none' : 'block'"></div>
 
   <!-- Error State -->
   <div class="chart-error" *ngIf="chartError">

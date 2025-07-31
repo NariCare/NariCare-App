@@ -13,7 +13,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() weightRecords: WeightRecord[] = [];
   @Input() babyGender: 'male' | 'female' = 'female';
   @Input() babyBirthDate: Date = new Date();
-  @ViewChild('chartContainer', { static: true }) chartContainer!: ElementRef;
+  @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
 
   chart: any;
   currentPercentile: number = 50;
@@ -34,10 +34,20 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     console.log('WeightChartComponent ngAfterViewInit');
     console.log('Chart container element:', this.chartContainer?.nativeElement);
     
-    // Wait a bit for the view to be fully rendered
-    setTimeout(() => {
+    // Initialize chart immediately after view init
+    if (this.chartContainer?.nativeElement) {
       this.initializeChart();
-    }, 500);
+    } else {
+      // Fallback: wait for container to be available
+      setTimeout(() => {
+        if (this.chartContainer?.nativeElement) {
+          this.initializeChart();
+        } else {
+          this.chartError = 'Chart container element not found in DOM';
+          this.isLoading = false;
+        }
+      }, 100);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -55,12 +65,17 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
 
   public initializeChart() {
     console.log('Initializing chart...');
+    console.log('Chart container available:', !!this.chartContainer?.nativeElement);
     this.isLoading = true;
     this.chartError = '';
 
     if (!this.chartContainer || !this.chartContainer.nativeElement) {
-      console.error('Chart container not available');
-      this.chartError = 'Chart container not available';
+      console.error('Chart container not available:', {
+        hasViewChild: !!this.chartContainer,
+        hasNativeElement: !!this.chartContainer?.nativeElement,
+        elementId: this.chartContainer?.nativeElement?.id
+      });
+      this.chartError = 'Chart container element not found. Please try refreshing the page.';
       this.isLoading = false;
       return;
     }
