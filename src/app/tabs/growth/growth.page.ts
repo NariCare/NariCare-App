@@ -417,6 +417,7 @@ export class GrowthPage implements OnInit {
   }
 
   clearVoiceInput() {
+  }
   async saveGrowthRecord() {
     if (this.addRecordForm.valid && this.user && this.user.babies.length > 0) {
       try {
