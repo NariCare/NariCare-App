@@ -280,11 +280,7 @@ export class BabyTimelineService {
 
   private calculateCurrentWeek(birthDate: Date): number {
     const now = new Date();
-    const diffTime = now.getTime() - birthDate.getTime();
-    
-    // If birth date is in the future, return 0
-    if (diffTime < 0) return 0;
-    
+    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
     return Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
   }
 

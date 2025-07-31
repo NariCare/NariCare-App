@@ -70,9 +70,6 @@ export class DashboardPage implements OnInit {
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
-      if (user && user.babies.length > 0) {
-        this.loadTimelineData(user.babies[0].dateOfBirth);
-      }
     });
   }
 
@@ -133,14 +130,14 @@ export class DashboardPage implements OnInit {
   }
 
   // Timeline methods
-  loadTimelineData(birthDate: Date) {
+  private loadTimelineData(birthDate: Date) {
     this.timelineData$ = this.timelineService.getTimelineForBaby(birthDate);
     this.timelineData$.subscribe(data => {
       this.currentTimelineData = data;
     });
   }
 
-  navigateToTimeline(): void {
+  navigateToTimeline() {
     this.router.navigate(['/tabs/growth'], { queryParams: { tab: 'timeline' } });
   }
 
