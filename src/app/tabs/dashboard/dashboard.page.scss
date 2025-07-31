@@ -286,6 +286,39 @@
   }
 }
 
+.see-all-link {
+  color: #e91e63;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &::after {
+    content: '→';
+    font-size: 1rem;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    color: #d81b60;
+    transform: translateX(-2px);
+  }
+
+  &:active {
+    transform: translateX(0);
+  }
+}
+
+.timeline-header-section:hover .see-all-link::after {
+  transform: translateX(2px);
+}
+
 @media (min-width: 768px) {
   .quick-actions-grid {
     grid-template-columns: repeat(2, 1fr);
