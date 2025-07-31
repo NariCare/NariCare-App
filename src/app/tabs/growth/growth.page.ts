@@ -649,4 +649,44 @@ export class GrowthPage implements OnInit {
     };
     return categoryColors[category] || 'medium';
   }
+
+  // Timeline header methods
+  navigateToTimeline() {
+    this.selectedTab = 'timeline';
+  }
+
+  getCurrentWeek(): number {
+    return this.currentTimelineData?.currentWeek || 0;
+  }
+
+  getTimelineProgress(): number {
+    const currentWeek = this.getCurrentWeek();
+    const maxWeeks = 52; // 1 year
+    return Math.min((currentWeek / maxWeeks) * 100, 100);
+  }
+
+  getCurrentTimelineItem(): BabyTimelineItem | null {
+    if (!this.currentTimelineData) return null;
+    
+    const currentWeek = this.currentTimelineData.currentWeek;
+    return this.currentTimelineData.items.find(item => 
+      currentWeek >= item.weekStart && currentWeek <= item.weekEnd
+    ) || null;
+  }
+
+  getUpcomingTimelineItem(): BabyTimelineItem | null {
+    if (!this.currentTimelineData) return null;
+    
+    const currentWeek = this.currentTimelineData.currentWeek;
+    return this.currentTimelineData.items.find(item => 
+      item.weekStart > currentWeek
+    ) || null;
+  }
+
+  getWeeksUntilUpcoming(): number {
+    const upcoming = this.getUpcomingTimelineItem();
+    if (!upcoming || !this.currentTimelineData) return 0;
+    
+    return upcoming.weekStart - this.currentTimelineData.currentWeek;
+  }
 }
