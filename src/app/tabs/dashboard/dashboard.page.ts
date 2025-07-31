@@ -132,15 +132,16 @@ export class DashboardPage implements OnInit {
     this.router.navigate(['/tabs/profile']);
   }
 
-  public loadTimelineData(birthDate: Date) {
+  // Timeline methods
+  loadTimelineData(birthDate: Date) {
     this.timelineData$ = this.timelineService.getTimelineForBaby(birthDate);
     this.timelineData$.subscribe(data => {
       this.currentTimelineData = data;
     });
   }
 
-  public navigateToTimeline(): void {
-    this.router.navigate(['/timeline']);
+  navigateToTimeline(): void {
+    this.router.navigate(['/tabs/growth'], { queryParams: { tab: 'timeline' } });
   }
 
   getCurrentWeek(): number {
