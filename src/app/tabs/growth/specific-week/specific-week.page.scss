@@ -1,0 +1,303 @@
+.specific-week-container {
+  padding: 0;
+  background: linear-gradient(135deg, #fef7f7, #f8fafc);
+  min-height: 100vh;
+}
+
+.page-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  .baby-age {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    font-weight: 400;
+  }
+}
+
+.week-header {
+  padding: 2rem 1.5rem;
+  color: #ffffff;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+  }
+}
+
+.week-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 2;
+
+  ion-icon {
+    font-size: 2.5rem;
+    color: #ffffff;
+  }
+}
+
+.week-info {
+  position: relative;
+  z-index: 2;
+}
+
+.week-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+
+  .week-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .week-label {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+}
+
+.week-info h1 {
+  margin: 0 0 1rem 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  line-height: 1.2;
+}
+
+.week-description {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.1rem;
+  opacity: 0.95;
+  line-height: 1.5;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.week-status {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.week-content {
+  padding: 2rem 1.5rem;
+}
+
+.content-section {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f1f5f9;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  &.expect-section {
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, #f0fdf4, #ffffff);
+  }
+  
+  &.tips-section {
+    border-left: 4px solid #3b82f6;
+    background: linear-gradient(135deg, #eff6ff, #ffffff);
+  }
+  
+  &.worry-section {
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(135deg, #fef2f2, #ffffff);
+  }
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  
+  h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+}
+
+.section-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  
+  &.warning {
+    background: #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: #ffffff;
+  }
+}
+
+.tips-section .section-icon {
+  background: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.section-content {
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    
+    li {
+      margin-bottom: 1rem;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+.list-item-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .item-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  
+  span {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #374151;
+    flex: 1;
+  }
+}
+
+.expectation-list .item-icon {
+  color: #10b981;
+}
+
+.tips-list .item-icon {
+  color: #3b82f6;
+}
+
+.worry-list .item-icon {
+  color: #ef4444;
+}
+
+.action-buttons {
+  padding: 1.5rem;
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  
+  ion-button {
+    --border-radius: 12px;
+    --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.2);
+    height: 52px;
+    font-weight: 600;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+
+  ion-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  p {
+    margin: 0 0 1.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+}
+
+@media (min-width: 768px) {
+  .week-header {
+    padding: 3rem 2rem;
+  }
+  
+  .week-content {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .content-section {
+    padding: 2rem;
+  }
+  
+  .section-header h3 {
+    font-size: 1.4rem;
+  }
+  
+  .list-item-content {
+    padding: 1.25rem;
+    
+    span {
+      font-size: 1rem;
+    }
+  }
+}

@@ -699,33 +699,12 @@ export class GrowthPage implements OnInit {
   }
 
   // Timeline navigation methods
-  navigateToTimeline() {
-    this.router.navigate(['/timeline']);
+  openTimelineModal() {
+    this.router.navigate(['/tabs/growth/timeline']);
   }
 
-  async openTimelineModal() {
-    const modal = await this.modalController.create({
-      component: TimelineModalComponent,
-      componentProps: {
-        timelineData: this.currentTimelineData,
-        babyName: this.user?.babies[0]?.name || 'Baby'
-      },
-      cssClass: 'timeline-modal'
-    });
-    return await modal.present();
-  }
-
-  async openSpecificWeekModal(weekItem: BabyTimelineItem) {
-    const modal = await this.modalController.create({
-      component: SpecificWeekModalComponent,
-      componentProps: {
-        weekItem: weekItem,
-        babyName: this.user?.babies[0]?.name || 'Baby',
-        currentWeek: this.getCurrentWeek()
-      },
-      cssClass: 'specific-week-modal'
-    });
-    return await modal.present();
+  openSpecificWeekModal(weekItem: BabyTimelineItem) {
+    this.router.navigate(['/tabs/growth/timeline/week', weekItem.weekStart]);
   }
 
   scrollTimelineLeft() {
