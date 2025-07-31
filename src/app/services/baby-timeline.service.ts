@@ -100,7 +100,7 @@ export class BabyTimelineService {
       category: 'milestone',
       icon: 'happy',
       color: '#4caf50',
-      whatToExpected: [
+      whatToExpect: [
         'Baby smiles in response to your voice',
         'More alert periods during the day',
         'Beginning to coo and make sounds',

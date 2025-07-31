@@ -21,7 +21,7 @@ export class GrowthPage implements OnInit {
   weightRecords$: Observable<WeightRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
-  selectedTab: 'daily' | 'weight' = 'daily';
+  selectedTab: 'daily' | 'weight' | 'timeline' = 'daily';
   showAddRecordModal = false;
   showAddWeightModal = false;
   addRecordForm: FormGroup;
@@ -626,5 +626,16 @@ export class GrowthPage implements OnInit {
       return gender;
     }
     return 'female';
+  }
+
+  getCategoryLabel(category: string): string {
+    const categoryLabels: { [key: string]: string } = {
+      'feeding': 'Feeding',
+      'development': 'Development',
+      'sleep': 'Sleep',
+      'milestone': 'Milestone',
+      'health': 'Health'
+    };
+    return categoryLabels[category] || category;
   }
 }
