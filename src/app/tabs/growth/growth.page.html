@@ -143,17 +143,12 @@
 
     <!-- Weight Tracking Content -->
     <div class="tab-content" *ngIf="selectedTab === 'weight'">
-      <div class="weight-chart-container">
-        <div class="chart-header">
-          <h3>Weight Progress</h3>
-          <span class="chart-unit">kg</span>
-        </div>
-        <div class="chart-placeholder">
-          <ion-icon name="analytics"></ion-icon>
-          <p>Weight chart visualization will appear here</p>
-          <p class="chart-note">Add weekly weight records to see growth trends</p>
-        </div>
-      </div>
+      <!-- CDC Weight Chart -->
+      <app-weight-chart 
+        [weightRecords]="weightRecords$ | async || []"
+        [babyGender]="user?.babies[0]?.gender || 'female'"
+        [babyBirthDate]="user?.babies[0]?.dateOfBirth || new Date()">
+      </app-weight-chart>
 
       <div class="section">
         <h3 class="section-title">Weight Records</h3>

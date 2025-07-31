@@ -4,6 +4,7 @@ import { ModalController, ToastController, AlertController } from '@ionic/angula
 import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
+import { CDCGrowthChartService } from '../../services/cdc-growth-chart.service';
 import { GrowthRecord, WeightRecord, MoodType, StarPerformer } from '../../models/growth-tracking.model';
 import { User } from '../../models/user.model';
 
@@ -35,6 +36,7 @@ export class GrowthPage implements OnInit {
     private formBuilder: FormBuilder,
     private growthService: GrowthTrackingService,
     private authService: AuthService,
+    private cdcService: CDCGrowthChartService,
     private modalController: ModalController,
     private toastController: ToastController,
     private alertController: AlertController
