@@ -607,4 +607,15 @@ export class GrowthPage implements OnInit {
     }
     return '';
   }
+
+  getNewDate(): Date {
+    return new Date();
+  }
+
+  getBabyGenderForChart(gender: 'male' | 'female' | 'other' | undefined): 'male' | 'female' {
+    if (gender === 'male' || gender === 'female') {
+      return gender;
+    }
+    return 'female';
+  }
 }

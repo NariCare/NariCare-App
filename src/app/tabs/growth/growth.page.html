@@ -145,9 +145,9 @@
     <div class="tab-content" *ngIf="selectedTab === 'weight'">
       <!-- CDC Weight Chart -->
       <app-weight-chart 
-        [weightRecords]="weightRecords$ | async || []"
-        [babyGender]="user?.babies[0]?.gender || 'female'"
-        [babyBirthDate]="user?.babies[0]?.dateOfBirth || new Date()">
+        [weightRecords]="(weightRecords$ | async) || []"
+        [babyGender]="getBabyGenderForChart(user?.babies[0]?.gender)"
+        [babyBirthDate]="user?.babies[0]?.dateOfBirth || getNewDate()">
       </app-weight-chart>
 
       <div class="section">
