@@ -1,109 +1,235 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { GrowthRecord, GrowthChart, ChartDataPoint, Milestone } from '../models/growth-tracking.model';
+import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { map, switchMap, take } from 'rxjs/operators';
+import { 
+  GrowthRecord, 
+  WeightRecord, 
+  MoodType, 
+  StarPerformer, 
+  QuickLogSuggestion 
+} from '../models/growth-tracking.model';
+import { Storage } from '@ionic/storage-angular';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GrowthTrackingService {
+  private recordsSubject = new BehaviorSubject<GrowthRecord[]>([]);
+  private weightRecordsSubject = new BehaviorSubject<WeightRecord[]>([]);
+  
+  // Available mood options
+  readonly moodOptions: MoodType[] = [
+    { emoji: '😊', label: 'Great', value: 'great', color: '#10b981' },
+    { emoji: '🙂', label: 'Good', value: 'good', color: '#059669' },
+    { emoji: '😐', label: 'Okay', value: 'okay', color: '#6b7280' },
+    { emoji: '😴', label: 'Tired', value: 'tired', color: '#f59e0b' },
+    { emoji: '😟', label: 'Worried', value: 'worried', color: '#f97316' },
+    { emoji: '😰', label: 'Overwhelmed', value: 'overwhelmed', color: '#ef4444' }
+  ];
 
-  constructor(private firestore: AngularFirestore) {}
+  constructor(private storage: Storage) {
+    this.initStorage();
+  }
 
-  addGrowthRecord(record: Omit<GrowthRecord, 'id'>): Promise<void> {
-    const id = this.firestore.createId();
-    return this.firestore.doc(`growth-records/${id}`).set({
+  private async initStorage() {
+    await this.storage.create();
+    this.loadStoredData();
+  }
+
+  public async loadStoredData() {
+    try {
+      const records = await this.storage.get('growthRecords') || [];
+      const weightRecords = await this.storage.get('weightRecords') || [];
+      
+      this.recordsSubject.next(records.map((r: any) => ({
+        ...r,
+        date: new Date(r.date),
+        createdAt: new Date(r.createdAt),
+        updatedAt: new Date(r.updatedAt)
+      })));
+      
+      this.weightRecordsSubject.next(weightRecords.map((r: any) => ({
+        ...r,
+        date: new Date(r.date),
+        createdAt: new Date(r.createdAt)
+      })));
+    } catch (error) {
+      console.error('Error loading stored data:', error);
+    }
+  }
+
+  async addGrowthRecord(record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
+    const id = this.generateId();
+    const newRecord: GrowthRecord = {
       ...record,
-      id
-    });
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const currentRecords = this.recordsSubject.value;
+    const updatedRecords = [newRecord, ...currentRecords];
+    
+    this.recordsSubject.next(updatedRecords);
+    await this.storage.set('growthRecords', updatedRecords);
+    
+    // Check for quick log suggestions
+    this.generateQuickLogSuggestions(record.recordedBy);
   }
 
   getGrowthRecords(babyId: string): Observable<GrowthRecord[]> {
-    return this.firestore.collection<GrowthRecord>('growth-records', ref => 
-      ref.where('babyId', '==', babyId)
-         .orderBy('date', 'desc')
-    ).valueChanges({ idField: 'id' });
-  }
-
-  getLatestGrowthRecord(babyId: string): Observable<GrowthRecord | null> {
-    return this.firestore.collection<GrowthRecord>('growth-records', ref => 
-      ref.where('babyId', '==', babyId)
-         .orderBy('date', 'desc')
-         .limit(1)
-    ).valueChanges({ idField: 'id' }).pipe(
-      map(records => records.length > 0 ? records[0] : null)
+    return this.recordsSubject.pipe(
+      map(records => records
+        .filter(record => record.babyId === babyId)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+      )
     );
   }
 
-  generateGrowthChart(babyId: string, chartType: 'weight' | 'height' | 'head-circumference'): Observable<GrowthChart> {
+  // Get last 3 days of records for reference while entering new data
+  getRecentRecords(babyId: string, days: number = 3): Observable<GrowthRecord[]> {
     return this.getGrowthRecords(babyId).pipe(
       map(records => {
-        const data: ChartDataPoint[] = records.map(record => ({
-          date: record.date,
-          value: chartType === 'weight' ? record.weight : 
-                chartType === 'height' ? record.height : 
-                record.headCircumference || 0,
-          percentile: this.calculatePercentile(
-            chartType === 'weight' ? record.weight : 
-            chartType === 'height' ? record.height : 
-            record.headCircumference || 0,
-            chartType,
-            this.calculateAgeInWeeks(record.date, records[records.length - 1]?.date || new Date())
-          )
-        })).reverse();
-
-        return {
-          babyId,
-          chartType,
-          data,
-          percentile: data.length > 0 ? data[data.length - 1].percentile || 50 : 50,
-          lastUpdated: new Date()
-        };
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - days);
+        
+        return records.filter(record => record.date >= cutoffDate);
       })
     );
   }
 
-  addMilestone(babyId: string, milestone: Omit<Milestone, 'id'>): Promise<void> {
-    const id = this.firestore.createId();
-    return this.firestore.doc(`babies/${babyId}/milestones/${id}`).set({
-      ...milestone,
-      id
-    });
-  }
-
-  getMilestones(babyId: string): Observable<Milestone[]> {
-    return this.firestore.collection<Milestone>(`babies/${babyId}/milestones`, ref =>
-      ref.orderBy('achievedAt', 'desc')
-    ).valueChanges({ idField: 'id' });
-  }
-
-  private calculatePercentile(value: number, type: string, ageInWeeks: number): number {
-    // Simplified percentile calculation - in a real app, this would use WHO growth charts
-    const growthStandards = {
-      weight: { mean: 3.5 + (ageInWeeks * 0.15), stdDev: 0.5 },
-      height: { mean: 50 + (ageInWeeks * 0.7), stdDev: 2.5 },
-      'head-circumference': { mean: 35 + (ageInWeeks * 0.3), stdDev: 1.2 }
+  async addWeightRecord(record: Omit<WeightRecord, 'id' | 'createdAt'>): Promise<void> {
+    const id = this.generateId();
+    const newRecord: WeightRecord = {
+      ...record,
+      id,
+      createdAt: new Date()
     };
-
-    const standard = growthStandards[type as keyof typeof growthStandards];
-    if (!standard) return 50;
-
-    const zScore = (value - standard.mean) / standard.stdDev;
-    return Math.max(3, Math.min(97, 50 + (zScore * 15)));
+    
+    const currentRecords = this.weightRecordsSubject.value;
+    const updatedRecords = [newRecord, ...currentRecords];
+    
+    this.weightRecordsSubject.next(updatedRecords);
+    await this.storage.set('weightRecords', updatedRecords);
   }
 
-  private calculateAgeInWeeks(birthDate: Date, currentDate: Date): number {
-    const diffTime = Math.abs(currentDate.getTime() - birthDate.getTime());
-    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
-    return diffWeeks;
+  getWeightRecords(babyId: string): Observable<WeightRecord[]> {
+    return this.weightRecordsSubject.pipe(
+      map(records => records
+        .filter(record => record.babyId === babyId)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+      )
+    );
   }
 
-  updateGrowthRecord(id: string, updates: Partial<GrowthRecord>): Promise<void> {
-    return this.firestore.doc(`growth-records/${id}`).update(updates);
+  // Check if weight reminder should be sent
+  shouldSendWeightReminder(babyId: string): Observable<boolean> {
+    return this.getWeightRecords(babyId).pipe(
+      map((records: WeightRecord[]) => {
+        if (records.length === 0) return true;
+        
+        const lastRecord = records[0];
+        const daysSinceLastRecord = Math.floor(
+          (new Date().getTime() - lastRecord.date.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        
+        return daysSinceLastRecord >= 7;
+      })
+    );
   }
 
-  deleteGrowthRecord(id: string): Promise<void> {
-    return this.firestore.doc(`growth-records/${id}`).delete();
+  // Star performer tracking
+  async calculateStarPerformers(weekStartDate: Date): Promise<StarPerformer[]> {
+    const weekEndDate = new Date(weekStartDate);
+    weekEndDate.setDate(weekEndDate.getDate() + 7);
+    
+    const allRecords = this.recordsSubject.value;
+    const weekRecords = allRecords.filter(record => 
+      record.date >= weekStartDate && record.date < weekEndDate
+    );
+    
+    // Group by user and calculate consistency scores
+    const userScores = new Map<string, { count: number, userId: string }>();
+    
+    weekRecords.forEach(record => {
+      const current = userScores.get(record.recordedBy) || { count: 0, userId: record.recordedBy };
+      current.count++;
+      userScores.set(record.recordedBy, current);
+    });
+    
+    // Convert to star performers and rank
+    const performers: StarPerformer[] = Array.from(userScores.entries())
+      .map(([userId, data]) => ({
+        userId,
+        userName: `User ${userId.slice(-4)}`, // In real app, get from user service
+        weekStartDate,
+        weekEndDate,
+        consistencyScore: data.count,
+        rank: 0,
+        isEliteCandidate: data.count >= 5, // 5+ entries per week
+        consecutiveWeeks: 1 // Would calculate from historical data
+      }))
+      .sort((a, b) => b.consistencyScore - a.consistencyScore)
+      .map((performer, index) => ({ ...performer, rank: index + 1 }));
+    
+    return performers.slice(0, 3); // Top 3 performers
+  }
+
+  // Quick log suggestions based on patterns
+  generateQuickLogSuggestions(userId: string): void {
+    const userRecords = this.recordsSubject.value
+      .filter(record => record.recordedBy === userId)
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+    
+    if (userRecords.length < 2) return;
+    
+    const lastRecord = userRecords[0];
+    const now = new Date();
+    const hoursSinceLastLog = (now.getTime() - lastRecord.date.getTime()) / (1000 * 60 * 60);
+    
+    // Suggest feeding if it's been 2-4 hours
+    if (hoursSinceLastLog >= 2 && hoursSinceLastLog <= 6) {
+      const suggestion: QuickLogSuggestion = {
+        id: this.generateId(),
+        userId,
+        suggestedAction: 'feeding',
+        lastLoggedTime: lastRecord.date,
+        suggestedTime: now,
+        message: `You logged a feed ${Math.floor(hoursSinceLastLog)} hours ago. Baby usually feeds every 2–3 hours. Should you log another?`,
+        isActive: true,
+        createdAt: now
+      };
+      
+      // In real app, this would trigger a notification
+      console.log('Quick log suggestion:', suggestion.message);
+    }
+  }
+
+  getMoodOptions(): MoodType[] {
+    return this.moodOptions;
+  }
+
+  async updateGrowthRecord(id: string, updates: Partial<GrowthRecord>): Promise<void> {
+    const currentRecords = this.recordsSubject.value;
+    const updatedRecords = currentRecords.map(record => 
+      record.id === id 
+        ? { ...record, ...updates, updatedAt: new Date() }
+        : record
+    );
+    
+    this.recordsSubject.next(updatedRecords);
+    await this.storage.set('growthRecords', updatedRecords);
+  }
+
+  async deleteGrowthRecord(id: string): Promise<void> {
+    const currentRecords = this.recordsSubject.value;
+    const updatedRecords = currentRecords.filter(record => record.id !== id);
+    
+    this.recordsSubject.next(updatedRecords);
+    await this.storage.set('growthRecords', updatedRecords);
+  }
+
+  private generateId(): string {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
 }

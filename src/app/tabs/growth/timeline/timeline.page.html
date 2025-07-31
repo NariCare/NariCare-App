@@ -1,0 +1,101 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()" class="header-button">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ user?.babies[0]?.name || 'Baby' }}'s Timeline</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="timeline-page-container" *ngIf="timelineData$ | async as timelineData">
+    
+    <!-- Current Week Header -->
+    <div class="timeline-header">
+      <div class="week-indicator">
+        <div class="week-marker">
+          <ion-icon name="location"></ion-icon>
+        </div>
+        <div class="week-info">
+          <h2>Week {{ timelineData.currentWeek }}</h2>
+          <p>{{ calculateBabyAge() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Progress Bar -->
+    <div class="timeline-progress-section">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="(timelineData.currentWeek / 52) * 100"></div>
+        <div class="progress-marker" [style.left.%]="(timelineData.currentWeek / 52) * 100">
+          <div class="marker-dot"></div>
+        </div>
+      </div>
+      <div class="progress-labels">
+        <span>Birth</span>
+        <span>1 Year</span>
+      </div>
+    </div>
+
+    <!-- Weekly Timeline Cards -->
+    <div class="weekly-timeline">
+      <div *ngFor="let item of timelineData.allWeeks; let i = index" 
+           class="week-card"
+           [class.current-week]="timelineData.currentWeek >= item.weekStart && timelineData.currentWeek <= item.weekEnd"
+           [class.completed-week]="timelineData.currentWeek > item.weekEnd"
+           [class.upcoming-week]="timelineData.currentWeek < item.weekStart"
+           (click)="openSpecificWeek(item)">
+        
+        <!-- Week Number Badge -->
+        <div class="week-badge" [style.background-color]="item.color">
+          <span class="week-number">{{ item.weekStart }}</span>
+          <span class="week-label">WEEK</span>
+        </div>
+        
+        <!-- Card Content -->
+        <div class="card-content">
+          <div class="card-header">
+            <div class="card-icon" [style.background-color]="item.color">
+              <ion-icon [name]="item.icon"></ion-icon>
+            </div>
+            <div class="card-title-section">
+              <h3>{{ item.title }}</h3>
+              <ion-chip [color]="getCategoryColor(item.category)" size="small">
+                {{ getCategoryLabel(item.category) }}
+              </ion-chip>
+            </div>
+          </div>
+          
+          <p class="card-description">{{ item.description }}</p>
+          
+          <!-- Preview Content -->
+          <div class="preview-content">
+            
+            <!-- What to Expect Preview -->
+            <div class="content-preview" *ngIf="item.whatToExpected && item.whatToExpected.length > 0">
+              <h4>💕 What to Expect:</h4>
+              <p>{{ item.whatToExpected[0] }}</p>
+              <span class="more-indicator" *ngIf="item.whatToExpected.length > 1">
+                +{{ item.whatToExpected.length - 1 }} more
+              </span>
+            </div>
+            
+            <!-- Tips Preview -->
+            <div class="content-preview" *ngIf="item.tips && item.tips.length > 0">
+              <h4>✨ Helpful Tips:</h4>
+              <p>{{ item.tips[0] }}</p>
+              <span class="more-indicator" *ngIf="item.tips.length > 1">
+                +{{ item.tips.length - 1 }} more
+              </span>
+            </div>
+            
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</ion-content>

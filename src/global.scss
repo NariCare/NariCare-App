@@ -338,3 +338,47 @@ ion-toolbar {
     --height: 60%;
   }
 }
+
+/* Timeline Modal Styles */
+.timeline-modal {
+  --width: 95%;
+  --height: 90%;
+  --border-radius: 12px;
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: 768px) {
+  .timeline-modal {
+    --width: 85%;
+    --height: 85%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .timeline-modal {
+    --width: 75%;
+    --height: 80%;
+  }
+}
+
+/* Specific Week Modal Styles */
+.specific-week-modal {
+  --width: 95%;
+  --height: 85%;
+  --border-radius: 16px;
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: 768px) {
+  .specific-week-modal {
+    --width: 80%;
+    --height: 80%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .specific-week-modal {
+    --width: 70%;
+    --height: 75%;
+  }
+}

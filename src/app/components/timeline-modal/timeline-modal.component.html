@@ -1,0 +1,117 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ babyName }}'s Development Timeline</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="closeModal()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="timeline-modal-container" *ngIf="timelineData">
+    
+    <!-- Current Week Header -->
+    <div class="timeline-header">
+      <div class="week-indicator">
+        <div class="week-marker">
+          <ion-icon name="location"></ion-icon>
+        </div>
+        <div class="week-info">
+          <h2>Week {{ timelineData.currentWeek }}</h2>
+          <p>{{ calculateBabyAge() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline Progress Bar -->
+    <div class="timeline-progress-section">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="(timelineData.currentWeek / 52) * 100"></div>
+        <div class="progress-marker" [style.left.%]="(timelineData.currentWeek / 52) * 100">
+          <div class="marker-dot"></div>
+        </div>
+      </div>
+      <div class="progress-labels">
+        <span>Birth</span>
+        <span>1 Year</span>
+      </div>
+    </div>
+
+    <!-- Weekly Timeline Cards -->
+    <div class="weekly-timeline">
+      <div *ngFor="let item of timelineData.items; let i = index" 
+           class="week-card"
+           [class.current-week]="timelineData.currentWeek >= item.weekStart && timelineData.currentWeek <= item.weekEnd"
+           [class.completed-week]="timelineData.currentWeek > item.weekEnd"
+           [class.upcoming-week]="timelineData.currentWeek < item.weekStart">
+        
+        <!-- Week Number Badge -->
+        <div class="week-badge" [style.background-color]="item.color">
+          <span class="week-number">{{ item.weekStart }}</span>
+          <span class="week-label">WEEK</span>
+        </div>
+        
+        <!-- Card Content -->
+        <div class="card-content">
+          <div class="card-header">
+            <div class="card-icon" [style.background-color]="item.color">
+              <ion-icon [name]="item.icon"></ion-icon>
+            </div>
+            <div class="card-title-section">
+              <h3>{{ item.title }}</h3>
+              <ion-chip [color]="getCategoryColor(item.category)" size="small">
+                {{ getCategoryLabel(item.category) }}
+              </ion-chip>
+            </div>
+            <div class="lock-indicator" *ngIf="timelineData.currentWeek < item.weekStart">
+              <ion-icon name="lock-closed"></ion-icon>
+            </div>
+          </div>
+          
+          <p class="card-description">{{ item.description }}</p>
+          
+          <!-- Expandable Content -->
+          <div class="expandable-content" *ngIf="timelineData.currentWeek >= item.weekStart">
+            
+            <!-- What to Expect -->
+            <div class="content-section" *ngIf="item.whatToExpected && item.whatToExpected.length > 0">
+              <h4>💕 What to Expect:</h4>
+              <ul class="expectation-list">
+                <li *ngFor="let expectation of item.whatToExpected">{{ expectation }}</li>
+              </ul>
+            </div>
+            
+            <!-- Tips -->
+            <div class="content-section" *ngIf="item.tips && item.tips.length > 0">
+              <h4>✨ Helpful Tips:</h4>
+              <ul class="tips-list">
+                <li *ngFor="let tip of item.tips">{{ tip }}</li>
+              </ul>
+            </div>
+            
+            <!-- When to Worry -->
+            <div class="content-section warning" *ngIf="item.whenToWorry && item.whenToWorry.length > 0">
+              <h4>🚨 When to Contact Your Doctor:</h4>
+              <ul class="worry-list">
+                <li *ngFor="let worry of item.whenToWorry">{{ worry }}</li>
+              </ul>
+            </div>
+            
+          </div>
+          
+          <!-- Locked Content Message -->
+          <div class="locked-content" *ngIf="timelineData.currentWeek < item.weekStart">
+            <div class="locked-message">
+              <ion-icon name="lock-closed"></ion-icon>
+              <p>This content will unlock in {{ item.weekStart - timelineData.currentWeek }} week{{ item.weekStart - timelineData.currentWeek !== 1 ? 's' : '' }}</p>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</ion-content>

@@ -1,0 +1,262 @@
+.weight-chart-container {
+  background: linear-gradient(135deg, #fef7f7, #fef2f2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.1);
+  border: 2px solid #fce4ec;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #e91e63;
+    line-height: 1.3;
+  }
+}
+
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  ion-chip {
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
+}
+
+.chart-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #e91e63;
+
+  ion-spinner {
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+.chart-content {
+  width: 100%;
+  height: 350px;
+  margin-bottom: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.chart-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #e91e63;
+
+  ion-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #f06292;
+  }
+
+  h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e91e63;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #64748b;
+  }
+}
+
+.chart-error {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #e91e63;
+
+  ion-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #f06292;
+  }
+
+  h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e91e63;
+  }
+
+  p {
+    margin: 0 0 1.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #64748b;
+  }
+}
+
+.chart-info {
+  border-top: 2px solid #fce4ec;
+  padding-top: 1.5rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-item {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid #fce4ec;
+
+  .info-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-weight: 600;
+  }
+
+  .info-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2d3748;
+    line-height: 1.2;
+  }
+}
+
+.interpretation-card {
+  background: linear-gradient(135deg, #fef7f7, #ffffff);
+  border-radius: 12px;
+  padding: 1rem;
+  border-left: 4px solid #e91e63;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.08);
+
+  .interpretation-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+
+    ion-icon {
+      font-size: 1.25rem;
+      color: #e91e63;
+    }
+
+    h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #e91e63;
+    }
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
+}
+
+.percentile-legend {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #fce4ec;
+  
+  h5 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e91e63;
+  }
+}
+
+.legend-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+
+  .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.legend-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.4;
+  font-style: italic;
+  background: rgba(233, 30, 99, 0.05);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border-left: 3px solid #e91e63;
+}
+
+@media (max-width: 768px) {
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    
+    h3 {
+      font-size: 1.1rem;
+      text-align: center;
+      width: 100%;
+    }
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .legend-grid {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .chart-content {
+    height: 280px;
+    padding: 0.5rem;
+  }
+}
