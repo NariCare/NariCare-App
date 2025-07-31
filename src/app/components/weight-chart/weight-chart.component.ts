@@ -94,6 +94,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     
     try {
       const babyGrowthPoints = this.convertToGrowthPoints();
+      const that = this;
       console.log('Baby growth points:', babyGrowthPoints);
       
       // Create basic chart configuration
@@ -102,12 +103,12 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
           type: 'line',
           height: 400,
           backgroundColor: '#fef7f7',
-          animation: false
+          animation: false,
           borderRadius: 12,
           spacing: [20, 20, 20, 20]
         },
         title: {
-          text: `${this.babyGender === 'male' ? 'Your Little Boy' : 'Your Little Girl'}'s Growth Journey 💕`,
+          text: ``,
           style: { 
             fontSize: '18px', 
             fontWeight: '600',
@@ -116,7 +117,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
           }
         },
         subtitle: {
-          text: 'Tracking your baby\'s healthy growth with love 🌱',
+          text: '',
           style: {
             fontSize: '14px',
             color: '#64748b',
@@ -205,7 +206,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
                            weeks <= 4 ? `${weeks} weeks old` :
                            `${Math.floor(weeks/4)} months old`;
               
-              let percentileText = this.getPercentileMessage(percentile);
+              let percentileText = that.getPercentileMessage(percentile);
               
               return `<div style="text-align: center; padding: 4px;">
                         <div style="font-weight: 600; color: #e91e63; margin-bottom: 4px;">💕 Your Baby</div>
@@ -216,7 +217,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
             }
             
             const seriesName = (this as any).series.name;
-            const friendlyName = this.getFriendlyPercentileName(seriesName);
+            const friendlyName = that.getFriendlyPercentileName(seriesName);
             return `<div style="text-align: center; padding: 4px;">
                       <div style="font-weight: 500; margin-bottom: 2px;">${friendlyName}</div>
                       <div>Weight: <strong>${(this as any).y}kg</strong></div>
@@ -311,7 +312,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
-  private getPercentileMessage(percentile: number): string {
+  public getPercentileMessage(percentile: number): string {
     if (percentile >= 50) {
       return `Growing beautifully! ${percentile}th percentile 🌟`;
     } else if (percentile >= 25) {
@@ -321,7 +322,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
-  private getFriendlyPercentileName(seriesName: string): string {
+  public getFriendlyPercentileName(seriesName: string): string {
     if (seriesName.includes('10th')) return '🌱 Smaller babies';
     if (seriesName.includes('25th')) return '🌿 Below average';
     if (seriesName.includes('50th')) return '🌟 Average babies';

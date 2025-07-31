@@ -8,6 +8,29 @@
     </div>
   </div>
 
+  <!-- Percentile Legend -->
+  <div class="percentile-legend">
+    <h5>Understanding Your Baby's Growth 📊</h5>
+    <div class="legend-grid">
+      <div class="legend-item">
+        <div class="legend-color" style="background: #fbbf24;"></div>
+        <span>🌱 Smaller babies (perfectly normal!)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #10b981;"></div>
+        <span>🌟 Average range (most babies)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #8b5cf6;"></div>
+        <span>🌲 Bigger babies (also normal!)</span>
+      </div>
+    </div>
+    <p class="legend-note">
+      Every baby grows at their own beautiful pace! This chart shows how your little one compares to other babies their age. 
+      Remember: healthy babies come in all sizes! 💕
+    </p>
+  </div>
+
   <!-- Loading State -->
   <div class="chart-loading" *ngIf="isLoading">
     <ion-spinner name="crescent" color="primary"></ion-spinner>
@@ -61,29 +84,6 @@
         <h4>{{ getEncouragingTitle() }}</h4>
       </div>
       <p>{{ getEncouragingMessage() }}</p>
-    </div>
-
-    <!-- Percentile Legend -->
-    <div class="percentile-legend">
-      <h5>Understanding Your Baby's Growth 📊</h5>
-      <div class="legend-grid">
-        <div class="legend-item">
-          <div class="legend-color" style="background: #fbbf24;"></div>
-          <span>🌱 Smaller babies (perfectly normal!)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background: #10b981;"></div>
-          <span>🌟 Average range (most babies)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background: #8b5cf6;"></div>
-          <span>🌲 Bigger babies (also normal!)</span>
-        </div>
-      </div>
-      <p class="legend-note">
-        Every baby grows at their own beautiful pace! This chart shows how your little one compares to other babies their age. 
-        Remember: healthy babies come in all sizes! 💕
-      </p>
     </div>
   </div>
 </div>
