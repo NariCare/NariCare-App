@@ -100,7 +100,7 @@
                     <span *ngIf="item.weekStart === item.weekEnd">Week {{ item.weekStart }}</span>
                     <span *ngIf="item.weekStart !== item.weekEnd">Weeks {{ item.weekStart }}-{{ item.weekEnd }}</span>
                   </div>
-                  <ion-chip [color]="getCategoryColor(item.category)" size="small">
+                  <ion-chip [color]="item.color" size="small">
                     {{ getCategoryLabel(item.category) }}
                   </ion-chip>
                 </div>

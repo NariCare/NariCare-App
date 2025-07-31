@@ -21,7 +21,7 @@ export class GrowthPage implements OnInit {
   weightRecords$: Observable<WeightRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
-  selectedTab: 'daily' | 'weight' | 'timeline' = 'daily';
+  selectedTab: 'daily' | 'timeline' | 'weight' = 'daily';
   showAddRecordModal = false;
   showAddWeightModal = false;
   addRecordForm: FormGroup;
@@ -637,5 +637,16 @@ export class GrowthPage implements OnInit {
       'health': 'Health'
     };
     return categoryLabels[category] || category;
+  }
+
+  getCategoryColor(category: string): string {
+    const categoryColors: { [key: string]: string } = {
+      'feeding': 'primary',
+      'development': 'success',
+      'sleep': 'tertiary',
+      'milestone': 'warning',
+      'health': 'danger'
+    };
+    return categoryColors[category] || 'medium';
   }
 }
