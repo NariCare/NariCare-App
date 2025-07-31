@@ -417,7 +417,22 @@ export class GrowthPage implements OnInit {
   }
 
   clearVoiceInput() {
+    this.voiceTranscript = '';
+    this.extractedData = {};
   }
+
+  getVoiceInputSummary(): string {
+    const extractedFields = Object.keys(this.extractedData).filter(key => 
+      this.extractedData[key] !== null && this.extractedData[key] !== undefined
+    );
+    
+    if (extractedFields.length === 0) {
+      return 'No data extracted from voice input';
+    }
+    
+    return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
+  }
+
   async saveGrowthRecord() {
     if (this.addRecordForm.valid && this.user && this.user.babies.length > 0) {
       try {
