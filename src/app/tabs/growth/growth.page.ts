@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
@@ -44,7 +45,8 @@ export class GrowthPage implements OnInit {
     private timelineService: BabyTimelineService,
     private modalController: ModalController,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private router: Router
   ) {
     // Daily tracking form
     this.addRecordForm = this.formBuilder.group({
@@ -694,5 +696,22 @@ export class GrowthPage implements OnInit {
     if (!upcoming || !this.currentTimelineData) return 0;
     
     return upcoming.weekStart - this.currentTimelineData.currentWeek;
+  }
+
+  // Timeline navigation methods
+  navigateToTimeline() {
+    this.router.navigate(['/timeline']);
+  }
+
+  async openTimelineModal() {
+    const modal = await this.modalController.create({
+      component: TimelineModalComponent,
+      componentProps: {
+        timelineData: this.currentTimelineData,
+        babyName: this.user?.babies[0]?.name || 'Baby'
+      },
+      cssClass: 'timeline-modal'
+    });
+    return await modal.present();
   }
 }

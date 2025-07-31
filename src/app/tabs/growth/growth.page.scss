@@ -297,8 +297,22 @@
   font-weight: 600;
   flex-shrink: 0;
 
+  span {
+    cursor: pointer;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #d81b60;
+    }
+  }
+
   ion-icon {
     font-size: 1rem;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover ion-icon {
+    transform: translateX(2px);
   }
 }
 
@@ -319,11 +333,22 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
   &::after {
     content: '→';
     font-size: 1rem;
     transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    color: #d81b60;
+    transform: translateX(2px);
+  }
+
+  &:active {
+    transform: translateX(0);
   }
 }
 
