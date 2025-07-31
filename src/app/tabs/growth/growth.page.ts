@@ -81,6 +81,13 @@ export class GrowthPage implements OnInit {
       }
     });
     
+    // Check for timeline tab navigation from dashboard
+    this.route.queryParams.subscribe(params => {
+      if (params['tab'] === 'timeline') {
+        this.selectedTab = 'timeline';
+      }
+    });
+    
     // Subscribe to timeline data for synchronous access
     this.timelineData$?.subscribe(data => {
       this.currentTimelineData = data;
