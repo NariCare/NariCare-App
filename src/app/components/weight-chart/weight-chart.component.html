@@ -11,11 +11,11 @@
   <!-- Loading State -->
   <div class="chart-loading" *ngIf="isLoading">
     <ion-spinner name="crescent"></ion-spinner>
-    <p>Loading chart...</p>
+    <p>Loading CDC weight chart...</p>
   </div>
 
   <!-- Chart Container -->
-  <div #chartContainer class="chart-content" *ngIf="!isLoading && weightRecords.length > 0"></div>
+  <div #chartContainer class="chart-content" *ngIf="!isLoading"></div>
 
   <!-- Empty State -->
   <div class="chart-empty" *ngIf="!isLoading && weightRecords.length === 0">

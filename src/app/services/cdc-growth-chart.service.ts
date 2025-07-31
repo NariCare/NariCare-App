@@ -136,6 +136,8 @@ export class CDCGrowthChartService {
   generateChartData(babyGrowthPoints: BabyGrowthPoint[], gender: 'male' | 'female'): any {
     const chartData = gender === 'male' ? this.boysWeightData : this.girlsWeightData;
     
+    console.log('Generating chart data for', gender, 'with', babyGrowthPoints.length, 'data points');
+    
     // Generate percentile curves
     const percentileCurves = this.chartConfig.showPercentiles.map(percentile => ({
       name: `${percentile}th percentile`,
@@ -146,11 +148,13 @@ export class CDCGrowthChartService {
       type: 'line',
       color: this.getPercentileColor(percentile),
       lineWidth: this.chartConfig.highlightPercentiles.includes(percentile) ? 2 : 1,
-      dashStyle: percentile === 50 ? 'solid' : 'dash'
+      dashStyle: percentile === 50 ? 'Solid' : 'Dash',
+      marker: { enabled: false },
+      enableMouseTracking: true
     }));
 
     // Add baby's actual data points
-    const babyDataSeries = {
+    const babyDataSeries = babyGrowthPoints.length > 0 ? {
       name: 'Baby\'s Weight',
       data: babyGrowthPoints.map(point => ({
         x: point.ageInWeeks,
@@ -164,43 +168,74 @@ export class CDCGrowthChartService {
         fillColor: '#e91e63',
         lineColor: '#ffffff',
         lineWidth: 2
-      }
-    };
+      },
+      zIndex: 10
+    } : null;
+
+    const allSeries = [...percentileCurves];
+    if (babyDataSeries) {
+      allSeries.push(babyDataSeries);
+    }
 
     return {
       chart: {
         type: 'line',
         height: 400,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        animation: false
       },
       title: {
         text: `Weight Chart - ${gender === 'male' ? 'Boys' : 'Girls'}`,
-        style: { fontSize: '16px', fontWeight: '600' }
+        style: { 
+          fontSize: '16px', 
+          fontWeight: '600',
+          color: '#2d3748'
+        }
       },
       xAxis: {
         title: { text: 'Age (weeks)' },
         min: 0,
-        max: Math.max(104, ...babyGrowthPoints.map(p => p.ageInWeeks)),
-        gridLineWidth: 1
+        max: Math.max(52, ...(babyGrowthPoints.length > 0 ? babyGrowthPoints.map(p => p.ageInWeeks) : [52])),
+        gridLineWidth: 1,
+        labels: {
+          style: { color: '#64748b' }
+        }
       },
       yAxis: {
         title: { text: 'Weight (kg)' },
         min: 2,
-        gridLineWidth: 1
+        max: Math.max(15, ...(babyGrowthPoints.length > 0 ? babyGrowthPoints.map(p => p.value) : [15])),
+        gridLineWidth: 1,
+        labels: {
+          style: { color: '#64748b' }
+        }
       },
       legend: {
         enabled: true,
         align: 'right',
         verticalAlign: 'middle',
-        layout: 'vertical'
+        layout: 'vertical',
+        itemStyle: {
+          color: '#64748b',
+          fontSize: '12px'
+        }
       },
-      series: [...percentileCurves, babyDataSeries],
+      series: allSeries,
+      plotOptions: {
+        line: {
+          animation: false
+        },
+        scatter: {
+          animation: false
+        }
+      },
       tooltip: {
-        formatter: function(this: any) {
-          if (this.series.name === 'Baby\'s Weight') {
-            return `<b>Age:</b> ${this.x} weeks<br/><b>Weight:</b> ${this.y} kg<br/><b>Percentile:</b> ${this.point.percentile}th`;
+        shared: false,
+        formatter: function() {
+          if ((this as any).series.name === 'Baby\'s Weight') {
+            return `<b>Age:</b> ${(this as any).x} weeks<br/><b>Weight:</b> ${(this as any).y} kg<br/><b>Percentile:</b> ${(this as any).point.percentile}th`;
           }
-          return `<b>${this.series.name}</b><br/>Age: ${this.x} weeks<br/>Weight: ${this.y} kg`;
+          return `<b>${(this as any).series.name}</b><br/>Age: ${(this as any).x} weeks<br/>Weight: ${(this as any).y} kg`;
         }
       }
     };
