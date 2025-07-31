@@ -53,7 +53,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
-  private initializeChart() {
+  public initializeChart() {
     console.log('Initializing chart...');
     this.isLoading = true;
     this.chartError = '';
