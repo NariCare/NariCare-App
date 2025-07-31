@@ -1,17 +1,17 @@
 <div class="weight-chart-container">
   <div class="chart-header">
-    <h3>CDC Weight Chart - {{ babyGender === 'male' ? 'Boys' : 'Girls' }}</h3>
+    <h3>{{ babyGender === 'male' ? 'Your Little Boy' : 'Your Little Girl' }}'s Growth Story 💕</h3>
     <div class="chart-controls">
       <ion-chip [color]="percentileInterpretation.color === '#10b981' ? 'success' : percentileInterpretation.color === '#ef4444' ? 'danger' : 'warning'" size="small" *ngIf="!isLoading && weightRecords.length > 0">
-        {{ currentPercentile }}th percentile
+        {{ getSimplePercentileMessage() }}
       </ion-chip>
     </div>
   </div>
 
   <!-- Loading State -->
   <div class="chart-loading" *ngIf="isLoading">
-    <ion-spinner name="crescent"></ion-spinner>
-    <p>Loading CDC weight chart...</p>
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Preparing your baby's growth story... 💕</p>
   </div>
 
   <!-- Chart Container -->
@@ -19,70 +19,70 @@
 
   <!-- Error State -->
   <div class="chart-error" *ngIf="chartError">
-    <ion-icon name="warning-outline"></ion-icon>
-    <h4>Chart Error</h4>
-    <p>{{ chartError }}</p>
+    <ion-icon name="heart-dislike-outline"></ion-icon>
+    <h4>Oops! Chart Not Loading</h4>
+    <p>We're having trouble showing your baby's growth chart right now.</p>
     <ion-button fill="outline" size="small" (click)="initializeChart()">
-      Retry
+      Try Again
     </ion-button>
   </div>
 
   <!-- Empty State -->
   <div class="chart-empty" *ngIf="!isLoading && weightRecords.length === 0">
-    <ion-icon name="analytics-outline"></ion-icon>
-    <h4>No Weight Data</h4>
-    <p>Add weight records to see your baby's growth chart with CDC percentiles</p>
+    <ion-icon name="heart-outline"></ion-icon>
+    <h4>Ready to Track Growth! 🌱</h4>
+    <p>Add your baby's weight to see their beautiful growth journey compared to other babies</p>
   </div>
 
   <!-- Chart Info -->
   <div class="chart-info" *ngIf="!isLoading && weightRecords.length > 0">
     <div class="info-grid">
       <div class="info-item">
-        <div class="info-label">Current Status</div>
+        <div class="info-label">How Baby's Doing</div>
         <div class="info-value" [style.color]="percentileInterpretation.color">
-          {{ percentileInterpretation.status }}
+          {{ getMotherFriendlyStatus() }}
         </div>
       </div>
       
       <div class="info-item">
-        <div class="info-label">Growth Trend</div>
-        <div class="info-value">{{ getGrowthTrend() }}</div>
+        <div class="info-label">Growth Pattern</div>
+        <div class="info-value">{{ getMotherFriendlyTrend() }}</div>
       </div>
       
       <div class="info-item">
-        <div class="info-label">Weight Gain</div>
-        <div class="info-value">{{ getWeightGain() }}</div>
+        <div class="info-label">Weekly Gain</div>
+        <div class="info-value">{{ getMotherFriendlyWeightGain() }}</div>
       </div>
     </div>
 
     <div class="interpretation-card" [style.border-left-color]="percentileInterpretation.color">
       <div class="interpretation-header">
-        <ion-icon [name]="percentileInterpretation.color === '#10b981' ? 'checkmark-circle' : percentileInterpretation.color === '#ef4444' ? 'warning' : 'information-circle'"></ion-icon>
-        <h4>{{ percentileInterpretation.status }}</h4>
+        <ion-icon [name]="percentileInterpretation.color === '#10b981' ? 'heart' : percentileInterpretation.color === '#ef4444' ? 'medical' : 'information-circle'"></ion-icon>
+        <h4>{{ getEncouragingTitle() }}</h4>
       </div>
-      <p>{{ percentileInterpretation.message }}</p>
+      <p>{{ getEncouragingMessage() }}</p>
     </div>
 
     <!-- Percentile Legend -->
     <div class="percentile-legend">
-      <h5>Understanding Percentiles</h5>
+      <h5>Understanding Your Baby's Growth 📊</h5>
       <div class="legend-grid">
         <div class="legend-item">
-          <div class="legend-color" style="background: #ef4444;"></div>
-          <span>3rd-10th: Monitor closely</span>
+          <div class="legend-color" style="background: #fbbf24;"></div>
+          <span>🌱 Smaller babies (perfectly normal!)</span>
         </div>
         <div class="legend-item">
           <div class="legend-color" style="background: #10b981;"></div>
-          <span>10th-90th: Normal range</span>
+          <span>🌟 Average range (most babies)</span>
         </div>
         <div class="legend-item">
-          <div class="legend-color" style="background: #f59e0b;"></div>
-          <span>90th-97th: Above average</span>
+          <div class="legend-color" style="background: #8b5cf6;"></div>
+          <span>🌲 Bigger babies (also normal!)</span>
         </div>
       </div>
       <p class="legend-note">
-        Percentiles show how your baby compares to other babies of the same age and gender. 
-        The 50th percentile is the average.
+        Every baby grows at their own beautiful pace! This chart shows how your little one compares to other babies their age. 
+        Remember: healthy babies come in all sizes! 💕
       </p>
     </div>
   </div>

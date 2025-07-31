@@ -1,10 +1,10 @@
 .weight-chart-container {
-  background: #ffffff;
+  background: linear-gradient(135deg, #fef7f7, #fef2f2);
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.1);
+  border: 2px solid #fce4ec;
 }
 
 .chart-header {
@@ -15,9 +15,10 @@
 
   h3 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 600;
-    color: #2d3748;
+    color: #e91e63;
+    line-height: 1.3;
   }
 }
 
@@ -25,12 +26,17 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  
+  ion-chip {
+    font-weight: 600;
+    letter-spacing: 0.025em;
+  }
 }
 
 .chart-loading {
   text-align: center;
   padding: 3rem 1rem;
-  color: #94a3b8;
+  color: #e91e63;
 
   ion-spinner {
     margin-bottom: 1rem;
@@ -38,65 +44,75 @@
 
   p {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    font-weight: 500;
   }
 }
 
 .chart-content {
   width: 100%;
-  height: 400px;
+  height: 350px;
   margin-bottom: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .chart-empty {
   text-align: center;
   padding: 3rem 1rem;
-  color: #94a3b8;
+  color: #e91e63;
 
   ion-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
+    color: #f06292;
   }
 
   h4 {
     margin: 0 0 0.5rem 0;
     font-size: 1.1rem;
     font-weight: 600;
-    color: #64748b;
+    color: #e91e63;
   }
 
   p {
     margin: 0;
     font-size: 0.9rem;
     line-height: 1.4;
+    color: #64748b;
   }
 }
 
 .chart-error {
   text-align: center;
   padding: 3rem 1rem;
-  color: #ef4444;
+  color: #e91e63;
 
   ion-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
+    color: #f06292;
   }
 
   h4 {
     margin: 0 0 0.5rem 0;
     font-size: 1.1rem;
     font-weight: 600;
+    color: #e91e63;
   }
 
   p {
     margin: 0 0 1.5rem 0;
     font-size: 0.9rem;
     line-height: 1.4;
+    color: #64748b;
   }
 }
 
 .chart-info {
-  border-top: 1px solid #f1f5f9;
+  border-top: 2px solid #fce4ec;
   padding-top: 1.5rem;
 }
 
@@ -109,28 +125,35 @@
 
 .info-item {
   text-align: center;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid #fce4ec;
 
   .info-label {
-    font-size: 0.8rem;
-    color: #94a3b8;
+    font-size: 0.75rem;
+    color: #64748b;
     margin-bottom: 0.25rem;
     text-transform: uppercase;
     letter-spacing: 0.025em;
+    font-weight: 600;
   }
 
   .info-value {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #2d3748;
+    line-height: 1.2;
   }
 }
 
 .interpretation-card {
-  background: #f8fafc;
+  background: linear-gradient(135deg, #fef7f7, #ffffff);
   border-radius: 12px;
   padding: 1rem;
-  border-left: 4px solid #e2e8f0;
+  border-left: 4px solid #e91e63;
   margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.08);
 
   .interpretation-header {
     display: flex;
@@ -140,13 +163,14 @@
 
     ion-icon {
       font-size: 1.25rem;
+      color: #e91e63;
     }
 
     h4 {
       margin: 0;
       font-size: 1rem;
       font-weight: 600;
-      color: #2d3748;
+      color: #e91e63;
     }
   }
 
@@ -159,11 +183,16 @@
 }
 
 .percentile-legend {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #fce4ec;
+  
   h5 {
     margin: 0 0 0.75rem 0;
     font-size: 0.9rem;
     font-weight: 600;
-    color: #2d3748;
+    color: #e91e63;
   }
 }
 
@@ -178,22 +207,29 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #64748b;
+  font-weight: 500;
 
   .legend-color {
     width: 12px;
     height: 12px;
-    border-radius: 2px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 }
 
 .legend-note {
   margin: 0;
-  font-size: 0.8rem;
-  color: #94a3b8;
+  font-size: 0.85rem;
+  color: #64748b;
   line-height: 1.4;
   font-style: italic;
+  background: rgba(233, 30, 99, 0.05);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border-left: 3px solid #e91e63;
 }
 
 @media (max-width: 768px) {
@@ -201,6 +237,12 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
+    
+    h3 {
+      font-size: 1.1rem;
+      text-align: center;
+      width: 100%;
+    }
   }
 
   .info-grid {
@@ -214,6 +256,7 @@
   }
 
   .chart-content {
-    height: 300px;
+    height: 280px;
+    padding: 0.5rem;
   }
 }
