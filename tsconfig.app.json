@@ -6,8 +6,7 @@
   },
   "files": [
     "src/main.ts",
-    "src/polyfills.ts",
-    "src/app/pages/timeline/timeline.module.ts"
+    "src/polyfills.ts"
   ],
   "include": [
     "src/**/*.ts"
