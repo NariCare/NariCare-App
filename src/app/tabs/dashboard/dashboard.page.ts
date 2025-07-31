@@ -63,7 +63,8 @@ export class DashboardPage implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private chatbotService: ChatbotService
+    private chatbotService: ChatbotService,
+    private timelineService: BabyTimelineService
   ) {}
 
   ngOnInit() {
