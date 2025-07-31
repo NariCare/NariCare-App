@@ -38,7 +38,6 @@ export class GrowthPage implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private route: ActivatedRoute,
     private growthService: GrowthTrackingService,
     private authService: AuthService,
     private cdcService: CDCGrowthChartService,
@@ -72,6 +71,13 @@ export class GrowthPage implements OnInit {
   }
 
   ngOnInit() {
+    // Check if we should open timeline tab directly
+    this.route.queryParams.subscribe(params => {
+      if (params['tab'] === 'timeline') {
+        this.selectedTab = 'timeline';
+      }
+    });
+
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
       if (user && user.babies.length > 0) {
@@ -658,6 +664,10 @@ export class GrowthPage implements OnInit {
   }
 
   // Timeline header methods
+  navigateToTimeline() {
+    this.selectedTab = 'timeline';
+  }
+
   getCurrentWeek(): number {
     return this.currentTimelineData?.currentWeek || 0;
   }
