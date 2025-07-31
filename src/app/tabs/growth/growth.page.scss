@@ -476,6 +476,128 @@
   }
 }
 
+.smart-voice-section {
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 2px solid #0ea5e9;
+}
+
+.voice-input-header {
+  text-align: center;
+  margin-bottom: 1rem;
+  
+  h5 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0c4a6e;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #0369a1;
+    line-height: 1.4;
+  }
+}
+
+.smart-voice-button {
+  --border-radius: 12px;
+  --border-color: #0ea5e9;
+  --color: #0ea5e9;
+  height: 52px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  
+  &:not([disabled]):hover {
+    --background: rgba(14, 165, 233, 0.1);
+  }
+  
+  &[disabled] {
+    --color: #94a3b8;
+    --border-color: #cbd5e1;
+  }
+  
+  ion-icon {
+    font-size: 1.2rem;
+  }
+}
+
+.voice-status {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #e0f2fe;
+}
+
+.voice-transcript {
+  margin-bottom: 1rem;
+  
+  h6 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #64748b;
+    font-style: italic;
+    background: #f8fafc;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid #0ea5e9;
+  }
+}
+
+.voice-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  .summary-text {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #059669;
+    font-weight: 500;
+    flex: 1;
+  }
+  
+  ion-button {
+    --color: #64748b;
+    margin: 0;
+  }
+}
+
+.voice-examples {
+  h6 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+  }
+  
+  ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    
+    li {
+      margin-bottom: 0.5rem;
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.4;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
 .voice-button {
   --color: #64748b;
   --background: rgba(100, 116, 139, 0.1);

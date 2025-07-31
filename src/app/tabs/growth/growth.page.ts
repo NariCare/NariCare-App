@@ -20,15 +20,16 @@ export class GrowthPage implements OnInit {
   selectedTab: 'daily' | 'weight' = 'daily';
   showAddRecordModal = false;
   showAddWeightModal = false;
-  showVoiceInput = false;
   addRecordForm: FormGroup;
   addWeightForm: FormGroup;
   selectedMood: MoodType | null = null;
   moodOptions: MoodType[] = [];
   starPerformers: StarPerformer[] = [];
   isRecording = false;
+  isProcessingVoice = false;
   recognition: any;
-  currentVoiceField = '';
+  voiceTranscript = '';
+  extractedData: any = {};
 
   constructor(
     private formBuilder: FormBuilder,
@@ -100,8 +101,17 @@ export class GrowthPage implements OnInit {
       };
       
       this.recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        this.processVoiceInput(transcript);
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        
+        if (finalTranscript.trim()) {
+          this.voiceTranscript = finalTranscript.trim();
+          this.processSmartVoiceInput(finalTranscript.trim());
+        }
         this.isRecording = false;
       };
       
@@ -131,6 +141,7 @@ export class GrowthPage implements OnInit {
   closeAddRecordModal() {
     this.showAddRecordModal = false;
     this.selectedMood = null;
+    this.clearVoiceInput();
     this.addRecordForm.reset({
       date: new Date().toISOString()
     });
@@ -147,45 +158,265 @@ export class GrowthPage implements OnInit {
     this.selectedMood = mood;
   }
 
-  startVoiceInput(fieldName: string) {
+  startSmartVoiceInput() {
     if (!this.recognition) {
       this.showToast('Speech recognition not supported in this browser', 'warning');
       return;
     }
 
-    this.currentVoiceField = fieldName;
+    this.voiceTranscript = '';
+    this.extractedData = {};
+    this.isProcessingVoice = true;
     this.recognition.start();
   }
 
-  private processVoiceInput(transcript: string) {
-    const text = transcript.toLowerCase().trim();
+  private async processSmartVoiceInput(transcript: string) {
+    this.isProcessingVoice = true;
     
-    // Extract numbers from voice input
-    const numbers = text.match(/\d+/g);
-    if (numbers && numbers.length > 0) {
-      const value = numbers[0];
+    try {
+      // Extract data from voice input
+      const extracted = this.extractDataFromSpeech(transcript);
+      this.extractedData = extracted;
       
-      if (this.currentVoiceField) {
-        this.addRecordForm.patchValue({
-          [this.currentVoiceField]: value
-        });
-        
-        this.showToast(`Set ${this.currentVoiceField} to ${value}`, 'success');
+      // Auto-fill form fields
+      this.autoFillFormFields(extracted);
+      
+      // Show success message with what was extracted
+      const extractedFields = Object.keys(extracted).filter(key => extracted[key] !== null && extracted[key] !== undefined);
+      if (extractedFields.length > 0) {
+        this.showToast(`Auto-filled ${extractedFields.length} field(s) from voice input`, 'success');
+      } else {
+        this.showToast('Voice recorded. Please review and fill remaining fields manually.', 'warning');
       }
-    } else {
-      // For text fields like notes
-      if (this.currentVoiceField === 'notes' || this.currentVoiceField === 'moodDescription') {
-        this.addRecordForm.patchValue({
-          [this.currentVoiceField]: transcript
-        });
-        
-        this.showToast('Voice input recorded', 'success');
+      
+    } catch (error) {
+      console.error('Error processing voice input:', error);
+      this.showToast('Voice input processed. Please review and fill fields manually.', 'warning');
+    } finally {
+      this.isProcessingVoice = false;
+    }
+  }
+
+  private extractDataFromSpeech(transcript: string): any {
+    const text = transcript.toLowerCase().trim();
+    const extracted: any = {};
+    
+    // Extract feeding sessions
+    const feedingPatterns = [
+      /(?:fed|feed|feeding|nursed|nursing|breastfed|breastfeeding).*?(\d+).*?(?:times|sessions?|feeds?)/i,
+      /(\d+).*?(?:feeding|nursing|breastfeeding).*?(?:sessions?|times|feeds?)/i,
+      /(?:had|did|completed).*?(\d+).*?(?:feeds?|nursing|feeding)/i
+    ];
+    
+    for (const pattern of feedingPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const sessions = parseInt(match[1]);
+        if (sessions >= 1 && sessions <= 20) {
+          extracted.directFeedingSessions = sessions;
+          break;
+        }
       }
     }
     
-    this.currentVoiceField = '';
+    // Extract feeding duration
+    const durationPatterns = [
+      /(?:each|per|average|avg).*?(?:feed|feeding|session).*?(?:lasted|took|was).*?(\d+).*?(?:minutes?|mins?)/i,
+      /(?:fed|feeding|nursed).*?(?:for|about|around).*?(\d+).*?(?:minutes?|mins?)/i,
+      /(\d+).*?(?:minutes?|mins?).*?(?:each|per|average|avg)/i
+    ];
+    
+    for (const pattern of durationPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const duration = parseInt(match[1]);
+        if (duration >= 5 && duration <= 120) {
+          extracted.avgFeedingDuration = duration;
+          break;
+        }
+      }
+    }
+    
+    // Extract pumping sessions
+    const pumpingPatterns = [
+      /(?:pumped|pumping).*?(\d+).*?(?:times|sessions?)/i,
+      /(\d+).*?(?:pumping|pump).*?(?:sessions?|times)/i,
+      /(?:did|had|completed).*?(\d+).*?(?:pump|pumping)/i
+    ];
+    
+    for (const pattern of pumpingPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const sessions = parseInt(match[1]);
+        if (sessions >= 0 && sessions <= 10) {
+          extracted.pumpingSessions = sessions;
+          break;
+        }
+      }
+    }
+    
+    // Extract pumping output
+    const outputPatterns = [
+      /(?:pumped|got|produced).*?(\d+).*?(?:ml|milliliters?|mls?)/i,
+      /(?:total|altogether|combined).*?(\d+).*?(?:ml|milliliters?|mls?)/i,
+      /(\d+).*?(?:ml|milliliters?|mls?).*?(?:total|pumped|output)/i
+    ];
+    
+    for (const pattern of outputPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const output = parseInt(match[1]);
+        if (output >= 0 && output <= 2000) {
+          extracted.totalPumpingOutput = output;
+          break;
+        }
+      }
+    }
+    
+    // Extract formula intake
+    const formulaPatterns = [
+      /(?:formula|bottle).*?(\d+).*?(?:ml|milliliters?|mls?)/i,
+      /(?:gave|fed).*?(\d+).*?(?:ml|milliliters?|mls?).*?(?:formula|bottle)/i,
+      /(\d+).*?(?:ml|milliliters?|mls?).*?(?:formula|bottle)/i
+    ];
+    
+    for (const pattern of formulaPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const formula = parseInt(match[1]);
+        if (formula >= 0 && formula <= 1000) {
+          extracted.formulaIntake = formula;
+          break;
+        }
+      }
+    }
+    
+    // Extract pee count
+    const peePatterns = [
+      /(\d+).*?(?:wet|pee|pees|urine).*?(?:diapers?|nappies?)/i,
+      /(?:wet|pee|pees|urine).*?(\d+).*?(?:diapers?|nappies?|times)/i,
+      /(?:peed|urinated).*?(\d+).*?(?:times)/i
+    ];
+    
+    for (const pattern of peePatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const pees = parseInt(match[1]);
+        if (pees >= 0 && pees <= 20) {
+          extracted.peeCount = pees;
+          break;
+        }
+      }
+    }
+    
+    // Extract poop count
+    const poopPatterns = [
+      /(\d+).*?(?:dirty|poop|poops|bowel).*?(?:diapers?|nappies?|movements?)/i,
+      /(?:dirty|poop|poops|bowel).*?(\d+).*?(?:diapers?|nappies?|times|movements?)/i,
+      /(?:pooped|had).*?(\d+).*?(?:bowel movements?|poops?)/i
+    ];
+    
+    for (const pattern of poopPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const poops = parseInt(match[1]);
+        if (poops >= 0 && poops <= 10) {
+          extracted.poopCount = poops;
+          break;
+        }
+      }
+    }
+    
+    // Extract mood
+    const moodKeywords = {
+      'great': ['great', 'excellent', 'wonderful', 'amazing', 'fantastic', 'perfect'],
+      'good': ['good', 'well', 'fine', 'nice', 'positive', 'happy'],
+      'okay': ['okay', 'alright', 'decent', 'average', 'normal'],
+      'tired': ['tired', 'exhausted', 'sleepy', 'worn out', 'drained'],
+      'worried': ['worried', 'concerned', 'anxious', 'nervous', 'stressed'],
+      'overwhelmed': ['overwhelmed', 'difficult', 'hard', 'challenging', 'tough']
+    };
+    
+    for (const [moodValue, keywords] of Object.entries(moodKeywords)) {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        const mood = this.moodOptions.find(m => m.value === moodValue);
+        if (mood) {
+          extracted.mood = mood;
+          break;
+        }
+      }
+    }
+    
+    // Extract notes (capture descriptive text)
+    const notePatterns = [
+      /(?:note|notes?|comment|comments?).*?[:\-]?\s*(.+)/i,
+      /(?:today|yesterday).*?(was|felt|seemed|had).+/i
+    ];
+    
+    for (const pattern of notePatterns) {
+      const match = text.match(pattern);
+      if (match && match[1] && match[1].length > 10) {
+        extracted.notes = match[1].trim();
+        break;
+      }
+    }
+    
+    // If no specific notes pattern, but transcript is descriptive, use it as notes
+    if (!extracted.notes && text.length > 50 && !Object.keys(extracted).some(key => key !== 'notes')) {
+      extracted.notes = transcript.trim();
+    }
+    
+    return extracted;
+  }
+  
+  private autoFillFormFields(extractedData: any) {
+    const formUpdates: any = {};
+    
+    // Map extracted data to form fields
+    if (extractedData.directFeedingSessions !== undefined) {
+      formUpdates.directFeedingSessions = extractedData.directFeedingSessions;
+    }
+    
+    if (extractedData.avgFeedingDuration !== undefined) {
+      formUpdates.avgFeedingDuration = extractedData.avgFeedingDuration;
+    }
+    
+    if (extractedData.pumpingSessions !== undefined) {
+      formUpdates.pumpingSessions = extractedData.pumpingSessions;
+    }
+    
+    if (extractedData.totalPumpingOutput !== undefined) {
+      formUpdates.totalPumpingOutput = extractedData.totalPumpingOutput;
+    }
+    
+    if (extractedData.formulaIntake !== undefined) {
+      formUpdates.formulaIntake = extractedData.formulaIntake;
+    }
+    
+    if (extractedData.peeCount !== undefined) {
+      formUpdates.peeCount = extractedData.peeCount;
+    }
+    
+    if (extractedData.poopCount !== undefined) {
+      formUpdates.poopCount = extractedData.poopCount;
+    }
+    
+    if (extractedData.notes !== undefined) {
+      formUpdates.notes = extractedData.notes;
+    }
+    
+    // Update form with extracted data
+    if (Object.keys(formUpdates).length > 0) {
+      this.addRecordForm.patchValue(formUpdates);
+    }
+    
+    // Set mood if extracted
+    if (extractedData.mood) {
+      this.selectedMood = extractedData.mood;
+    }
   }
 
+  clearVoiceInput() {
   async saveGrowthRecord() {
     if (this.addRecordForm.valid && this.user && this.user.babies.length > 0) {
       try {
@@ -204,7 +435,7 @@ export class GrowthPage implements OnInit {
           mood: this.selectedMood || undefined,
           moodDescription: formValue.moodDescription,
           notes: formValue.notes,
-          enteredViaVoice: this.currentVoiceField !== ''
+          enteredViaVoice: !!this.voiceTranscript
         };
 
         await this.growthService.addGrowthRecord(record);
@@ -306,22 +537,6 @@ export class GrowthPage implements OnInit {
       position: 'top'
     });
     await toast.present();
-  }
-
-  getFieldLabel(fieldName: string): string {
-    const labels: { [key: string]: string } = {
-      'directFeedingSessions': 'Direct Feeding Sessions',
-      'avgFeedingDuration': 'Average Duration',
-      'pumpingSessions': 'Pumping Sessions',
-      'totalPumpingOutput': 'Total Pumping Output',
-      'formulaIntake': 'Formula Intake',
-      'peeCount': 'Pee Count',
-      'poopCount': 'Poop Count',
-      'notes': 'Notes',
-      'moodDescription': 'Mood Description'
-    };
-    
-    return labels[fieldName] || fieldName;
   }
 
   isVoiceSupported(): boolean {

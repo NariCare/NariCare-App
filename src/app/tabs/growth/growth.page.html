@@ -225,6 +225,54 @@
           <!-- Date Selection -->
           <div class="form-section">
             <h4>Date & Time</h4>
+            
+            <!-- Smart Voice Input -->
+            <div class="smart-voice-section" *ngIf="isVoiceSupported()">
+              <div class="voice-input-header">
+                <h5>🎤 Smart Voice Input</h5>
+                <p>Speak naturally about your day and we'll auto-fill the form</p>
+              </div>
+              
+              <div class="voice-input-controls">
+                <ion-button 
+                  expand="block"
+                  fill="outline" 
+                  (click)="startSmartVoiceInput()"
+                  [disabled]="isRecording || isProcessingVoice"
+                  class="smart-voice-button">
+                  <ion-icon [name]="isRecording ? 'stop' : 'mic'" slot="start"></ion-icon>
+                  <span *ngIf="!isRecording && !isProcessingVoice">Start Voice Input</span>
+                  <span *ngIf="isRecording">Listening... Speak now</span>
+                  <span *ngIf="isProcessingVoice">Processing...</span>
+                </ion-button>
+                
+                <!-- Voice Input Status -->
+                <div class="voice-status" *ngIf="voiceTranscript">
+                  <div class="voice-transcript">
+                    <h6>What you said:</h6>
+                    <p>"{{ voiceTranscript }}"</p>
+                  </div>
+                  <div class="voice-summary">
+                    <p class="summary-text">{{ getVoiceInputSummary() }}</p>
+                    <ion-button fill="clear" size="small" (click)="clearVoiceInput()">
+                      <ion-icon name="close" slot="start"></ion-icon>
+                      Clear
+                    </ion-button>
+                  </div>
+                </div>
+                
+                <!-- Voice Input Examples -->
+                <div class="voice-examples" *ngIf="!voiceTranscript">
+                  <h6>Example phrases:</h6>
+                  <ul>
+                    <li>"Baby fed 8 times today, each session lasted about 20 minutes"</li>
+                    <li>"Pumped 3 times and got 180ml total, feeling tired today"</li>
+                    <li>"Had 7 wet diapers and 3 dirty ones, baby seems happy"</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            
             <div class="form-group">
               <ion-item lines="none" class="input-item">
                 <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
@@ -253,25 +301,14 @@
             <div class="form-row">
               <div class="form-group half-width">
                 <label class="field-label">Direct Feeding Sessions (24h)</label>
-                <div class="voice-input-container">
-                  <ion-item lines="none" class="input-item">
-                    <ion-input
-                      formControlName="directFeedingSessions"
-                      type="number"
-                      placeholder="8"
-                      [class.error]="addRecordForm.get('directFeedingSessions')?.invalid && addRecordForm.get('directFeedingSessions')?.touched">
-                    </ion-input>
-                  </ion-item>
-                  <ion-button 
-                    fill="clear" 
-                    size="small" 
-                    (click)="startVoiceInput('directFeedingSessions')"
-                    *ngIf="isVoiceSupported()"
-                    class="voice-button"
-                    [class.recording]="isRecording && currentVoiceField === 'directFeedingSessions'">
-                    <ion-icon name="mic" slot="icon-only"></ion-icon>
-                  </ion-button>
-                </div>
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="directFeedingSessions"
+                    type="number"
+                    placeholder="8"
+                    [class.error]="addRecordForm.get('directFeedingSessions')?.invalid && addRecordForm.get('directFeedingSessions')?.touched">
+                  </ion-input>
+                </ion-item>
                 <div class="error-message" *ngIf="addRecordForm.get('directFeedingSessions')?.invalid && addRecordForm.get('directFeedingSessions')?.touched">
                   {{ getErrorMessage('directFeedingSessions') }}
                 </div>
@@ -279,25 +316,14 @@
               
               <div class="form-group half-width">
                 <label class="field-label">Avg Duration (minutes)</label>
-                <div class="voice-input-container">
-                  <ion-item lines="none" class="input-item">
-                    <ion-input
-                      formControlName="avgFeedingDuration"
-                      type="number"
-                      placeholder="20"
-                      [class.error]="addRecordForm.get('avgFeedingDuration')?.invalid && addRecordForm.get('avgFeedingDuration')?.touched">
-                    </ion-input>
-                  </ion-item>
-                  <ion-button 
-                    fill="clear" 
-                    size="small" 
-                    (click)="startVoiceInput('avgFeedingDuration')"
-                    *ngIf="isVoiceSupported()"
-                    class="voice-button"
-                    [class.recording]="isRecording && currentVoiceField === 'avgFeedingDuration'">
-                    <ion-icon name="mic" slot="icon-only"></ion-icon>
-                  </ion-button>
-                </div>
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="avgFeedingDuration"
+                    type="number"
+                    placeholder="20"
+                    [class.error]="addRecordForm.get('avgFeedingDuration')?.invalid && addRecordForm.get('avgFeedingDuration')?.touched">
+                  </ion-input>
+                </ion-item>
                 <div class="error-message" *ngIf="addRecordForm.get('avgFeedingDuration')?.invalid && addRecordForm.get('avgFeedingDuration')?.touched">
                   {{ getErrorMessage('avgFeedingDuration') }}
                 </div>
@@ -313,25 +339,14 @@
             <div class="form-row">
               <div class="form-group half-width">
                 <label class="field-label">Pumping Sessions</label>
-                <div class="voice-input-container">
-                  <ion-item lines="none" class="input-item">
-                    <ion-input
-                      formControlName="pumpingSessions"
-                      type="number"
-                      placeholder="3"
-                      [class.error]="addRecordForm.get('pumpingSessions')?.invalid && addRecordForm.get('pumpingSessions')?.touched">
-                    </ion-input>
-                  </ion-item>
-                  <ion-button 
-                    fill="clear" 
-                    size="small" 
-                    (click)="startVoiceInput('pumpingSessions')"
-                    *ngIf="isVoiceSupported()"
-                    class="voice-button"
-                    [class.recording]="isRecording && currentVoiceField === 'pumpingSessions'">
-                    <ion-icon name="mic" slot="icon-only"></ion-icon>
-                  </ion-button>
-                </div>
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="pumpingSessions"
+                    type="number"
+                    placeholder="3"
+                    [class.error]="addRecordForm.get('pumpingSessions')?.invalid && addRecordForm.get('pumpingSessions')?.touched">
+                  </ion-input>
+                </ion-item>
                 <div class="error-message" *ngIf="addRecordForm.get('pumpingSessions')?.invalid && addRecordForm.get('pumpingSessions')?.touched">
                   {{ getErrorMessage('pumpingSessions') }}
                 </div>
@@ -339,25 +354,14 @@
               
               <div class="form-group half-width">
                 <label class="field-label">Total Output (ml)</label>
-                <div class="voice-input-container">
-                  <ion-item lines="none" class="input-item">
-                    <ion-input
-                      formControlName="totalPumpingOutput"
-                      type="number"
-                      placeholder="360"
-                      [class.error]="addRecordForm.get('totalPumpingOutput')?.invalid && addRecordForm.get('totalPumpingOutput')?.touched">
-                    </ion-input>
-                  </ion-item>
-                  <ion-button 
-                    fill="clear" 
-                    size="small" 
-                    (click)="startVoiceInput('totalPumpingOutput')"
-                    *ngIf="isVoiceSupported()"
-                    class="voice-button"
-                    [class.recording]="isRecording && currentVoiceField === 'totalPumpingOutput'">
-                    <ion-icon name="mic" slot="icon-only"></ion-icon>
-                  </ion-button>
-                </div>
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="totalPumpingOutput"
+                    type="number"
+                    placeholder="360"
+                    [class.error]="addRecordForm.get('totalPumpingOutput')?.invalid && addRecordForm.get('totalPumpingOutput')?.touched">
+                  </ion-input>
+                </ion-item>
                 <div class="error-message" *ngIf="addRecordForm.get('totalPumpingOutput')?.invalid && addRecordForm.get('totalPumpingOutput')?.touched">
                   {{ getErrorMessage('totalPumpingOutput') }}
                 </div>
@@ -371,25 +375,95 @@
             
             <div class="form-group">
               <label class="field-label">Total Formula Intake (ml) - 24h</label>
-              <div class="voice-input-container">
+              <ion-item lines="none" class="input-item">
+                <ion-input
+                  formControlName="formulaIntake"
+                  type="number"
+                  placeholder="0"
+                  [class.error]="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
+                </ion-input>
+              </ion-item>
+              <div class="error-message" *ngIf="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
+                {{ getErrorMessage('formulaIntake') }}
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group half-width">
+                <label class="field-label">Pee Count (24h)</label>
                 <ion-item lines="none" class="input-item">
                   <ion-input
-                    formControlName="formulaIntake"
+                    formControlName="peeCount"
                     type="number"
-                    placeholder="0"
-                    [class.error]="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
+                    placeholder="6"
+                    [class.error]="addRecordForm.get('peeCount')?.invalid && addRecordForm.get('peeCount')?.touched">
                   </ion-input>
                 </ion-item>
-               </div>
-               <div class="error-message" *ngIf="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
-                 {{ getErrorMessage('formulaIntake') }}
-               </div>
-             </div>
-           </div>
-         <!-- </div> -->
-       </form>
-     </ion-content>
-   </ng-template>
- </ion-modal>
+                <div class="error-message" *ngIf="addRecordForm.get('peeCount')?.invalid && addRecordForm.get('peeCount')?.touched">
+                  {{ getErrorMessage('peeCount') }}
+                </div>
+              </div>
+              
+              <div class="form-group half-width">
+                <label class="field-label">Poop Count (24h)</label>
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="poopCount"
+                    type="number"
+                    placeholder="2"
+                    [class.error]="addRecordForm.get('poopCount')?.invalid && addRecordForm.get('poopCount')?.touched">
+                  </ion-input>
+                </ion-item>
+                <div class="error-message" *ngIf="addRecordForm.get('poopCount')?.invalid && addRecordForm.get('poopCount')?.touched">
+                  {{ getErrorMessage('poopCount') }}
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <!-- Mood & Notes -->
+          <div class="form-section">
+            <h4>😊 How are you feeling?</h4>
+            
+            <div class="form-group">
+              <label class="field-label">Mood (optional)</label>
+              <div class="mood-selector">
+                <div 
+                  *ngFor="let mood of moodOptions"
+                  class="mood-option"
+                  [class.selected]="selectedMood?.value === mood.value"
+                  (click)="selectMood(mood)">
+                  <span class="mood-emoji">{{ mood.emoji }}</span>
+                  <span class="mood-label">{{ mood.label }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="field-label">Notes (optional)</label>
+              <ion-item lines="none" class="input-item">
+                <ion-textarea
+                  formControlName="notes"
+                  placeholder="Any additional notes about today..."
+                  rows="3"
+                  autoGrow="true">
+                </ion-textarea>
+              </ion-item>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <ion-button 
+              expand="block" 
+              (click)="saveGrowthRecord()"
+              [disabled]="!addRecordForm.valid"
+              class="save-button">
+              Save Daily Record
+            </ion-button>
+          </div>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>
