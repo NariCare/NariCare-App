@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ModalController, ToastController, AlertController } from '@ionic/angular';
+import { ModalController, ToastController, AlertController, ViewChild, ElementRef } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
@@ -11,6 +11,7 @@ import { GrowthRecord, WeightRecord, MoodType, StarPerformer } from '../../model
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
+import { SpecificWeekModalComponent } from 'src/app/components/specific-week-modal/specific-week-modal.component';
 
 @Component({
   selector: 'app-growth',
@@ -18,6 +19,8 @@ import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeli
   styleUrls: ['./growth.page.scss'],
 })
 export class GrowthPage implements OnInit {
+  @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
+  
   user: User | null = null;
   growthRecords$: Observable<GrowthRecord[]> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
@@ -709,5 +712,56 @@ export class GrowthPage implements OnInit {
       cssClass: 'timeline-modal'
     });
     return await modal.present();
+  }
+
+  async openSpecificWeekModal(weekItem: BabyTimelineItem) {
+    const modal = await this.modalController.create({
+      component: SpecificWeekModalComponent,
+      componentProps: {
+        weekItem: weekItem,
+        babyName: this.user?.babies[0]?.name || 'Baby',
+        currentWeek: this.getCurrentWeek()
+      },
+      cssClass: 'specific-week-modal'
+    });
+    return await modal.present();
+  }
+
+  scrollTimelineLeft() {
+    if (this.timelineScrollContainer) {
+      const container = this.timelineScrollContainer.nativeElement;
+      container.scrollBy({ left: -200, behavior: 'smooth' });
+    }
+  }
+
+  scrollTimelineRight() {
+    if (this.timelineScrollContainer) {
+      const container = this.timelineScrollContainer.nativeElement;
+      container.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  }
+
+  ngAfterViewInit() {
+    // Auto-scroll to current week when view initializes
+    setTimeout(() => {
+      this.scrollToCurrentWeek();
+    }, 500);
+  }
+
+  private scrollToCurrentWeek() {
+    if (this.timelineScrollContainer) {
+      const container = this.timelineScrollContainer.nativeElement;
+      const currentWeekElement = container.querySelector('.week-marker-horizontal.current-week');
+      
+      if (currentWeekElement) {
+        const containerWidth = container.offsetWidth;
+        const elementLeft = (currentWeekElement as HTMLElement).offsetLeft;
+        const elementWidth = (currentWeekElement as HTMLElement).offsetWidth;
+        
+        // Center the current week in the viewport
+        const scrollPosition = elementLeft - (containerWidth / 2) + (elementWidth / 2);
+        container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+      }
+    }
   }
 }

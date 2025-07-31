@@ -40,16 +40,37 @@
           <span class="timeline-subtitle">Baby's Development Journey</span>
         </div>
         
-        <div class="timeline-visual">
-          <div class="timeline-line"></div>
-          <div class="timeline-marker current-week" [style.left.%]="getTimelineProgress()" (click)="openTimelineModal()">
-            <div class="marker-pin">
-              <ion-icon name="location"></ion-icon>
+        <div class="timeline-visual-horizontal">
+          <div class="timeline-scroll-container" #timelineScrollContainer>
+            <div class="timeline-weeks-strip">
+              <div 
+                *ngFor="let item of (timelineData$ | async)?.allWeeks || []; let i = index"
+                class="week-marker-horizontal"
+                [class.current-week]="item.weekStart === getCurrentWeek()"
+                [class.completed-week]="item.weekStart < getCurrentWeek()"
+                [class.upcoming-week]="item.weekStart > getCurrentWeek()"
+                (click)="openSpecificWeekModal(item)">
+                
+                <div class="week-pin" [style.background-color]="item.color">
+                  <ion-icon [name]="item.icon"></ion-icon>
+                </div>
+                
+                <div class="week-number-badge" [style.background-color]="item.color">
+                  <span class="week-number">{{ item.weekStart }}</span>
+                </div>
+                
+                <div class="week-title">{{ item.shortTitle }}</div>
+              </div>
             </div>
-            <div class="week-badge">
-              <span class="week-number">{{ getCurrentWeek() }}</span>
-              <span class="week-label">weeks</span>
-            </div>
+          </div>
+          
+          <div class="timeline-navigation">
+            <ion-button fill="clear" size="small" (click)="scrollTimelineLeft()" class="timeline-nav-button">
+              <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" (click)="scrollTimelineRight()" class="timeline-nav-button">
+              <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
+            </ion-button>
           </div>
         </div>
         

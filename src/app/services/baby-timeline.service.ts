@@ -884,7 +884,8 @@ export class BabyTimelineService {
       currentWeek,
       items: allRelevantItems,
       upcomingMilestones: upcomingItems,
-      recentlyCompleted: recentItems
+      recentlyCompleted: recentItems,
+      allWeeks: this.timelineData.sort((a, b) => a.weekStart - b.weekStart)
     });
   }
 
