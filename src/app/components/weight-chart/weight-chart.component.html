@@ -2,7 +2,7 @@
   <div class="chart-header">
     <h3>CDC Weight Chart - {{ babyGender === 'male' ? 'Boys' : 'Girls' }}</h3>
     <div class="chart-controls">
-      <ion-chip [color]="percentileInterpretation.color === '#10b981' ? 'success' : percentileInterpretation.color === '#ef4444' ? 'danger' : 'warning'" size="small">
+      <ion-chip [color]="percentileInterpretation.color === '#10b981' ? 'success' : percentileInterpretation.color === '#ef4444' ? 'danger' : 'warning'" size="small" *ngIf="!isLoading && weightRecords.length > 0">
         {{ currentPercentile }}th percentile
       </ion-chip>
     </div>
@@ -15,7 +15,17 @@
   </div>
 
   <!-- Chart Container -->
-  <div #chartContainer class="chart-content" *ngIf="!isLoading"></div>
+  <div #chartContainer class="chart-content" *ngIf="!isLoading && !chartError"></div>
+
+  <!-- Error State -->
+  <div class="chart-error" *ngIf="chartError">
+    <ion-icon name="warning-outline"></ion-icon>
+    <h4>Chart Error</h4>
+    <p>{{ chartError }}</p>
+    <ion-button fill="outline" size="small" (click)="initializeChart()">
+      Retry
+    </ion-button>
+  </div>
 
   <!-- Empty State -->
   <div class="chart-empty" *ngIf="!isLoading && weightRecords.length === 0">

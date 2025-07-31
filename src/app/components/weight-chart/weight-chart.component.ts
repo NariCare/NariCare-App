@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CDCGrowthChartService } from '../../services/cdc-growth-chart.service';
 import { WeightRecord } from '../../models/growth-tracking.model';
 import { BabyGrowthPoint } from '../../models/cdc-growth-data.model';
@@ -9,7 +9,7 @@ import * as Highcharts from 'highcharts';
   templateUrl: './weight-chart.component.html',
   styleUrls: ['./weight-chart.component.scss']
 })
-export class WeightChartComponent implements OnInit, OnChanges {
+export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() weightRecords: WeightRecord[] = [];
   @Input() babyGender: 'male' | 'female' = 'female';
   @Input() babyBirthDate: Date = new Date();
@@ -19,60 +19,185 @@ export class WeightChartComponent implements OnInit, OnChanges {
   currentPercentile: number = 50;
   percentileInterpretation: any = {};
   isLoading = true;
+  chartError = '';
 
   constructor(private cdcService: CDCGrowthChartService) {}
 
   ngOnInit() {
-    this.isLoading = true;
-    // Wait for view to initialize before creating chart
+    console.log('WeightChartComponent ngOnInit');
+    console.log('Weight records:', this.weightRecords);
+    console.log('Baby gender:', this.babyGender);
+    console.log('Baby birth date:', this.babyBirthDate);
+  }
+
+  ngAfterViewInit() {
+    console.log('WeightChartComponent ngAfterViewInit');
+    console.log('Chart container element:', this.chartContainer?.nativeElement);
+    
+    // Wait a bit for the view to be fully rendered
     setTimeout(() => {
-      this.isLoading = false;
-      this.createChart();
-    }, 100);
+      this.initializeChart();
+    }, 500);
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    console.log('WeightChartComponent ngOnChanges', changes);
     if (changes['weightRecords'] || changes['babyGender'] || changes['babyBirthDate']) {
       if (this.chart) {
+        console.log('Updating existing chart');
         this.updateChart();
+      } else if (this.chartContainer?.nativeElement) {
+        console.log('Creating chart from ngOnChanges');
+        this.initializeChart();
       }
     }
   }
 
-  private createChart() {
+  private initializeChart() {
+    console.log('Initializing chart...');
+    this.isLoading = true;
+    this.chartError = '';
+
     if (!this.chartContainer || !this.chartContainer.nativeElement) {
-      console.warn('Chart container not available');
+      console.error('Chart container not available');
+      this.chartError = 'Chart container not available';
+      this.isLoading = false;
       return;
     }
 
-    console.log('Creating weight chart with', this.weightRecords.length, 'records');
-    
-    const babyGrowthPoints = this.convertToGrowthPoints();
-    console.log('Baby growth points:', babyGrowthPoints);
-    
-    const chartConfig = this.cdcService.generateChartData(babyGrowthPoints, this.babyGender);
-    console.log('Chart config generated');
-
     try {
-      this.chart = Highcharts.chart(this.chartContainer.nativeElement, {
-        ...chartConfig,
-        credits: { enabled: false },
-        responsive: {
-          rules: [{
-            condition: { maxWidth: 500 },
-            chartOptions: {
-              legend: { enabled: false },
-              yAxis: { title: { text: null } },
-              xAxis: { title: { text: null } }
-            }
-          }]
-        }
-      });
+      this.createChart();
+    } catch (error) {
+      console.error('Error initializing chart:', error);
+      this.chartError = 'Failed to initialize chart: ' + (error as Error).message;
+      this.isLoading = false;
+    }
+  }
+
+  private createChart() {
+    console.log('Creating weight chart...');
+    
+    try {
+      const babyGrowthPoints = this.convertToGrowthPoints();
+      console.log('Baby growth points:', babyGrowthPoints);
       
-      console.log('Chart created successfully');
+      // Create basic chart configuration
+      const chartOptions: Highcharts.Options = {
+        chart: {
+          type: 'line',
+          height: 400,
+          backgroundColor: '#ffffff',
+          animation: false
+        },
+        title: {
+          text: `Weight Chart - ${this.babyGender === 'male' ? 'Boys' : 'Girls'}`,
+          style: { 
+            fontSize: '16px', 
+            fontWeight: '600',
+            color: '#2d3748'
+          }
+        },
+        xAxis: {
+          title: { text: 'Age (weeks)' },
+          min: 0,
+          max: 52,
+          gridLineWidth: 1,
+          labels: {
+            style: { color: '#64748b' }
+          }
+        },
+        yAxis: {
+          title: { text: 'Weight (kg)' },
+          min: 2,
+          max: 15,
+          gridLineWidth: 1,
+          labels: {
+            style: { color: '#64748b' }
+          }
+        },
+        legend: {
+          enabled: true,
+          align: 'right',
+          verticalAlign: 'middle',
+          layout: 'vertical',
+          itemStyle: {
+            color: '#64748b',
+            fontSize: '12px'
+          }
+        },
+        series: [],
+        plotOptions: {
+          line: {
+            animation: false,
+            marker: { enabled: false }
+          },
+          scatter: {
+            animation: false
+          }
+        },
+        tooltip: {
+          shared: false,
+          formatter: function() {
+            if ((this as any).series.name === 'Baby\'s Weight') {
+              return `<b>Age:</b> ${(this as any).x} weeks<br/><b>Weight:</b> ${(this as any).y} kg<br/><b>Percentile:</b> ${(this as any).point.percentile || 'N/A'}th`;
+            }
+            return `<b>${(this as any).series.name}</b><br/>Age: ${(this as any).x} weeks<br/>Weight: ${(this as any).y} kg`;
+          }
+        },
+        credits: { enabled: false }
+      };
+
+      // Add CDC percentile curves
+      const percentiles = [3, 10, 25, 50, 75, 90, 97];
+      const chartData = this.cdcService.getWeightChart(this.babyGender);
+      
+      percentiles.forEach(percentile => {
+        const series: Highcharts.SeriesLineOptions = {
+          name: `${percentile}th percentile`,
+          type: 'line',
+          data: chartData.data.map(point => [point.ageInWeeks, (point as any)[`p${percentile}`]]),
+          color: this.getPercentileColor(percentile),
+          lineWidth: percentile === 50 ? 2 : 1,
+          dashStyle: percentile === 50 ? 'Solid' : 'Dash',
+          marker: { enabled: false },
+          enableMouseTracking: true
+        };
+        chartOptions.series!.push(series);
+      });
+
+      // Add baby's weight data if available
+      if (babyGrowthPoints.length > 0) {
+        const babySeries: Highcharts.SeriesScatterOptions = {
+          name: 'Baby\'s Weight',
+          type: 'scatter',
+          data: babyGrowthPoints.map(point => ({
+            x: point.ageInWeeks,
+            y: point.value,
+            percentile: point.percentile
+          })),
+          color: '#e91e63',
+          marker: {
+            radius: 6,
+            fillColor: '#e91e63',
+            lineColor: '#ffffff',
+            lineWidth: 2
+          },
+          zIndex: 10
+        };
+        chartOptions.series!.push(babySeries);
+      }
+
+      console.log('Creating Highcharts chart with options:', chartOptions);
+      
+      this.chart = Highcharts.chart(this.chartContainer.nativeElement, chartOptions);
+      
+      console.log('Chart created successfully:', this.chart);
       this.updatePercentileInfo(babyGrowthPoints);
+      this.isLoading = false;
+      
     } catch (error) {
       console.error('Error creating chart:', error);
+      this.chartError = 'Failed to create chart: ' + (error as Error).message;
       this.isLoading = false;
     }
   }
@@ -86,12 +211,36 @@ export class WeightChartComponent implements OnInit, OnChanges {
 
     try {
       const babyGrowthPoints = this.convertToGrowthPoints();
-      const chartConfig = this.cdcService.generateChartData(babyGrowthPoints, this.babyGender);
-
-      // Update the baby's data series
-      const babySeriesIndex = this.chart.series.length - 1;
-      if (this.chart.series[babySeriesIndex]) {
-        this.chart.series[babySeriesIndex].setData(chartConfig.series[chartConfig.series.length - 1].data);
+      
+      // Find and update baby's data series
+      const babySeriesIndex = this.chart.series.findIndex((s: any) => s.name === 'Baby\'s Weight');
+      
+      if (babySeriesIndex >= 0 && babyGrowthPoints.length > 0) {
+        const newData = babyGrowthPoints.map(point => ({
+          x: point.ageInWeeks,
+          y: point.value,
+          percentile: point.percentile
+        }));
+        this.chart.series[babySeriesIndex].setData(newData);
+      } else if (babyGrowthPoints.length > 0) {
+        // Add baby series if it doesn't exist
+        this.chart.addSeries({
+          name: 'Baby\'s Weight',
+          type: 'scatter',
+          data: babyGrowthPoints.map(point => ({
+            x: point.ageInWeeks,
+            y: point.value,
+            percentile: point.percentile
+          })),
+          color: '#e91e63',
+          marker: {
+            radius: 6,
+            fillColor: '#e91e63',
+            lineColor: '#ffffff',
+            lineWidth: 2
+          },
+          zIndex: 10
+        });
       }
 
       this.updatePercentileInfo(babyGrowthPoints);
@@ -127,13 +276,27 @@ export class WeightChartComponent implements OnInit, OnChanges {
       this.currentPercentile = latestPoint.percentile || 50;
       this.percentileInterpretation = this.cdcService.getPercentileInterpretation(this.currentPercentile);
     } else {
-      // Default values when no data
       this.currentPercentile = 50;
       this.percentileInterpretation = {
         status: 'No Data',
         message: 'Add weight records to see growth analysis',
         color: '#94a3b8'
       };
+    }
+  }
+
+  private getPercentileColor(percentile: number): string {
+    switch (percentile) {
+      case 3: return '#ef4444';   // Red
+      case 5: return '#f97316';   // Orange
+      case 10: return '#f59e0b';  // Amber
+      case 25: return '#84cc16';  // Light green
+      case 50: return '#10b981';  // Green - median
+      case 75: return '#06b6d4';  // Cyan
+      case 90: return '#3b82f6';  // Blue
+      case 95: return '#8b5cf6';  // Purple
+      case 97: return '#ec4899';  // Pink
+      default: return '#6b7280'; // Gray
     }
   }
 
