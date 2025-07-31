@@ -6,6 +6,7 @@ import { GrowthPageRoutingModule } from './growth-routing.module';
 import { GrowthPage } from './growth.page';
 import { WeightChartComponent } from '../../components/weight-chart/weight-chart.component';
 import { TimelineModalComponent } from '../../components/timeline-modal/timeline-modal.component';
+import { SpecificWeekModalComponent } from '../../components/specific-week-modal/specific-week-modal.component';
 
 @NgModule({
   imports: [
@@ -15,6 +16,6 @@ import { TimelineModalComponent } from '../../components/timeline-modal/timeline
     IonicModule,
     GrowthPageRoutingModule
   ],
-  declarations: [GrowthPage, WeightChartComponent, TimelineModalComponent]
+  declarations: [GrowthPage, WeightChartComponent, TimelineModalComponent, SpecificWeekModalComponent]
 })
 export class GrowthPageModule {}

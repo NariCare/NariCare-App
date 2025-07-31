@@ -1,0 +1,129 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      <div class="modal-title">
+        <span>Week {{ weekItem?.weekStart }}</span>
+        <span class="baby-age">{{ calculateBabyAge() }}</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="closeModal()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="specific-week-container" *ngIf="weekItem">
+    
+    <!-- Week Header -->
+    <div class="week-header" [style.background]="'linear-gradient(135deg, ' + weekItem.color + ', ' + weekItem.color + '99)'">
+      <div class="week-icon" [style.background-color]="weekItem.color">
+        <ion-icon [name]="weekItem.icon"></ion-icon>
+      </div>
+      
+      <div class="week-info">
+        <div class="week-badge">
+          <span class="week-number">{{ weekItem.weekStart }}</span>
+          <span class="week-label">WEEK</span>
+        </div>
+        
+        <h1>{{ weekItem.title }}</h1>
+        <p class="week-description">{{ weekItem.description }}</p>
+        
+        <div class="week-status">
+          <ion-chip 
+            [color]="isCurrentWeek() ? 'light' : isCompletedWeek() ? 'success' : 'medium'" 
+            size="small">
+            <ion-icon 
+              [name]="isCurrentWeek() ? 'time' : isCompletedWeek() ? 'checkmark-circle' : 'lock-closed'" 
+              slot="start">
+            </ion-icon>
+            <span *ngIf="isCurrentWeek()">Current Week</span>
+            <span *ngIf="isCompletedWeek()">Completed</span>
+            <span *ngIf="isUpcomingWeek()">In {{ getWeeksUntil() }} week{{ getWeeksUntil() !== 1 ? 's' : '' }}</span>
+          </ion-chip>
+          
+          <ion-chip [color]="getCategoryColor(weekItem.category)" size="small">
+            {{ getCategoryLabel(weekItem.category) }}
+          </ion-chip>
+        </div>
+      </div>
+    </div>
+
+    <!-- Week Content -->
+    <div class="week-content">
+      
+      <!-- What to Expect Section -->
+      <div class="content-section expect-section" *ngIf="weekItem.whatToExpected && weekItem.whatToExpected.length > 0">
+        <div class="section-header">
+          <div class="section-icon">
+            <ion-icon name="heart"></ion-icon>
+          </div>
+          <h3>What to Expect</h3>
+        </div>
+        <div class="section-content">
+          <ul class="expectation-list">
+            <li *ngFor="let expectation of weekItem.whatToExpected">
+              <div class="list-item-content">
+                <ion-icon name="checkmark-circle" class="item-icon"></ion-icon>
+                <span>{{ expectation }}</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Tips Section -->
+      <div class="content-section tips-section" *ngIf="weekItem.tips && weekItem.tips.length > 0">
+        <div class="section-header">
+          <div class="section-icon">
+            <ion-icon name="bulb"></ion-icon>
+          </div>
+          <h3>Helpful Tips</h3>
+        </div>
+        <div class="section-content">
+          <ul class="tips-list">
+            <li *ngFor="let tip of weekItem.tips">
+              <div class="list-item-content">
+                <ion-icon name="star" class="item-icon"></ion-icon>
+                <span>{{ tip }}</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- When to Worry Section -->
+      <div class="content-section worry-section" *ngIf="weekItem.whenToWorry && weekItem.whenToWorry.length > 0">
+        <div class="section-header">
+          <div class="section-icon warning">
+            <ion-icon name="warning"></ion-icon>
+          </div>
+          <h3>When to Contact Your Doctor</h3>
+        </div>
+        <div class="section-content">
+          <ul class="worry-list">
+            <li *ngFor="let worry of weekItem.whenToWorry">
+              <div class="list-item-content">
+                <ion-icon name="alert-circle" class="item-icon"></ion-icon>
+                <span>{{ worry }}</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons" *ngIf="isCurrentWeek()">
+      <ion-button expand="block" fill="outline" color="primary">
+        <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+        Mark as Experienced
+      </ion-button>
+    </div>
+    
+  </div>
+</ion-content>

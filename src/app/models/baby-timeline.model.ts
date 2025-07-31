@@ -3,6 +3,7 @@ export interface BabyTimelineItem {
   weekStart: number;
   weekEnd: number;
   title: string;
+  shortTitle?: string;
   description: string;
   category: 'feeding' | 'development' | 'sleep' | 'health' | 'milestone';
   icon: string;
@@ -20,4 +21,5 @@ export interface BabyTimelineData {
   items: BabyTimelineItem[];
   upcomingMilestones: BabyTimelineItem[];
   recentlyCompleted: BabyTimelineItem[];
+  allWeeks: BabyTimelineItem[];
 }
