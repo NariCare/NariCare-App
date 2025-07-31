@@ -882,8 +882,7 @@ export class BabyTimelineService {
 
     return of({
       currentWeek,
-      items: timelineItems,
-      allWeeks: timelineItems
+      items: allRelevantItems,
       upcomingMilestones: upcomingItems,
       recentlyCompleted: recentItems,
       allWeeks: this.timelineData.sort((a, b) => a.weekStart - b.weekStart)
