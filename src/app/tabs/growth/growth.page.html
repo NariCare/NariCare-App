@@ -723,16 +723,16 @@
           <div class="form-section">
             <h4>📅 Date</h4>
             <div class="form-group">
-              <ion-item lines="none" class="input-item">
-                <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-                <ion-datetime-button datetime="weightDate">
-                  <ion-label>Date</ion-label>
-                </ion-datetime-button>
-              </ion-item>
-              <ion-modal [keepContentsMounted]="true">
-                <ng-template>
-                  <ion-datetime 
-                    id="weightDate" 
+                    formControlName="date"
+                    presentation="date"
+                    max="2025-12-31"
+                    min="2020-01-01">
+                  </ion-datetime>
+                </ng-template>
+              </ion-modal>
+            </div>
+          </div>
+
           <!-- Weight & Height -->
           <div class="form-section">
             <h4>⚖️ Measurements</h4>
@@ -765,7 +765,7 @@
               </ion-item>
             </div>
           </div>
-                    formControlName="date"
+
           <!-- Notes -->
           <div class="form-section">
             <h4>📝 Notes</h4>
@@ -780,7 +780,7 @@
               </ion-item>
             </div>
           </div>
-                    presentation="date"
+
           <!-- Form Actions -->
           <div class="form-actions">
             <ion-button 
