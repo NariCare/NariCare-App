@@ -723,6 +723,16 @@
           <div class="form-section">
             <h4>📅 Date</h4>
             <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+                <ion-datetime-button datetime="weightDate">
+                  <ion-label>Date</ion-label>
+                </ion-datetime-button>
+              </ion-item>
+              <ion-modal [keepContentsMounted]="true">
+                <ng-template>
+                  <ion-datetime 
+                    id="weightDate" 
                     formControlName="date"
                     presentation="date"
                     max="2025-12-31"
@@ -842,7 +852,6 @@
               </ion-item>
             </div>
           </div>
-                  </ion-datetime>
           <!-- Color Selection -->
           <div class="form-section">
             <h4>🎨 Color</h4>
@@ -857,7 +866,6 @@
               </div>
             </div>
           </div>
-                </ng-template>
           <!-- Texture Selection -->
           <div class="form-section">
             <h4>🔍 Texture</h4>
@@ -874,7 +882,6 @@
               </div>
             </div>
           </div>
-              </ion-modal>
           <!-- Size Selection -->
           <div class="form-section">
             <h4>📏 Size</h4>
@@ -891,7 +898,6 @@
               </div>
             </div>
           </div>
-            </div>
           <!-- Notes -->
           <div class="form-section">
             <h4>📝 Notes</h4>
@@ -905,7 +911,6 @@
                 </ion-textarea>
               </ion-item>
             </div>
-          </div>
           </div>
           <!-- Form Actions -->
           <div class="form-actions">
