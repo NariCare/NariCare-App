@@ -56,6 +56,201 @@
   }
 }
 
+.baby-title-selector {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.title-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  .dropdown-icon {
+    font-size: 1rem;
+    opacity: 0.8;
+  }
+}
+
+.baby-selector-card {
+  background: linear-gradient(135deg, #e91e63, #f06292);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(233, 30, 99, 0.3);
+}
+
+.baby-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.baby-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 1.8rem;
+    color: #ffffff;
+  }
+}
+
+.baby-details {
+  h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #ffffff;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    
+    &.birth-date {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+.switch-baby-button {
+  --color: #ffffff;
+  --background: rgba(255, 255, 255, 0.2);
+  --border-radius: 12px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  height: 40px;
+  font-weight: 500;
+  
+  &:hover {
+    --background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.baby-selector-content {
+  padding: 1rem;
+}
+
+.baby-selector-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  
+  h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+  
+  p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+}
+
+.babies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.baby-option {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &.selected {
+    border-color: #e91e63;
+    background: linear-gradient(135deg, #fef7f7, #ffffff);
+    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.15);
+  }
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.baby-option-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e91e63, #f06292);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  
+  ion-icon {
+    font-size: 1.8rem;
+    color: #ffffff;
+  }
+}
+
+.baby-option-info {
+  flex: 1;
+  
+  h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+    
+    &.baby-age {
+      font-size: 0.9rem;
+      color: #2d3748;
+      font-weight: 500;
+    }
+    
+    &.birth-info {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+.selected-icon {
+  color: #e91e63;
+  font-size: 1.5rem;
+  margin-left: 0.5rem;
+}
+
 .timeline-progress-section {
   padding: 1.5rem 1rem;
   background: #ffffff;

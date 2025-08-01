@@ -16,7 +16,9 @@ import { VideoPlayerModalComponent } from '../../../components/video-player-moda
 export class TimelinePage implements OnInit {
   timelineData$: Observable<BabyTimelineData> | null = null;
   user: User | null = null;
+  selectedBaby: any = null;
   currentTimelineData: BabyTimelineData | null = null;
+  showBabySelector = false;
 
   constructor(
     private router: Router,
@@ -29,7 +31,9 @@ export class TimelinePage implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
       if (user && user.babies.length > 0) {
-        this.loadTimelineData(user.babies[0].dateOfBirth);
+        // Set first baby as default selected baby
+        this.selectedBaby = user.babies[0];
+        this.loadTimelineData(this.selectedBaby.dateOfBirth);
       }
     });
   }
@@ -72,9 +76,71 @@ export class TimelinePage implements OnInit {
   }
 
   calculateBabyAge(): string {
-    if (!this.user || !this.user.babies.length) return '';
+    if (!this.selectedBaby) return '';
     
-    const birthDate = new Date(this.user.babies[0].dateOfBirth);
+    const birthDate = new Date(this.selectedBaby.dateOfBirth);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
+    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
+    
+    if (diffWeeks < 4) {
+      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} old`;
+    } else if (diffWeeks < 52) {
+      const months = Math.floor(diffWeeks / 4);
+      const remainingWeeks = diffWeeks % 4;
+      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
+    } else {
+      const years = Math.floor(diffWeeks / 52);
+      const remainingWeeks = diffWeeks % 52;
+      const months = Math.floor(remainingWeeks / 4);
+      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
+    }
+  }
+
+  calculateBabyAgeForBaby(birthDate: Date): string {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
+    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
+    
+    if (diffWeeks < 4) {
+      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} old`;
+    } else if (diffWeeks < 52) {
+      const months = Math.floor(diffWeeks / 4);
+      const remainingWeeks = diffWeeks % 4;
+      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
+    } else {
+      const years = Math.floor(diffWeeks / 52);
+      const remainingWeeks = diffWeeks % 52;
+      const months = Math.floor(remainingWeeks / 4);
+      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
+    }
+  }
+
+  // Baby selection methods
+  openBabySelector() {
+    if (this.user && this.user.babies && this.user.babies.length > 1) {
+      this.showBabySelector = true;
+    }
+  }
+
+  closeBabySelector() {
+    this.showBabySelector = false;
+  }
+
+  selectBaby(baby: any) {
+    this.selectedBaby = baby;
+    this.loadTimelineData(baby.dateOfBirth);
+    this.closeBabySelector();
+  }
+
+  formatDate(date: Date): string {
+    if (!date) return '';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birthDate.getTime());
     const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
