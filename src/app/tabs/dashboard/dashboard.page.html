@@ -111,78 +111,67 @@
 
     <!-- Timeline Section -->
     <div class="section" *ngIf="user && user.babies && user.babies.length > 0">
-      <h2 class="section-title">{{ user.babies[0].name }}'s Development Timeline</h2>
-      <div class="timeline-header-section">
-        <div class="timeline-background">
-          <div class="timeline-title">
-            <h3>TIMELINE</h3>
-            <span class="timeline-subtitle">Baby's Development Journey</span>
+      <div class="timeline-section">
+        <div class="timeline-header">
+          <div class="timeline-icon">
+            <ion-icon name="location"></ion-icon>
           </div>
-          
-          <div class="timeline-visual-horizontal">
-            <div class="timeline-scroll-container" #timelineScrollContainer>
-              <div class="timeline-weeks-strip">
-                <div *ngIf="timelineData$ | async as timelineData">
-                  <div 
-                    *ngFor="let item of timelineData.allWeeks || []; let i = index"
-                    class="week-marker-horizontal"
-                    [class.current-week]="item.weekStart === getCurrentWeek()"
-                    [class.completed-week]="item.weekStart < getCurrentWeek()"
-                    [class.upcoming-week]="item.weekStart > getCurrentWeek()"
-                    (click)="openSpecificWeekModal(item)">
-                    
-                    <div class="week-pin" [style.background-color]="item.color">
-                      <ion-icon [name]="item.icon"></ion-icon>
-                    </div>
-                    
-                    <div class="week-number-badge" [style.background-color]="item.color">
-                      <span class="week-number">{{ item.weekStart }}</span>
-                    </div>
-                    
-                    <div class="week-title">{{ item.shortTitle }}</div>
+          <h2>TIMELINE</h2>
+          <div class="timeline-lock" *ngIf="!hasTimelineAccess()">
+            <ion-icon name="lock-closed"></ion-icon>
+          </div>
+        </div>
+        
+        <div class="timeline-content" *ngIf="timelineData$ | async as timelineData">
+          <!-- Timeline Items with Connecting Lines -->
+          <div class="timeline-items-vertical">
+            <div 
+              *ngFor="let item of getVisibleTimelineItems(timelineData); let i = index; let isLast = last"
+              class="timeline-item-wrapper">
+              
+              <!-- Timeline Item Card -->
+              <div class="timeline-item-card"
+                   [class.current-item]="isCurrentWeek(item, timelineData.currentWeek)"
+                   [class.completed-item]="isCompletedWeek(item, timelineData.currentWeek)"
+                   [class.upcoming-item]="isUpcomingWeek(item, timelineData.currentWeek)"
+                   (click)="openSpecificWeekModal(item)">
+                
+                <!-- Week Badge -->
+                <div class="week-badge" [style.background-color]="item.color">
+                  {{ getWeekDisplay(item) }}
+                </div>
+                
+                <!-- Card Content -->
+                <div class="card-content">
+                  <h3>{{ item.title }}</h3>
+                  <p>{{ item.description }}</p>
+                  
+                  <div class="card-footer">
+                    <span class="see-more">SEE MORE</span>
+                    <ion-icon name="chevron-forward"></ion-icon>
                   </div>
                 </div>
+                
+                <!-- Lock Icon for Upcoming Items -->
+                <div class="lock-icon" *ngIf="isUpcomingWeek(item, timelineData.currentWeek)">
+                  <ion-icon name="lock-closed"></ion-icon>
+                </div>
               </div>
-            </div>
-            
-            <div class="timeline-navigation">
-              <ion-button fill="clear" size="small" (click)="scrollTimelineLeft()" class="timeline-nav-button">
-                <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
-              </ion-button>
-              <ion-button fill="clear" size="small" (click)="scrollTimelineRight()" class="timeline-nav-button">
-                <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
-              </ion-button>
-            </div>
-          </div>
-          
-          <div class="timeline-cards-preview">
-            <div class="preview-card active" *ngIf="getCurrentTimelineItem()" (click)="openTimelineModal()">
-              <div class="card-icon" [style.background-color]="getCurrentTimelineItem()?.color">
-                <ion-icon [name]="getCurrentTimelineItem()?.icon"></ion-icon>
-              </div>
-              <div class="card-content">
-                <h4>{{ getCurrentTimelineItem()?.title }}</h4>
-                <p>{{ getCurrentTimelineItem()?.description }}</p>
-              </div>
-              <div class="see-more" (click)="openTimelineModal(); $event.stopPropagation()">
-                <span>SEE MORE</span>
-                <ion-icon name="chevron-forward"></ion-icon>
-              </div>
-            </div>
-            
-            <div class="preview-card upcoming" *ngIf="getUpcomingTimelineItem()" (click)="openTimelineModal()">
-              <div class="card-icon locked" [style.background-color]="getUpcomingTimelineItem()?.color">
-                <ion-icon name="lock-closed"></ion-icon>
-              </div>
-              <div class="card-content">
-                <h4>{{ getUpcomingTimelineItem()?.title }}</h4>
-                <p>Coming in {{ getWeeksUntilUpcoming() }} week{{ getWeeksUntilUpcoming() !== 1 ? 's' : '' }}</p>
-              </div>
+              
+              <!-- Connecting Line -->
+              <div class="timeline-connector" *ngIf="!isLast"></div>
             </div>
           </div>
           
-          <div class="timeline-action">
-            <span class="see-all-link" (click)="openTimelineModal()">SEE ALL</span>
+          <!-- See More Button -->
+          <div class="timeline-see-more">
+            <ion-button 
+              expand="block" 
+              fill="solid" 
+              (click)="openFullTimeline()"
+              class="see-more-button">
+              SEE MORE
+            </ion-button>
           </div>
         </div>
       </div>
