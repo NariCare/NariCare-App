@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ModalController } from '@ionic/angular';
 import { BabyTimelineService } from '../../../services/baby-timeline.service';
 import { AuthService } from '../../../services/auth.service';
 import { BabyTimelineItem } from '../../../models/baby-timeline.model';
 import { User } from '../../../models/user.model';
+import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
 
 @Component({
   selector: 'app-specific-week',
@@ -20,7 +22,8 @@ export class SpecificWeekPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private timelineService: BabyTimelineService,
-    private authService: AuthService
+    private authService: AuthService,
+    private modalController: ModalController
   ) {}
 
   ngOnInit() {
@@ -106,5 +109,27 @@ export class SpecificWeekPage implements OnInit {
       const months = Math.floor(remainingWeeks / 4);
       return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
     }
+  }
+
+  getCategoryDisplayName(category: string): string {
+    const categoryNames: { [key: string]: string } = {
+      'social': 'Social',
+      'language': 'Language',
+      'cognitive': 'Cognitive',
+      'movement': 'Movement'
+    };
+    return categoryNames[category] || category;
+  }
+
+  async openVideo(videoUrl: string, title?: string) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: videoUrl,
+        title: title || 'Milestone Video'
+      },
+      cssClass: 'video-modal'
+    });
+    return await modal.present();
   }
 }

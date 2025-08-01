@@ -5,8 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { GrowthPageRoutingModule } from './growth-routing.module';
 import { GrowthPage } from './growth.page';
 import { WeightChartComponent } from '../../components/weight-chart/weight-chart.component';
-import { TimelineModalComponent } from '../../components/timeline-modal/timeline-modal.component';
-import { SpecificWeekModalComponent } from '../../components/specific-week-modal/specific-week-modal.component';
+import { SharedModule } from '../../shared/shared.module';
 
 @NgModule({
   imports: [
@@ -14,8 +13,9 @@ import { SpecificWeekModalComponent } from '../../components/specific-week-modal
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
-    GrowthPageRoutingModule
+    GrowthPageRoutingModule,
+    SharedModule
   ],
-  declarations: [GrowthPage, WeightChartComponent, TimelineModalComponent, SpecificWeekModalComponent]
+  declarations: [GrowthPage, WeightChartComponent]
 })
 export class GrowthPageModule {}

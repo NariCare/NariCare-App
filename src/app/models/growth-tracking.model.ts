@@ -3,17 +3,24 @@ export interface GrowthRecord {
   babyId: string;
   recordedBy: string;
   date: Date;
-  // Daily feeding tracking
-  directFeedingSessions: number;
-  avgFeedingDuration: number; // in minutes
-  pumpingSessions: number;
-  totalPumpingOutput: number; // in ml
-  formulaIntake: number; // in ml
-  peeCount: number;
-  poopCount: number;
-  // Emotional state
-  mood?: MoodType;
+  // Feed tracking
+  startTime: string; // HH:MM format
+  endTime: string; // HH:MM format
+  breastSide: 'left' | 'right' | 'both';
+  supplement: 'breastmilk' | 'formula' | null;
+  painLevel: number; // 0-10 scale
+  lipstickShape: 'rounded' | 'lipstick';
+  mood?: MotherMood;
+  // Additional tracking fields
+  directFeedingSessions?: number;
+  avgFeedingDuration?: number;
+  pumpingSessions?: number;
+  totalPumpingOutput?: number;
+  formulaIntake?: number;
+  peeCount?: number;
+  poopCount?: number;
   moodDescription?: string;
+  // Emotional state
   notes?: string;
   // Voice entry flag
   enteredViaVoice?: boolean;
@@ -22,15 +29,82 @@ export interface GrowthRecord {
   updatedAt: Date;
 }
 
+export interface VoiceInputData {
+  transcript: string;
+  extractedData: any;
+  isProcessing: boolean;
+  confidence: number;
+}
+
+export interface BreastSide {
+  value: 'left' | 'right' | 'both';
+  label: string;
+  icon: string;
+}
+
+export interface SupplementType {
+  value: 'breastmilk' | 'formula';
+  label: string;
+  icon: string;
+}
+
+export interface LipstickShape {
+  value: 'rounded' | 'lipstick';
+  label: string;
+  icon: string;
+}
+
+export interface MotherMood {
+  value: 'relaxed' | 'happy' | 'sad' | 'exhausted' | 'anxious';
+  label: string;
+  emoji: string;
+  color: string;
+}
 export interface WeightRecord {
   id: string;
   babyId: string;
   recordedBy: string;
   date: Date;
   weight: number; // in kg
+  height?: number; // in cm
   notes?: string;
   reminderSent?: boolean;
+  enteredViaVoice?: boolean;
   createdAt: Date;
+}
+
+export interface StoolRecord {
+  id: string;
+  babyId: string;
+  recordedBy: string;
+  date: Date;
+  time: string; // HH:MM format
+  color: StoolColor;
+  texture: StoolTexture;
+  size: StoolSize;
+  peeCount?: number; // Number of wet diapers in 24 hours
+  poopCount?: number; // Number of dirty diapers in 24 hours
+  notes?: string;
+  enteredViaVoice?: boolean;
+  createdAt: Date;
+}
+
+export interface StoolColor {
+  value: 'very-dark' | 'dark-green' | 'dark-brown' | 'mustard-yellow' | 'other';
+  label: string;
+  color: string;
+}
+
+export interface StoolTexture {
+  value: 'liquid' | 'pasty' | 'hard' | 'snotty' | 'bloody';
+  label: string;
+  icon: string;
+}
+
+export interface StoolSize {
+  value: 'coin' | 'tablespoon' | 'bigger';
+  label: string;
+  icon: string;
 }
 
 export interface MoodType {

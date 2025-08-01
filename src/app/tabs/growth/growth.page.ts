@@ -6,9 +6,9 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
-import { CDCGrowthChartService } from '../../services/cdc-growth-chart.service';
+import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
-import { GrowthRecord, WeightRecord, MoodType, StarPerformer } from '../../models/growth-tracking.model';
+import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer } from '../../models/growth-tracking.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
@@ -23,30 +23,56 @@ export class GrowthPage implements OnInit {
   @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
   
   user: User | null = null;
+  selectedBaby: any = null;
   growthRecords$: Observable<GrowthRecord[]> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
+  stoolRecords$: Observable<StoolRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
-  selectedTab: 'daily' | 'timeline' | 'weight' = 'daily';
+  selectedTab: 'daily' | 'timeline' | 'weight' | 'stool' = 'daily';
   showAddRecordModal = false;
   showAddWeightModal = false;
+  showAddStoolModal = false;
+  showBabySelector = false;
   addRecordForm: FormGroup;
   addWeightForm: FormGroup;
-  selectedMood: MoodType | null = null;
-  moodOptions: MoodType[] = [];
+  addStoolForm: FormGroup;
+  selectedBreastSide: BreastSide | null = null;
+  selectedSupplement: SupplementType | null = null;
+  selectedLipstickShape: LipstickShape | null = null;
+  selectedMotherMood: MotherMood | null = null;
+  selectedStoolColor: StoolColor | null = null;
+  selectedStoolTexture: StoolTexture | null = null;
+  selectedStoolSize: StoolSize | null = null;
+  breastSideOptions: BreastSide[] = [];
+  supplementOptions: SupplementType[] = [];
+  lipstickShapeOptions: LipstickShape[] = [];
+  motherMoodOptions: MotherMood[] = [];
+  stoolColorOptions: StoolColor[] = [];
+  stoolTextureOptions: StoolTexture[] = [];
+  stoolSizeOptions: StoolSize[] = [];
   starPerformers: StarPerformer[] = [];
   currentTimelineData: BabyTimelineData | null = null;
   isRecording = false;
   isProcessingVoice = false;
+  isRecordingWeight = false;
+  isRecordingStool = false;
+  isProcessingVoiceWeight = false;
+  isProcessingVoiceStool = false;
   recognition: any;
   voiceTranscript = '';
+  voiceTranscriptWeight = '';
+  voiceTranscriptStool = '';
   extractedData: any = {};
+  extractedDataWeight: any = {};
+  extractedDataStool: any = {};
+  painLevel: number = 0;
 
   constructor(
     private formBuilder: FormBuilder,
     private growthService: GrowthTrackingService,
     private authService: AuthService,
-    private cdcService: CDCGrowthChartService,
+    private whoService: WHOGrowthChartService,
     private timelineService: BabyTimelineService,
     private modalController: ModalController,
     private toastController: ToastController,
@@ -56,21 +82,34 @@ export class GrowthPage implements OnInit {
     // Daily tracking form
     this.addRecordForm = this.formBuilder.group({
       date: [new Date().toISOString(), [Validators.required]],
-      directFeedingSessions: ['', [Validators.required, Validators.min(0), Validators.max(20)]],
-      avgFeedingDuration: ['', [Validators.required, Validators.min(5), Validators.max(120)]],
-      pumpingSessions: ['', [Validators.required, Validators.min(0), Validators.max(10)]],
-      totalPumpingOutput: ['', [Validators.required, Validators.min(0), Validators.max(2000)]],
-      formulaIntake: ['', [Validators.required, Validators.min(0), Validators.max(1000)]],
-      peeCount: ['', [Validators.required, Validators.min(0), Validators.max(20)]],
-      poopCount: ['', [Validators.required, Validators.min(0), Validators.max(10)]],
-      moodDescription: [''],
-      notes: ['']
+      startTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      endTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      painLevel: [0, [Validators.required, Validators.min(0), Validators.max(10)]],
+      notes: [''],
+      directFeedingSessions: [0],
+      avgFeedingDuration: [0],
+      pumpingSessions: [0],
+      totalPumpingOutput: [0],
+      formulaIntake: [0],
+      peeCount: [0],
+      poopCount: [0],
+      moodDescription: ['']
     });
     
     // Weight tracking form
     this.addWeightForm = this.formBuilder.group({
       date: [new Date().toISOString(), [Validators.required]],
       weight: ['', [Validators.required, Validators.min(0.5), Validators.max(50)]],
+      height: [''],
+      notes: ['']
+    });
+    
+    // Stool tracking form
+    this.addStoolForm = this.formBuilder.group({
+      date: [new Date().toISOString(), [Validators.required]],
+      time: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      peeCount: ['', [Validators.min(0), Validators.max(20)]],
+      poopCount: ['', [Validators.min(0), Validators.max(15)]],
       notes: ['']
     });
     
@@ -81,8 +120,10 @@ export class GrowthPage implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
       if (user && user.babies.length > 0) {
-        this.loadTrackingData(user.babies[0].id);
-        this.loadTimelineData(user.babies[0].dateOfBirth);
+        // Set first baby as default selected baby
+        this.selectedBaby = user.babies[0];
+        this.loadTrackingData(this.selectedBaby.id);
+        this.loadTimelineData(this.selectedBaby.dateOfBirth);
       }
     });
     
@@ -91,13 +132,20 @@ export class GrowthPage implements OnInit {
       this.currentTimelineData = data;
     });
     
-    this.moodOptions = this.growthService.getMoodOptions();
+    this.breastSideOptions = this.growthService.getBreastSideOptions();
+    this.supplementOptions = this.growthService.getSupplementOptions();
+    this.lipstickShapeOptions = this.growthService.getLipstickShapeOptions();
+    this.motherMoodOptions = this.growthService.getMotherMoodOptions();
+    this.stoolColorOptions = this.growthService.getStoolColorOptions();
+    this.stoolTextureOptions = this.growthService.getStoolTextureOptions();
+    this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
     this.loadStarPerformers();
   }
 
   private loadTrackingData(babyId: string) {
     this.growthRecords$ = this.growthService.getGrowthRecords(babyId);
     this.weightRecords$ = this.growthService.getWeightRecords(babyId);
+    this.stoolRecords$ = this.growthService.getStoolRecords(babyId);
     this.recentRecords$ = this.growthService.getRecentRecords(babyId, 3);
   }
 
@@ -121,7 +169,13 @@ export class GrowthPage implements OnInit {
       this.recognition.lang = 'en-US';
       
       this.recognition.onstart = () => {
-        this.isRecording = true;
+        if (this.isProcessingVoice) {
+          this.isRecording = true;
+        } else if (this.isProcessingVoiceWeight) {
+          this.isRecordingWeight = true;
+        } else if (this.isProcessingVoiceStool) {
+          this.isRecordingStool = true;
+        }
       };
       
       this.recognition.onresult = (event: any) => {
@@ -133,25 +187,53 @@ export class GrowthPage implements OnInit {
         }
         
         if (finalTranscript.trim()) {
-          this.voiceTranscript = finalTranscript.trim();
-          this.processSmartVoiceInput(finalTranscript.trim());
+          if (this.isProcessingVoice) {
+            this.voiceTranscript = finalTranscript.trim();
+            this.processSmartVoiceInput(finalTranscript.trim());
+          } else if (this.isProcessingVoiceWeight) {
+            this.processSmartVoiceInputWeight(finalTranscript.trim());
+          } else if (this.isProcessingVoiceStool) {
+            this.processSmartVoiceInputStool(finalTranscript.trim());
+          }
         }
         this.isRecording = false;
+        this.isRecordingWeight = false;
+        this.isRecordingStool = false;
       };
       
       this.recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         this.isRecording = false;
+        this.isRecordingWeight = false;
+        this.isRecordingStool = false;
       };
       
       this.recognition.onend = () => {
         this.isRecording = false;
+        this.isRecordingWeight = false;
+        this.isRecordingStool = false;
       };
     }
   }
 
   onTabChange(event: any) {
     this.selectedTab = event.detail.value;
+  }
+
+  // Baby selection methods
+  openBabySelector() {
+    this.showBabySelector = true;
+  }
+
+  closeBabySelector() {
+    this.showBabySelector = false;
+  }
+
+  selectBaby(baby: any) {
+    this.selectedBaby = baby;
+    this.loadTrackingData(baby.id);
+    this.loadTimelineData(baby.dateOfBirth);
+    this.closeBabySelector();
   }
 
   openAddRecordModal() {
@@ -162,24 +244,78 @@ export class GrowthPage implements OnInit {
     this.showAddWeightModal = true;
   }
 
+  openAddStoolModal() {
+    this.showAddStoolModal = true;
+  }
+
   closeAddRecordModal() {
     this.showAddRecordModal = false;
-    this.selectedMood = null;
+    this.selectedBreastSide = null;
+    this.selectedSupplement = null;
+    this.selectedLipstickShape = null;
+    this.selectedMotherMood = null;
+    this.painLevel = 0;
     this.clearVoiceInput();
     this.addRecordForm.reset({
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date().toTimeString().slice(0, 5),
+      painLevel: 0
     });
   }
 
   closeAddWeightModal() {
     this.showAddWeightModal = false;
+    this.clearVoiceInputWeight();
     this.addWeightForm.reset({
       date: new Date().toISOString()
     });
   }
 
-  selectMood(mood: MoodType) {
-    this.selectedMood = mood;
+  closeAddStoolModal() {
+    this.showAddStoolModal = false;
+    this.selectedStoolColor = null;
+    this.selectedStoolTexture = null;
+    this.selectedStoolSize = null;
+    this.clearVoiceInputStool();
+    this.addStoolForm.reset({
+      date: new Date().toISOString(),
+      time: new Date().toTimeString().slice(0, 5)
+    });
+  }
+
+  selectBreastSide(side: BreastSide) {
+    this.selectedBreastSide = side;
+  }
+
+  selectSupplement(supplement: SupplementType) {
+    this.selectedSupplement = supplement;
+  }
+
+  selectLipstickShape(shape: LipstickShape) {
+    this.selectedLipstickShape = shape;
+  }
+
+  selectMotherMood(mood: MotherMood) {
+    this.selectedMotherMood = mood;
+  }
+
+  setPainLevel(level: number | { lower: number; upper: number }) {
+    const painValue = typeof level === 'number' ? level : level.lower || 0;
+    this.painLevel = painValue;
+    this.addRecordForm.patchValue({ painLevel: painValue });
+  }
+
+  selectStoolColor(color: StoolColor) {
+    this.selectedStoolColor = color;
+  }
+
+  selectStoolTexture(texture: StoolTexture) {
+    this.selectedStoolTexture = texture;
+  }
+
+  selectStoolSize(size: StoolSize) {
+    this.selectedStoolSize = size;
   }
 
   startSmartVoiceInput() {
@@ -191,6 +327,32 @@ export class GrowthPage implements OnInit {
     this.voiceTranscript = '';
     this.extractedData = {};
     this.isProcessingVoice = true;
+    this.recognition.start();
+  }
+
+  startSmartVoiceInputWeight() {
+    if (!this.recognition) {
+      this.showToast('Speech recognition not supported in this browser', 'warning');
+      return;
+    }
+
+    this.voiceTranscriptWeight = '';
+    this.extractedDataWeight = {};
+    this.isProcessingVoiceWeight = true;
+    this.isRecordingWeight = true;
+    this.recognition.start();
+  }
+
+  startSmartVoiceInputStool() {
+    if (!this.recognition) {
+      this.showToast('Speech recognition not supported in this browser', 'warning');
+      return;
+    }
+
+    this.voiceTranscriptStool = '';
+    this.extractedDataStool = {};
+    this.isProcessingVoiceStool = true;
+    this.isRecordingStool = true;
     this.recognition.start();
   }
 
@@ -221,6 +383,57 @@ export class GrowthPage implements OnInit {
     }
   }
 
+  private async processSmartVoiceInputWeight(transcript: string) {
+    this.isProcessingVoiceWeight = true;
+    this.isRecordingWeight = false;
+    
+    try {
+      const extracted = this.extractWeightDataFromSpeech(transcript);
+      this.extractedDataWeight = extracted;
+      this.voiceTranscriptWeight = transcript;
+      
+      this.autoFillWeightFormFields(extracted);
+      
+      const extractedFields = Object.keys(extracted).filter(key => extracted[key] !== null && extracted[key] !== undefined);
+      if (extractedFields.length > 0) {
+        this.showToast(`Auto-filled ${extractedFields.length} field(s) from voice input`, 'success');
+      } else {
+        this.showToast('Voice recorded. Please review and fill remaining fields manually.', 'warning');
+      }
+      
+    } catch (error) {
+      console.error('Error processing weight voice input:', error);
+      this.showToast('Voice input processed. Please review and fill fields manually.', 'warning');
+    } finally {
+      this.isProcessingVoiceWeight = false;
+    }
+  }
+
+  private async processSmartVoiceInputStool(transcript: string) {
+    this.isProcessingVoiceStool = true;
+    this.isRecordingStool = false;
+    
+    try {
+      const extracted = this.extractStoolDataFromSpeech(transcript);
+      this.extractedDataStool = extracted;
+      this.voiceTranscriptStool = transcript;
+      
+      this.autoFillStoolFormFields(extracted);
+      
+      const extractedFields = Object.keys(extracted).filter(key => extracted[key] !== null && extracted[key] !== undefined);
+      if (extractedFields.length > 0) {
+        this.showToast(`Auto-filled ${extractedFields.length} field(s) from voice input`, 'success');
+      } else {
+        this.showToast('Voice recorded. Please review and fill remaining fields manually.', 'warning');
+      }
+      
+    } catch (error) {
+      console.error('Error processing stool voice input:', error);
+      this.showToast('Voice input processed. Please review and fill fields manually.', 'warning');
+    } finally {
+      this.isProcessingVoiceStool = false;
+    }
+  }
   private extractDataFromSpeech(transcript: string): any {
     const text = transcript.toLowerCase().trim();
     const extracted: any = {};
@@ -363,7 +576,7 @@ export class GrowthPage implements OnInit {
     
     for (const [moodValue, keywords] of Object.entries(moodKeywords)) {
       if (keywords.some(keyword => text.includes(keyword))) {
-        const mood = this.moodOptions.find(m => m.value === moodValue);
+        const mood = this.motherMoodOptions.find(m => m.value === moodValue);
         if (mood) {
           extracted.mood = mood;
           break;
@@ -436,7 +649,7 @@ export class GrowthPage implements OnInit {
     
     // Set mood if extracted
     if (extractedData.mood) {
-      this.selectedMood = extractedData.mood;
+      this.selectedMotherMood = extractedData.mood;
     }
   }
 
@@ -445,6 +658,182 @@ export class GrowthPage implements OnInit {
     this.extractedData = {};
   }
 
+  clearVoiceInputWeight() {
+    this.voiceTranscriptWeight = '';
+    this.extractedDataWeight = {};
+  }
+
+  clearVoiceInputStool() {
+    this.voiceTranscriptStool = '';
+    this.extractedDataStool = {};
+  }
+
+  private extractWeightDataFromSpeech(transcript: string): any {
+    const text = transcript.toLowerCase().trim();
+    const extracted: any = {};
+    
+    // Extract weight
+    const weightPatterns = [
+      /(?:weighs?|weight|is).*?(\d+(?:\.\d+)?).*?(?:kg|kilograms?|kilos?)/i,
+      /(\d+(?:\.\d+)?).*?(?:kg|kilograms?|kilos?)/i,
+      /(?:baby|child).*?(\d+(?:\.\d+)?).*?(?:kg|kilograms?)/i
+    ];
+    
+    for (const pattern of weightPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const weight = parseFloat(match[1]);
+        if (weight >= 0.5 && weight <= 50) {
+          extracted.weight = weight;
+          break;
+        }
+      }
+    }
+    
+    // Extract height/length
+    const heightPatterns = [
+      /(?:height|length|tall|long).*?(\d+(?:\.\d+)?).*?(?:cm|centimeters?)/i,
+      /(\d+(?:\.\d+)?).*?(?:cm|centimeters?).*?(?:tall|long|height|length)/i,
+      /(?:measures?|is).*?(\d+(?:\.\d+)?).*?(?:cm|centimeters?)/i
+    ];
+    
+    for (const pattern of heightPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const height = parseFloat(match[1]);
+        if (height >= 20 && height <= 150) {
+          extracted.height = height;
+          break;
+        }
+      }
+    }
+    
+    // Extract notes
+    if (text.length > 20 && !Object.keys(extracted).some(key => key !== 'notes')) {
+      extracted.notes = transcript.trim();
+    }
+    
+    return extracted;
+  }
+
+  private extractStoolDataFromSpeech(transcript: string): any {
+    const text = transcript.toLowerCase().trim();
+    const extracted: any = {};
+    
+    // Extract color
+    const colorKeywords = {
+      'very-dark': ['very dark', 'black', 'very black', 'dark black'],
+      'dark-green': ['dark green', 'green', 'greenish'],
+      'dark-brown': ['dark brown', 'brown', 'brownish'],
+      'mustard-yellow': ['mustard', 'yellow', 'mustard yellow', 'yellowish'],
+      'other': ['red', 'orange', 'unusual', 'different', 'strange']
+    };
+    
+    for (const [colorValue, keywords] of Object.entries(colorKeywords)) {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        const color = this.stoolColorOptions.find(c => c.value === colorValue);
+        if (color) {
+          extracted.color = color;
+          break;
+        }
+      }
+    }
+    
+    // Extract texture
+    const textureKeywords = {
+      'liquid': ['liquid', 'watery', 'runny', 'loose'],
+      'pasty': ['pasty', 'soft', 'mushy', 'creamy'],
+      'hard': ['hard', 'firm', 'solid', 'dry'],
+      'snotty': ['snotty', 'mucus', 'slimy', 'stringy'],
+      'bloody': ['bloody', 'blood', 'red streaks', 'bleeding']
+    };
+    
+    for (const [textureValue, keywords] of Object.entries(textureKeywords)) {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        const texture = this.stoolTextureOptions.find(t => t.value === textureValue);
+        if (texture) {
+          extracted.texture = texture;
+          break;
+        }
+      }
+    }
+    
+    // Extract size
+    const sizeKeywords = {
+      'coin': ['coin', 'small', 'tiny', 'little'],
+      'tablespoon': ['tablespoon', 'medium', 'normal', 'average'],
+      'bigger': ['bigger', 'large', 'big', 'huge']
+    };
+    
+    for (const [sizeValue, keywords] of Object.entries(sizeKeywords)) {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        const size = this.stoolSizeOptions.find(s => s.value === sizeValue);
+        if (size) {
+          extracted.size = size;
+          break;
+        }
+      }
+    }
+    
+    // Extract notes
+    if (text.length > 20 && !Object.keys(extracted).some(key => key !== 'notes')) {
+      extracted.notes = transcript.trim();
+    }
+    
+    return extracted;
+  }
+
+  private autoFillWeightFormFields(extractedData: any) {
+    const formUpdates: any = {};
+    
+    if (extractedData.weight !== undefined) {
+      formUpdates.weight = extractedData.weight;
+    }
+    
+    if (extractedData.height !== undefined) {
+      formUpdates.height = extractedData.height;
+    }
+    
+    if (extractedData.notes !== undefined) {
+      formUpdates.notes = extractedData.notes;
+    }
+    
+    if (Object.keys(formUpdates).length > 0) {
+      this.addWeightForm.patchValue(formUpdates);
+    }
+  }
+
+  private autoFillStoolFormFields(extractedData: any) {
+    if (extractedData.color) {
+      this.selectedStoolColor = extractedData.color;
+    }
+    
+    if (extractedData.texture) {
+      this.selectedStoolTexture = extractedData.texture;
+    }
+    
+    if (extractedData.size) {
+      this.selectedStoolSize = extractedData.size;
+    }
+    
+    const formUpdates: any = {};
+    
+    if (extractedData.notes) {
+      formUpdates.notes = extractedData.notes;
+    }
+    
+    if (extractedData.peeCount !== undefined) {
+      formUpdates.peeCount = extractedData.peeCount;
+    }
+    
+    if (extractedData.poopCount !== undefined) {
+      formUpdates.poopCount = extractedData.poopCount;
+    }
+    
+    if (Object.keys(formUpdates).length > 0) {
+      this.addStoolForm.patchValue(formUpdates);
+    }
+  }
   getVoiceInputSummary(): string {
     const extractedFields = Object.keys(this.extractedData).filter(key => 
       this.extractedData[key] !== null && this.extractedData[key] !== undefined
@@ -457,22 +846,51 @@ export class GrowthPage implements OnInit {
     return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
   }
 
+  getVoiceInputSummaryWeight(): string {
+    const extractedFields = Object.keys(this.extractedDataWeight).filter(key => 
+      this.extractedDataWeight[key] !== null && this.extractedDataWeight[key] !== undefined
+    );
+    
+    if (extractedFields.length === 0) {
+      return 'No data extracted from voice input';
+    }
+    
+    return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
+  }
+
+  getVoiceInputSummaryStool(): string {
+    const extractedFields = Object.keys(this.extractedDataStool).filter(key => 
+      this.extractedDataStool[key] !== null && this.extractedDataStool[key] !== undefined
+    );
+    
+    if (extractedFields.length === 0) {
+      return 'No data extracted from voice input';
+    }
+    
+    return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
+  }
   async saveGrowthRecord() {
-    if (this.addRecordForm.valid && this.user && this.user.babies.length > 0) {
+    if (this.addRecordForm.valid && this.user && this.selectedBaby) {
       try {
         const formValue = this.addRecordForm.value;
         const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = {
-          babyId: this.user.babies[0].id,
+          babyId: this.selectedBaby.id,
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
-          directFeedingSessions: parseInt(formValue.directFeedingSessions),
-          avgFeedingDuration: parseInt(formValue.avgFeedingDuration),
-          pumpingSessions: parseInt(formValue.pumpingSessions),
-          totalPumpingOutput: parseInt(formValue.totalPumpingOutput),
-          formulaIntake: parseInt(formValue.formulaIntake),
-          peeCount: parseInt(formValue.peeCount),
-          poopCount: parseInt(formValue.poopCount),
-          mood: this.selectedMood || undefined,
+          startTime: formValue.startTime,
+          endTime: formValue.endTime,
+          breastSide: this.selectedBreastSide?.value || 'both',
+          supplement: this.selectedSupplement?.value || null,
+          painLevel: this.painLevel,
+          lipstickShape: this.selectedLipstickShape?.value || 'rounded',
+          mood: this.selectedMotherMood,
+          directFeedingSessions: formValue.directFeedingSessions,
+          avgFeedingDuration: formValue.avgFeedingDuration,
+          pumpingSessions: formValue.pumpingSessions,
+          totalPumpingOutput: formValue.totalPumpingOutput,
+          formulaIntake: formValue.formulaIntake,
+          peeCount: formValue.peeCount,
+          poopCount: formValue.poopCount,
           moodDescription: formValue.moodDescription,
           notes: formValue.notes,
           enteredViaVoice: !!this.voiceTranscript
@@ -489,15 +907,17 @@ export class GrowthPage implements OnInit {
   }
 
   async saveWeightRecord() {
-    if (this.addWeightForm.valid && this.user && this.user.babies.length > 0) {
+    if (this.addWeightForm.valid && this.user && this.selectedBaby) {
       try {
         const formValue = this.addWeightForm.value;
         const record: Omit<WeightRecord, 'id' | 'createdAt'> = {
-          babyId: this.user.babies[0].id,
+          babyId: this.selectedBaby.id,
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
           weight: parseFloat(formValue.weight),
-          notes: formValue.notes
+          height: formValue.height ? parseFloat(formValue.height) : undefined,
+          notes: formValue.notes,
+          enteredViaVoice: !!this.voiceTranscriptWeight
         };
 
         await this.growthService.addWeightRecord(record);
@@ -506,6 +926,35 @@ export class GrowthPage implements OnInit {
         this.closeAddWeightModal();
       } catch (error) {
         this.showToast('Failed to save weight record. Please try again.', 'danger');
+      }
+    }
+  }
+
+  async saveStoolRecord() {
+    if (this.addStoolForm.valid && this.user && this.selectedBaby && 
+        this.selectedStoolColor && this.selectedStoolTexture && this.selectedStoolSize) {
+      try {
+        const formValue = this.addStoolForm.value;
+        const record: Omit<StoolRecord, 'id' | 'createdAt'> = {
+          babyId: this.selectedBaby.id,
+          recordedBy: this.user.uid,
+          date: new Date(formValue.date),
+          time: formValue.time,
+          color: this.selectedStoolColor,
+          texture: this.selectedStoolTexture,
+          size: this.selectedStoolSize,
+          peeCount: formValue.peeCount ? parseInt(formValue.peeCount) : undefined,
+          poopCount: formValue.poopCount ? parseInt(formValue.poopCount) : undefined,
+          notes: formValue.notes,
+          enteredViaVoice: !!this.voiceTranscriptStool
+        };
+
+        await this.growthService.addStoolRecord(record);
+        this.showToast('Stool record saved successfully!', 'success');
+
+        this.closeAddStoolModal();
+      } catch (error) {
+        this.showToast('Failed to save stool record. Please try again.', 'danger');
       }
     }
   }
@@ -541,29 +990,21 @@ export class GrowthPage implements OnInit {
     // Pre-fill form with common values for quick entry
     this.addRecordForm.patchValue({
       date: new Date().toISOString(),
-      directFeedingSessions: 1,
-      avgFeedingDuration: 20,
-      pumpingSessions: 0,
-      totalPumpingOutput: 0,
-      formulaIntake: 0,
-      peeCount: 1,
-      poopCount: 0
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 20 * 60000).toTimeString().slice(0, 5), // 20 minutes later
+      painLevel: 0
     });
     
     this.openAddRecordModal();
   }
 
   private async quickLogPumping() {
-    // Pre-fill form with common pumping values
+    // For now, use the same form - could be extended later
     this.addRecordForm.patchValue({
       date: new Date().toISOString(),
-      directFeedingSessions: 0,
-      avgFeedingDuration: 0,
-      pumpingSessions: 1,
-      totalPumpingOutput: 120,
-      formulaIntake: 0,
-      peeCount: 0,
-      poopCount: 0
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
+      painLevel: 0
     });
     
     this.openAddRecordModal();
@@ -584,14 +1025,21 @@ export class GrowthPage implements OnInit {
   }
 
   getAddButtonText(): string {
-    return this.selectedTab === 'daily' ? 'Add Daily Record' : 'Add Weight Record';
+    switch (this.selectedTab) {
+      case 'daily': return 'Add Daily Record';
+      case 'weight': return 'Add Weight & Size';
+      case 'stool': return 'Add Stool Track';
+      default: return 'Add Record';
+    }
   }
 
   openAddModal() {
     if (this.selectedTab === 'daily') {
       this.openAddRecordModal();
-    } else {
+    } else if (this.selectedTab === 'weight') {
       this.openAddWeightModal();
+    } else if (this.selectedTab === 'stool') {
+      this.openAddStoolModal();
     }
   }
 
@@ -600,9 +1048,9 @@ export class GrowthPage implements OnInit {
   }
 
   calculateBabyAge(): string {
-    if (!this.user || !this.user.babies.length) return '';
+    if (!this.selectedBaby) return '';
     
-    const birthDate = new Date(this.user.babies[0].dateOfBirth);
+    const birthDate = new Date(this.selectedBaby.dateOfBirth);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birthDate.getTime());
     const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
@@ -634,6 +1082,16 @@ export class GrowthPage implements OnInit {
     return new Date();
   }
 
+  getMotherMoodEmoji(mood: string): string {
+    const moodOption = this.motherMoodOptions.find(m => m.value === mood);
+    return moodOption?.emoji || '😊';
+  }
+
+  getMotherMoodLabel(mood: string): string {
+    const moodOption = this.motherMoodOptions.find(m => m.value === mood);
+    return moodOption?.label || mood;
+  }
+
   getBabyGenderForChart(gender: 'male' | 'female' | 'other' | undefined): 'male' | 'female' {
     if (gender === 'male' || gender === 'female') {
       return gender;
@@ -663,85 +1121,4 @@ export class GrowthPage implements OnInit {
     return categoryColors[category] || 'medium';
   }
 
-  getCurrentWeek(): number {
-    return this.currentTimelineData?.currentWeek || 0;
-  }
-
-  getTimelineProgress(): number {
-    const currentWeek = this.getCurrentWeek();
-    const maxWeeks = 52; // 1 year
-    return Math.min((currentWeek / maxWeeks) * 100, 100);
-  }
-
-  getCurrentTimelineItem(): BabyTimelineItem | null {
-    if (!this.currentTimelineData) return null;
-    
-    const currentWeek = this.currentTimelineData.currentWeek;
-    return this.currentTimelineData.items.find(item => 
-      currentWeek >= item.weekStart && currentWeek <= item.weekEnd
-    ) || null;
-  }
-
-  getUpcomingTimelineItem(): BabyTimelineItem | null {
-    if (!this.currentTimelineData) return null;
-    
-    const currentWeek = this.currentTimelineData.currentWeek;
-    return this.currentTimelineData.items.find(item => 
-      item.weekStart > currentWeek
-    ) || null;
-  }
-
-  getWeeksUntilUpcoming(): number {
-    const upcoming = this.getUpcomingTimelineItem();
-    if (!upcoming || !this.currentTimelineData) return 0;
-    
-    return upcoming.weekStart - this.currentTimelineData.currentWeek;
-  }
-
-  // Timeline navigation methods
-  openTimelineModal() {
-    this.router.navigate(['/tabs/growth/timeline']);
-  }
-
-  openSpecificWeekModal(weekItem: BabyTimelineItem) {
-    this.router.navigate(['/tabs/growth/timeline/week', weekItem.weekStart]);
-  }
-
-  scrollTimelineLeft() {
-    if (this.timelineScrollContainer) {
-      const container = this.timelineScrollContainer.nativeElement;
-      container.scrollBy({ left: -200, behavior: 'smooth' });
-    }
-  }
-
-  scrollTimelineRight() {
-    if (this.timelineScrollContainer) {
-      const container = this.timelineScrollContainer.nativeElement;
-      container.scrollBy({ left: 200, behavior: 'smooth' });
-    }
-  }
-
-  ngAfterViewInit() {
-    // Auto-scroll to current week when view initializes
-    setTimeout(() => {
-      this.scrollToCurrentWeek();
-    }, 500);
-  }
-
-  private scrollToCurrentWeek() {
-    if (this.timelineScrollContainer) {
-      const container = this.timelineScrollContainer.nativeElement;
-      const currentWeekElement = container.querySelector('.week-marker-horizontal.current-week');
-      
-      if (currentWeekElement) {
-        const containerWidth = container.offsetWidth;
-        const elementLeft = (currentWeekElement as HTMLElement).offsetLeft;
-        const elementWidth = (currentWeekElement as HTMLElement).offsetWidth;
-        
-        // Center the current week in the viewport
-        const scrollPosition = elementLeft - (containerWidth / 2) + (elementWidth / 2);
-        container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-      }
-    }
-  }
 }

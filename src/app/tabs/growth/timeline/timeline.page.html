@@ -5,15 +5,38 @@
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>{{ user?.babies[0]?.name || 'Baby' }}'s Timeline</ion-title>
+    <ion-title (click)="openBabySelector()" class="baby-title-selector">
+      <div class="title-content">
+        <span>{{ selectedBaby?.name || 'Baby' }}'s Timeline</span>
+        <ion-icon name="chevron-down" class="dropdown-icon" *ngIf="user && user.babies && user.babies.length > 1"></ion-icon>
+      </div>
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <div class="timeline-page-container" *ngIf="timelineData$ | async as timelineData">
     
+    <!-- Baby Selector Card -->
+    <div class="baby-selector-card" *ngIf="user && user.babies && user.babies.length > 1">
+      <div class="baby-info">
+        <div class="baby-avatar">
+          <ion-icon name="baby"></ion-icon>
+        </div>
+        <div class="baby-details">
+          <h3>{{ selectedBaby?.name || 'Baby' }}</h3>
+          <p>{{ calculateBabyAge() }}</p>
+          <p class="birth-date">Born {{ formatDate(selectedBaby?.dateOfBirth) }}</p>
+        </div>
+      </div>
+      <ion-button fill="clear" (click)="openBabySelector()" class="switch-baby-button">
+        <ion-icon name="swap-horizontal" slot="start"></ion-icon>
+        Switch Baby
+      </ion-button>
+    </div>
+    
     <!-- Current Week Header -->
-    <div class="timeline-header">
+    <!-- <div class="timeline-header">
       <div class="week-indicator">
         <div class="week-marker">
           <ion-icon name="location"></ion-icon>
@@ -23,7 +46,7 @@
           <p>{{ calculateBabyAge() }}</p>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Timeline Progress Bar -->
     <div class="timeline-progress-section">
@@ -91,6 +114,31 @@
               </span>
             </div>
             
+            <!-- Video Links Preview -->
+            <div class="content-preview video-preview" *ngIf="item.videoLinks && item.videoLinks.length > 0">
+              <h4>🎥 Watch Milestones:</h4>
+              <div class="video-thumbnails">
+                <div 
+                  *ngFor="let video of item.videoLinks | slice:0:2" 
+                  class="video-thumbnail"
+                  (click)="openVideo(video.url, video.title); $event.stopPropagation()">
+                  <div class="thumbnail-image">
+                    <img [src]="video.thumbnail" [alt]="video.title" *ngIf="video.thumbnail">
+                    <div class="video-placeholder" *ngIf="!video.thumbnail">
+                      <ion-icon name="play-circle"></ion-icon>
+                    </div>
+                    <div class="play-overlay">
+                      <ion-icon name="play"></ion-icon>
+                    </div>
+                  </div>
+                  <span class="video-title">{{ video.title }}</span>
+                </div>
+              </div>
+              <span class="more-indicator" *ngIf="item.videoLinks.length > 2">
+                +{{ item.videoLinks.length - 2 }} more videos
+              </span>
+            </div>
+            
           </div>
           
         </div>
@@ -98,4 +146,48 @@
     </div>
     
   </div>
+
+  <!-- Baby Selector Modal -->
+  <ion-modal [isOpen]="showBabySelector" (didDismiss)="closeBabySelector()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Select Baby</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeBabySelector()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content>
+        <div class="baby-selector-content">
+          <div class="baby-selector-header">
+            <h3>Choose which baby's timeline to view</h3>
+            <p>Select the baby whose development timeline you want to explore</p>
+          </div>
+          
+          <div class="babies-list">
+            <div 
+              *ngFor="let baby of user?.babies"
+              class="baby-option"
+              [class.selected]="selectedBaby?.id === baby.id"
+              (click)="selectBaby(baby)">
+              <div class="baby-option-avatar">
+                <ion-icon name="baby"></ion-icon>
+              </div>
+              <div class="baby-option-info">
+                <h4>{{ baby.name }}</h4>
+                <p>{{ baby.gender | titlecase }}</p>
+                <p class="baby-age">{{ calculateBabyAgeForBaby(baby.dateOfBirth) }}</p>
+                <p class="birth-info">Born {{ formatDate(baby.dateOfBirth) }}</p>
+              </div>
+              <ion-icon name="checkmark-circle" class="selected-icon" *ngIf="selectedBaby?.id === baby.id"></ion-icon>
+            </div>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>

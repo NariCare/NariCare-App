@@ -4,7 +4,14 @@ import { map, switchMap, take } from 'rxjs/operators';
 import { 
   GrowthRecord, 
   WeightRecord, 
-  MoodType, 
+  StoolRecord,
+  StoolColor,
+  StoolTexture,
+  StoolSize,
+  BreastSide,
+  SupplementType,
+  LipstickShape,
+  MotherMood,
   StarPerformer, 
   QuickLogSuggestion 
 } from '../models/growth-tracking.model';
@@ -16,15 +23,59 @@ import { Storage } from '@ionic/storage-angular';
 export class GrowthTrackingService {
   private recordsSubject = new BehaviorSubject<GrowthRecord[]>([]);
   private weightRecordsSubject = new BehaviorSubject<WeightRecord[]>([]);
+  private stoolRecordsSubject = new BehaviorSubject<StoolRecord[]>([]);
   
-  // Available mood options
-  readonly moodOptions: MoodType[] = [
-    { emoji: '😊', label: 'Great', value: 'great', color: '#10b981' },
-    { emoji: '🙂', label: 'Good', value: 'good', color: '#059669' },
-    { emoji: '😐', label: 'Okay', value: 'okay', color: '#6b7280' },
-    { emoji: '😴', label: 'Tired', value: 'tired', color: '#f59e0b' },
-    { emoji: '😟', label: 'Worried', value: 'worried', color: '#f97316' },
-    { emoji: '😰', label: 'Overwhelmed', value: 'overwhelmed', color: '#ef4444' }
+  // Available breast side options
+  readonly breastSideOptions: BreastSide[] = [
+    { value: 'left', label: 'Left', icon: 'radio-button-on' },
+    { value: 'right', label: 'Right', icon: 'radio-button-on' },
+    { value: 'both', label: 'Both', icon: 'ellipse' }
+  ];
+
+  // Available supplement options
+  readonly supplementOptions: SupplementType[] = [
+    { value: 'breastmilk', label: 'Breastmilk', icon: 'water' },
+    { value: 'formula', label: 'Formula', icon: 'nutrition' }
+  ];
+
+  // Available lipstick shape options
+  readonly lipstickShapeOptions: LipstickShape[] = [
+    { value: 'rounded', label: 'Rounded', icon: 'ellipse' },
+    { value: 'lipstick', label: 'Lipstick', icon: 'triangle' }
+  ];
+
+  // Available mother mood options
+  readonly motherMoodOptions: MotherMood[] = [
+    { value: 'relaxed', label: 'Relaxed', emoji: '😌', color: '#10b981' },
+    { value: 'happy', label: 'Happy', emoji: '😊', color: '#059669' },
+    { value: 'sad', label: 'Sad', emoji: '😢', color: '#6b7280' },
+    { value: 'exhausted', label: 'Exhausted', emoji: '😴', color: '#f59e0b' },
+    { value: 'anxious', label: 'Anxious', emoji: '😰', color: '#ef4444' }
+  ];
+
+  // Available stool color options
+  readonly stoolColorOptions: StoolColor[] = [
+    { value: 'very-dark', label: 'Very dark', color: '#374151' },
+    { value: 'dark-green', label: 'Dark green', color: '#059669' },
+    { value: 'dark-brown', label: 'Dark brown', color: '#92400e' },
+    { value: 'mustard-yellow', label: 'Mustard yellow', color: '#d97706' },
+    { value: 'other', label: 'Other', color: '#ef4444' }
+  ];
+
+  // Available stool texture options
+  readonly stoolTextureOptions: StoolTexture[] = [
+    { value: 'liquid', label: 'Liquid', icon: 'water' },
+    { value: 'pasty', label: 'Pasty', icon: 'ellipse' },
+    { value: 'hard', label: 'Hard', icon: 'diamond' },
+    { value: 'snotty', label: 'Snotty', icon: 'trail-sign' },
+    { value: 'bloody', label: 'Bloody', icon: 'medical' }
+  ];
+
+  // Available stool size options
+  readonly stoolSizeOptions: StoolSize[] = [
+    { value: 'coin', label: 'Coin', icon: 'ellipse-outline' },
+    { value: 'tablespoon', label: 'Tablespoon', icon: 'ellipse' },
+    { value: 'bigger', label: 'Bigger', icon: 'ellipse' }
   ];
 
   constructor(private storage: Storage) {
@@ -40,6 +91,7 @@ export class GrowthTrackingService {
     try {
       const records = await this.storage.get('growthRecords') || [];
       const weightRecords = await this.storage.get('weightRecords') || [];
+      const stoolRecords = await this.storage.get('stoolRecords') || [];
       
       this.recordsSubject.next(records.map((r: any) => ({
         ...r,
@@ -49,6 +101,12 @@ export class GrowthTrackingService {
       })));
       
       this.weightRecordsSubject.next(weightRecords.map((r: any) => ({
+        ...r,
+        date: new Date(r.date),
+        createdAt: new Date(r.createdAt)
+      })));
+      
+      this.stoolRecordsSubject.next(stoolRecords.map((r: any) => ({
         ...r,
         date: new Date(r.date),
         createdAt: new Date(r.createdAt)
@@ -111,6 +169,30 @@ export class GrowthTrackingService {
     
     this.weightRecordsSubject.next(updatedRecords);
     await this.storage.set('weightRecords', updatedRecords);
+  }
+
+  async addStoolRecord(record: Omit<StoolRecord, 'id' | 'createdAt'>): Promise<void> {
+    const id = this.generateId();
+    const newRecord: StoolRecord = {
+      ...record,
+      id,
+      createdAt: new Date()
+    };
+    
+    const currentRecords = this.stoolRecordsSubject.value;
+    const updatedRecords = [newRecord, ...currentRecords];
+    
+    this.stoolRecordsSubject.next(updatedRecords);
+    await this.storage.set('stoolRecords', updatedRecords);
+  }
+
+  getStoolRecords(babyId: string): Observable<StoolRecord[]> {
+    return this.stoolRecordsSubject.pipe(
+      map(records => records
+        .filter(record => record.babyId === babyId)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+      )
+    );
   }
 
   getWeightRecords(babyId: string): Observable<WeightRecord[]> {
@@ -205,8 +287,32 @@ export class GrowthTrackingService {
     }
   }
 
-  getMoodOptions(): MoodType[] {
-    return this.moodOptions;
+  getBreastSideOptions(): BreastSide[] {
+    return this.breastSideOptions;
+  }
+
+  getSupplementOptions(): SupplementType[] {
+    return this.supplementOptions;
+  }
+
+  getLipstickShapeOptions(): LipstickShape[] {
+    return this.lipstickShapeOptions;
+  }
+
+  getMotherMoodOptions(): MotherMood[] {
+    return this.motherMoodOptions;
+  }
+
+  getStoolColorOptions(): StoolColor[] {
+    return this.stoolColorOptions;
+  }
+
+  getStoolTextureOptions(): StoolTexture[] {
+    return this.stoolTextureOptions;
+  }
+
+  getStoolSizeOptions(): StoolSize[] {
+    return this.stoolSizeOptions;
   }
 
   async updateGrowthRecord(id: string, updates: Partial<GrowthRecord>): Promise<void> {

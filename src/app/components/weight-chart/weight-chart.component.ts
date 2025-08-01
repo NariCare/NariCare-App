@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
-import { CDCGrowthChartService } from '../../services/cdc-growth-chart.service';
+import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { WeightRecord } from '../../models/growth-tracking.model';
-import { BabyGrowthPoint } from '../../models/cdc-growth-data.model';
+import { BabyGrowthPoint } from '../../models/who-growth-data.model';
 import * as Highcharts from 'highcharts';
 
 @Component({
@@ -21,7 +21,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   isLoading = true;
   chartError = '';
 
-  constructor(private cdcService: CDCGrowthChartService) {}
+  constructor(private whoService: WHOGrowthChartService) {}
 
   ngOnInit() {
     console.log('WeightChartComponent ngOnInit');
@@ -230,7 +230,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
 
       // Add CDC percentile curves
       const percentiles = [10, 25, 50, 75, 90]; // Simplified to key percentiles
-      const chartData = this.cdcService.getWeightChart(this.babyGender);
+      const chartData = this.whoService.getWeightChart(this.babyGender);
       
       percentiles.forEach(percentile => {
         const series: Highcharts.SeriesLineOptions = {
@@ -387,8 +387,8 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     console.log('Converting', this.weightRecords.length, 'weight records to growth points');
     
     return this.weightRecords.map(record => {
-      const ageInWeeks = this.cdcService.calculateAgeInWeeks(this.babyBirthDate, record.date);
-      const percentile = this.cdcService.calculatePercentile(ageInWeeks, record.weight, this.babyGender);
+      const ageInWeeks = this.whoService.calculateAgeInWeeks(this.babyBirthDate, record.date);
+      const percentile = this.whoService.calculatePercentile(ageInWeeks, record.weight, this.babyGender);
       
       return {
         ageInWeeks,
@@ -403,7 +403,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     if (growthPoints.length > 0) {
       const latestPoint = growthPoints[growthPoints.length - 1];
       this.currentPercentile = latestPoint.percentile || 50;
-      this.percentileInterpretation = this.cdcService.getPercentileInterpretation(this.currentPercentile);
+      this.percentileInterpretation = this.whoService.getPercentileInterpretation(this.currentPercentile);
     } else {
       this.currentPercentile = 50;
       this.percentileInterpretation = {
