@@ -141,6 +141,8 @@ export class TimelinePage implements OnInit {
       day: 'numeric'
     });
   }
+
+  calculateBabyAgeForBabyDuplicate(birthDate: Date): string {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birthDate.getTime());
     const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
