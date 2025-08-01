@@ -247,7 +247,7 @@
           <div *ngFor="let record of records | slice:0:5" class="record-card daily-record">
             <div class="record-header">
               <span class="record-date">{{ formatDate(record.date) }}</span>
-              <div class="record-mood" *ngIf="record.motherMood">
+              <div class="record-mood" *ngIf="record.mood.value">
                 <span class="mood-emoji">{{ getMotherMoodEmoji(record.mood.value) }}</span>
                 <span class="mood-label">{{ getMotherMoodLabel(record.mood.value) }}</span>
               </div>
