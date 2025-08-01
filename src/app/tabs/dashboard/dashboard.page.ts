@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
+import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ChatbotService } from '../../services/chatbot.service';
-import { BabyTimelineService } from '../../services/baby-timeline.service';
+import { TimelineItem, TimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { Observable } from 'rxjs';
@@ -20,7 +21,7 @@ export class DashboardPage implements OnInit {
   @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
   
   user: User | null = null;
-  timelineData$: Observable<BabyTimelineData> | null = null;
+  timelineData$: Observable<TimelineData>;
   currentTimelineData: BabyTimelineData | null = null;
   quickActions = [
     {

@@ -122,23 +122,25 @@
           <div class="timeline-visual-horizontal">
             <div class="timeline-scroll-container" #timelineScrollContainer>
               <div class="timeline-weeks-strip">
-                <div 
-                  *ngFor="let item of (timelineData$ | async)?.allWeeks || []; let i = index"
-                  class="week-marker-horizontal"
-                  [class.current-week]="item.weekStart === getCurrentWeek()"
-                  [class.completed-week]="item.weekStart < getCurrentWeek()"
-                  [class.upcoming-week]="item.weekStart > getCurrentWeek()"
-                  (click)="openSpecificWeekModal(item)">
-                  
-                  <div class="week-pin" [style.background-color]="item.color">
-                    <ion-icon [name]="item.icon"></ion-icon>
+                <div *ngIf="timelineData$ | async as timelineData">
+                  <div 
+                    *ngFor="let item of timelineData.allWeeks || []; let i = index"
+                    class="week-marker-horizontal"
+                    [class.current-week]="item.weekStart === getCurrentWeek()"
+                    [class.completed-week]="item.weekStart < getCurrentWeek()"
+                    [class.upcoming-week]="item.weekStart > getCurrentWeek()"
+                    (click)="openSpecificWeekModal(item)">
+                    
+                    <div class="week-pin" [style.background-color]="item.color">
+                      <ion-icon [name]="item.icon"></ion-icon>
+                    </div>
+                    
+                    <div class="week-number-badge" [style.background-color]="item.color">
+                      <span class="week-number">{{ item.weekStart }}</span>
+                    </div>
+                    
+                    <div class="week-title">{{ item.shortTitle }}</div>
                   </div>
-                  
-                  <div class="week-number-badge" [style.background-color]="item.color">
-                    <span class="week-number">{{ item.weekStart }}</span>
-                  </div>
-                  
-                  <div class="week-title">{{ item.shortTitle }}</div>
                 </div>
               </div>
             </div>
