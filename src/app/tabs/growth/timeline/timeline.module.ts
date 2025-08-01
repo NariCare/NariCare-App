@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { TimelinePageRoutingModule } from './timeline-routing.module';
 import { TimelinePage } from './timeline.page';
+import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
 
 @NgModule({
   imports: [
@@ -12,6 +13,6 @@ import { TimelinePage } from './timeline.page';
     IonicModule,
     TimelinePageRoutingModule
   ],
-  declarations: [TimelinePage]
+  declarations: [TimelinePage, VideoPlayerModalComponent]
 })
 export class TimelinePageModule {}

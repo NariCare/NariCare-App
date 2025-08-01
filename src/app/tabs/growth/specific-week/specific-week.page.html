@@ -115,6 +115,41 @@
         </div>
       </div>
       
+      <!-- Video Links Section -->
+      <div class="content-section video-section" *ngIf="weekItem.videoLinks && weekItem.videoLinks.length > 0">
+        <div class="section-header">
+          <div class="section-icon video">
+            <ion-icon name="videocam"></ion-icon>
+          </div>
+          <h3>Watch Milestones in Action</h3>
+        </div>
+        <div class="section-content">
+          <div class="video-grid">
+            <div 
+              *ngFor="let video of weekItem.videoLinks" 
+              class="video-card"
+              (click)="openVideo(video.url, video.title)">
+              <div class="video-thumbnail">
+                <img [src]="video.thumbnail" [alt]="video.title" *ngIf="video.thumbnail">
+                <div class="video-placeholder" *ngIf="!video.thumbnail">
+                  <ion-icon name="play-circle"></ion-icon>
+                </div>
+                <div class="play-overlay">
+                  <ion-icon name="play"></ion-icon>
+                </div>
+                <div class="category-badge" [class]="'category-' + video.category">
+                  {{ getCategoryDisplayName(video.category) }}
+                </div>
+              </div>
+              <div class="video-info">
+                <h5>{{ video.title }}</h5>
+                <p>{{ video.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
     </div>
     
     <!-- Action Buttons -->

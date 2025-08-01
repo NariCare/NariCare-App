@@ -99,6 +99,28 @@
               </ul>
             </div>
             
+            <!-- Video Links -->
+            <div class="content-section video-section" *ngIf="item.videoLinks && item.videoLinks.length > 0">
+              <h4>🎥 Watch Milestones:</h4>
+              <div class="video-grid">
+                <div 
+                  *ngFor="let video of item.videoLinks" 
+                  class="video-card"
+                  (click)="openVideo(video.url, video.title)">
+                  <div class="video-thumbnail">
+                    <img [src]="video.thumbnail" [alt]="video.title" *ngIf="video.thumbnail">
+                    <div class="video-placeholder" *ngIf="!video.thumbnail">
+                      <ion-icon name="play-circle"></ion-icon>
+                    </div>
+                    <div class="play-overlay">
+                      <ion-icon name="play"></ion-icon>
+                    </div>
+                  </div>
+                  <span class="video-title">{{ video.title }}</span>
+                </div>
+              </div>
+            </div>
+            
           </div>
           
           <!-- Locked Content Message -->

@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
+import { VideoPlayerModalComponent } from '../video-player-modal/video-player-modal.component';
 
 @Component({
   selector: 'app-timeline-modal',
@@ -78,5 +79,17 @@ export class TimelineModalComponent implements OnInit {
     setTimeout(() => {
       this.scrollToCurrentWeek();
     }, 300);
+  }
+
+  async openVideo(videoUrl: string, title?: string) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: videoUrl,
+        title: title || 'Milestone Video'
+      },
+      cssClass: 'video-modal'
+    });
+    return await modal.present();
   }
 }

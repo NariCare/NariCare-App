@@ -91,6 +91,31 @@
               </span>
             </div>
             
+            <!-- Video Links Preview -->
+            <div class="content-preview video-preview" *ngIf="item.videoLinks && item.videoLinks.length > 0">
+              <h4>🎥 Watch Milestones:</h4>
+              <div class="video-thumbnails">
+                <div 
+                  *ngFor="let video of item.videoLinks | slice:0:2" 
+                  class="video-thumbnail"
+                  (click)="openVideo(video.url, video.title); $event.stopPropagation()">
+                  <div class="thumbnail-image">
+                    <img [src]="video.thumbnail" [alt]="video.title" *ngIf="video.thumbnail">
+                    <div class="video-placeholder" *ngIf="!video.thumbnail">
+                      <ion-icon name="play-circle"></ion-icon>
+                    </div>
+                    <div class="play-overlay">
+                      <ion-icon name="play"></ion-icon>
+                    </div>
+                  </div>
+                  <span class="video-title">{{ video.title }}</span>
+                </div>
+              </div>
+              <span class="more-indicator" *ngIf="item.videoLinks.length > 2">
+                +{{ item.videoLinks.length - 2 }} more videos
+              </span>
+            </div>
+            
           </div>
           
         </div>

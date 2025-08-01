@@ -35,6 +35,22 @@ export class BabyTimelineService {
         'Baby won\'t wake up to feed',
         'No wet diapers in first 24 hours',
         'Baby seems very lethargic'
+      ],
+      videoLinks: [
+        {
+          title: 'Newborn Reflexes',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/newborn-reflexes.mp4',
+          description: 'Learn about normal newborn reflexes and behaviors',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/newborn-reflexes-thumb.jpg',
+          category: 'movement'
+        },
+        {
+          title: 'Early Bonding',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/early-bonding.mp4',
+          description: 'Understanding early parent-baby bonding',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/early-bonding-thumb.jpg',
+          category: 'social'
+        }
       ]
     },
 
@@ -71,6 +87,36 @@ export class BabyTimelineService {
         'Doesn\'t smile at people',
         'Can\'t hold head up when pushing up during tummy time',
         'Doesn\'t bring hands to mouth'
+      ],
+      videoLinks: [
+        {
+          title: '2 Months - Calms down when spoken to or picked up',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/2months-calms-down.mp4',
+          description: 'See how a 2-month-old baby calms down when mom speaks to and picks her up',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/2months-calms-thumb.jpg',
+          category: 'social'
+        },
+        {
+          title: '2 Months - Looks at your face',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/2months-looks-at-face.mp4',
+          description: 'Watch how babies at 2 months look at and focus on faces',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/2months-face-thumb.jpg',
+          category: 'social'
+        },
+        {
+          title: '2 Months - Smiles when you talk to or smile at them',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/2months-social-smile.mp4',
+          description: 'See the beautiful social smiles that emerge at 2 months',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/2months-smile-thumb.jpg',
+          category: 'social'
+        },
+        {
+          title: '2 Months - Holds head up when on tummy',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/2months-tummy-time.mp4',
+          description: 'Learn about tummy time and head control development',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/2months-tummy-thumb.jpg',
+          category: 'movement'
+        }
       ]
     },
 
@@ -109,6 +155,36 @@ export class BabyTimelineService {
         'Doesn\'t coo or make sounds',
         'Doesn\'t bring things to mouth',
         'Doesn\'t push down with legs when feet are placed on a hard surface'
+      ],
+      videoLinks: [
+        {
+          title: '4 Months - Smiles on their own to get your attention',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/4months-smiles-attention.mp4',
+          description: 'See how 4-month-old babies use smiles to communicate',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/4months-smile-thumb.jpg',
+          category: 'social'
+        },
+        {
+          title: '4 Months - Chuckles when you try to make them laugh',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/4months-chuckles.mp4',
+          description: 'Watch babies respond with chuckles to playful interactions',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/4months-laugh-thumb.jpg',
+          category: 'social'
+        },
+        {
+          title: '4 Months - Holds head steady without support',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/4months-head-control.mp4',
+          description: 'See the development of steady head control at 4 months',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/4months-head-thumb.jpg',
+          category: 'movement'
+        },
+        {
+          title: '4 Months - Uses arm to swing at toys',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/4months-reaching.mp4',
+          description: 'Watch how babies start reaching and swinging at objects',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/4months-reach-thumb.jpg',
+          category: 'movement'
+        }
       ]
     },
 
@@ -153,6 +229,36 @@ export class BabyTimelineService {
         'Doesn\'t laugh or make squealing sounds',
         'Seems very stiff, with tight muscles',
         'Seems very floppy, like a rag doll'
+      ],
+      videoLinks: [
+        {
+          title: '6 Months - Knows familiar people',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/6months-familiar-people.mp4',
+          description: 'See how babies recognize and respond to familiar faces',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/6months-familiar-thumb.jpg',
+          category: 'social'
+        },
+        {
+          title: '6 Months - Takes turns making sounds',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/6months-turn-taking.mp4',
+          description: 'Watch babies engage in back-and-forth sound conversations',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/6months-sounds-thumb.jpg',
+          category: 'language'
+        },
+        {
+          title: '6 Months - Brings things to mouth',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/6months-mouth-exploration.mp4',
+          description: 'See how babies explore objects by bringing them to their mouth',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/6months-mouth-thumb.jpg',
+          category: 'cognitive'
+        },
+        {
+          title: '6 Months - Sits without support',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/6months-sitting.mp4',
+          description: 'Watch the development of independent sitting skills',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/6months-sit-thumb.jpg',
+          category: 'movement'
+        }
       ]
     },
 
@@ -201,6 +307,43 @@ export class BabyTimelineService {
         'Doesn\'t seem to recognize familiar people',
         'Doesn\'t look where you point',
         'Doesn\'t transfer toys from one hand to the other'
+      ],
+      videoLinks: [
+        {
+          title: '9 Months - Looks when you call their name',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/9months-responds-name.mp4',
+          description: 'See how babies respond when their name is called',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/9months-name-thumb.jpg',
+          category: 'language'
+        },
+        {
+          title: '9 Months - Plays peek-a-boo',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/9months-peekaboo.mp4',
+          description: 'Watch babies enjoy and participate in peek-a-boo games',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/9months-peekaboo-thumb.jpg',
+          category: 'social'
+        },
+        {
+          title: '9 Months - Uses fingers to point',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/9months-pointing.mp4',
+          description: 'See how babies start using pointing to communicate',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/9months-point-thumb.jpg',
+          category: 'cognitive'
+        },
+        {
+          title: '9 Months - Crawls',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/9months-crawling.mp4',
+          description: 'Watch different crawling styles and techniques',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/9months-crawl-thumb.jpg',
+          category: 'movement'
+        },
+        {
+          title: '9 Months - Picks up small objects',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/9months-pincer-grasp.mp4',
+          description: 'See the development of the pincer grasp (thumb and finger)',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/9months-pincer-thumb.jpg',
+          category: 'movement'
+        }
       ]
     },
 
@@ -242,6 +385,36 @@ export class BabyTimelineService {
         'Doesn\'t learn gestures like waving or shaking head',
         'Doesn\'t point at things',
         'Loses skills they once had'
+      ],
+      videoLinks: [
+        {
+          title: '12 Months - Waves "bye-bye"',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/12months-waves-bye.mp4',
+          description: 'See how 1-year-olds wave goodbye',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/12months-wave-thumb.jpg',
+          category: 'social'
+        },
+        {
+          title: '12 Months - Says "mama" or "dada"',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/12months-first-words.mp4',
+          description: 'Listen to babies saying their first meaningful words',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/12months-words-thumb.jpg',
+          category: 'language'
+        },
+        {
+          title: '12 Months - Looks for hidden objects',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/12months-object-permanence.mp4',
+          description: 'Watch babies search for toys they see you hide',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/12months-hide-thumb.jpg',
+          category: 'cognitive'
+        },
+        {
+          title: '12 Months - Walks holding furniture',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/12months-cruising.mp4',
+          description: 'See babies "cruising" along furniture before independent walking',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/12months-cruise-thumb.jpg',
+          category: 'movement'
+        }
       ]
     },
 
@@ -285,6 +458,29 @@ export class BabyTimelineService {
         'Doesn\'t have at least 6 words',
         'Doesn\'t care if a caregiver leaves or returns',
         'Loses skills they once had'
+      ],
+      videoLinks: [
+        {
+          title: '15 Months - Takes a few steps on their own',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/15months-first-steps.mp4',
+          description: 'Watch toddlers take their first independent steps',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/15months-steps-thumb.jpg',
+          category: 'movement'
+        },
+        {
+          title: '15 Months - Points to ask for something',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/15months-pointing-request.mp4',
+          description: 'See how toddlers use pointing to communicate needs',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/15months-point-thumb.jpg',
+          category: 'language'
+        },
+        {
+          title: '15 Months - Shows affection',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/15months-affection.mp4',
+          description: 'Watch toddlers express love through hugs and kisses',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/15months-hug-thumb.jpg',
+          category: 'social'
+        }
       ]
     },
 
@@ -331,6 +527,36 @@ export class BabyTimelineService {
         'Doesn\'t gain new words',
         'Doesn\'t notice or mind when a caregiver leaves or returns',
         'Loses skills they once had'
+      ],
+      videoLinks: [
+        {
+          title: '18 Months - Walks without holding on',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/18months-independent-walking.mp4',
+          description: 'See confident independent walking at 18 months',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/18months-walk-thumb.jpg',
+          category: 'movement'
+        },
+        {
+          title: '18 Months - Says three or more words',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/18months-vocabulary.mp4',
+          description: 'Listen to expanding vocabulary at 18 months',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/18months-words-thumb.jpg',
+          category: 'language'
+        },
+        {
+          title: '18 Months - Scribbles on their own',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/18months-scribbling.mp4',
+          description: 'Watch early drawing and scribbling development',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/18months-scribble-thumb.jpg',
+          category: 'cognitive'
+        },
+        {
+          title: '18 Months - Helps with dressing',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/18months-dressing-help.mp4',
+          description: 'See how toddlers start helping with getting dressed',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/18months-dress-thumb.jpg',
+          category: 'movement'
+        }
       ]
     },
 
@@ -376,6 +602,36 @@ export class BabyTimelineService {
         'Doesn\'t follow simple instructions',
         'Doesn\'t walk steadily',
         'Loses skills they once had'
+      ],
+      videoLinks: [
+        {
+          title: '2 Years - Says two-word phrases',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/24months-two-words.mp4',
+          description: 'Listen to 2-year-olds combining words into phrases',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/24months-phrases-thumb.jpg',
+          category: 'language'
+        },
+        {
+          title: '2 Years - Pretend play',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/24months-pretend-play.mp4',
+          description: 'Watch imaginative pretend play development',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/24months-pretend-thumb.jpg',
+          category: 'cognitive'
+        },
+        {
+          title: '2 Years - Follows two-step instructions',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/24months-instructions.mp4',
+          description: 'See how 2-year-olds follow complex directions',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/24months-follow-thumb.jpg',
+          category: 'language'
+        },
+        {
+          title: '2 Years - Kicks a ball',
+          url: 'https://www.cdc.gov/ncbddd/actearly/milestones/videos/24months-kicks-ball.mp4',
+          description: 'Watch gross motor skills like kicking and running',
+          thumbnail: 'https://www.cdc.gov/ncbddd/actearly/milestones/images/24months-kick-thumb.jpg',
+          category: 'movement'
+        }
       ]
     },
 

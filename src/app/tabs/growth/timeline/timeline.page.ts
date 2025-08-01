@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { ModalController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { BabyTimelineService } from '../../../services/baby-timeline.service';
 import { AuthService } from '../../../services/auth.service';
 import { BabyTimelineData, BabyTimelineItem } from '../../../models/baby-timeline.model';
 import { User } from '../../../models/user.model';
+import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
 
 @Component({
   selector: 'app-timeline',
@@ -19,7 +21,8 @@ export class TimelinePage implements OnInit {
   constructor(
     private router: Router,
     private timelineService: BabyTimelineService,
-    private authService: AuthService
+    private authService: AuthService,
+    private modalController: ModalController
   ) {}
 
   ngOnInit() {
@@ -104,5 +107,17 @@ export class TimelinePage implements OnInit {
     setTimeout(() => {
       this.scrollToCurrentWeek();
     }, 300);
+  }
+
+  async openVideo(videoUrl: string, title?: string) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: videoUrl,
+        title: title || 'Milestone Video'
+      },
+      cssClass: 'video-modal'
+    });
+    return await modal.present();
   }
 }
