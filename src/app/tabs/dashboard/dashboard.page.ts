@@ -1,13 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
+import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ChatbotService } from '../../services/chatbot.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { BabyTimelineItem, BabyTimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
-import { Observable } from 'rxjs';
 import { TimelineModalComponent } from '../../components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from '../../components/specific-week-modal/specific-week-modal.component';
 
@@ -16,16 +15,11 @@ import { SpecificWeekModalComponent } from '../../components/specific-week-modal
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
 })
-@Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.page.html',
-  styleUrls: ['./dashboard.page.scss'],
-})
-export class DashboardPage implements OnInit {
+export class DashboardPage implements OnInit, AfterViewInit {
   @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
   
   user: User | null = null;
-  timelineData$: Observable<BabyTimelineData>;
+  timelineData$: Observable<BabyTimelineData> | null = null;
   currentTimelineData: BabyTimelineData | null = null;
   quickActions = [
     {
@@ -86,6 +80,13 @@ export class DashboardPage implements OnInit {
         this.loadTimelineData(user.babies[0].dateOfBirth);
       }
     });
+  }
+
+  ngAfterViewInit() {
+    // Auto-scroll to current week when view initializes
+    setTimeout(() => {
+      this.scrollToCurrentWeek();
+    }, 500);
   }
 
   private loadTimelineData(birthDate: Date) {
@@ -218,13 +219,6 @@ export class DashboardPage implements OnInit {
       const container = this.timelineScrollContainer.nativeElement;
       container.scrollBy({ left: 200, behavior: 'smooth' });
     }
-  }
-
-  ngAfterViewInit() {
-    // Auto-scroll to current week when view initializes
-    setTimeout(() => {
-      this.scrollToCurrentWeek();
-    }, 500);
   }
 
   private scrollToCurrentWeek() {
