@@ -42,7 +42,7 @@ export class TimelinePage implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/tabs/growth']);
+    this.router.navigate(['/tabs/dashboard']);
   }
 
   openSpecificWeek(weekItem: BabyTimelineItem) {

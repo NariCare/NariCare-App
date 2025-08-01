@@ -16,15 +16,12 @@
 
 <ion-content [fullscreen]="true" class="dashboard-content">
   <div class="content-container">
-    
+
     <!-- Quick Actions -->
     <div class="section">
       <h2 class="section-title">Quick Actions</h2>
       <div class="quick-actions-grid">
-        <div 
-          *ngFor="let action of quickActions"
-          class="action-card"
-          [class]="'action-card-' + action.color"
+        <div *ngFor="let action of quickActions" class="action-card" [class]="'action-card-' + action.color"
           (click)="handleQuickAction(action.action)">
           <div class="action-icon">
             <ion-icon [name]="action.icon"></ion-icon>
@@ -48,7 +45,8 @@
             <h3>Baby's Progress</h3>
           </div>
           <div class="insight-content">
-            <p class="insight-text">{{ user.babies[0].name }} is developing beautifully! Remember to track feeding patterns today.</p>
+            <p class="insight-text">{{ user.babies[0].name }} is developing beautifully! Remember to track feeding
+              patterns today.</p>
             <ion-button fill="clear" size="small" class="insight-action">
               View Details
               <ion-icon name="arrow-forward" slot="end"></ion-icon>
@@ -62,7 +60,8 @@
             <h3>Daily Tip</h3>
           </div>
           <div class="insight-content">
-            <p class="insight-text">Skin-to-skin contact helps regulate your baby's temperature and promotes bonding.</p>
+            <p class="insight-text">Skin-to-skin contact helps regulate your baby's temperature and promotes bonding.
+            </p>
             <ion-button fill="clear" size="small" class="insight-action">
               Learn More
               <ion-icon name="arrow-forward" slot="end"></ion-icon>
@@ -78,8 +77,7 @@
       <div class="reminders-list">
         <div *ngFor="let reminder of upcomingReminders" class="reminder-item">
           <div class="reminder-icon">
-            <ion-icon 
-              [name]="reminder.type === 'growth' ? 'trending-up' : 'videocam'"
+            <ion-icon [name]="reminder.type === 'growth' ? 'trending-up' : 'videocam'"
               [class]="'reminder-icon-' + reminder.type">
             </ion-icon>
           </div>
@@ -94,23 +92,59 @@
       </div>
     </div>
 
-    <!-- Recent Activity -->
+    <!-- Timeline Section -->
     <div class="section">
-      <h2 class="section-title">Continue Learning</h2>
-      <div class="activity-card">
-        <div class="activity-content">
-          <ion-icon name="book" class="activity-icon"></ion-icon>
-          <div class="activity-text">
-            <h3>Breastfeeding Basics</h3>
-            <p>Complete your reading progress • 3 articles remaining</p>
+      <h2 class="section-title">TIMELINE</h2>
+      <div class="timeline-section">
+        <div class="timeline-content" *ngIf="timelineData$ | async as timelineData">
+          <!-- Timeline Items with Connecting Lines -->
+          <div class="timeline-items-vertical">
+            <div *ngFor="let item of getVisibleTimelineItems(timelineData); let i = index; let isLast = last"
+              class="timeline-item-wrapper">
+
+              <!-- Timeline Item Card -->
+              <div class="timeline-item-card" [class.current-item]="isCurrentWeek(item, timelineData.currentWeek)"
+                [class.completed-item]="isCompletedWeek(item, timelineData.currentWeek)"
+                [class.upcoming-item]="isUpcomingWeek(item, timelineData.currentWeek)"
+                (click)="openSpecificWeekModal(item)">
+
+                <!-- Week Badge -->
+                <div class="week-badge" [style.background-color]="item.color">
+                  {{ getWeekDisplay(item) }}
+                </div>
+
+                <!-- Card Content -->
+                <div class="card-content">
+                  <h3>{{ item.title }}</h3>
+                  <p>{{ item.description }}</p>
+
+                  <div class="card-footer">
+                    <span class="see-more">SEE MORE</span>
+                    <ion-icon name="chevron-forward"></ion-icon>
+                  </div>
+                </div>
+
+                <!-- Lock Icon for Upcoming Items -->
+                <div class="lock-icon" *ngIf="isUpcomingWeek(item, timelineData.currentWeek)">
+                  <ion-icon name="lock-closed"></ion-icon>
+                </div>
+              </div>
+
+              <!-- Connecting Line -->
+              <div class="timeline-connector" *ngIf="!isLast"></div>
+            </div>
+          </div>
+
+          <!-- See More Button -->
+          <div class="timeline-see-more">
+            <ion-button expand="block" fill="solid" (click)="openFullTimeline()" class="see-more-button">
+              SEE MORE
+            </ion-button>
           </div>
         </div>
-        <ion-button fill="outline" size="small">Continue</ion-button>
       </div>
     </div>
-
-    <!-- Timeline Section -->
-    <div class="section" *ngIf="user && user.babies && user.babies.length > 0">
+    <!-- <div class="section" *ngIf="user && user.babies && user.babies.length > 0">
       <div class="timeline-section">
         <div class="timeline-header">
           <div class="timeline-icon">
@@ -122,59 +156,23 @@
           </div>
         </div>
         
-        <div class="timeline-content" *ngIf="timelineData$ | async as timelineData">
-          <!-- Timeline Items with Connecting Lines -->
-          <div class="timeline-items-vertical">
-            <div 
-              *ngFor="let item of getVisibleTimelineItems(timelineData); let i = index; let isLast = last"
-              class="timeline-item-wrapper">
-              
-              <!-- Timeline Item Card -->
-              <div class="timeline-item-card"
-                   [class.current-item]="isCurrentWeek(item, timelineData.currentWeek)"
-                   [class.completed-item]="isCompletedWeek(item, timelineData.currentWeek)"
-                   [class.upcoming-item]="isUpcomingWeek(item, timelineData.currentWeek)"
-                   (click)="openSpecificWeekModal(item)">
-                
-                <!-- Week Badge -->
-                <div class="week-badge" [style.background-color]="item.color">
-                  {{ getWeekDisplay(item) }}
-                </div>
-                
-                <!-- Card Content -->
-                <div class="card-content">
-                  <h3>{{ item.title }}</h3>
-                  <p>{{ item.description }}</p>
-                  
-                  <div class="card-footer">
-                    <span class="see-more">SEE MORE</span>
-                    <ion-icon name="chevron-forward"></ion-icon>
-                  </div>
-                </div>
-                
-                <!-- Lock Icon for Upcoming Items -->
-                <div class="lock-icon" *ngIf="isUpcomingWeek(item, timelineData.currentWeek)">
-                  <ion-icon name="lock-closed"></ion-icon>
-                </div>
-              </div>
-              
-              <!-- Connecting Line -->
-              <div class="timeline-connector" *ngIf="!isLast"></div>
-            </div>
-          </div>
-          
-          <!-- See More Button -->
-          <div class="timeline-see-more">
-            <ion-button 
-              expand="block" 
-              fill="solid" 
-              (click)="openFullTimeline()"
-              class="see-more-button">
-              SEE MORE
-            </ion-button>
-          </div>
+        
+      </div>
+    </div> -->
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="section">
+    <h2 class="section-title">Continue Learning</h2>
+    <div class="activity-card">
+      <div class="activity-content">
+        <ion-icon name="book" class="activity-icon"></ion-icon>
+        <div class="activity-text">
+          <h3>Breastfeeding Basics</h3>
+          <p>Complete your reading progress • 3 articles remaining</p>
         </div>
       </div>
+      <ion-button fill="outline" size="small">Continue</ion-button>
     </div>
   </div>
 </ion-content>
