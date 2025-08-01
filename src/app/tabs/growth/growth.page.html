@@ -57,8 +57,8 @@
         <div *ngFor="let record of recentRecords.slice(0, 3)" class="reference-card">
           <div class="reference-date">{{ formatDate(record.date) }}</div>
           <div class="reference-metrics">
-            <span>{{ record.directFeedingSessions || 0 }} feeds</span>
-            <span>{{ record.pumpingSessions || 0 }} pumps</span>
+            <span>{{ record.directFeedingSessions }} feeds</span>
+            <span>{{ record.pumpingSessions }} pumps</span>
             <span *ngIf="record.mood">{{ record.mood?.emoji }}</span>
           </div>
         </div>
@@ -187,36 +187,36 @@
                 <h4>Feeding</h4>
                 <div class="metrics-grid">
                   <div class="metric">
-                    <span class="metric-label">Sessions</span>
-                    <span class="metric-value">{{ record.directFeedingSessions }}</span>
+                    <span class="metric-label">Start Time</span>
+                    <span class="metric-value">{{ record.startTime }}</span>
                   </div>
                   <div class="metric">
-                    <span class="metric-label">Avg Duration</span>
-                    <span class="metric-value">{{ record.avgFeedingDuration }}min</span>
+                    <span class="metric-label">End Time</span>
+                    <span class="metric-value">{{ record.endTime }}</span>
                   </div>
                 </div>
               </div>
               
               <div class="metric-group">
-                <h4>Pumping</h4>
+                <h4>Details</h4>
                 <div class="metrics-grid">
                   <div class="metric">
-                    <span class="metric-label">Sessions</span>
-                    <span class="metric-value">{{ record.pumpingSessions }}</span>
+                    <span class="metric-label">Breast Side</span>
+                    <span class="metric-value">{{ record.breastSide | titlecase }}</span>
                   </div>
                   <div class="metric">
-                    <span class="metric-label">Output</span>
-                    <span class="metric-value">{{ record.totalPumpingOutput }}ml</span>
+                    <span class="metric-label">Pain Level</span>
+                    <span class="metric-value">{{ record.painLevel }}/10</span>
                   </div>
                 </div>
               </div>
               
-              <div class="metric-group" *ngIf="record.formulaIntake && record.formulaIntake > 0">
-                <h4>Formula</h4>
+              <div class="metric-group" *ngIf="record.supplement">
+                <h4>Supplement</h4>
                 <div class="metrics-grid">
                   <div class="metric">
-                    <span class="metric-label">Intake</span>
-                    <span class="metric-value">{{ record.formulaIntake }}ml</span>
+                    <span class="metric-label">Type</span>
+                    <span class="metric-value">{{ record.supplement | titlecase }}</span>
                   </div>
                 </div>
               </div>
@@ -439,7 +439,7 @@
           <div class="smart-voice-section" *ngIf="isVoiceSupported()">
             <div class="voice-input-header">
               <h5>🎤 Smart Voice Input</h5>
-              <p>Say something like: "Baby had 8 feeding sessions today, each lasted 25 minutes, pumped 4 times and got 180ml total, gave 50ml formula"</p>
+              <p>Say something like: "Baby fed 8 times today, each session lasted 20 minutes, pumped 3 times and got 150ml total"</p>
             </div>
             
             <ion-button 
@@ -471,136 +471,117 @@
             <div class="voice-examples">
               <h6>Example phrases:</h6>
               <ul>
-                <li>"Baby had 8 feeding sessions, each lasted 20 minutes"</li>
-                <li>"Pumped 3 times and got 150ml total, gave 30ml formula"</li>
-                <li>"6 direct feeds, pumped twice, 120ml output, feeling good"</li>
+                <li>"Baby fed 6 times today, feeling great"</li>
+                <li>"Pumped 4 times and got 200ml, baby seems happy"</li>
+                <li>"Had 8 wet diapers and 3 dirty ones, feeling tired"</li>
               </ul>
             </div>
           </div>
 
-          <!-- Date Selection -->
+          <!-- Breastfeeding Time -->
           <div class="form-section">
-            <h4>📅 Date</h4>
-            <div class="form-group">
-              <ion-item lines="none" class="input-item">
-                <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-                <ion-datetime-button datetime="dailyDate">
-                  <ion-label>Date</ion-label>
-                </ion-datetime-button>
-              </ion-item>
-              <ion-modal [keepContentsMounted]="true">
-                <ng-template>
-                  <ion-datetime 
-                    id="dailyDate" 
-                    formControlName="date"
-                    presentation="date"
-                    max="2025-12-31"
-                    min="2020-01-01">
-                  </ion-datetime>
-                </ng-template>
-              </ion-modal>
-            </div>
-          </div>
-
-          <!-- Direct Feeding Sessions -->
-          <div class="form-section">
-            <h4>🍼 Number of Direct Feeding Sessions in 24 Hours</h4>
-            <div class="form-group">
-              <ion-item lines="none" class="input-item">
-                <ion-input
-                  formControlName="directFeedingSessions"
-                  type="number"
-                  min="0"
-                  max="20"
-                  placeholder="How many times did baby feed directly?"
-                  [class.error]="addRecordForm.get('directFeedingSessions')?.invalid && addRecordForm.get('directFeedingSessions')?.touched">
-                </ion-input>
-              </ion-item>
-              <div class="error-message" *ngIf="addRecordForm.get('directFeedingSessions')?.invalid && addRecordForm.get('directFeedingSessions')?.touched">
-                {{ getErrorMessage('directFeedingSessions') }}
+            <h4>Breastfeeding time ?</h4>
+            
+            <div class="form-row">
+              <div class="form-group half-width">
+                <label class="field-label">Start</label>
+                <ion-item lines="none" class="input-item time-input">
+                  <ion-input
+                    formControlName="startTime"
+                    type="time"
+                    [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
+                  </ion-input>
+                </ion-item>
+                <div class="error-message" *ngIf="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
+                  {{ getErrorMessage('startTime') }}
+                </div>
+              </div>
+              
+              <div class="form-group half-width">
+                <label class="field-label">End</label>
+                <ion-item lines="none" class="input-item time-input">
+                  <ion-input
+                    formControlName="endTime"
+                    type="time"
+                    [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
+                  </ion-input>
+                </ion-item>
+                <div class="error-message" *ngIf="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
+                  {{ getErrorMessage('endTime') }}
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Average Feeding Duration -->
+          <!-- Breast Side Selection -->
           <div class="form-section">
-            <h4>⏱️ Average Duration of Direct Feeding Sessions (minutes)</h4>
-            <div class="form-group">
-              <ion-item lines="none" class="input-item">
-                <ion-input
-                  formControlName="avgFeedingDuration"
-                  type="number"
-                  min="5"
-                  max="120"
-                  placeholder="Average minutes per feeding session"
-                  [class.error]="addRecordForm.get('avgFeedingDuration')?.invalid && addRecordForm.get('avgFeedingDuration')?.touched">
-                </ion-input>
-              </ion-item>
-              <div class="error-message" *ngIf="addRecordForm.get('avgFeedingDuration')?.invalid && addRecordForm.get('avgFeedingDuration')?.touched">
-                {{ getErrorMessage('avgFeedingDuration') }}
+            <h4>Breast side ?</h4>
+            <div class="selection-grid breast-side-grid">
+              <div 
+                *ngFor="let side of breastSideOptions"
+                class="selection-option breast-side-option"
+                [class.selected]="selectedBreastSide?.value === side.value"
+                (click)="selectBreastSide(side)">
+                <div class="breast-side-icon">
+                  <ion-icon [name]="side.icon"></ion-icon>
+                </div>
+                <span class="option-label">{{ side.label }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Pumping Sessions -->
+          <!-- Supplement Selection -->
           <div class="form-section">
-            <h4>🔄 Number of Pumping Sessions</h4>
-            <p class="section-note">Each session includes both sides pumped, 15-20 mins per side</p>
-            <div class="form-group">
-              <ion-item lines="none" class="input-item">
-                <ion-input
-                  formControlName="pumpingSessions"
-                  type="number"
-                  min="0"
-                  max="10"
-                  placeholder="How many pumping sessions today?"
-                  [class.error]="addRecordForm.get('pumpingSessions')?.invalid && addRecordForm.get('pumpingSessions')?.touched">
-                </ion-input>
-              </ion-item>
-              <div class="error-message" *ngIf="addRecordForm.get('pumpingSessions')?.invalid && addRecordForm.get('pumpingSessions')?.touched">
-                {{ getErrorMessage('pumpingSessions') }}
+            <h4>Supplement ?</h4>
+            <div class="selection-grid supplement-grid">
+              <div 
+                *ngFor="let supplement of supplementOptions"
+                class="selection-option supplement-option"
+                [class.selected]="selectedSupplement?.value === supplement.value"
+                (click)="selectSupplement(supplement)">
+                <div class="supplement-icon">
+                  <ion-icon [name]="supplement.icon"></ion-icon>
+                </div>
+                <span class="option-label">{{ supplement.label }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Total Pumping Output -->
+          <!-- Pain Level -->
           <div class="form-section">
-            <h4>🥛 Total Pumping Output in 24 Hours (ml)</h4>
-            <div class="form-group">
-              <ion-item lines="none" class="input-item">
-                <ion-input
-                  formControlName="totalPumpingOutput"
-                  type="number"
-                  min="0"
-                  max="2000"
-                  placeholder="Total ml pumped today"
-                  [class.error]="addRecordForm.get('totalPumpingOutput')?.invalid && addRecordForm.get('totalPumpingOutput')?.touched">
-                </ion-input>
-              </ion-item>
-              <div class="error-message" *ngIf="addRecordForm.get('totalPumpingOutput')?.invalid && addRecordForm.get('totalPumpingOutput')?.touched">
-                {{ getErrorMessage('totalPumpingOutput') }}
-              </div>
-            </div>
-          </div>
+            <h4>Pain ?</h4>
+            <p class="section-note">Consider 0 is no pain and 10 is a lot of pain</p>
+            
+            <div class="pain-level-container">
+              <div class="pain-level-display">{{ painLevel }}</div>
+              <ion-range
+                min="0"
+                max="10"
+                step="1"
+                [(ngModel)]="painLevel"
+                (ionInput)="setPainLevel($event.detail.value)"
+                color="secondary"
+                class="pain-slider">
+                <ion-label slot="start">0</ion-label>
+                <ion-label slot="end">10</ion-label>
+              </ion-range>
             </div>
           </div>
 
-          <!-- Formula Intake -->
+          <!-- Lipstick Shape -->
           <div class="form-section">
-            <h4>🍼 Total Formula Intake in 24 Hours (ml)</h4>
-            <div class="form-group">
-              <ion-item lines="none" class="input-item">
-                <ion-input
-                  formControlName="formulaIntake"
-                  type="number"
-                  min="0"
-                  max="1000"
-                  placeholder="Total ml of formula given today"
-                  [class.error]="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
-                </ion-input>
-              </ion-item>
-              <div class="error-message" *ngIf="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
-                {{ getErrorMessage('formulaIntake') }}
+            <h4>Lipstick ?</h4>
+            <p class="section-note">It can change after the feed</p>
+            <div class="selection-grid lipstick-grid">
+              <div 
+                *ngFor="let shape of lipstickShapeOptions"
+                class="selection-option lipstick-option"
+                [class.selected]="selectedLipstickShape?.value === shape.value"
+                (click)="selectLipstickShape(shape)">
+                <div class="lipstick-icon">
+                  <ion-icon [name]="shape.icon"></ion-icon>
+                </div>
+                <span class="option-label">{{ shape.label }}</span>
               </div>
             </div>
           </div>
