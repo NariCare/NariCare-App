@@ -735,10 +735,22 @@
       color: #2d3748;
     }
     
-    .weight-value {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #e91e63;
+    .weight-values {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      
+      .weight-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #e91e63;
+      }
+      
+      .height-value {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #64748b;
+      }
     }
   }
   
@@ -749,6 +761,216 @@
     p {
       margin: 0;
     }
+  }
+}
+
+.stool-record {
+  .stool-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    
+    .stool-date {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+    
+    .stool-time {
+      font-size: 0.85rem;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+    }
+  }
+  
+  .stool-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .stool-attribute {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    .attribute-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      min-width: 60px;
+    }
+    
+    .color-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    
+    .texture-icon,
+    .size-icon {
+      font-size: 1.1rem;
+      color: #64748b;
+    }
+    
+    .attribute-value {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #2d3748;
+    }
+  }
+  
+  .stool-notes {
+    font-size: 0.85rem;
+    color: #64748b;
+    
+    p {
+      margin: 0;
+    }
+  }
+}
+
+/* Form Styling */
+.baby-info-header {
+  background: linear-gradient(135deg, #e91e63, #f06292);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  border-radius: 0 0 20px 20px;
+}
+
+.baby-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  
+  ion-icon {
+    font-size: 2rem;
+    color: #ffffff;
+  }
+}
+
+.baby-details {
+  h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+}
+
+.time-input {
+  --background: #f8fafc;
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 52px;
+  text-align: center;
+  
+  ion-input {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #26a69a;
+    text-align: center;
+  }
+}
+
+.selection-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  
+  &.color-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  &.texture-grid,
+  &.size-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.selection-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &.selected {
+    border-color: #26a69a;
+    background: rgba(38, 166, 154, 0.1);
+  }
+  
+  &:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+  }
+  
+  .option-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #64748b;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+}
+
+.color-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.texture-icon,
+.size-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  ion-icon {
+    font-size: 1.5rem;
+    color: #26a69a;
+  }
+}
+
+.stool-form {
+  .form-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
   }
 }
 

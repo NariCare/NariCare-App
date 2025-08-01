@@ -113,7 +113,10 @@
           <ion-label>Daily Tracking</ion-label>
         </ion-segment-button>
         <ion-segment-button value="weight">
-          <ion-label>Weight Chart</ion-label>
+          <ion-label>Weight & Size</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="stool">
+          <ion-label>Stool Track</ion-label>
         </ion-segment-button>
       </ion-segment>
     </div>
@@ -328,12 +331,15 @@
       </app-weight-chart>
 
       <div class="section">
-        <h3 class="section-title">Weight Records</h3>
+        <h3 class="section-title">Weight & Size Records</h3>
         <div class="records-list" *ngIf="weightRecords$ | async as weightRecords; else noWeightRecords">
           <div *ngFor="let record of weightRecords | slice:0:10" class="record-card weight-record">
             <div class="weight-info">
               <span class="weight-date">{{ formatDate(record.date) }}</span>
-              <span class="weight-value">{{ record.weight }} kg</span>
+              <div class="weight-values">
+                <span class="weight-value">{{ record.weight }} kg</span>
+                <span class="height-value" *ngIf="record.height">{{ record.height }} cm</span>
+              </div>
             </div>
             <div class="weight-notes" *ngIf="record.notes">
               <p>{{ record.notes }}</p>
@@ -344,10 +350,56 @@
         <ng-template #noWeightRecords>
           <div class="empty-state">
             <ion-icon name="scale"></ion-icon>
-            <h4>No weight records yet</h4>
+            <h4>No weight & size records yet</h4>
             <p>Start tracking your baby's weekly weight progress</p>
             <ion-button fill="outline" (click)="openAddWeightModal()">
-              Add First Weight
+              Add First Record
+            </ion-button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Stool Tracking Content -->
+    <div class="tab-content" *ngIf="selectedTab === 'stool'">
+      <div class="section">
+        <h3 class="section-title">Stool Records</h3>
+        <div class="records-list" *ngIf="stoolRecords$ | async as stoolRecords; else noStoolRecords">
+          <div *ngFor="let record of stoolRecords | slice:0:10" class="record-card stool-record">
+            <div class="stool-header">
+              <span class="stool-date">{{ formatDate(record.date) }}</span>
+              <span class="stool-time">{{ record.time }}</span>
+            </div>
+            <div class="stool-details">
+              <div class="stool-attribute">
+                <span class="attribute-label">Color:</span>
+                <div class="color-indicator" [style.background-color]="record.color.color"></div>
+                <span class="attribute-value">{{ record.color.label }}</span>
+              </div>
+              <div class="stool-attribute">
+                <span class="attribute-label">Texture:</span>
+                <ion-icon [name]="record.texture.icon" class="texture-icon"></ion-icon>
+                <span class="attribute-value">{{ record.texture.label }}</span>
+              </div>
+              <div class="stool-attribute">
+                <span class="attribute-label">Size:</span>
+                <ion-icon [name]="record.size.icon" class="size-icon"></ion-icon>
+                <span class="attribute-value">{{ record.size.label }}</span>
+              </div>
+            </div>
+            <div class="stool-notes" *ngIf="record.notes">
+              <p>{{ record.notes }}</p>
+            </div>
+          </div>
+        </div>
+        
+        <ng-template #noStoolRecords>
+          <div class="empty-state">
+            <ion-icon name="medical"></ion-icon>
+            <h4>No stool records yet</h4>
+            <p>Start tracking your baby's stool patterns for health insights</p>
+            <ion-button fill="outline" (click)="openAddStoolModal()">
+              Add First Record
             </ion-button>
           </div>
         </ng-template>
@@ -632,6 +684,237 @@
               [disabled]="!addRecordForm.valid"
               class="save-button">
               Save Daily Record
+            </ion-button>
+          </div>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Weight & Size Record Modal -->
+  <ion-modal [isOpen]="showAddWeightModal" (didDismiss)="closeAddWeightModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Weight & Size</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeAddWeightModal()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content>
+        <form [formGroup]="addWeightForm" class="add-record-form">
+          
+          <!-- Baby Info Header -->
+          <div class="baby-info-header" *ngIf="user && user.babies && user.babies.length > 0">
+            <div class="baby-avatar">
+              <ion-icon name="happy"></ion-icon>
+            </div>
+            <div class="baby-details">
+              <h3>{{ user.babies[0].name }}</h3>
+              <p>{{ calculateBabyAge() }}</p>
+            </div>
+          </div>
+
+          <!-- Date Selection -->
+          <div class="form-section">
+            <h4>📅 Date</h4>
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+                <ion-datetime-button datetime="weightDate">
+                  <ion-label>Date</ion-label>
+                </ion-datetime-button>
+              </ion-item>
+              <ion-modal [keepContentsMounted]="true">
+                <ng-template>
+                  <ion-datetime 
+                    id="weightDate" 
+          <!-- Weight & Height -->
+          <div class="form-section">
+            <h4>⚖️ Measurements</h4>
+            
+            <div class="form-group">
+              <label class="field-label">Weight (kg) *</label>
+              <ion-item lines="none" class="input-item">
+                <ion-input
+                  formControlName="weight"
+                  type="number"
+                  step="0.01"
+                  placeholder="What is the baby's weight?"
+                  [class.error]="addWeightForm.get('weight')?.invalid && addWeightForm.get('weight')?.touched">
+                </ion-input>
+              </ion-item>
+              <div class="error-message" *ngIf="addWeightForm.get('weight')?.invalid && addWeightForm.get('weight')?.touched">
+                {{ getErrorMessage('weight') }}
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="field-label">Height (cm)</label>
+              <ion-item lines="none" class="input-item">
+                <ion-input
+                  formControlName="height"
+                  type="number"
+                  step="0.1"
+                  placeholder="What is the baby's length?">
+                </ion-input>
+              </ion-item>
+            </div>
+          </div>
+                    formControlName="date"
+          <!-- Notes -->
+          <div class="form-section">
+            <h4>📝 Notes</h4>
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-textarea
+                  formControlName="notes"
+                  placeholder="Any additional notes..."
+                  rows="3"
+                  autoGrow="true">
+                </ion-textarea>
+              </ion-item>
+            </div>
+          </div>
+                    presentation="date"
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <ion-button 
+              expand="block" 
+              (click)="saveWeightRecord()"
+              [disabled]="!addWeightForm.valid"
+              class="save-button">
+              Accept
+            </ion-button>
+          </div>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+                    max="2025-12-31"
+  <!-- Stool Track Modal -->
+  <ion-modal [isOpen]="showAddStoolModal" (didDismiss)="closeAddStoolModal()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Stool track</ion-title>
+          <ion-buttons slot="start">
+            <ion-button (click)="closeAddStoolModal()">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-buttons slot="end">
+            <ion-button fill="clear">
+              <ion-icon name="settings" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content>
+        <form [formGroup]="addStoolForm" class="add-record-form stool-form">
+          
+          <!-- Baby Info Header -->
+          <div class="baby-info-header" *ngIf="user && user.babies && user.babies.length > 0">
+            <div class="baby-avatar">
+              <ion-icon name="happy"></ion-icon>
+            </div>
+            <div class="baby-details">
+              <h3>{{ user.babies[0].name }}</h3>
+              <p>{{ calculateBabyAge() }}</p>
+            </div>
+          </div>
+                    min="2020-01-01">
+          <!-- Time Selection -->
+          <div class="form-section">
+            <h4>⏰ Time</h4>
+            <div class="form-group">
+              <ion-item lines="none" class="input-item time-input">
+                <ion-input
+                  formControlName="time"
+                  type="time"
+                  [class.error]="addStoolForm.get('time')?.invalid && addStoolForm.get('time')?.touched">
+                </ion-input>
+              </ion-item>
+            </div>
+          </div>
+                  </ion-datetime>
+          <!-- Color Selection -->
+          <div class="form-section">
+            <h4>🎨 Color</h4>
+            <div class="selection-grid color-grid">
+              <div 
+                *ngFor="let color of stoolColorOptions"
+                class="selection-option color-option"
+                [class.selected]="selectedStoolColor?.value === color.value"
+                (click)="selectStoolColor(color)">
+                <div class="color-circle" [style.background-color]="color.color"></div>
+                <span class="option-label">{{ color.label }}</span>
+              </div>
+            </div>
+          </div>
+                </ng-template>
+          <!-- Texture Selection -->
+          <div class="form-section">
+            <h4>🔍 Texture</h4>
+            <div class="selection-grid texture-grid">
+              <div 
+                *ngFor="let texture of stoolTextureOptions"
+                class="selection-option texture-option"
+                [class.selected]="selectedStoolTexture?.value === texture.value"
+                (click)="selectStoolTexture(texture)">
+                <div class="texture-icon">
+                  <ion-icon [name]="texture.icon"></ion-icon>
+                </div>
+                <span class="option-label">{{ texture.label }}</span>
+              </div>
+            </div>
+          </div>
+              </ion-modal>
+          <!-- Size Selection -->
+          <div class="form-section">
+            <h4>📏 Size</h4>
+            <div class="selection-grid size-grid">
+              <div 
+                *ngFor="let size of stoolSizeOptions"
+                class="selection-option size-option"
+                [class.selected]="selectedStoolSize?.value === size.value"
+                (click)="selectStoolSize(size)">
+                <div class="size-icon">
+                  <ion-icon [name]="size.icon"></ion-icon>
+                </div>
+                <span class="option-label">{{ size.label }}</span>
+              </div>
+            </div>
+          </div>
+            </div>
+          <!-- Notes -->
+          <div class="form-section">
+            <h4>📝 Notes</h4>
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-textarea
+                  formControlName="notes"
+                  placeholder="Write about your baby's stool..."
+                  rows="3"
+                  autoGrow="true">
+                </ion-textarea>
+              </ion-item>
+            </div>
+          </div>
+          </div>
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <ion-button 
+              expand="block" 
+              (click)="saveStoolRecord()"
+              [disabled]="!addStoolForm.valid || !selectedStoolColor || !selectedStoolTexture || !selectedStoolSize"
+              class="save-button">
+              Accept
             </ion-button>
           </div>
         </form>

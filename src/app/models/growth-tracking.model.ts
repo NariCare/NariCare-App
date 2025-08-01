@@ -28,9 +28,41 @@ export interface WeightRecord {
   recordedBy: string;
   date: Date;
   weight: number; // in kg
+  height?: number; // in cm
   notes?: string;
   reminderSent?: boolean;
   createdAt: Date;
+}
+
+export interface StoolRecord {
+  id: string;
+  babyId: string;
+  recordedBy: string;
+  date: Date;
+  time: string; // HH:MM format
+  color: StoolColor;
+  texture: StoolTexture;
+  size: StoolSize;
+  notes?: string;
+  createdAt: Date;
+}
+
+export interface StoolColor {
+  value: 'very-dark' | 'dark-green' | 'dark-brown' | 'mustard-yellow' | 'other';
+  label: string;
+  color: string;
+}
+
+export interface StoolTexture {
+  value: 'liquid' | 'pasty' | 'hard' | 'snotty' | 'bloody';
+  label: string;
+  icon: string;
+}
+
+export interface StoolSize {
+  value: 'coin' | 'tablespoon' | 'bigger';
+  label: string;
+  icon: string;
 }
 
 export interface MoodType {

@@ -8,7 +8,7 @@ import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
 import { CDCGrowthChartService } from '../../services/cdc-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
-import { GrowthRecord, WeightRecord, MoodType, StarPerformer } from '../../models/growth-tracking.model';
+import { GrowthRecord, WeightRecord, StoolRecord, MoodType, StoolColor, StoolTexture, StoolSize, StarPerformer } from '../../models/growth-tracking.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
@@ -25,15 +25,24 @@ export class GrowthPage implements OnInit {
   user: User | null = null;
   growthRecords$: Observable<GrowthRecord[]> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
+  stoolRecords$: Observable<StoolRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
-  selectedTab: 'daily' | 'timeline' | 'weight' = 'daily';
+  selectedTab: 'daily' | 'timeline' | 'weight' | 'stool' = 'daily';
   showAddRecordModal = false;
   showAddWeightModal = false;
+  showAddStoolModal = false;
   addRecordForm: FormGroup;
   addWeightForm: FormGroup;
+  addStoolForm: FormGroup;
   selectedMood: MoodType | null = null;
+  selectedStoolColor: StoolColor | null = null;
+  selectedStoolTexture: StoolTexture | null = null;
+  selectedStoolSize: StoolSize | null = null;
   moodOptions: MoodType[] = [];
+  stoolColorOptions: StoolColor[] = [];
+  stoolTextureOptions: StoolTexture[] = [];
+  stoolSizeOptions: StoolSize[] = [];
   starPerformers: StarPerformer[] = [];
   currentTimelineData: BabyTimelineData | null = null;
   isRecording = false;
@@ -71,6 +80,14 @@ export class GrowthPage implements OnInit {
     this.addWeightForm = this.formBuilder.group({
       date: [new Date().toISOString(), [Validators.required]],
       weight: ['', [Validators.required, Validators.min(0.5), Validators.max(50)]],
+      height: [''],
+      notes: ['']
+    });
+    
+    // Stool tracking form
+    this.addStoolForm = this.formBuilder.group({
+      date: [new Date().toISOString(), [Validators.required]],
+      time: [new Date().toTimeString().slice(0, 5), [Validators.required]],
       notes: ['']
     });
     
@@ -92,12 +109,16 @@ export class GrowthPage implements OnInit {
     });
     
     this.moodOptions = this.growthService.getMoodOptions();
+    this.stoolColorOptions = this.growthService.getStoolColorOptions();
+    this.stoolTextureOptions = this.growthService.getStoolTextureOptions();
+    this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
     this.loadStarPerformers();
   }
 
   private loadTrackingData(babyId: string) {
     this.growthRecords$ = this.growthService.getGrowthRecords(babyId);
     this.weightRecords$ = this.growthService.getWeightRecords(babyId);
+    this.stoolRecords$ = this.growthService.getStoolRecords(babyId);
     this.recentRecords$ = this.growthService.getRecentRecords(babyId, 3);
   }
 
@@ -162,6 +183,10 @@ export class GrowthPage implements OnInit {
     this.showAddWeightModal = true;
   }
 
+  openAddStoolModal() {
+    this.showAddStoolModal = true;
+  }
+
   closeAddRecordModal() {
     this.showAddRecordModal = false;
     this.selectedMood = null;
@@ -178,8 +203,30 @@ export class GrowthPage implements OnInit {
     });
   }
 
+  closeAddStoolModal() {
+    this.showAddStoolModal = false;
+    this.selectedStoolColor = null;
+    this.selectedStoolTexture = null;
+    this.selectedStoolSize = null;
+    this.addWeightForm.reset({
+      date: new Date().toISOString()
+    });
+  }
+
   selectMood(mood: MoodType) {
     this.selectedMood = mood;
+  }
+
+  selectStoolColor(color: StoolColor) {
+    this.selectedStoolColor = color;
+  }
+
+  selectStoolTexture(texture: StoolTexture) {
+    this.selectedStoolTexture = texture;
+  }
+
+  selectStoolSize(size: StoolSize) {
+    this.selectedStoolSize = size;
   }
 
   startSmartVoiceInput() {
@@ -497,6 +544,7 @@ export class GrowthPage implements OnInit {
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
           weight: parseFloat(formValue.weight),
+          height: formValue.height ? parseFloat(formValue.height) : undefined,
           notes: formValue.notes
         };
 
@@ -506,6 +554,32 @@ export class GrowthPage implements OnInit {
         this.closeAddWeightModal();
       } catch (error) {
         this.showToast('Failed to save weight record. Please try again.', 'danger');
+      }
+    }
+  }
+
+  async saveStoolRecord() {
+    if (this.addStoolForm.valid && this.user && this.user.babies.length > 0 && 
+        this.selectedStoolColor && this.selectedStoolTexture && this.selectedStoolSize) {
+      try {
+        const formValue = this.addStoolForm.value;
+        const record: Omit<StoolRecord, 'id' | 'createdAt'> = {
+          babyId: this.user.babies[0].id,
+          recordedBy: this.user.uid,
+          date: new Date(formValue.date),
+          time: formValue.time,
+          color: this.selectedStoolColor,
+          texture: this.selectedStoolTexture,
+          size: this.selectedStoolSize,
+          notes: formValue.notes
+        };
+
+        await this.growthService.addStoolRecord(record);
+        this.showToast('Stool record saved successfully!', 'success');
+
+        this.closeAddStoolModal();
+      } catch (error) {
+        this.showToast('Failed to save stool record. Please try again.', 'danger');
       }
     }
   }
@@ -584,14 +658,21 @@ export class GrowthPage implements OnInit {
   }
 
   getAddButtonText(): string {
-    return this.selectedTab === 'daily' ? 'Add Daily Record' : 'Add Weight Record';
+    switch (this.selectedTab) {
+      case 'daily': return 'Add Daily Record';
+      case 'weight': return 'Add Weight & Size';
+      case 'stool': return 'Add Stool Track';
+      default: return 'Add Record';
+    }
   }
 
   openAddModal() {
     if (this.selectedTab === 'daily') {
       this.openAddRecordModal();
-    } else {
+    } else if (this.selectedTab === 'weight') {
       this.openAddWeightModal();
+    } else if (this.selectedTab === 'stool') {
+      this.openAddStoolModal();
     }
   }
 
