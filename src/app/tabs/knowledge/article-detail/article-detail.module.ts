@@ -4,15 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { ArticleDetailPageRoutingModule } from './article-detail-routing.module';
 import { ArticleDetailPage } from './article-detail.page';
-import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
+import { SharedModule } from '../../../shared/shared.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    ArticleDetailPageRoutingModule
+    ArticleDetailPageRoutingModule,
+    SharedModule
   ],
-  declarations: [ArticleDetailPage, VideoPlayerModalComponent]
+  declarations: [ArticleDetailPage]
 })
 export class ArticleDetailPageModule {}
