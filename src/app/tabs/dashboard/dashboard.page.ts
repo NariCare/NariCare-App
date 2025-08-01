@@ -2,12 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
-import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ChatbotService } from '../../services/chatbot.service';
-import { TimelineItem, TimelineData } from '../../models/baby-timeline.model';
+import { BabyTimelineService } from '../../services/baby-timeline.service';
+import { BabyTimelineItem, BabyTimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
-import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { Observable } from 'rxjs';
 import { TimelineModalComponent } from '../../components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from '../../components/specific-week-modal/specific-week-modal.component';
@@ -17,11 +16,16 @@ import { SpecificWeekModalComponent } from '../../components/specific-week-modal
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
 })
+@Component({
+  selector: 'app-dashboard',
+  templateUrl: './dashboard.page.html',
+  styleUrls: ['./dashboard.page.scss'],
+})
 export class DashboardPage implements OnInit {
   @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
   
   user: User | null = null;
-  timelineData$: Observable<TimelineData>;
+  timelineData$: Observable<BabyTimelineData>;
   currentTimelineData: BabyTimelineData | null = null;
   quickActions = [
     {
