@@ -82,6 +82,8 @@ export interface StoolRecord {
   color: StoolColor;
   texture: StoolTexture;
   size: StoolSize;
+  peeCount?: number; // Number of wet diapers in 24 hours
+  poopCount?: number; // Number of dirty diapers in 24 hours
   notes?: string;
   enteredViaVoice?: boolean;
   createdAt: Date;

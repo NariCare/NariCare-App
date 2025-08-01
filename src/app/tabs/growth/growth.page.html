@@ -918,6 +918,45 @@
             </div>
           </div>
 
+          <!-- Pee Count in 24 Hours -->
+          <div class="form-section">
+            <h4>💧 Pee Count in 24 Hours</h4>
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-input
+                  formControlName="peeCount"
+                  type="number"
+                  min="0"
+                  max="20"
+                  placeholder="How many wet diapers today?"
+                  [class.error]="addStoolForm.get('peeCount')?.invalid && addStoolForm.get('peeCount')?.touched">
+                </ion-input>
+              </ion-item>
+              <div class="error-message" *ngIf="addStoolForm.get('peeCount')?.invalid && addStoolForm.get('peeCount')?.touched">
+                {{ getErrorMessage('peeCount') }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Poop Count in 24 Hours -->
+          <div class="form-section">
+            <h4>💩 Poop Count in 24 Hours</h4>
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-input
+                  formControlName="poopCount"
+                  type="number"
+                  min="0"
+                  max="15"
+                  placeholder="How many dirty diapers today?"
+                  [class.error]="addStoolForm.get('poopCount')?.invalid && addStoolForm.get('poopCount')?.touched">
+                </ion-input>
+              </ion-item>
+              <div class="error-message" *ngIf="addStoolForm.get('poopCount')?.invalid && addStoolForm.get('poopCount')?.touched">
+                {{ getErrorMessage('poopCount') }}
+              </div>
+            </div>
+          </div>
           <!-- Notes -->
           <div class="form-section">
             <h4>📝 Notes</h4>

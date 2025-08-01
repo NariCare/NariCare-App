@@ -108,6 +108,8 @@ export class GrowthPage implements OnInit {
     this.addStoolForm = this.formBuilder.group({
       date: [new Date().toISOString(), [Validators.required]],
       time: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      peeCount: ['', [Validators.min(0), Validators.max(20)]],
+      poopCount: ['', [Validators.min(0), Validators.max(15)]],
       notes: ['']
     });
     
@@ -277,7 +279,8 @@ export class GrowthPage implements OnInit {
     this.selectedStoolSize = null;
     this.clearVoiceInputStool();
     this.addStoolForm.reset({
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      time: new Date().toTimeString().slice(0, 5)
     });
   }
 
@@ -926,6 +929,8 @@ export class GrowthPage implements OnInit {
           color: this.selectedStoolColor,
           texture: this.selectedStoolTexture,
           size: this.selectedStoolSize,
+          peeCount: formValue.peeCount ? parseInt(formValue.peeCount) : undefined,
+          poopCount: formValue.poopCount ? parseInt(formValue.poopCount) : undefined,
           notes: formValue.notes,
           enteredViaVoice: !!this.voiceTranscriptStool
         };
