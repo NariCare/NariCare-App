@@ -507,7 +507,7 @@ export class AuthService {
           createdAt: date.toISOString()
         });
       }
-    }
+    });
     
     return records;
   }
@@ -590,51 +590,7 @@ export class AuthService {
     
     return records;
   }
-  
-  private generateMockWeightData(): any[] {
-    const records = [];
-    const userId = 'mock-user-123';
-    
-    // Generate weight data for both babies
-    const babies = [
-      { id: 'baby-123', name: 'Emma', startWeight: 3.2, daysOld: 45 },
-      { id: 'baby-456', name: 'Oliver', startWeight: 3.5, daysOld: 120 }
-    ];
-    
-    babies.forEach(baby => {
-      let currentWeight = baby.startWeight;
-      const weeksOld = Math.floor(baby.daysOld / 7);
-      
-      // Generate weekly weight records
-      for (let i = weeksOld; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - (i * 7)); // Weekly intervals
-        
-        // Baby gains approximately 150-200g per week initially, then slows down
-        const weeklyGain = i > 8 ? 0.10 + (Math.random() * 0.05) : 0.15 + (Math.random() * 0.05);
-        currentWeight += weeklyGain;
-        
-        records.push({
-          id: `weight-${baby.id}-${i}`,
-          babyId: baby.id,
-          recordedBy: userId,
-          date: date.toISOString(),
-          weight: Math.round(currentWeight * 100) / 100, // Round to 2 decimal places
-          height: baby.id === 'baby-123' ? 50 + (weeksOld - i) * 0.8 : 52 + (weeksOld - i) * 0.9, // Height growth
-          notes: i === 0 ? `Great weight gain this week for ${baby.name}!` : 
-                 i === 2 ? `Steady progress, doctor is happy with ${baby.name}` : 
-                 i === 4 ? `${baby.name} back to birth weight!` : '',
-          enteredViaVoice: Math.random() > 0.8, // 20% chance of voice entry
-          createdAt: date.toISOString()
-        });
-      }
-    });
-    
-    return records;
-    }
-    
-    return records;
-  }
+
   private async mockLogout(): Promise<void> {
     this.currentUserSubject.next(null);
     await this.storage.clear();
