@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
-import { CDCGrowthChartService } from '../../services/cdc-growth-chart.service';
+import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer } from '../../models/growth-tracking.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
@@ -72,7 +72,7 @@ export class GrowthPage implements OnInit {
     private formBuilder: FormBuilder,
     private growthService: GrowthTrackingService,
     private authService: AuthService,
-    private cdcService: CDCGrowthChartService,
+    private whoService: WHOGrowthChartService,
     private timelineService: BabyTimelineService,
     private modalController: ModalController,
     private toastController: ToastController,
