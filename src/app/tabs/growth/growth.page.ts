@@ -905,7 +905,6 @@ export class GrowthPage implements OnInit {
       }
     }
   }
-  }
 
   async saveWeightRecord() {
     if (this.addWeightForm.valid && this.user && this.selectedBaby) {
