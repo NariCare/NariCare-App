@@ -182,6 +182,55 @@ export class DashboardPage implements OnInit, AfterViewInit {
     return upcoming.weekStart - this.currentTimelineData.currentWeek;
   }
 
+  // New timeline UX methods
+  getVisibleTimelineItems(timelineData: BabyTimelineData): BabyTimelineItem[] {
+    // Show current week and next 3-4 items for clean UX
+    const currentWeek = timelineData.currentWeek;
+    const allItems = timelineData.allWeeks || [];
+    
+    // Find current item and show it plus next few items
+    const currentIndex = allItems.findIndex(item => 
+      currentWeek >= item.weekStart && currentWeek <= item.weekEnd
+    );
+    
+    if (currentIndex >= 0) {
+      // Show current item plus next 3 items
+      return allItems.slice(currentIndex, currentIndex + 4);
+    } else {
+      // If no current item found, show first 4 items
+      return allItems.slice(0, 4);
+    }
+  }
+
+  getWeekDisplay(item: BabyTimelineItem): string {
+    if (item.weekStart === 0) return 'Birth';
+    if (item.weekStart === item.weekEnd) return `${item.weekStart}w`;
+    return `${item.weekStart}-${item.weekEnd}w`;
+  }
+
+  isCurrentWeek(item: BabyTimelineItem, currentWeek: number): boolean {
+    return currentWeek >= item.weekStart && currentWeek <= item.weekEnd;
+  }
+
+  isCompletedWeek(item: BabyTimelineItem, currentWeek: number): boolean {
+    return currentWeek > item.weekEnd;
+  }
+
+  isUpcomingWeek(item: BabyTimelineItem, currentWeek: number): boolean {
+    return currentWeek < item.weekStart;
+  }
+
+  hasTimelineAccess(): boolean {
+    // Check if user has access to timeline feature
+    return this.user?.tier?.features?.includes('timeline') || 
+           this.user?.tier?.type !== 'basic' || 
+           true; // For demo, always show timeline
+  }
+
+  openFullTimeline() {
+    this.router.navigate(['/tabs/growth/timeline']);
+  }
+
   async openTimelineModal() {
     const modal = await this.modalController.create({
       component: TimelineModalComponent,
