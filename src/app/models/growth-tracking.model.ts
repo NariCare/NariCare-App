@@ -29,6 +29,13 @@ export interface GrowthRecord {
   updatedAt: Date;
 }
 
+export interface VoiceInputData {
+  transcript: string;
+  extractedData: any;
+  isProcessing: boolean;
+  confidence: number;
+}
+
 export interface BreastSide {
   value: 'left' | 'right' | 'both';
   label: string;
@@ -62,6 +69,7 @@ export interface WeightRecord {
   height?: number; // in cm
   notes?: string;
   reminderSent?: boolean;
+  enteredViaVoice?: boolean;
   createdAt: Date;
 }
 
@@ -75,6 +83,7 @@ export interface StoolRecord {
   texture: StoolTexture;
   size: StoolSize;
   notes?: string;
+  enteredViaVoice?: boolean;
   createdAt: Date;
 }
 

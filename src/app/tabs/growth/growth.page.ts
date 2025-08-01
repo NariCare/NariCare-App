@@ -23,6 +23,7 @@ export class GrowthPage implements OnInit {
   @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
   
   user: User | null = null;
+  selectedBaby: any = null;
   growthRecords$: Observable<GrowthRecord[]> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
   stoolRecords$: Observable<StoolRecord[]> | null = null;
@@ -32,6 +33,7 @@ export class GrowthPage implements OnInit {
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
+  showBabySelector = false;
   addRecordForm: FormGroup;
   addWeightForm: FormGroup;
   addStoolForm: FormGroup;
@@ -53,9 +55,17 @@ export class GrowthPage implements OnInit {
   currentTimelineData: BabyTimelineData | null = null;
   isRecording = false;
   isProcessingVoice = false;
+  isRecordingWeight = false;
+  isRecordingStool = false;
+  isProcessingVoiceWeight = false;
+  isProcessingVoiceStool = false;
   recognition: any;
   voiceTranscript = '';
+  voiceTranscriptWeight = '';
+  voiceTranscriptStool = '';
   extractedData: any = {};
+  extractedDataWeight: any = {};
+  extractedDataStool: any = {};
   painLevel: number = 0;
 
   constructor(
@@ -108,8 +118,10 @@ export class GrowthPage implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
       if (user && user.babies.length > 0) {
-        this.loadTrackingData(user.babies[0].id);
-        this.loadTimelineData(user.babies[0].dateOfBirth);
+        // Set first baby as default selected baby
+        this.selectedBaby = user.babies[0];
+        this.loadTrackingData(this.selectedBaby.id);
+        this.loadTimelineData(this.selectedBaby.dateOfBirth);
       }
     });
     
@@ -155,7 +167,13 @@ export class GrowthPage implements OnInit {
       this.recognition.lang = 'en-US';
       
       this.recognition.onstart = () => {
-        this.isRecording = true;
+        if (this.isProcessingVoice) {
+          this.isRecording = true;
+        } else if (this.isProcessingVoiceWeight) {
+          this.isRecordingWeight = true;
+        } else if (this.isProcessingVoiceStool) {
+          this.isRecordingStool = true;
+        }
       };
       
       this.recognition.onresult = (event: any) => {
@@ -167,25 +185,53 @@ export class GrowthPage implements OnInit {
         }
         
         if (finalTranscript.trim()) {
-          this.voiceTranscript = finalTranscript.trim();
-          this.processSmartVoiceInput(finalTranscript.trim());
+          if (this.isProcessingVoice) {
+            this.voiceTranscript = finalTranscript.trim();
+            this.processSmartVoiceInput(finalTranscript.trim());
+          } else if (this.isProcessingVoiceWeight) {
+            this.processSmartVoiceInputWeight(finalTranscript.trim());
+          } else if (this.isProcessingVoiceStool) {
+            this.processSmartVoiceInputStool(finalTranscript.trim());
+          }
         }
         this.isRecording = false;
+        this.isRecordingWeight = false;
+        this.isRecordingStool = false;
       };
       
       this.recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         this.isRecording = false;
+        this.isRecordingWeight = false;
+        this.isRecordingStool = false;
       };
       
       this.recognition.onend = () => {
         this.isRecording = false;
+        this.isRecordingWeight = false;
+        this.isRecordingStool = false;
       };
     }
   }
 
   onTabChange(event: any) {
     this.selectedTab = event.detail.value;
+  }
+
+  // Baby selection methods
+  openBabySelector() {
+    this.showBabySelector = true;
+  }
+
+  closeBabySelector() {
+    this.showBabySelector = false;
+  }
+
+  selectBaby(baby: any) {
+    this.selectedBaby = baby;
+    this.loadTrackingData(baby.id);
+    this.loadTimelineData(baby.dateOfBirth);
+    this.closeBabySelector();
   }
 
   openAddRecordModal() {
@@ -218,6 +264,7 @@ export class GrowthPage implements OnInit {
 
   closeAddWeightModal() {
     this.showAddWeightModal = false;
+    this.clearVoiceInputWeight();
     this.addWeightForm.reset({
       date: new Date().toISOString()
     });
@@ -228,6 +275,7 @@ export class GrowthPage implements OnInit {
     this.selectedStoolColor = null;
     this.selectedStoolTexture = null;
     this.selectedStoolSize = null;
+    this.clearVoiceInputStool();
     this.addStoolForm.reset({
       date: new Date().toISOString()
     });
@@ -279,6 +327,32 @@ export class GrowthPage implements OnInit {
     this.recognition.start();
   }
 
+  startSmartVoiceInputWeight() {
+    if (!this.recognition) {
+      this.showToast('Speech recognition not supported in this browser', 'warning');
+      return;
+    }
+
+    this.voiceTranscriptWeight = '';
+    this.extractedDataWeight = {};
+    this.isProcessingVoiceWeight = true;
+    this.isRecordingWeight = true;
+    this.recognition.start();
+  }
+
+  startSmartVoiceInputStool() {
+    if (!this.recognition) {
+      this.showToast('Speech recognition not supported in this browser', 'warning');
+      return;
+    }
+
+    this.voiceTranscriptStool = '';
+    this.extractedDataStool = {};
+    this.isProcessingVoiceStool = true;
+    this.isRecordingStool = true;
+    this.recognition.start();
+  }
+
   private async processSmartVoiceInput(transcript: string) {
     this.isProcessingVoice = true;
     
@@ -306,6 +380,57 @@ export class GrowthPage implements OnInit {
     }
   }
 
+  private async processSmartVoiceInputWeight(transcript: string) {
+    this.isProcessingVoiceWeight = true;
+    this.isRecordingWeight = false;
+    
+    try {
+      const extracted = this.extractWeightDataFromSpeech(transcript);
+      this.extractedDataWeight = extracted;
+      this.voiceTranscriptWeight = transcript;
+      
+      this.autoFillWeightFormFields(extracted);
+      
+      const extractedFields = Object.keys(extracted).filter(key => extracted[key] !== null && extracted[key] !== undefined);
+      if (extractedFields.length > 0) {
+        this.showToast(`Auto-filled ${extractedFields.length} field(s) from voice input`, 'success');
+      } else {
+        this.showToast('Voice recorded. Please review and fill remaining fields manually.', 'warning');
+      }
+      
+    } catch (error) {
+      console.error('Error processing weight voice input:', error);
+      this.showToast('Voice input processed. Please review and fill fields manually.', 'warning');
+    } finally {
+      this.isProcessingVoiceWeight = false;
+    }
+  }
+
+  private async processSmartVoiceInputStool(transcript: string) {
+    this.isProcessingVoiceStool = true;
+    this.isRecordingStool = false;
+    
+    try {
+      const extracted = this.extractStoolDataFromSpeech(transcript);
+      this.extractedDataStool = extracted;
+      this.voiceTranscriptStool = transcript;
+      
+      this.autoFillStoolFormFields(extracted);
+      
+      const extractedFields = Object.keys(extracted).filter(key => extracted[key] !== null && extracted[key] !== undefined);
+      if (extractedFields.length > 0) {
+        this.showToast(`Auto-filled ${extractedFields.length} field(s) from voice input`, 'success');
+      } else {
+        this.showToast('Voice recorded. Please review and fill remaining fields manually.', 'warning');
+      }
+      
+    } catch (error) {
+      console.error('Error processing stool voice input:', error);
+      this.showToast('Voice input processed. Please review and fill fields manually.', 'warning');
+    } finally {
+      this.isProcessingVoiceStool = false;
+    }
+  }
   private extractDataFromSpeech(transcript: string): any {
     const text = transcript.toLowerCase().trim();
     const extracted: any = {};
@@ -530,6 +655,168 @@ export class GrowthPage implements OnInit {
     this.extractedData = {};
   }
 
+  clearVoiceInputWeight() {
+    this.voiceTranscriptWeight = '';
+    this.extractedDataWeight = {};
+  }
+
+  clearVoiceInputStool() {
+    this.voiceTranscriptStool = '';
+    this.extractedDataStool = {};
+  }
+
+  private extractWeightDataFromSpeech(transcript: string): any {
+    const text = transcript.toLowerCase().trim();
+    const extracted: any = {};
+    
+    // Extract weight
+    const weightPatterns = [
+      /(?:weighs?|weight|is).*?(\d+(?:\.\d+)?).*?(?:kg|kilograms?|kilos?)/i,
+      /(\d+(?:\.\d+)?).*?(?:kg|kilograms?|kilos?)/i,
+      /(?:baby|child).*?(\d+(?:\.\d+)?).*?(?:kg|kilograms?)/i
+    ];
+    
+    for (const pattern of weightPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const weight = parseFloat(match[1]);
+        if (weight >= 0.5 && weight <= 50) {
+          extracted.weight = weight;
+          break;
+        }
+      }
+    }
+    
+    // Extract height/length
+    const heightPatterns = [
+      /(?:height|length|tall|long).*?(\d+(?:\.\d+)?).*?(?:cm|centimeters?)/i,
+      /(\d+(?:\.\d+)?).*?(?:cm|centimeters?).*?(?:tall|long|height|length)/i,
+      /(?:measures?|is).*?(\d+(?:\.\d+)?).*?(?:cm|centimeters?)/i
+    ];
+    
+    for (const pattern of heightPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const height = parseFloat(match[1]);
+        if (height >= 20 && height <= 150) {
+          extracted.height = height;
+          break;
+        }
+      }
+    }
+    
+    // Extract notes
+    if (text.length > 20 && !Object.keys(extracted).some(key => key !== 'notes')) {
+      extracted.notes = transcript.trim();
+    }
+    
+    return extracted;
+  }
+
+  private extractStoolDataFromSpeech(transcript: string): any {
+    const text = transcript.toLowerCase().trim();
+    const extracted: any = {};
+    
+    // Extract color
+    const colorKeywords = {
+      'very-dark': ['very dark', 'black', 'very black', 'dark black'],
+      'dark-green': ['dark green', 'green', 'greenish'],
+      'dark-brown': ['dark brown', 'brown', 'brownish'],
+      'mustard-yellow': ['mustard', 'yellow', 'mustard yellow', 'yellowish'],
+      'other': ['red', 'orange', 'unusual', 'different', 'strange']
+    };
+    
+    for (const [colorValue, keywords] of Object.entries(colorKeywords)) {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        const color = this.stoolColorOptions.find(c => c.value === colorValue);
+        if (color) {
+          extracted.color = color;
+          break;
+        }
+      }
+    }
+    
+    // Extract texture
+    const textureKeywords = {
+      'liquid': ['liquid', 'watery', 'runny', 'loose'],
+      'pasty': ['pasty', 'soft', 'mushy', 'creamy'],
+      'hard': ['hard', 'firm', 'solid', 'dry'],
+      'snotty': ['snotty', 'mucus', 'slimy', 'stringy'],
+      'bloody': ['bloody', 'blood', 'red streaks', 'bleeding']
+    };
+    
+    for (const [textureValue, keywords] of Object.entries(textureKeywords)) {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        const texture = this.stoolTextureOptions.find(t => t.value === textureValue);
+        if (texture) {
+          extracted.texture = texture;
+          break;
+        }
+      }
+    }
+    
+    // Extract size
+    const sizeKeywords = {
+      'coin': ['coin', 'small', 'tiny', 'little'],
+      'tablespoon': ['tablespoon', 'medium', 'normal', 'average'],
+      'bigger': ['bigger', 'large', 'big', 'huge']
+    };
+    
+    for (const [sizeValue, keywords] of Object.entries(sizeKeywords)) {
+      if (keywords.some(keyword => text.includes(keyword))) {
+        const size = this.stoolSizeOptions.find(s => s.value === sizeValue);
+        if (size) {
+          extracted.size = size;
+          break;
+        }
+      }
+    }
+    
+    // Extract notes
+    if (text.length > 20 && !Object.keys(extracted).some(key => key !== 'notes')) {
+      extracted.notes = transcript.trim();
+    }
+    
+    return extracted;
+  }
+
+  private autoFillWeightFormFields(extractedData: any) {
+    const formUpdates: any = {};
+    
+    if (extractedData.weight !== undefined) {
+      formUpdates.weight = extractedData.weight;
+    }
+    
+    if (extractedData.height !== undefined) {
+      formUpdates.height = extractedData.height;
+    }
+    
+    if (extractedData.notes !== undefined) {
+      formUpdates.notes = extractedData.notes;
+    }
+    
+    if (Object.keys(formUpdates).length > 0) {
+      this.addWeightForm.patchValue(formUpdates);
+    }
+  }
+
+  private autoFillStoolFormFields(extractedData: any) {
+    if (extractedData.color) {
+      this.selectedStoolColor = extractedData.color;
+    }
+    
+    if (extractedData.texture) {
+      this.selectedStoolTexture = extractedData.texture;
+    }
+    
+    if (extractedData.size) {
+      this.selectedStoolSize = extractedData.size;
+    }
+    
+    if (extractedData.notes) {
+      this.addStoolForm.patchValue({ notes: extractedData.notes });
+    }
+  }
   getVoiceInputSummary(): string {
     const extractedFields = Object.keys(this.extractedData).filter(key => 
       this.extractedData[key] !== null && this.extractedData[key] !== undefined
@@ -542,12 +829,35 @@ export class GrowthPage implements OnInit {
     return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
   }
 
+  getVoiceInputSummaryWeight(): string {
+    const extractedFields = Object.keys(this.extractedDataWeight).filter(key => 
+      this.extractedDataWeight[key] !== null && this.extractedDataWeight[key] !== undefined
+    );
+    
+    if (extractedFields.length === 0) {
+      return 'No data extracted from voice input';
+    }
+    
+    return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
+  }
+
+  getVoiceInputSummaryStool(): string {
+    const extractedFields = Object.keys(this.extractedDataStool).filter(key => 
+      this.extractedDataStool[key] !== null && this.extractedDataStool[key] !== undefined
+    );
+    
+    if (extractedFields.length === 0) {
+      return 'No data extracted from voice input';
+    }
+    
+    return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
+  }
   async saveGrowthRecord() {
-    if (this.addRecordForm.valid && this.user && this.user.babies.length > 0) {
+    if (this.addRecordForm.valid && this.user && this.selectedBaby) {
       try {
         const formValue = this.addRecordForm.value;
         const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = {
-          babyId: this.user.babies[0].id,
+          babyId: this.selectedBaby.id,
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
           startTime: formValue.startTime,
@@ -580,16 +890,17 @@ export class GrowthPage implements OnInit {
   }
 
   async saveWeightRecord() {
-    if (this.addWeightForm.valid && this.user && this.user.babies.length > 0) {
+    if (this.addWeightForm.valid && this.user && this.selectedBaby) {
       try {
         const formValue = this.addWeightForm.value;
         const record: Omit<WeightRecord, 'id' | 'createdAt'> = {
-          babyId: this.user.babies[0].id,
+          babyId: this.selectedBaby.id,
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
           weight: parseFloat(formValue.weight),
           height: formValue.height ? parseFloat(formValue.height) : undefined,
-          notes: formValue.notes
+          notes: formValue.notes,
+          enteredViaVoice: !!this.voiceTranscriptWeight
         };
 
         await this.growthService.addWeightRecord(record);
@@ -603,19 +914,20 @@ export class GrowthPage implements OnInit {
   }
 
   async saveStoolRecord() {
-    if (this.addStoolForm.valid && this.user && this.user.babies.length > 0 && 
+    if (this.addStoolForm.valid && this.user && this.selectedBaby && 
         this.selectedStoolColor && this.selectedStoolTexture && this.selectedStoolSize) {
       try {
         const formValue = this.addStoolForm.value;
         const record: Omit<StoolRecord, 'id' | 'createdAt'> = {
-          babyId: this.user.babies[0].id,
+          babyId: this.selectedBaby.id,
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
           time: formValue.time,
           color: this.selectedStoolColor,
           texture: this.selectedStoolTexture,
           size: this.selectedStoolSize,
-          notes: formValue.notes
+          notes: formValue.notes,
+          enteredViaVoice: !!this.voiceTranscriptStool
         };
 
         await this.growthService.addStoolRecord(record);
@@ -717,9 +1029,9 @@ export class GrowthPage implements OnInit {
   }
 
   calculateBabyAge(): string {
-    if (!this.user || !this.user.babies.length) return '';
+    if (!this.selectedBaby) return '';
     
-    const birthDate = new Date(this.user.babies[0].dateOfBirth);
+    const birthDate = new Date(this.selectedBaby.dateOfBirth);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birthDate.getTime());
     const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
