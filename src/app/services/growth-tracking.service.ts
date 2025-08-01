@@ -8,7 +8,10 @@ import {
   StoolColor,
   StoolTexture,
   StoolSize,
-  MoodType, 
+  BreastSide,
+  SupplementType,
+  LipstickShape,
+  MotherMood,
   StarPerformer, 
   QuickLogSuggestion 
 } from '../models/growth-tracking.model';
@@ -22,14 +25,32 @@ export class GrowthTrackingService {
   private weightRecordsSubject = new BehaviorSubject<WeightRecord[]>([]);
   private stoolRecordsSubject = new BehaviorSubject<StoolRecord[]>([]);
   
-  // Available mood options
-  readonly moodOptions: MoodType[] = [
-    { emoji: '😊', label: 'Great', value: 'great', color: '#10b981' },
-    { emoji: '🙂', label: 'Good', value: 'good', color: '#059669' },
-    { emoji: '😐', label: 'Okay', value: 'okay', color: '#6b7280' },
-    { emoji: '😴', label: 'Tired', value: 'tired', color: '#f59e0b' },
-    { emoji: '😟', label: 'Worried', value: 'worried', color: '#f97316' },
-    { emoji: '😰', label: 'Overwhelmed', value: 'overwhelmed', color: '#ef4444' }
+  // Available breast side options
+  readonly breastSideOptions: BreastSide[] = [
+    { value: 'left', label: 'Left', icon: 'radio-button-on' },
+    { value: 'right', label: 'Right', icon: 'radio-button-on' },
+    { value: 'both', label: 'Both', icon: 'ellipse' }
+  ];
+
+  // Available supplement options
+  readonly supplementOptions: SupplementType[] = [
+    { value: 'breastmilk', label: 'Breastmilk', icon: 'water' },
+    { value: 'formula', label: 'Formula', icon: 'nutrition' }
+  ];
+
+  // Available lipstick shape options
+  readonly lipstickShapeOptions: LipstickShape[] = [
+    { value: 'rounded', label: 'Rounded', icon: 'ellipse' },
+    { value: 'lipstick', label: 'Lipstick', icon: 'triangle' }
+  ];
+
+  // Available mother mood options
+  readonly motherMoodOptions: MotherMood[] = [
+    { value: 'relaxed', label: 'Relaxed', emoji: '😌', color: '#10b981' },
+    { value: 'happy', label: 'Happy', emoji: '😊', color: '#059669' },
+    { value: 'sad', label: 'Sad', emoji: '😢', color: '#6b7280' },
+    { value: 'exhausted', label: 'Exhausted', emoji: '😴', color: '#f59e0b' },
+    { value: 'anxious', label: 'Anxious', emoji: '😰', color: '#ef4444' }
   ];
 
   // Available stool color options
@@ -266,8 +287,20 @@ export class GrowthTrackingService {
     }
   }
 
-  getMoodOptions(): MoodType[] {
-    return this.moodOptions;
+  getBreastSideOptions(): BreastSide[] {
+    return this.breastSideOptions;
+  }
+
+  getSupplementOptions(): SupplementType[] {
+    return this.supplementOptions;
+  }
+
+  getLipstickShapeOptions(): LipstickShape[] {
+    return this.lipstickShapeOptions;
+  }
+
+  getMotherMoodOptions(): MotherMood[] {
+    return this.motherMoodOptions;
   }
 
   getStoolColorOptions(): StoolColor[] {

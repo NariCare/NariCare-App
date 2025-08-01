@@ -3,17 +3,15 @@ export interface GrowthRecord {
   babyId: string;
   recordedBy: string;
   date: Date;
-  // Daily feeding tracking
-  directFeedingSessions: number;
-  avgFeedingDuration: number; // in minutes
-  pumpingSessions: number;
-  totalPumpingOutput: number; // in ml
-  formulaIntake: number; // in ml
-  peeCount: number;
-  poopCount: number;
+  // Feed tracking
+  startTime: string; // HH:MM format
+  endTime: string; // HH:MM format
+  breastSide: 'left' | 'right' | 'both';
+  supplement: 'breastmilk' | 'formula' | null;
+  painLevel: number; // 0-10 scale
+  lipstickShape: 'rounded' | 'lipstick';
+  motherMood: 'relaxed' | 'happy' | 'sad' | 'exhausted' | 'anxious';
   // Emotional state
-  mood?: MoodType;
-  moodDescription?: string;
   notes?: string;
   // Voice entry flag
   enteredViaVoice?: boolean;
@@ -22,6 +20,30 @@ export interface GrowthRecord {
   updatedAt: Date;
 }
 
+export interface BreastSide {
+  value: 'left' | 'right' | 'both';
+  label: string;
+  icon: string;
+}
+
+export interface SupplementType {
+  value: 'breastmilk' | 'formula';
+  label: string;
+  icon: string;
+}
+
+export interface LipstickShape {
+  value: 'rounded' | 'lipstick';
+  label: string;
+  icon: string;
+}
+
+export interface MotherMood {
+  value: 'relaxed' | 'happy' | 'sad' | 'exhausted' | 'anxious';
+  label: string;
+  emoji: string;
+  color: string;
+}
 export interface WeightRecord {
   id: string;
   babyId: string;

@@ -8,7 +8,7 @@ import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
 import { CDCGrowthChartService } from '../../services/cdc-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
-import { GrowthRecord, WeightRecord, StoolRecord, MoodType, StoolColor, StoolTexture, StoolSize, StarPerformer } from '../../models/growth-tracking.model';
+import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer } from '../../models/growth-tracking.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
@@ -35,11 +35,17 @@ export class GrowthPage implements OnInit {
   addRecordForm: FormGroup;
   addWeightForm: FormGroup;
   addStoolForm: FormGroup;
-  selectedMood: MoodType | null = null;
+  selectedBreastSide: BreastSide | null = null;
+  selectedSupplement: SupplementType | null = null;
+  selectedLipstickShape: LipstickShape | null = null;
+  selectedMotherMood: MotherMood | null = null;
   selectedStoolColor: StoolColor | null = null;
   selectedStoolTexture: StoolTexture | null = null;
   selectedStoolSize: StoolSize | null = null;
-  moodOptions: MoodType[] = [];
+  breastSideOptions: BreastSide[] = [];
+  supplementOptions: SupplementType[] = [];
+  lipstickShapeOptions: LipstickShape[] = [];
+  motherMoodOptions: MotherMood[] = [];
   stoolColorOptions: StoolColor[] = [];
   stoolTextureOptions: StoolTexture[] = [];
   stoolSizeOptions: StoolSize[] = [];
@@ -50,6 +56,7 @@ export class GrowthPage implements OnInit {
   recognition: any;
   voiceTranscript = '';
   extractedData: any = {};
+  painLevel: number = 0;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -65,14 +72,9 @@ export class GrowthPage implements OnInit {
     // Daily tracking form
     this.addRecordForm = this.formBuilder.group({
       date: [new Date().toISOString(), [Validators.required]],
-      directFeedingSessions: ['', [Validators.required, Validators.min(0), Validators.max(20)]],
-      avgFeedingDuration: ['', [Validators.required, Validators.min(5), Validators.max(120)]],
-      pumpingSessions: ['', [Validators.required, Validators.min(0), Validators.max(10)]],
-      totalPumpingOutput: ['', [Validators.required, Validators.min(0), Validators.max(2000)]],
-      formulaIntake: ['', [Validators.required, Validators.min(0), Validators.max(1000)]],
-      peeCount: ['', [Validators.required, Validators.min(0), Validators.max(20)]],
-      poopCount: ['', [Validators.required, Validators.min(0), Validators.max(10)]],
-      moodDescription: [''],
+      startTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      endTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      painLevel: [0, [Validators.required, Validators.min(0), Validators.max(10)]],
       notes: ['']
     });
     
@@ -108,7 +110,10 @@ export class GrowthPage implements OnInit {
       this.currentTimelineData = data;
     });
     
-    this.moodOptions = this.growthService.getMoodOptions();
+    this.breastSideOptions = this.growthService.getBreastSideOptions();
+    this.supplementOptions = this.growthService.getSupplementOptions();
+    this.lipstickShapeOptions = this.growthService.getLipstickShapeOptions();
+    this.motherMoodOptions = this.growthService.getMotherMoodOptions();
     this.stoolColorOptions = this.growthService.getStoolColorOptions();
     this.stoolTextureOptions = this.growthService.getStoolTextureOptions();
     this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
@@ -189,10 +194,17 @@ export class GrowthPage implements OnInit {
 
   closeAddRecordModal() {
     this.showAddRecordModal = false;
-    this.selectedMood = null;
+    this.selectedBreastSide = null;
+    this.selectedSupplement = null;
+    this.selectedLipstickShape = null;
+    this.selectedMotherMood = null;
+    this.painLevel = 0;
     this.clearVoiceInput();
     this.addRecordForm.reset({
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date().toTimeString().slice(0, 5),
+      painLevel: 0
     });
   }
 
@@ -208,13 +220,30 @@ export class GrowthPage implements OnInit {
     this.selectedStoolColor = null;
     this.selectedStoolTexture = null;
     this.selectedStoolSize = null;
-    this.addWeightForm.reset({
+    this.addStoolForm.reset({
       date: new Date().toISOString()
     });
   }
 
-  selectMood(mood: MoodType) {
-    this.selectedMood = mood;
+  selectBreastSide(side: BreastSide) {
+    this.selectedBreastSide = side;
+  }
+
+  selectSupplement(supplement: SupplementType) {
+    this.selectedSupplement = supplement;
+  }
+
+  selectLipstickShape(shape: LipstickShape) {
+    this.selectedLipstickShape = shape;
+  }
+
+  selectMotherMood(mood: MotherMood) {
+    this.selectedMotherMood = mood;
+  }
+
+  setPainLevel(level: number) {
+    this.painLevel = level;
+    this.addRecordForm.patchValue({ painLevel: level });
   }
 
   selectStoolColor(color: StoolColor) {
@@ -512,15 +541,13 @@ export class GrowthPage implements OnInit {
           babyId: this.user.babies[0].id,
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
-          directFeedingSessions: parseInt(formValue.directFeedingSessions),
-          avgFeedingDuration: parseInt(formValue.avgFeedingDuration),
-          pumpingSessions: parseInt(formValue.pumpingSessions),
-          totalPumpingOutput: parseInt(formValue.totalPumpingOutput),
-          formulaIntake: parseInt(formValue.formulaIntake),
-          peeCount: parseInt(formValue.peeCount),
-          poopCount: parseInt(formValue.poopCount),
-          mood: this.selectedMood || undefined,
-          moodDescription: formValue.moodDescription,
+          startTime: formValue.startTime,
+          endTime: formValue.endTime,
+          breastSide: this.selectedBreastSide?.value || 'both',
+          supplement: this.selectedSupplement?.value || null,
+          painLevel: this.painLevel,
+          lipstickShape: this.selectedLipstickShape?.value || 'rounded',
+          motherMood: this.selectedMotherMood?.value || 'relaxed',
           notes: formValue.notes,
           enteredViaVoice: !!this.voiceTranscript
         };
@@ -615,29 +642,21 @@ export class GrowthPage implements OnInit {
     // Pre-fill form with common values for quick entry
     this.addRecordForm.patchValue({
       date: new Date().toISOString(),
-      directFeedingSessions: 1,
-      avgFeedingDuration: 20,
-      pumpingSessions: 0,
-      totalPumpingOutput: 0,
-      formulaIntake: 0,
-      peeCount: 1,
-      poopCount: 0
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 20 * 60000).toTimeString().slice(0, 5), // 20 minutes later
+      painLevel: 0
     });
     
     this.openAddRecordModal();
   }
 
   private async quickLogPumping() {
-    // Pre-fill form with common pumping values
+    // For now, use the same form - could be extended later
     this.addRecordForm.patchValue({
       date: new Date().toISOString(),
-      directFeedingSessions: 0,
-      avgFeedingDuration: 0,
-      pumpingSessions: 1,
-      totalPumpingOutput: 120,
-      formulaIntake: 0,
-      peeCount: 0,
-      poopCount: 0
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
+      painLevel: 0
     });
     
     this.openAddRecordModal();
