@@ -44,6 +44,9 @@ export class GrowthPage implements OnInit {
   selectedStoolColor: StoolColor | null = null;
   selectedStoolTexture: StoolTexture | null = null;
   selectedStoolSize: StoolSize | null = null;
+  breastSideOptions: BreastSide[] = [];
+  supplementOptions: SupplementType[] = [];
+  lipstickShapeOptions: LipstickShape[] = [];
   motherMoodOptions: MotherMood[] = [];
   stoolColorOptions: StoolColor[] = [];
   stoolTextureOptions: StoolTexture[] = [];
@@ -63,6 +66,7 @@ export class GrowthPage implements OnInit {
   extractedData: any = {};
   extractedDataWeight: any = {};
   extractedDataStool: any = {};
+  painLevel: number = 0;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -78,14 +82,17 @@ export class GrowthPage implements OnInit {
     // Daily tracking form
     this.addRecordForm = this.formBuilder.group({
       date: [new Date().toISOString(), [Validators.required]],
-      directFeedingSessions: ['', [Validators.required, Validators.min(0), Validators.max(20)]],
-      avgFeedingDuration: ['', [Validators.required, Validators.min(5), Validators.max(120)]],
-      pumpingSessions: ['', [Validators.min(0), Validators.max(10)]],
-      totalPumpingOutput: ['', [Validators.min(0), Validators.max(2000)]],
-      formulaIntake: ['', [Validators.min(0), Validators.max(1000)]],
-      totalPumpingOutput: ['', [Validators.min(0), Validators.max(2000)]],
-      formulaIntake: ['', [Validators.min(0), Validators.max(1000)]],
+      startTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      endTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      painLevel: [0, [Validators.required, Validators.min(0), Validators.max(10)]],
       notes: [''],
+      directFeedingSessions: [0],
+      avgFeedingDuration: [0],
+      pumpingSessions: [0],
+      totalPumpingOutput: [0],
+      formulaIntake: [0],
+      peeCount: [0],
+      poopCount: [0],
       moodDescription: ['']
     });
     
@@ -125,6 +132,9 @@ export class GrowthPage implements OnInit {
       this.currentTimelineData = data;
     });
     
+    this.breastSideOptions = this.growthService.getBreastSideOptions();
+    this.supplementOptions = this.growthService.getSupplementOptions();
+    this.lipstickShapeOptions = this.growthService.getLipstickShapeOptions();
     this.motherMoodOptions = this.growthService.getMotherMoodOptions();
     this.stoolColorOptions = this.growthService.getStoolColorOptions();
     this.stoolTextureOptions = this.growthService.getStoolTextureOptions();
@@ -240,10 +250,17 @@ export class GrowthPage implements OnInit {
 
   closeAddRecordModal() {
     this.showAddRecordModal = false;
+    this.selectedBreastSide = null;
+    this.selectedSupplement = null;
+    this.selectedLipstickShape = null;
     this.selectedMotherMood = null;
+    this.painLevel = 0;
     this.clearVoiceInput();
     this.addRecordForm.reset({
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date().toTimeString().slice(0, 5),
+      painLevel: 0
     });
   }
 
@@ -267,8 +284,26 @@ export class GrowthPage implements OnInit {
     });
   }
 
+  selectBreastSide(side: BreastSide) {
+    this.selectedBreastSide = side;
+  }
+
+  selectSupplement(supplement: SupplementType) {
+    this.selectedSupplement = supplement;
+  }
+
+  selectLipstickShape(shape: LipstickShape) {
+    this.selectedLipstickShape = shape;
+  }
+
   selectMotherMood(mood: MotherMood) {
     this.selectedMotherMood = mood;
+  }
+
+  setPainLevel(level: number | { lower: number; upper: number }) {
+    const painValue = typeof level === 'number' ? level : level.lower || 0;
+    this.painLevel = painValue;
+    this.addRecordForm.patchValue({ painLevel: painValue });
   }
 
   selectStoolColor(color: StoolColor) {
@@ -399,7 +434,6 @@ export class GrowthPage implements OnInit {
       this.isProcessingVoiceStool = false;
     }
   }
-
   private extractDataFromSpeech(transcript: string): any {
     const text = transcript.toLowerCase().trim();
     const extracted: any = {};
@@ -800,7 +834,6 @@ export class GrowthPage implements OnInit {
       this.addStoolForm.patchValue(formUpdates);
     }
   }
-
   getVoiceInputSummary(): string {
     const extractedFields = Object.keys(this.extractedData).filter(key => 
       this.extractedData[key] !== null && this.extractedData[key] !== undefined
@@ -836,29 +869,28 @@ export class GrowthPage implements OnInit {
     
     return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
   }
-
   async saveGrowthRecord() {
-    if (this.addRecordForm.valid && this.user && this.selectedBaby && this.selectedMotherMood) {
+    if (this.addRecordForm.valid && this.user && this.selectedBaby) {
       try {
         const formValue = this.addRecordForm.value;
         const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = {
           babyId: this.selectedBaby.id,
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
-          startTime: '00:00', // Default values for required fields
-          endTime: '00:00',
-          breastSide: 'both',
-          supplement: null,
-          painLevel: 0,
-          lipstickShape: 'rounded',
+          startTime: formValue.startTime,
+          endTime: formValue.endTime,
+          breastSide: this.selectedBreastSide?.value || 'both',
+          supplement: this.selectedSupplement?.value || null,
+          painLevel: this.painLevel,
+          lipstickShape: this.selectedLipstickShape?.value || 'rounded',
           mood: this.selectedMotherMood,
-          directFeedingSessions: parseInt(formValue.directFeedingSessions) || 0,
-          avgFeedingDuration: parseInt(formValue.avgFeedingDuration) || 0,
-          pumpingSessions: parseInt(formValue.pumpingSessions) || 0,
-          totalPumpingOutput: parseInt(formValue.totalPumpingOutput) || 0,
-          formulaIntake: parseInt(formValue.formulaIntake) || 0,
-          peeCount: 0,
-          poopCount: 0,
+          directFeedingSessions: formValue.directFeedingSessions,
+          avgFeedingDuration: formValue.avgFeedingDuration,
+          pumpingSessions: formValue.pumpingSessions,
+          totalPumpingOutput: formValue.totalPumpingOutput,
+          formulaIntake: formValue.formulaIntake,
+          peeCount: formValue.peeCount,
+          poopCount: formValue.poopCount,
           moodDescription: formValue.moodDescription,
           notes: formValue.notes,
           enteredViaVoice: !!this.voiceTranscript
@@ -872,6 +904,7 @@ export class GrowthPage implements OnInit {
         this.showToast('Failed to save record. Please try again.', 'danger');
       }
     }
+  }
   }
 
   async saveWeightRecord() {
@@ -957,7 +990,10 @@ export class GrowthPage implements OnInit {
   private async quickLogFeeding() {
     // Pre-fill form with common values for quick entry
     this.addRecordForm.patchValue({
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 20 * 60000).toTimeString().slice(0, 5), // 20 minutes later
+      painLevel: 0
     });
     
     this.openAddRecordModal();
@@ -966,7 +1002,10 @@ export class GrowthPage implements OnInit {
   private async quickLogPumping() {
     // For now, use the same form - could be extended later
     this.addRecordForm.patchValue({
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
+      painLevel: 0
     });
     
     this.openAddRecordModal();
@@ -1027,7 +1066,7 @@ export class GrowthPage implements OnInit {
   }
 
   getErrorMessage(field: string): string {
-    const control = this.addRecordForm.get(field) || this.addWeightForm.get(field) || this.addStoolForm.get(field);
+    const control = this.addRecordForm.get(field);
     if (control?.hasError('required')) {
       return 'This field is required';
     }
