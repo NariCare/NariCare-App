@@ -885,13 +885,84 @@
   text-align: center;
   
   ion-input {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: #26a69a;
     text-align: center;
   }
 }
 
+.breast-side-grid,
+.supplement-grid,
+.lipstick-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.mood-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.breast-side-icon,
+.supplement-icon,
+.lipstick-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  ion-icon {
+    font-size: 1.5rem;
+    color: #26a69a;
+  }
+}
+
+.mood-emoji-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pain-level-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.pain-level-display {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #26a69a;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(38, 166, 154, 0.3);
+}
+
+.pain-slider {
+  width: 100%;
+  --bar-background: #e2e8f0;
+  --bar-background-active: #26a69a;
+  --knob-background: #26a69a;
+  --knob-size: 24px;
+}
 .selection-grid {
   display: grid;
   gap: 1rem;

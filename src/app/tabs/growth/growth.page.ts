@@ -734,6 +734,16 @@ export class GrowthPage implements OnInit {
     return new Date();
   }
 
+  getMotherMoodEmoji(mood: string): string {
+    const moodOption = this.motherMoodOptions.find(m => m.value === mood);
+    return moodOption?.emoji || '😊';
+  }
+
+  getMotherMoodLabel(mood: string): string {
+    const moodOption = this.motherMoodOptions.find(m => m.value === mood);
+    return moodOption?.label || mood;
+  }
+
   getBabyGenderForChart(gender: 'male' | 'female' | 'other' | undefined): 'male' | 'female' {
     if (gender === 'male' || gender === 'female') {
       return gender;

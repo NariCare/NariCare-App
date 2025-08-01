@@ -183,7 +183,7 @@
                 <p class="description">{{ item.description }}</p>
                 
                 <!-- What to Expect -->
-                <div class="expectation-section" *ngIf="item.whatToExpect && item.whatToExpect.length > 0">
+                <div class="expectation-section" *ngIf="item.whatToExpect && item.whatToExpected.length > 0">
                   <h4>💕 What to Expect:</h4>
                   <ul class="expectation-list">
                     <li *ngFor="let expectation of item.whatToExpect">{{ expectation }}</li>
@@ -247,9 +247,9 @@
           <div *ngFor="let record of records | slice:0:5" class="record-card daily-record">
             <div class="record-header">
               <span class="record-date">{{ formatDate(record.date) }}</span>
-              <div class="record-mood" *ngIf="record.mood">
-                <span class="mood-emoji">{{ record.mood.emoji }}</span>
-                <span class="mood-label">{{ record.mood.label }}</span>
+              <div class="record-mood" *ngIf="record.motherMood">
+                <span class="mood-emoji">{{ getMotherMoodEmoji(record.motherMood) }}</span>
+                <span class="mood-label">{{ getMotherMoodLabel(record.motherMood) }}</span>
               </div>
             </div>
             
@@ -258,40 +258,36 @@
                 <h4>Feeding</h4>
                 <div class="metrics-grid">
                   <div class="metric">
-                    <span class="metric-label">Direct Sessions</span>
-                    <span class="metric-value">{{ record.directFeedingSessions }}</span>
+                    <span class="metric-label">Start Time</span>
+                    <span class="metric-value">{{ record.startTime }}</span>
                   </div>
                   <div class="metric">
-                    <span class="metric-label">Avg Duration</span>
-                    <span class="metric-value">{{ record.avgFeedingDuration }}min</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="metric-group">
-                <h4>Pumping</h4>
-                <div class="metrics-grid">
-                  <div class="metric">
-                    <span class="metric-label">Sessions</span>
-                    <span class="metric-value">{{ record.pumpingSessions }}</span>
-                  </div>
-                  <div class="metric">
-                    <span class="metric-label">Output</span>
-                    <span class="metric-value">{{ record.totalPumpingOutput }}ml</span>
+                    <span class="metric-label">End Time</span>
+                    <span class="metric-value">{{ record.endTime }}</span>
                   </div>
                 </div>
               </div>
               
               <div class="metric-group">
-                <h4>Baby Output</h4>
+                <h4>Details</h4>
                 <div class="metrics-grid">
                   <div class="metric">
-                    <span class="metric-label">Pee</span>
-                    <span class="metric-value">{{ record.peeCount }}</span>
+                    <span class="metric-label">Breast Side</span>
+                    <span class="metric-value">{{ record.breastSide | titlecase }}</span>
                   </div>
                   <div class="metric">
-                    <span class="metric-label">Poop</span>
-                    <span class="metric-value">{{ record.poopCount }}</span>
+                    <span class="metric-label">Pain Level</span>
+                    <span class="metric-value">{{ record.painLevel }}/10</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="metric-group" *ngIf="record.supplement">
+                <h4>Supplement</h4>
+                <div class="metrics-grid">
+                  <div class="metric">
+                    <span class="metric-label">Type</span>
+                    <span class="metric-value">{{ record.supplement | titlecase }}</span>
                   </div>
                 </div>
               </div>
@@ -446,229 +442,148 @@
       <ion-content>
         <form [formGroup]="addRecordForm" class="add-record-form">
           
-          <!-- Date Selection -->
-          <div class="form-section">
-            <h4>Date & Time</h4>
-            
-            <!-- Smart Voice Input -->
-            <div class="smart-voice-section" *ngIf="isVoiceSupported()">
-              <div class="voice-input-header">
-                <h5>🎤 Smart Voice Input</h5>
-                <p>Speak naturally about your day and we'll auto-fill the form</p>
-              </div>
-              
-              <div class="voice-input-controls">
-                <ion-button 
-                  expand="block"
-                  fill="outline" 
-                  (click)="startSmartVoiceInput()"
-                  [disabled]="isRecording || isProcessingVoice"
-                  class="smart-voice-button">
-                  <ion-icon [name]="isRecording ? 'stop' : 'mic'" slot="start"></ion-icon>
-                  <span *ngIf="!isRecording && !isProcessingVoice">Start Voice Input</span>
-                  <span *ngIf="isRecording">Listening... Speak now</span>
-                  <span *ngIf="isProcessingVoice">Processing...</span>
-                </ion-button>
-                
-                <!-- Voice Input Status -->
-                <div class="voice-status" *ngIf="voiceTranscript">
-                  <div class="voice-transcript">
-                    <h6>What you said:</h6>
-                    <p>"{{ voiceTranscript }}"</p>
-                  </div>
-                  <div class="voice-summary">
-                    <p class="summary-text">{{ getVoiceInputSummary() }}</p>
-                    <ion-button fill="clear" size="small" (click)="clearVoiceInput()">
-                      <ion-icon name="close" slot="start"></ion-icon>
-                      Clear
-                    </ion-button>
-                  </div>
-                </div>
-                
-                <!-- Voice Input Examples -->
-                <div class="voice-examples" *ngIf="!voiceTranscript">
-                  <h6>Example phrases:</h6>
-                  <ul>
-                    <li>"Baby fed 8 times today, each session lasted about 20 minutes"</li>
-                    <li>"Pumped 3 times and got 180ml total, feeling tired today"</li>
-                    <li>"Had 7 wet diapers and 3 dirty ones, baby seems happy"</li>
-                  </ul>
-                </div>
-              </div>
+          <!-- Baby Info Header -->
+          <div class="baby-info-header" *ngIf="user && user.babies && user.babies.length > 0">
+            <div class="baby-avatar">
+              <ion-icon name="happy"></ion-icon>
             </div>
-            
-            <div class="form-group">
-              <ion-item lines="none" class="input-item">
-                <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-                <ion-datetime-button datetime="recordDate">
-                  <ion-label>Date</ion-label>
-                </ion-datetime-button>
-              </ion-item>
-              <ion-modal [keepContentsMounted]="true">
-                <ng-template>
-                  <ion-datetime 
-                    id="recordDate" 
-                    formControlName="date"
-                    presentation="date"
-                    max="2025-12-31"
-                    min="2020-01-01">
-                  </ion-datetime>
-                </ng-template>
-              </ion-modal>
+            <div class="baby-details">
+              <h3>{{ user.babies[0].name }}</h3>
+              <p>{{ calculateBabyAge() }}</p>
             </div>
           </div>
 
-          <!-- Feeding Information -->
+          <!-- Breastfeeding Time -->
           <div class="form-section">
-            <h4>🍼 Feeding Information</h4>
+            <h4>Breastfeeding time ?</h4>
             
             <div class="form-row">
               <div class="form-group half-width">
-                <label class="field-label">Direct Feeding Sessions (24h)</label>
-                <ion-item lines="none" class="input-item">
+                <label class="field-label">Start</label>
+                <ion-item lines="none" class="input-item time-input">
                   <ion-input
-                    formControlName="directFeedingSessions"
-                    type="number"
-                    placeholder="8"
-                    [class.error]="addRecordForm.get('directFeedingSessions')?.invalid && addRecordForm.get('directFeedingSessions')?.touched">
+                    formControlName="startTime"
+                    type="time"
+                    [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
                   </ion-input>
                 </ion-item>
-                <div class="error-message" *ngIf="addRecordForm.get('directFeedingSessions')?.invalid && addRecordForm.get('directFeedingSessions')?.touched">
-                  {{ getErrorMessage('directFeedingSessions') }}
+                <div class="error-message" *ngIf="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
+                  {{ getErrorMessage('startTime') }}
                 </div>
               </div>
               
               <div class="form-group half-width">
-                <label class="field-label">Avg Duration (minutes)</label>
-                <ion-item lines="none" class="input-item">
+                <label class="field-label">End</label>
+                <ion-item lines="none" class="input-item time-input">
                   <ion-input
-                    formControlName="avgFeedingDuration"
-                    type="number"
-                    placeholder="20"
-                    [class.error]="addRecordForm.get('avgFeedingDuration')?.invalid && addRecordForm.get('avgFeedingDuration')?.touched">
+                    formControlName="endTime"
+                    type="time"
+                    [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
                   </ion-input>
                 </ion-item>
-                <div class="error-message" *ngIf="addRecordForm.get('avgFeedingDuration')?.invalid && addRecordForm.get('avgFeedingDuration')?.touched">
-                  {{ getErrorMessage('avgFeedingDuration') }}
+                <div class="error-message" *ngIf="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
+                  {{ getErrorMessage('endTime') }}
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Pumping Information -->
+          <!-- Breast Side Selection -->
           <div class="form-section">
-            <h4>🥛 Pumping Information</h4>
-            <p class="section-note">Each session = both sides pumped, 15-20 min each side</p>
-            
-            <div class="form-row">
-              <div class="form-group half-width">
-                <label class="field-label">Pumping Sessions</label>
-                <ion-item lines="none" class="input-item">
-                  <ion-input
-                    formControlName="pumpingSessions"
-                    type="number"
-                    placeholder="3"
-                    [class.error]="addRecordForm.get('pumpingSessions')?.invalid && addRecordForm.get('pumpingSessions')?.touched">
-                  </ion-input>
-                </ion-item>
-                <div class="error-message" *ngIf="addRecordForm.get('pumpingSessions')?.invalid && addRecordForm.get('pumpingSessions')?.touched">
-                  {{ getErrorMessage('pumpingSessions') }}
+            <h4>Breast side ?</h4>
+            <div class="selection-grid breast-side-grid">
+              <div 
+                *ngFor="let side of breastSideOptions"
+                class="selection-option breast-side-option"
+                [class.selected]="selectedBreastSide?.value === side.value"
+                (click)="selectBreastSide(side)">
+                <div class="breast-side-icon">
+                  <ion-icon [name]="side.icon"></ion-icon>
                 </div>
-              </div>
-              
-              <div class="form-group half-width">
-                <label class="field-label">Total Output (ml)</label>
-                <ion-item lines="none" class="input-item">
-                  <ion-input
-                    formControlName="totalPumpingOutput"
-                    type="number"
-                    placeholder="360"
-                    [class.error]="addRecordForm.get('totalPumpingOutput')?.invalid && addRecordForm.get('totalPumpingOutput')?.touched">
-                  </ion-input>
-                </ion-item>
-                <div class="error-message" *ngIf="addRecordForm.get('totalPumpingOutput')?.invalid && addRecordForm.get('totalPumpingOutput')?.touched">
-                  {{ getErrorMessage('totalPumpingOutput') }}
-                </div>
+                <span class="option-label">{{ side.label }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Formula & Baby Output -->
+          <!-- Supplement Selection -->
           <div class="form-section">
-            <h4>🍼 Formula & Baby Output</h4>
-            
-            <div class="form-group">
-              <label class="field-label">Total Formula Intake (ml) - 24h</label>
-              <ion-item lines="none" class="input-item">
-                <ion-input
-                  formControlName="formulaIntake"
-                  type="number"
-                  placeholder="0"
-                  [class.error]="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
-                </ion-input>
-              </ion-item>
-              <div class="error-message" *ngIf="addRecordForm.get('formulaIntake')?.invalid && addRecordForm.get('formulaIntake')?.touched">
-                {{ getErrorMessage('formulaIntake') }}
-              </div>
-            </div>
-            
-            <div class="form-row">
-              <div class="form-group half-width">
-                <label class="field-label">Pee Count (24h)</label>
-                <ion-item lines="none" class="input-item">
-                  <ion-input
-                    formControlName="peeCount"
-                    type="number"
-                    placeholder="6"
-                    [class.error]="addRecordForm.get('peeCount')?.invalid && addRecordForm.get('peeCount')?.touched">
-                  </ion-input>
-                </ion-item>
-                <div class="error-message" *ngIf="addRecordForm.get('peeCount')?.invalid && addRecordForm.get('peeCount')?.touched">
-                  {{ getErrorMessage('peeCount') }}
+            <h4>Supplement ?</h4>
+            <div class="selection-grid supplement-grid">
+              <div 
+                *ngFor="let supplement of supplementOptions"
+                class="selection-option supplement-option"
+                [class.selected]="selectedSupplement?.value === supplement.value"
+                (click)="selectSupplement(supplement)">
+                <div class="supplement-icon">
+                  <ion-icon [name]="supplement.icon"></ion-icon>
                 </div>
-              </div>
-              
-              <div class="form-group half-width">
-                <label class="field-label">Poop Count (24h)</label>
-                <ion-item lines="none" class="input-item">
-                  <ion-input
-                    formControlName="poopCount"
-                    type="number"
-                    placeholder="2"
-                    [class.error]="addRecordForm.get('poopCount')?.invalid && addRecordForm.get('poopCount')?.touched">
-                  </ion-input>
-                </ion-item>
-                <div class="error-message" *ngIf="addRecordForm.get('poopCount')?.invalid && addRecordForm.get('poopCount')?.touched">
-                  {{ getErrorMessage('poopCount') }}
-                </div>
+                <span class="option-label">{{ supplement.label }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Mood & Notes -->
+          <!-- Pain Level -->
           <div class="form-section">
-            <h4>😊 How are you feeling?</h4>
+            <h4>Pain ?</h4>
+            <p class="section-note">Consider 0 is no pain and 10 is a lot of pain</p>
             
-            <div class="form-group">
-              <label class="field-label">Mood (optional)</label>
-              <div class="mood-selector">
-                <div 
-                  *ngFor="let mood of moodOptions"
-                  class="mood-option"
-                  [class.selected]="selectedMood?.value === mood.value"
-                  (click)="selectMood(mood)">
-                  <span class="mood-emoji">{{ mood.emoji }}</span>
-                  <span class="mood-label">{{ mood.label }}</span>
+            <div class="pain-level-container">
+              <div class="pain-level-display">{{ painLevel }}</div>
+              <ion-range
+                min="0"
+                max="10"
+                step="1"
+                [(ngModel)]="painLevel"
+                (ionInput)="setPainLevel($event.detail.value)"
+                color="secondary"
+                class="pain-slider">
+                <ion-label slot="start">0</ion-label>
+                <ion-label slot="end">10</ion-label>
+              </ion-range>
+            </div>
+          </div>
+
+          <!-- Lipstick Shape -->
+          <div class="form-section">
+            <h4>Lipstick ?</h4>
+            <p class="section-note">It can change after the feed</p>
+            <div class="selection-grid lipstick-grid">
+              <div 
+                *ngFor="let shape of lipstickShapeOptions"
+                class="selection-option lipstick-option"
+                [class.selected]="selectedLipstickShape?.value === shape.value"
+                (click)="selectLipstickShape(shape)">
+                <div class="lipstick-icon">
+                  <ion-icon [name]="shape.icon"></ion-icon>
                 </div>
+                <span class="option-label">{{ shape.label }}</span>
               </div>
             </div>
-            
+          </div>
+
+          <!-- How do you feel -->
+          <div class="form-section">
+            <h4>How do you feel? ?</h4>
+            <div class="selection-grid mood-grid">
+              <div 
+                *ngFor="let mood of motherMoodOptions"
+                class="selection-option mood-option"
+                [class.selected]="selectedMotherMood?.value === mood.value"
+                (click)="selectMotherMood(mood)">
+                <div class="mood-emoji-circle">{{ mood.emoji }}</div>
+                <span class="option-label">{{ mood.label }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-section">
+            <h4>Your notes ?</h4>
             <div class="form-group">
-              <label class="field-label">Notes (optional)</label>
               <ion-item lines="none" class="input-item">
                 <ion-textarea
                   formControlName="notes"
-                  placeholder="Any additional notes about today..."
+                  placeholder="Write here more about your feed"
                   rows="3"
                   autoGrow="true">
                 </ion-textarea>
@@ -681,9 +596,9 @@
             <ion-button 
               expand="block" 
               (click)="saveGrowthRecord()"
-              [disabled]="!addRecordForm.valid"
+              [disabled]="!addRecordForm.valid || !selectedBreastSide || !selectedMotherMood"
               class="save-button">
-              Save Daily Record
+              Accept
             </ion-button>
           </div>
         </form>
@@ -805,7 +720,7 @@
       </ion-content>
     </ng-template>
   </ion-modal>
-                    max="2025-12-31"
+
   <!-- Stool Track Modal -->
   <ion-modal [isOpen]="showAddStoolModal" (didDismiss)="closeAddStoolModal()">
     <ng-template>
@@ -838,7 +753,7 @@
               <p>{{ calculateBabyAge() }}</p>
             </div>
           </div>
-                    min="2020-01-01">
+
           <!-- Time Selection -->
           <div class="form-section">
             <h4>⏰ Time</h4>
@@ -852,6 +767,7 @@
               </ion-item>
             </div>
           </div>
+
           <!-- Color Selection -->
           <div class="form-section">
             <h4>🎨 Color</h4>
@@ -866,6 +782,7 @@
               </div>
             </div>
           </div>
+
           <!-- Texture Selection -->
           <div class="form-section">
             <h4>🔍 Texture</h4>
@@ -882,6 +799,7 @@
               </div>
             </div>
           </div>
+
           <!-- Size Selection -->
           <div class="form-section">
             <h4>📏 Size</h4>
@@ -898,6 +816,7 @@
               </div>
             </div>
           </div>
+
           <!-- Notes -->
           <div class="form-section">
             <h4>📝 Notes</h4>
@@ -912,6 +831,7 @@
               </ion-item>
             </div>
           </div>
+
           <!-- Form Actions -->
           <div class="form-actions">
             <ion-button 
