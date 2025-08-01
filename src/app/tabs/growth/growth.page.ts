@@ -816,8 +816,22 @@ export class GrowthPage implements OnInit {
       this.selectedStoolSize = extractedData.size;
     }
     
+    const formUpdates: any = {};
+    
     if (extractedData.notes) {
-      this.addStoolForm.patchValue({ notes: extractedData.notes });
+      formUpdates.notes = extractedData.notes;
+    }
+    
+    if (extractedData.peeCount !== undefined) {
+      formUpdates.peeCount = extractedData.peeCount;
+    }
+    
+    if (extractedData.poopCount !== undefined) {
+      formUpdates.poopCount = extractedData.poopCount;
+    }
+    
+    if (Object.keys(formUpdates).length > 0) {
+      this.addStoolForm.patchValue(formUpdates);
     }
   }
   getVoiceInputSummary(): string {

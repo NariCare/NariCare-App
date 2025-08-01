@@ -311,6 +311,16 @@
                 <ion-icon [name]="record.size.icon" class="size-icon"></ion-icon>
                 <span class="attribute-value">{{ record.size.label }}</span>
               </div>
+              <div class="stool-attribute" *ngIf="record.peeCount !== undefined">
+                <span class="attribute-label">Pee Count:</span>
+                <ion-icon name="water" class="count-icon"></ion-icon>
+                <span class="attribute-value">{{ record.peeCount }} wet diapers</span>
+              </div>
+              <div class="stool-attribute" *ngIf="record.poopCount !== undefined">
+                <span class="attribute-label">Poop Count:</span>
+                <ion-icon name="ellipse" class="count-icon"></ion-icon>
+                <span class="attribute-value">{{ record.poopCount }} dirty diapers</span>
+              </div>
             </div>
             <div class="stool-notes" *ngIf="record.notes">
               <p>{{ record.notes }}</p>
