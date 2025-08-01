@@ -8,13 +8,14 @@ import { BabyTimelineItem, BabyTimelineData } from '../models/baby-timeline.mode
 export class BabyTimelineService {
   
   private readonly timelineData: BabyTimelineItem[] = [
-    // Week 0: Birth
+    // Birth - Week 0
     {
       id: 'birth-week',
       weekStart: 0,
       weekEnd: 0,
       title: 'Welcome to the world!',
-      description: 'Your baby has arrived! This is the beginning of your beautiful breastfeeding journey together.',
+      shortTitle: 'Birth',
+      description: 'Your baby has arrived! This is the beginning of your beautiful journey together.',
       category: 'milestone',
       icon: 'heart',
       color: '#e91e63',
@@ -36,13 +37,356 @@ export class BabyTimelineService {
         'Baby seems very lethargic'
       ]
     },
-    
-    // Week 1: First Week
+
+    // 2 Months - Week 8
     {
-      id: 'first-week',
+      id: 'two-months-milestones',
+      weekStart: 8,
+      weekEnd: 8,
+      title: '2 Months: Social Smiles & Calming',
+      shortTitle: '2 Months',
+      description: 'Your baby is becoming more social and responsive! Watch for those magical first smiles.',
+      category: 'milestone',
+      icon: 'happy',
+      color: '#4caf50',
+      whatToExpected: [
+        'Calms down when spoken to or picked up',
+        'Looks at your face and makes eye contact',
+        'Seems happy to see you when you walk up to them',
+        'Smiles when you talk to or smile at them',
+        'Can hold head up when on tummy',
+        'Moves both arms and both legs',
+        'Opens hands briefly'
+      ],
+      tips: [
+        'Talk and sing to your baby throughout the day',
+        'Give plenty of tummy time when baby is awake',
+        'Respond to baby\'s smiles and sounds',
+        'Read to your baby daily',
+        'Take photos and videos of these precious moments'
+      ],
+      whenToWorry: [
+        'Doesn\'t respond to loud sounds',
+        'Doesn\'t watch things as they move',
+        'Doesn\'t smile at people',
+        'Can\'t hold head up when pushing up during tummy time',
+        'Doesn\'t bring hands to mouth'
+      ]
+    },
+
+    // 4 Months - Week 16
+    {
+      id: 'four-months-milestones',
+      weekStart: 16,
+      weekEnd: 16,
+      title: '4 Months: Laughing & Reaching',
+      shortTitle: '4 Months',
+      description: 'Your baby is becoming more interactive and playful! Expect lots of giggles and reaching.',
+      category: 'milestone',
+      icon: 'musical-notes',
+      color: '#ff9800',
+      whatToExpected: [
+        'Smiles on their own to get your attention',
+        'Chuckles (not yet a full laugh) when you try to make them laugh',
+        'Looks at you, moves, or makes sounds to get or keep your attention',
+        'Holds head steady without support when you are holding them',
+        'Holds a toy when you put it in their hand',
+        'Uses their arm to swing at toys',
+        'Brings hands to mouth',
+        'Pushes up onto elbows/forearms when on tummy'
+      ],
+      tips: [
+        'Play peek-a-boo and other interactive games',
+        'Provide safe toys for baby to grasp and explore',
+        'Continue tummy time to strengthen neck and shoulder muscles',
+        'Talk to baby and wait for them to respond',
+        'Sing songs and read books together'
+      ],
+      whenToWorry: [
+        'Doesn\'t watch things as they move',
+        'Doesn\'t smile at people',
+        'Can\'t hold head steady',
+        'Doesn\'t coo or make sounds',
+        'Doesn\'t bring things to mouth',
+        'Doesn\'t push down with legs when feet are placed on a hard surface'
+      ]
+    },
+
+    // 6 Months - Week 24
+    {
+      id: 'six-months-milestones',
+      weekStart: 24,
+      weekEnd: 24,
+      title: '6 Months: Sitting & Exploring',
+      shortTitle: '6 Months',
+      description: 'Half a year milestone! Your baby is becoming more mobile and curious about everything.',
+      category: 'milestone',
+      icon: 'cube',
+      color: '#2196f3',
+      whatToExpected: [
+        'Knows familiar people and begins to know if someone is a stranger',
+        'Likes to play with others, especially parents',
+        'Responds to other people\'s emotions and often seems happy',
+        'Likes to look at self in a mirror',
+        'Responds to sounds by making sounds',
+        'Strings vowels together when babbling ("ah," "eh," "oh")',
+        'Takes turns making sounds with you',
+        'Blows "raspberries" (sticks tongue out and blows)',
+        'Brings things to mouth',
+        'Reaches for things',
+        'Closes lips to show they don\'t want more food'
+      ],
+      tips: [
+        'Introduce solid foods alongside breastfeeding',
+        'Let baby explore different textures safely',
+        'Play games that involve taking turns',
+        'Provide unbreakable mirrors for baby to look at',
+        'Continue reading and talking throughout the day'
+      ],
+      whenToWorry: [
+        'Doesn\'t try to get things that are in reach',
+        'Shows no affection for caregivers',
+        'Doesn\'t respond to sounds around them',
+        'Has difficulty getting things to mouth',
+        'Doesn\'t make vowel sounds ("ah", "eh", "oh")',
+        'Doesn\'t roll over in either direction',
+        'Doesn\'t laugh or make squealing sounds',
+        'Seems very stiff, with tight muscles',
+        'Seems very floppy, like a rag doll'
+      ]
+    },
+
+    // 9 Months - Week 36
+    {
+      id: 'nine-months-milestones',
+      weekStart: 36,
+      weekEnd: 36,
+      title: '9 Months: Crawling & Communication',
+      shortTitle: '9 Months',
+      description: 'Your baby is on the move! Crawling, babbling, and exploring everything within reach.',
+      category: 'milestone',
+      icon: 'walk',
+      color: '#9c27b0',
+      whatToExpected: [
+        'Is shy, clingy, or fearful around strangers',
+        'Shows several facial expressions, like happy, sad, angry, and surprised',
+        'Looks when you call their name',
+        'Reacts when you leave (looks, reaches for you, or cries)',
+        'Smiles or laughs when you play peek-a-boo',
+        'Makes a lot of different sounds like "mamamama" and "bababababa"',
+        'Copies sounds and gestures you make',
+        'Uses fingers to point at things',
+        'Watches the path of something as it falls',
+        'Looks for things they see you hide',
+        'Puts things in their mouth',
+        'Moves things smoothly from one hand to the other',
+        'Picks up things like cereal o\'s between thumb and index finger',
+        'Sits without support',
+        'Gets to a sitting position by themselves',
+        'Crawls',
+        'Pulls up to stand'
+      ],
+      tips: [
+        'Baby-proof your home as mobility increases',
+        'Encourage crawling with toys just out of reach',
+        'Play hiding games to develop object permanence',
+        'Offer finger foods for self-feeding practice',
+        'Continue breastfeeding alongside solid foods'
+      ],
+      whenToWorry: [
+        'Doesn\'t sit with help',
+        'Doesn\'t babble ("mama", "baba", "dada")',
+        'Doesn\'t play any games involving back-and-forth play',
+        'Doesn\'t respond to their own name',
+        'Doesn\'t seem to recognize familiar people',
+        'Doesn\'t look where you point',
+        'Doesn\'t transfer toys from one hand to the other'
+      ]
+    },
+
+    // 12 Months - Week 52
+    {
+      id: 'twelve-months-milestones',
+      weekStart: 52,
+      weekEnd: 52,
+      title: '12 Months: First Birthday!',
+      shortTitle: '1 Year',
+      description: 'Happy first birthday! Your baby is now a toddler with so many new skills and personality.',
+      category: 'milestone',
+      icon: 'gift',
+      color: '#e91e63',
+      whatToExpected: [
+        'Plays games with you, like pat-a-cake',
+        'Waves "bye-bye"',
+        'Calls a parent "mama" or "dada" or another special name',
+        'Understands "no" (pauses briefly or stops when you say it)',
+        'Puts something in a container, like a block in a cup',
+        'Looks for things they see you hide, like a toy under a blanket',
+        'Pulls up to stand',
+        'Walks, holding on to furniture',
+        'Drinks from a cup without a lid, as you hold it',
+        'Picks up things between thumb and pointer finger, like small bits of food'
+      ],
+      tips: [
+        'Celebrate this amazing milestone!',
+        'Continue breastfeeding as long as you both want',
+        'Encourage walking by holding their hands',
+        'Read books and point to pictures',
+        'Sing songs with actions and gestures'
+      ],
+      whenToWorry: [
+        'Doesn\'t crawl',
+        'Can\'t stand when supported',
+        'Doesn\'t search for things that they see you hide',
+        'Doesn\'t say single words like "mama" or "dada"',
+        'Doesn\'t learn gestures like waving or shaking head',
+        'Doesn\'t point at things',
+        'Loses skills they once had'
+      ]
+    },
+
+    // 15 Months - Week 65
+    {
+      id: 'fifteen-months-milestones',
+      weekStart: 65,
+      weekEnd: 65,
+      title: '15 Months: Walking & Talking',
+      shortTitle: '15 Months',
+      description: 'Your toddler is becoming more independent with walking and using words!',
+      category: 'milestone',
+      icon: 'footsteps',
+      color: '#ff5722',
+      whatToExpected: [
+        'Copies other children while playing, like taking toys out of a container when another child does',
+        'Shows you an object they like',
+        'Claps when excited',
+        'Hugs stuffed animals or other soft objects',
+        'Shows you affection (hugs, cuddles, or kisses you)',
+        'Tries to say one or two words besides "mama" or "dada", like "ba" for ball or "da" for dog',
+        'Looks at a familiar object when you name it',
+        'Follows directions given with both a gesture and words',
+        'Points to ask for something or to get help',
+        'Takes a few steps on their own',
+        'Uses fingers to feed themselves some food'
+      ],
+      tips: [
+        'Encourage walking by creating safe spaces to explore',
+        'Read books and name objects in pictures',
+        'Sing songs and encourage clapping along',
+        'Provide opportunities for social play with other children',
+        'Continue offering healthy finger foods'
+      ],
+      whenToWorry: [
+        'Doesn\'t point to show things to others',
+        'Can\'t walk',
+        'Doesn\'t know what familiar things are for',
+        'Doesn\'t copy others',
+        'Doesn\'t gain new words',
+        'Doesn\'t have at least 6 words',
+        'Doesn\'t care if a caregiver leaves or returns',
+        'Loses skills they once had'
+      ]
+    },
+
+    // 18 Months - Week 78
+    {
+      id: 'eighteen-months-milestones',
+      weekStart: 78,
+      weekEnd: 78,
+      title: '18 Months: Independence & Exploration',
+      shortTitle: '18 Months',
+      description: 'Your toddler is asserting independence and exploring the world with confidence!',
+      category: 'milestone',
+      icon: 'rocket',
+      color: '#607d8b',
+      whatToExpected: [
+        'Moves away from you, but looks to make sure you are close by',
+        'Points to show someone what they want',
+        'Puts hands out for you to wash them',
+        'Looks at a few pages in a book with you',
+        'Helps you dress them by pushing arm through sleeve or lifting up foot',
+        'Tries to say three or more words besides "mama" or "dada"',
+        'Understands simple directions like "Pick up the toy"',
+        'Points to one body part',
+        'Scribbles on their own',
+        'Walks without holding on to anyone or anything',
+        'Climbs on and off a couch or chair without help',
+        'Runs',
+        'Pulls toys while walking, like a toy on a string',
+        'Helps feed themselves with a spoon',
+        'Tries to use a fork'
+      ],
+      tips: [
+        'Provide safe climbing opportunities',
+        'Encourage independence in eating and dressing',
+        'Read interactive books together',
+        'Create art opportunities with large crayons',
+        'Set up obstacle courses for physical development'
+      ],
+      whenToWorry: [
+        'Doesn\'t point to show things to others',
+        'Can\'t walk',
+        'Doesn\'t know what familiar things are for',
+        'Doesn\'t copy others',
+        'Doesn\'t gain new words',
+        'Doesn\'t notice or mind when a caregiver leaves or returns',
+        'Loses skills they once had'
+      ]
+    },
+
+    // 2 Years - Week 104
+    {
+      id: 'two-years-milestones',
+      weekStart: 104,
+      weekEnd: 104,
+      title: '2 Years: Language Explosion!',
+      shortTitle: '2 Years',
+      description: 'Your toddler is talking more, playing creatively, and showing their unique personality!',
+      category: 'milestone',
+      icon: 'chatbubbles',
+      color: '#3f51b5',
+      whatToExpected: [
+        'Notices when others are hurt or upset, like pausing or looking sad when someone is crying',
+        'Looks at your face to see how to react in a new situation',
+        'Points to things in a book when you ask, like "Where is the bear?"',
+        'Says at least 50 words',
+        'Says two or more words together, with one action word, like "Doggie run"',
+        'Names things in a book when you point and ask, "What is this?"',
+        'Says words like "I," "me," or "we"',
+        'Uses things to pretend, like feeding a doll with a toy bottle',
+        'Shows simple problem-solving skills, like standing on a small stool to reach something',
+        'Follows two-step instructions like "Put the toy down and come here"',
+        'Shows they know at least one color, like pointing to a red crayon when you ask, "Which one is red?"',
+        'Kicks a ball',
+        'Runs',
+        'Walks (not climbs) up a few stairs with or without help',
+        'Eats with a spoon'
+      ],
+      tips: [
+        'Encourage pretend play with dolls, cars, and household items',
+        'Read books and ask questions about the pictures',
+        'Sing songs and nursery rhymes together',
+        'Provide opportunities for running and climbing',
+        'Continue breastfeeding if desired - WHO recommends until age 2+'
+      ],
+      whenToWorry: [
+        'Doesn\'t use 2-word phrases (like "drink milk")',
+        'Doesn\'t know what to do with common things, like brush, phone, fork, spoon',
+        'Doesn\'t copy actions and words',
+        'Doesn\'t follow simple instructions',
+        'Doesn\'t walk steadily',
+        'Loses skills they once had'
+      ]
+    },
+
+    // Fill in intermediate weeks with feeding and development content
+    // Week 1-2: Early Days
+    {
+      id: 'early-days-1-2',
       weekStart: 1,
-      weekEnd: 1,
-      title: 'Learning together',
+      weekEnd: 2,
+      title: 'Learning Together',
+      shortTitle: 'Early Days',
       description: 'You and baby are both learning! Every feed is practice for both of you.',
       category: 'feeding',
       icon: 'school',
@@ -66,12 +410,13 @@ export class BabyTimelineService {
       ]
     },
 
-    // Week 2: Milk Coming In
+    // Week 3-4: Milk Coming In
     {
-      id: 'milk-coming-in',
-      weekStart: 2,
-      weekEnd: 2,
-      title: 'Your milk is coming in!',
+      id: 'milk-coming-in-3-4',
+      weekStart: 3,
+      weekEnd: 4,
+      title: 'Your Milk is Coming In!',
+      shortTitle: 'Milk In',
       description: 'Your breasts may feel fuller as your mature milk increases. This is exciting progress!',
       category: 'feeding',
       icon: 'water',
@@ -95,70 +440,13 @@ export class BabyTimelineService {
       ]
     },
 
-    // Week 3: Finding Rhythm
+    // Week 5-7: Growth Spurts
     {
-      id: 'finding-rhythm',
-      weekStart: 3,
-      weekEnd: 3,
-      title: 'Finding your rhythm',
-      description: 'Feeding patterns are starting to emerge. You\'re both getting more comfortable!',
-      category: 'development',
-      icon: 'musical-notes',
-      color: '#ff7043',
-      whatToExpected: [
-        'Feeding sessions may become slightly more predictable',
-        'Baby is more alert during awake periods',
-        'You feel more confident with positioning',
-        'Night feeds are still very important'
-      ],
-      tips: [
-        'Start to notice baby\'s hunger cues',
-        'Try different feeding positions for comfort',
-        'Keep a simple feeding log if helpful',
-        'Accept help with household tasks'
-      ],
-      whenToWorry: [
-        'Baby not gaining weight appropriately',
-        'Persistent feeding difficulties',
-        'Signs of postpartum depression or anxiety'
-      ]
-    },
-
-    // Week 4: One Month Milestone
-    {
-      id: 'one-month',
-      weekStart: 4,
-      weekEnd: 4,
-      title: 'One month milestone! 🎉',
-      description: 'Congratulations! You\'ve made it through the first month. You\'re doing amazing!',
-      category: 'milestone',
-      icon: 'trophy',
-      color: '#4caf50',
-      whatToExpected: [
-        'Baby has likely doubled their daily milk intake',
-        'Feeding sessions may be more efficient',
-        'You might notice growth spurts',
-        'Baby is more interactive and alert'
-      ],
-      tips: [
-        'Celebrate this major milestone!',
-        'Trust your body - you\'re making enough milk',
-        'Continue feeding on demand',
-        'Take progress photos - you\'ll treasure them later'
-      ],
-      whenToWorry: [
-        'Baby not back to birth weight',
-        'Fewer than 6 wet diapers per day',
-        'You feel overwhelmed or depressed'
-      ]
-    },
-
-    // Week 5: Growth Patterns
-    {
-      id: 'growth-patterns',
+      id: 'growth-spurts-5-7',
       weekStart: 5,
-      weekEnd: 5,
-      title: 'Growth spurts are normal',
+      weekEnd: 7,
+      title: 'Growth Spurts & Development',
+      shortTitle: 'Growth',
       description: 'Baby might seem extra hungry some days. This is completely normal and helps boost your supply!',
       category: 'development',
       icon: 'trending-up',
@@ -167,13 +455,15 @@ export class BabyTimelineService {
         'Days when baby wants to feed constantly',
         'Increased fussiness during growth spurts',
         'Your milk supply adjusts to baby\'s needs',
-        'Growth spurts typically last 2-3 days'
+        'Growth spurts typically last 2-3 days',
+        'Baby becomes more alert and interactive'
       ],
       tips: [
         'Follow baby\'s lead during growth spurts',
         'Don\'t supplement unless medically necessary',
         'Stay hydrated and eat well',
-        'Rest as much as possible'
+        'Rest as much as possible',
+        'Talk and sing to baby during alert periods'
       ],
       whenToWorry: [
         'Baby seems inconsolable for extended periods',
@@ -182,100 +472,14 @@ export class BabyTimelineService {
       ]
     },
 
-    // Week 6: Six Week Growth Spurt
+    // Week 9-15: Routine Development
     {
-      id: 'six-week-spurt',
-      weekStart: 6,
-      weekEnd: 6,
-      title: 'The famous 6-week growth spurt',
-      description: 'This is a big one! Baby is going through rapid development and needs extra nutrition.',
-      category: 'development',
-      icon: 'flash',
-      color: '#ff9800',
-      whatToExpected: [
-        'Very frequent feeding for 2-3 days',
-        'Baby may be fussier than usual',
-        'Your milk supply will increase to meet demand',
-        'You might feel exhausted'
-      ],
-      tips: [
-        'This is temporary - usually lasts 2-3 days',
-        'Feed as often as baby wants',
-        'Ask family for extra support',
-        'Trust that your body will make enough milk'
-      ],
-      whenToWorry: [
-        'Growth spurt lasts more than a week',
-        'Baby shows signs of dehydration',
-        'You feel unable to cope'
-      ]
-    },
-
-    // Week 7: Social Development
-    {
-      id: 'social-smiles',
-      weekStart: 7,
-      weekEnd: 7,
-      title: 'First real smiles! 😊',
-      description: 'Those magical first social smiles are appearing! Your baby is starting to interact more.',
-      category: 'milestone',
-      icon: 'happy',
-      color: '#4caf50',
-      whatToExpected: [
-        'Baby smiles in response to your voice',
-        'More eye contact during feeding',
-        'Beginning to coo and make sounds',
-        'Longer alert periods'
-      ],
-      tips: [
-        'Talk and sing to baby during feeds',
-        'Make lots of eye contact',
-        'Respond to baby\'s sounds and smiles',
-        'Take videos - these moments are precious!'
-      ],
-      whenToWorry: [
-        'No response to your voice or face',
-        'Baby seems very passive',
-        'Feeding difficulties persist'
-      ]
-    },
-
-    // Week 8: Two Month Approach
-    {
-      id: 'two-month-approach',
-      weekStart: 8,
-      weekEnd: 8,
-      title: 'Approaching 2 months',
-      description: 'Feeding is becoming more efficient and you\'re both more confident!',
-      category: 'feeding',
-      icon: 'checkmark-circle',
-      color: '#26a69a',
-      whatToExpected: [
-        'Feeds may space out slightly (every 2-3 hours)',
-        'Baby feeds more efficiently',
-        'You feel more confident with breastfeeding',
-        'Night feeds are still important'
-      ],
-      tips: [
-        'Still follow baby\'s cues rather than strict schedules',
-        'Enjoy longer awake periods with baby',
-        'Consider a simple bedtime routine',
-        'Take care of your own nutrition'
-      ],
-      whenToWorry: [
-        'Sudden decrease in feeding frequency',
-        'Baby seems less interested in feeding',
-        'Weight gain slows significantly'
-      ]
-    },
-
-    // Week 9: Routine Emerging
-    {
-      id: 'routine-emerging',
+      id: 'routine-development-9-15',
       weekStart: 9,
-      weekEnd: 9,
-      title: 'Gentle routines emerging',
-      description: 'You might notice some patterns in baby\'s feeding and sleeping. This is progress!',
+      weekEnd: 15,
+      title: 'Finding Your Rhythm',
+      shortTitle: 'Routine',
+      description: 'Feeding patterns are starting to emerge. You\'re both getting more comfortable!',
       category: 'development',
       icon: 'time',
       color: '#673ab7',
@@ -283,13 +487,15 @@ export class BabyTimelineService {
         'Some predictability in feeding times',
         'Baby may have longer sleep stretches',
         'More defined awake and sleep periods',
-        'You feel more in tune with baby\'s needs'
+        'You feel more in tune with baby\'s needs',
+        'Baby starts to show preferences'
       ],
       tips: [
         'Follow baby\'s natural rhythms',
         'Don\'t force rigid schedules yet',
         'Notice baby\'s unique patterns',
-        'Flexibility is still key'
+        'Flexibility is still key',
+        'Establish simple bedtime routines'
       ],
       whenToWorry: [
         'Baby suddenly becomes very irregular',
@@ -298,215 +504,13 @@ export class BabyTimelineService {
       ]
     },
 
-    // Week 10: Communication Skills
+    // Week 17-23: Distraction Phase
     {
-      id: 'communication-skills',
-      weekStart: 10,
-      weekEnd: 10,
-      title: 'Baby\'s communication skills',
-      description: 'Baby is becoming more expressive! You\'re learning each other\'s language.',
-      category: 'milestone',
-      icon: 'chatbubbles',
-      color: '#e91e63',
-      whatToExpected: [
-        'More varied cries for different needs',
-        'Cooing and gurgling sounds',
-        'Better head control during feeds',
-        'More responsive to your voice'
-      ],
-      tips: [
-        'Learn to distinguish different cries',
-        'Respond to baby\'s attempts at communication',
-        'Talk to baby throughout the day',
-        'Enjoy these developing interactions'
-      ],
-      whenToWorry: [
-        'No response to sounds or voices',
-        'Very limited crying or sounds',
-        'Feeding becomes increasingly difficult'
-      ]
-    },
-
-    // Week 11: Efficiency Improves
-    {
-      id: 'efficiency-improves',
-      weekStart: 11,
-      weekEnd: 11,
-      title: 'Feeding efficiency improves',
-      description: 'Baby is getting better at breastfeeding! Feeds may be shorter but more effective.',
-      category: 'feeding',
-      icon: 'speedometer',
-      color: '#00bcd4',
-      whatToExpected: [
-        'Shorter but more effective feeding sessions',
-        'Baby may finish feeding in 10-20 minutes',
-        'Less frequent feeding (every 2-4 hours)',
-        'You have more time between feeds'
-      ],
-      tips: [
-        'Don\'t worry if feeds are shorter - baby is more efficient',
-        'Still offer both breasts',
-        'Use extra time for self-care',
-        'Continue following baby\'s hunger cues'
-      ],
-      whenToWorry: [
-        'Feeds become extremely short (under 5 minutes)',
-        'Baby seems unsatisfied after feeds',
-        'Significant drop in wet diapers'
-      ]
-    },
-
-    // Week 12: Three Month Growth Spurt
-    {
-      id: 'three-month-spurt',
-      weekStart: 12,
-      weekEnd: 12,
-      title: '3-month growth spurt',
-      description: 'Another big growth spurt! Baby is developing rapidly in many ways.',
-      category: 'development',
-      icon: 'rocket',
-      color: '#ff5722',
-      whatToExpected: [
-        'Increased appetite and feeding frequency',
-        'Possible temporary fussiness',
-        'Rapid physical and cognitive development',
-        'Sleep patterns may temporarily change'
-      ],
-      tips: [
-        'Increase feeding frequency as needed',
-        'Don\'t worry about temporary schedule disruption',
-        'Ensure you\'re eating enough calories',
-        'This growth spurt may last 3-5 days'
-      ],
-      whenToWorry: [
-        'Growth spurt lasts more than a week',
-        'Baby shows signs of illness',
-        'You feel unable to meet baby\'s needs'
-      ]
-    },
-
-    // Week 13: Sleep Development
-    {
-      id: 'sleep-development',
-      weekStart: 13,
-      weekEnd: 13,
-      title: 'Sleep patterns developing',
-      description: 'Baby\'s sleep cycles are maturing. You might get longer stretches at night!',
-      category: 'sleep',
-      icon: 'moon',
-      color: '#3f51b5',
-      whatToExpected: [
-        'Longer night sleep stretches (3-5 hours)',
-        'More defined day and night patterns',
-        'Baby may sleep through some feeds',
-        'Naps become more predictable'
-      ],
-      tips: [
-        'Establish a simple bedtime routine',
-        'Keep night feeds calm and quiet',
-        'Put baby down awake but drowsy',
-        'Be patient - every baby is different'
-      ],
-      whenToWorry: [
-        'Baby suddenly stops gaining weight',
-        'Extreme difficulty waking baby to feed',
-        'Signs of illness or lethargy'
-      ]
-    },
-
-    // Week 14: Personality Emerging
-    {
-      id: 'personality-emerging',
-      weekStart: 14,
-      weekEnd: 14,
-      title: 'Baby\'s personality emerging',
-      description: 'You\'re starting to see glimpses of baby\'s unique personality! How exciting!',
-      category: 'milestone',
-      icon: 'star',
-      color: '#e91e63',
-      whatToExpected: [
-        'More distinct preferences and reactions',
-        'Different responses to various situations',
-        'Unique feeding patterns and behaviors',
-        'More interactive during awake times'
-      ],
-      tips: [
-        'Observe and appreciate baby\'s uniqueness',
-        'Adapt your approach to baby\'s temperament',
-        'Document these special moments',
-        'Trust your instincts about your baby'
-      ],
-      whenToWorry: [
-        'Baby seems very passive or unresponsive',
-        'Feeding becomes increasingly difficult',
-        'You\'re concerned about development'
-      ]
-    },
-
-    // Week 15: Routine Flexibility
-    {
-      id: 'routine-flexibility',
-      weekStart: 15,
-      weekEnd: 15,
-      title: 'Flexible routines work best',
-      description: 'You\'re finding what works for your family. Flexibility is your friend!',
-      category: 'development',
-      icon: 'refresh',
-      color: '#607d8b',
-      whatToExpected: [
-        'Some days are more predictable than others',
-        'Baby\'s needs change as they grow',
-        'You\'re becoming more adaptable',
-        'Confidence in your parenting grows'
-      ],
-      tips: [
-        'Embrace flexibility over rigid schedules',
-        'Adjust routines as baby grows',
-        'What works today might change tomorrow',
-        'You\'re the expert on your baby'
-      ],
-      whenToWorry: [
-        'Complete lack of any patterns',
-        'Feeding becomes chaotic and stressful',
-        'You feel completely overwhelmed'
-      ]
-    },
-
-    // Week 16: Four Month Changes
-    {
-      id: 'four-month-changes',
-      weekStart: 16,
-      weekEnd: 16,
-      title: 'Four month sleep changes',
-      description: 'Baby\'s sleep patterns are maturing, which might temporarily disrupt their sleep.',
-      category: 'sleep',
-      icon: 'bed',
-      color: '#795548',
-      whatToExpected: [
-        'Previously good sleeper may wake more often',
-        'Shorter naps during the day',
-        'Increased night wakings temporarily',
-        'This is developmental, not a problem!'
-      ],
-      tips: [
-        'Stick to consistent routines',
-        'Offer extra comfort and patience',
-        'Continue breastfeeding for comfort',
-        'Remember this phase will pass'
-      ],
-      whenToWorry: [
-        'Baby seems ill or in pain',
-        'Complete refusal to sleep',
-        'Feeding problems accompany sleep issues'
-      ]
-    },
-
-    // Week 17: Distraction Phase
-    {
-      id: 'distraction-phase',
+      id: 'distraction-phase-17-23',
       weekStart: 17,
-      weekEnd: 17,
-      title: 'Hello, distractible baby!',
+      weekEnd: 23,
+      title: 'Hello, Distractible Baby!',
+      shortTitle: 'Distracted',
       description: 'Baby is becoming more aware of the world and might get distracted during feeds.',
       category: 'feeding',
       icon: 'eye',
@@ -515,13 +519,15 @@ export class BabyTimelineService {
         'Baby looks around during feeding',
         'Easily distracted by sounds or movement',
         'May pull off breast to look around',
-        'Feeds might take longer'
+        'Feeds might take longer',
+        'Increased hand coordination and reaching'
       ],
       tips: [
         'Find a quiet, dimly lit space for feeding',
         'Minimize distractions during feeds',
         'Be patient - this is normal development',
-        'Try feeding when baby is sleepy'
+        'Try feeding when baby is sleepy',
+        'Give baby something safe to hold during feeds'
       ],
       whenToWorry: [
         'Baby completely refuses to feed',
@@ -530,233 +536,30 @@ export class BabyTimelineService {
       ]
     },
 
-    // Week 18: Hand Coordination
+    // Week 25-35: Solid Foods Introduction
     {
-      id: 'hand-coordination',
-      weekStart: 18,
-      weekEnd: 18,
-      title: 'Hands are fascinating!',
-      description: 'Baby is discovering their hands and might grab at everything, including you during feeds!',
-      category: 'milestone',
-      icon: 'hand-left',
-      color: '#ff9800',
-      whatToExpected: [
-        'Baby grabs at your clothes, hair, or breast',
-        'Hands come together at midline',
-        'Reaching for objects',
-        'May try to "help" during feeding'
-      ],
-      tips: [
-        'Wear simple clothing during feeds',
-        'Give baby something safe to hold',
-        'Trim baby\'s nails regularly',
-        'Enjoy watching their development'
-      ],
-      whenToWorry: [
-        'No use of hands or arms',
-        'Baby seems to have lost previously gained skills',
-        'Feeding becomes very difficult'
-      ]
-    },
-
-    // Week 19: Teething Preparation
-    {
-      id: 'teething-prep',
-      weekStart: 19,
-      weekEnd: 19,
-      title: 'Preparing for teething',
-      description: 'While teeth won\'t appear for a while, baby\'s gums might start feeling different.',
-      category: 'development',
-      icon: 'medical',
-      color: '#607d8b',
-      whatToExpected: [
-        'Increased drooling',
-        'Baby puts everything in mouth',
-        'Possible increased fussiness',
-        'May bite down during feeding'
-      ],
-      tips: [
-        'Offer safe teething toys',
-        'If baby bites, gently break suction and say "no biting"',
-        'Keep extra bibs handy for drool',
-        'Massage baby\'s gums with clean finger'
-      ],
-      whenToWorry: [
-        'Signs of actual illness (fever, etc.)',
-        'Baby completely refuses to feed',
-        'Persistent biting that causes injury'
-      ]
-    },
-
-    // Week 20: Five Month Milestone
-    {
-      id: 'five-months',
-      weekStart: 20,
-      weekEnd: 20,
-      title: 'Five months of amazing growth!',
-      description: 'Look how far you\'ve both come! Baby is becoming more interactive and social.',
-      category: 'milestone',
-      icon: 'celebration',
-      color: '#e91e63',
-      whatToExpected: [
-        'Baby laughs and shows joy',
-        'More predictable feeding patterns',
-        'Increased interest in surroundings',
-        'Better head and neck control'
-      ],
-      tips: [
-        'Celebrate this milestone!',
-        'Take photos and videos',
-        'Enjoy baby\'s increased interaction',
-        'Continue responsive feeding'
-      ],
-      whenToWorry: [
-        'Baby not meeting developmental milestones',
-        'Feeding problems persist',
-        'You have concerns about growth'
-      ]
-    },
-
-    // Week 21: Solid Food Curiosity
-    {
-      id: 'solid-curiosity',
-      weekStart: 21,
-      weekEnd: 21,
-      title: 'Curious about your food?',
-      description: 'Baby might start showing interest in what you\'re eating. They\'re getting ready for solids!',
-      category: 'feeding',
-      icon: 'restaurant',
-      color: '#4caf50',
-      whatToExpected: [
-        'Baby watches you eat with interest',
-        'Reaches for your food',
-        'Opens mouth when seeing food',
-        'Can sit with support'
-      ],
-      tips: [
-        'Let baby watch you eat',
-        'Breast milk is still the main nutrition',
-        'Don\'t rush into solids',
-        'Wait for clear readiness signs'
-      ],
-      whenToWorry: [
-        'No interest in surroundings',
-        'Cannot sit even with support',
-        'Feeding difficulties increase'
-      ]
-    },
-
-    // Week 22: Motor Skills
-    {
-      id: 'motor-skills',
-      weekStart: 22,
-      weekEnd: 22,
-      title: 'Motor skills developing',
-      description: 'Baby is becoming more mobile and coordinated. Feeding positions might need adjusting!',
-      category: 'development',
-      icon: 'fitness',
-      color: '#ff5722',
-      whatToExpected: [
-        'Rolling from back to front',
-        'Better sitting balance',
-        'Reaching and grabbing more accurately',
-        'May prefer certain feeding positions'
-      ],
-      tips: [
-        'Be flexible with feeding positions',
-        'Ensure baby\'s safety during feeds',
-        'Let baby practice new skills',
-        'Childproof your feeding area'
-      ],
-      whenToWorry: [
-        'Loss of previously gained motor skills',
-        'Baby seems weak or floppy',
-        'Difficulty maintaining feeding positions'
-      ]
-    },
-
-    // Week 23: Pre-Solids Preparation
-    {
-      id: 'pre-solids',
-      weekStart: 23,
-      weekEnd: 23,
-      title: 'Almost ready for solids!',
-      description: 'Baby is showing more signs of readiness for complementary foods alongside breast milk.',
-      category: 'feeding',
-      icon: 'nutrition',
-      color: '#8bc34a',
-      whatToExpected: [
-        'Lost the tongue-thrust reflex',
-        'Can hold head steady',
-        'Shows clear interest in food',
-        'Can sit with minimal support'
-      ],
-      tips: [
-        'Continue breastfeeding as primary nutrition',
-        'Research baby-led weaning or purees',
-        'Prepare for messy meal times',
-        'Start with single ingredients'
-      ],
-      whenToWorry: [
-        'Baby cannot sit even with support',
-        'No interest in food or eating',
-        'Persistent tongue-thrust reflex'
-      ]
-    },
-
-    // Week 24: Six Month Milestone
-    {
-      id: 'six-months',
-      weekStart: 24,
-      weekEnd: 24,
-      title: 'Six months! Time for solids! 🥄',
-      description: 'Congratulations! You\'ve reached the six-month milestone. Time to introduce complementary foods!',
-      category: 'milestone',
-      icon: 'restaurant',
-      color: '#4caf50',
-      whatToExpected: [
-        'Baby is ready for first foods',
-        'Breast milk remains primary nutrition',
-        'Messy, fun meal times begin',
-        'New textures and flavors to explore'
-      ],
-      tips: [
-        'Start with single ingredients',
-        'Offer breast milk before solids',
-        'Let baby explore and play with food',
-        'Be patient - eating is a new skill'
-      ],
-      whenToWorry: [
-        'Baby shows signs of allergic reactions',
-        'Complete refusal of all foods',
-        'Choking or difficulty swallowing'
-      ]
-    },
-
-    // Continue with more weeks...
-    // Week 25-52 would follow similar pattern with age-appropriate content
-    
-    // Week 25: First Foods Adventure
-    {
-      id: 'first-foods',
+      id: 'solid-foods-25-35',
       weekStart: 25,
-      weekEnd: 25,
-      title: 'First foods adventure begins',
+      weekEnd: 35,
+      title: 'First Foods Adventure',
+      shortTitle: 'Solids',
       description: 'Baby is exploring new tastes and textures while breast milk remains their main nutrition.',
       category: 'feeding',
-      icon: 'leaf',
+      icon: 'restaurant',
       color: '#8bc34a',
       whatToExpected: [
         'Baby plays with food more than eating',
         'Breast milk still provides most nutrition',
         'Gagging is normal as baby learns',
-        'Very small amounts of food consumed'
+        'Very small amounts of food consumed',
+        'Increased interest in what you\'re eating'
       ],
       tips: [
         'Food before one is just for fun!',
         'Continue breastfeeding on demand',
         'Offer variety but don\'t force',
-        'Make mealtimes enjoyable and stress-free'
+        'Make mealtimes enjoyable and stress-free',
+        'Let baby self-feed and explore textures'
       ],
       whenToWorry: [
         'Signs of food allergies',
@@ -765,12 +568,13 @@ export class BabyTimelineService {
       ]
     },
 
-    // Week 30: Mobile Baby
+    // Week 37-51: Mobile Baby
     {
-      id: 'mobile-baby',
-      weekStart: 30,
-      weekEnd: 30,
-      title: 'Your mobile little one',
+      id: 'mobile-baby-37-51',
+      weekStart: 37,
+      weekEnd: 51,
+      title: 'Your Mobile Little One',
+      shortTitle: 'Mobile',
       description: 'Baby is becoming more mobile! This might affect feeding patterns and positions.',
       category: 'development',
       icon: 'walk',
@@ -779,13 +583,15 @@ export class BabyTimelineService {
         'Crawling or attempting to crawl',
         'More distracted during feeds',
         'Shorter but more frequent nursing',
-        'Prefers certain feeding positions'
+        'Prefers certain feeding positions',
+        'Increased curiosity about surroundings'
       ],
       tips: [
         'Find quiet spaces for nursing',
         'Be flexible with feeding positions',
         'Offer breast before meals and snacks',
-        'Baby-proof your home'
+        'Baby-proof your home',
+        'Encourage exploration in safe environments'
       ],
       whenToWorry: [
         'Significant decrease in milk intake',
@@ -794,61 +600,67 @@ export class BabyTimelineService {
       ]
     },
 
-    // Week 36: Nine Month Development
+    // Week 53-78: Toddler Feeding
     {
-      id: 'nine-months',
-      weekStart: 36,
-      weekEnd: 36,
-      title: 'Nine months of growth!',
-      description: 'Baby has been outside as long as they were inside! What an incredible journey.',
-      category: 'milestone',
-      icon: 'trophy',
-      color: '#e91e63',
+      id: 'toddler-feeding-53-78',
+      weekStart: 53,
+      weekEnd: 78,
+      title: 'Toddler Nursing',
+      shortTitle: 'Toddler',
+      description: 'Your toddler still benefits from breastfeeding alongside their varied diet.',
+      category: 'feeding',
+      icon: 'nutrition',
+      color: '#795548',
       whatToExpected: [
-        'Baby may be crawling or cruising',
-        'Eating more solid foods',
-        'Still benefits greatly from breast milk',
-        'More independent but still needs comfort nursing'
-      ],
-      tips: [
-        'Continue breastfeeding alongside solids',
-        'Nursing provides comfort and nutrition',
-        'Follow baby\'s lead on frequency',
-        'Celebrate this amazing milestone!'
-      ],
-      whenToWorry: [
-        'Baby completely refuses breast milk',
-        'Significant developmental delays',
-        'Feeding becomes very difficult'
-      ]
-    },
-
-    // Week 52: One Year!
-    {
-      id: 'one-year',
-      weekStart: 52,
-      weekEnd: 52,
-      title: 'One year of breastfeeding! 🎂',
-      description: 'Congratulations! You\'ve reached the one-year milestone. What an incredible achievement!',
-      category: 'milestone',
-      icon: 'gift',
-      color: '#4caf50',
-      whatToExpected: [
-        'Baby is walking or close to it',
+        'Nursing mainly for comfort and connection',
         'Eating a variety of solid foods',
-        'Breast milk still provides important nutrition',
-        'Nursing may be mainly for comfort'
+        'May ask for "milk" or have special nursing words',
+        'Nursing sessions may be shorter but meaningful',
+        'Increased independence in eating'
       ],
       tips: [
-        'Celebrate this amazing achievement!',
-        'Continue as long as you and baby want',
-        'WHO recommends breastfeeding to 2 years+',
-        'You\'ve given your baby the best start'
+        'Continue breastfeeding as long as you both want',
+        'WHO recommends breastfeeding to 2 years and beyond',
+        'Nursing provides comfort during illness or stress',
+        'Don\'t feel pressured to wean before you\'re ready',
+        'Celebrate your extended breastfeeding journey'
       ],
       whenToWorry: [
         'You feel pressured to stop before you\'re ready',
-        'Baby shows signs of nutritional deficiencies',
-        'Breastfeeding becomes painful again'
+        'Breastfeeding becomes painful again',
+        'Concerns about nutritional adequacy'
+      ]
+    },
+
+    // Week 79-104: Extended Breastfeeding
+    {
+      id: 'extended-breastfeeding-79-104',
+      weekStart: 79,
+      weekEnd: 104,
+      title: 'Extended Breastfeeding Journey',
+      shortTitle: 'Extended',
+      description: 'You\'re providing incredible benefits through extended breastfeeding. What an achievement!',
+      category: 'feeding',
+      icon: 'trophy',
+      color: '#4caf50',
+      whatToExpected: [
+        'Nursing primarily for emotional comfort',
+        'Strong immune system benefits continue',
+        'Special bonding moments',
+        'Toddler may nurse less frequently',
+        'Continued nutritional benefits'
+      ],
+      tips: [
+        'You\'re giving your child the best possible start',
+        'Extended breastfeeding is normal worldwide',
+        'Trust your instincts about when to wean',
+        'Seek support from other extended breastfeeding mothers',
+        'Be proud of your incredible journey'
+      ],
+      whenToWorry: [
+        'You feel overwhelmed or touched out',
+        'Nursing becomes consistently painful',
+        'You want to wean but don\'t know how'
       ]
     }
   ];
