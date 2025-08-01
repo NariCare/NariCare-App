@@ -194,11 +194,11 @@ export class DashboardPage implements OnInit, AfterViewInit {
     );
     
     if (currentIndex >= 0) {
-      // Show current item plus next 3 items
-      return allItems.slice(currentIndex, currentIndex + 3);
+      // Show current item plus next 2 items
+      return allItems.slice(currentIndex, currentIndex + 2);
     } else {
-      // If no current item found, show first 4 items
-      return allItems.slice(0, 3);
+      // If no current item found, show first 2 items
+      return allItems.slice(0, 2);
     }
   }
 
