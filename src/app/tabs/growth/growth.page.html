@@ -248,8 +248,8 @@
             <div class="record-header">
               <span class="record-date">{{ formatDate(record.date) }}</span>
               <div class="record-mood" *ngIf="record.motherMood">
-                <span class="mood-emoji">{{ getMotherMoodEmoji(record.motherMood) }}</span>
-                <span class="mood-label">{{ getMotherMoodLabel(record.motherMood) }}</span>
+                <span class="mood-emoji">{{ getMotherMoodEmoji(record.mood.value) }}</span>
+                <span class="mood-label">{{ getMotherMoodLabel(record.mood.value) }}</span>
               </div>
             </div>
             
