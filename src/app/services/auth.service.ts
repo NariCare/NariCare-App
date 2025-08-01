@@ -341,10 +341,12 @@ export class AuthService {
     // Generate mock growth data for the past 7 days
     const mockGrowthRecords = this.generateMockGrowthData();
     const mockWeightRecords = this.generateMockWeightData();
+    const mockStoolRecords = this.generateMockStoolData();
     
     // Store mock data in localStorage for the growth service
     await this.storage.set('growthRecords', mockGrowthRecords);
     await this.storage.set('weightRecords', mockWeightRecords);
+    await this.storage.set('stoolRecords', mockStoolRecords);
     
     // Force growth tracking service to reload data
     await this.growthTrackingService.loadStoredData();
@@ -369,14 +371,24 @@ export class AuthService {
         growthReminders: true,
         expertMessages: true
       },
-      babies: [{
-        id: 'baby-123',
-        name: 'Emma',
-        dateOfBirth: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000), // 45 days ago
-        gender: 'female',
-        birthWeight: 3.2,
-        birthHeight: 50
-      }]
+      babies: [
+        {
+          id: 'baby-123',
+          name: 'Emma',
+          dateOfBirth: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000), // 45 days ago
+          gender: 'female',
+          birthWeight: 3.2,
+          birthHeight: 50
+        },
+        {
+          id: 'baby-456',
+          name: 'Oliver',
+          dateOfBirth: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000), // 120 days ago
+          gender: 'male',
+          birthWeight: 3.5,
+          birthHeight: 52
+        }
+      ]
     };
     
     this.currentUserSubject.next(mockUser);
@@ -385,81 +397,240 @@ export class AuthService {
 
   private generateMockGrowthData(): any[] {
     const records = [];
-    const babyId = 'baby-123';
     const userId = 'mock-user-123';
     
-    // Generate data for the past 7 days
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      
-      // Vary the data slightly for each day
-      const baseFeedings = 8 + Math.floor(Math.random() * 4); // 8-11 sessions
-      const baseDuration = 18 + Math.floor(Math.random() * 8); // 18-25 minutes
-      const basePumping = 2 + Math.floor(Math.random() * 3); // 2-4 sessions
-      const baseOutput = 100 + Math.floor(Math.random() * 100); // 100-200ml
-      
-      const moodOptions = [
-        { emoji: '😊', label: 'Great', value: 'great', color: '#10b981' },
-        { emoji: '🙂', label: 'Good', value: 'good', color: '#059669' },
-        { emoji: '😐', label: 'Okay', value: 'okay', color: '#6b7280' },
-        { emoji: '😴', label: 'Tired', value: 'tired', color: '#f59e0b' }
-      ];
-      
-      const randomMood = moodOptions[Math.floor(Math.random() * moodOptions.length)];
-      
-      records.push({
-        id: `record-${i}`,
-        babyId: babyId,
-        recordedBy: userId,
-        date: date.toISOString(),
-        directFeedingSessions: baseFeedings,
-        avgFeedingDuration: baseDuration,
-        pumpingSessions: basePumping,
-        totalPumpingOutput: baseOutput,
-        formulaIntake: i < 3 ? 0 : Math.floor(Math.random() * 50), // Some formula for older days
-        peeCount: 6 + Math.floor(Math.random() * 4), // 6-9 pees
-        poopCount: 2 + Math.floor(Math.random() * 3), // 2-4 poops
-        mood: randomMood,
-        moodDescription: i === 0 ? 'Feeling good today, baby is feeding well!' : 
-                        i === 2 ? 'A bit tired but managing okay' : '',
-        notes: i === 1 ? 'Baby seemed extra hungry today, had longer feeding sessions' : 
-               i === 4 ? 'Great day! Baby latched perfectly' : '',
-        enteredViaVoice: Math.random() > 0.7, // 30% chance of voice entry
-        createdAt: date.toISOString(),
-        updatedAt: date.toISOString()
-      });
-    }
+    // Generate data for both babies
+    const babies = [
+      { id: 'baby-123', name: 'Emma', daysOld: 45 },
+      { id: 'baby-456', name: 'Oliver', daysOld: 120 }
+    ];
+    
+    babies.forEach(baby => {
+      // Generate data for the past 7 days for each baby
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        
+        // Adjust data based on baby's age
+        const ageMultiplier = baby.daysOld > 60 ? 1.2 : 1; // Older babies feed more efficiently
+        
+        const moodOptions = [
+          { emoji: '😌', label: 'Relaxed', value: 'relaxed', color: '#10b981' },
+          { emoji: '😊', label: 'Happy', value: 'happy', color: '#059669' },
+          { emoji: '😢', label: 'Sad', value: 'sad', color: '#6b7280' },
+          { emoji: '😴', label: 'Exhausted', value: 'exhausted', color: '#f59e0b' },
+          { emoji: '😰', label: 'Anxious', value: 'anxious', color: '#ef4444' }
+        ];
+        
+        const randomMood = moodOptions[Math.floor(Math.random() * moodOptions.length)];
+        const breastSides = ['left', 'right', 'both'];
+        const supplements = [null, 'breastmilk', 'formula'];
+        const lipstickShapes = ['rounded', 'lipstick'];
+        
+        // Generate realistic times
+        const startHour = 6 + Math.floor(Math.random() * 12); // 6 AM to 6 PM
+        const startMinute = Math.floor(Math.random() * 60);
+        const endMinute = startMinute + 15 + Math.floor(Math.random() * 25); // 15-40 min sessions
+        const endHour = startHour + Math.floor(endMinute / 60);
+        const finalEndMinute = endMinute % 60;
+        
+        const startTime = `${startHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}`;
+        const endTime = `${endHour.toString().padStart(2, '0')}:${finalEndMinute.toString().padStart(2, '0')}`;
+        
+        records.push({
+          id: `record-${baby.id}-${i}`,
+          babyId: baby.id,
+          recordedBy: userId,
+          date: date.toISOString(),
+          startTime: startTime,
+          endTime: endTime,
+          breastSide: breastSides[Math.floor(Math.random() * breastSides.length)],
+          supplement: supplements[Math.floor(Math.random() * supplements.length)],
+          painLevel: Math.floor(Math.random() * 4), // 0-3 pain level
+          lipstickShape: lipstickShapes[Math.floor(Math.random() * lipstickShapes.length)],
+          mood: randomMood,
+          directFeedingSessions: Math.floor(6 + Math.random() * 6), // 6-11 sessions
+          avgFeedingDuration: Math.floor(15 + Math.random() * 20), // 15-35 minutes
+          pumpingSessions: Math.floor(Math.random() * 4), // 0-3 sessions
+          totalPumpingOutput: Math.floor(50 + Math.random() * 150), // 50-200ml
+          formulaIntake: baby.daysOld > 60 ? Math.floor(Math.random() * 100) : 0, // Formula for older baby
+          peeCount: Math.floor(6 + Math.random() * 4), // 6-9 pees
+          poopCount: Math.floor(2 + Math.random() * 3), // 2-4 poops
+          moodDescription: i === 0 ? `${baby.name} is feeding well today!` : 
+                          i === 2 ? 'A bit tired but managing okay' : '',
+          notes: i === 1 ? `${baby.name} seemed extra hungry today, had longer feeding sessions` : 
+                 i === 4 ? `Great day! ${baby.name} latched perfectly` : '',
+          enteredViaVoice: Math.random() > 0.7, // 30% chance of voice entry
+          createdAt: date.toISOString(),
+          updatedAt: date.toISOString()
+        });
+      }
+    });
     
     return records;
   }
   
   private generateMockWeightData(): any[] {
     const records = [];
-    const babyId = 'baby-123';
     const userId = 'mock-user-123';
     
-    // Generate weekly weight records for the past 6 weeks
-    let currentWeight = 3.2; // Starting birth weight
+    // Generate weight data for both babies
+    const babies = [
+      { id: 'baby-123', name: 'Emma', startWeight: 3.2, daysOld: 45 },
+      { id: 'baby-456', name: 'Oliver', startWeight: 3.5, daysOld: 120 }
+    ];
     
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - (i * 7)); // Weekly intervals
+    babies.forEach(baby => {
+      let currentWeight = baby.startWeight;
+      const weeksOld = Math.floor(baby.daysOld / 7);
       
-      // Baby gains approximately 150-200g per week
-      currentWeight += 0.15 + (Math.random() * 0.05); // 150-200g gain
+      // Generate weekly weight records
+      for (let i = weeksOld; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - (i * 7)); // Weekly intervals
+        
+        // Baby gains approximately 150-200g per week initially, then slows down
+        const weeklyGain = i > 8 ? 0.10 + (Math.random() * 0.05) : 0.15 + (Math.random() * 0.05);
+        currentWeight += weeklyGain;
+        
+        records.push({
+          id: `weight-${baby.id}-${i}`,
+          babyId: baby.id,
+          recordedBy: userId,
+          date: date.toISOString(),
+          weight: Math.round(currentWeight * 100) / 100, // Round to 2 decimal places
+          height: baby.id === 'baby-123' ? 50 + (weeksOld - i) * 0.8 : 52 + (weeksOld - i) * 0.9, // Height growth
+          notes: i === 0 ? `Great weight gain this week for ${baby.name}!` : 
+                 i === 2 ? `Steady progress, doctor is happy with ${baby.name}` : 
+                 i === 4 ? `${baby.name} back to birth weight!` : '',
+          enteredViaVoice: Math.random() > 0.8, // 20% chance of voice entry
+          createdAt: date.toISOString()
+        });
+      }
+    }
+    
+    return records;
+  }
+  
+  private generateMockStoolData(): any[] {
+    const records = [];
+    const userId = 'mock-user-123';
+    
+    // Stool color, texture, and size options
+    const stoolColors = [
+      { value: 'very-dark', label: 'Very dark', color: '#374151' },
+      { value: 'dark-green', label: 'Dark green', color: '#059669' },
+      { value: 'dark-brown', label: 'Dark brown', color: '#92400e' },
+      { value: 'mustard-yellow', label: 'Mustard yellow', color: '#d97706' }
+    ];
+    
+    const stoolTextures = [
+      { value: 'liquid', label: 'Liquid', icon: 'water' },
+      { value: 'pasty', label: 'Pasty', icon: 'ellipse' },
+      { value: 'hard', label: 'Hard', icon: 'diamond' }
+    ];
+    
+    const stoolSizes = [
+      { value: 'coin', label: 'Coin', icon: 'ellipse-outline' },
+      { value: 'tablespoon', label: 'Tablespoon', icon: 'ellipse' },
+      { value: 'bigger', label: 'Bigger', icon: 'ellipse' }
+    ];
+    
+    // Generate data for both babies
+    const babies = [
+      { id: 'baby-123', name: 'Emma', daysOld: 45 },
+      { id: 'baby-456', name: 'Oliver', daysOld: 120 }
+    ];
+    
+    babies.forEach(baby => {
+      // Generate stool records for the past 5 days (2-3 per day)
+      for (let i = 4; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        
+        const recordsPerDay = 2 + Math.floor(Math.random() * 2); // 2-3 records per day
+        
+        for (let j = 0; j < recordsPerDay; j++) {
+          const hour = 8 + j * 6 + Math.floor(Math.random() * 4); // Spread throughout day
+          const minute = Math.floor(Math.random() * 60);
+          const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          
+          // Age-appropriate stool characteristics
+          let colorIndex, textureIndex, sizeIndex;
+          
+          if (baby.daysOld < 60) {
+            // Younger baby - more mustard yellow, pasty
+            colorIndex = Math.random() > 0.3 ? 3 : Math.floor(Math.random() * 3); // Favor mustard yellow
+            textureIndex = Math.random() > 0.5 ? 1 : 0; // Favor pasty/liquid
+            sizeIndex = Math.random() > 0.7 ? 1 : 0; // Favor smaller sizes
+          } else {
+            // Older baby - more variety
+            colorIndex = Math.floor(Math.random() * 4);
+            textureIndex = Math.floor(Math.random() * 3);
+            sizeIndex = Math.floor(Math.random() * 3);
+          }
+          
+          records.push({
+            id: `stool-${baby.id}-${i}-${j}`,
+            babyId: baby.id,
+            recordedBy: userId,
+            date: date.toISOString(),
+            time: time,
+            color: stoolColors[colorIndex],
+            texture: stoolTextures[textureIndex],
+            size: stoolSizes[sizeIndex],
+            notes: j === 0 && i === 0 ? `${baby.name}'s stool looks healthy today` : 
+                   j === 1 && i === 2 ? `Normal consistency for ${baby.name}` : '',
+            enteredViaVoice: Math.random() > 0.85, // 15% chance of voice entry
+            createdAt: date.toISOString()
+          });
+        }
+      }
+    });
+    
+    return records;
+  }
+  
+  private generateMockWeightData(): any[] {
+    const records = [];
+    const userId = 'mock-user-123';
+    
+    // Generate weight data for both babies
+    const babies = [
+      { id: 'baby-123', name: 'Emma', startWeight: 3.2, daysOld: 45 },
+      { id: 'baby-456', name: 'Oliver', startWeight: 3.5, daysOld: 120 }
+    ];
+    
+    babies.forEach(baby => {
+      let currentWeight = baby.startWeight;
+      const weeksOld = Math.floor(baby.daysOld / 7);
       
-      records.push({
-        id: `weight-${i}`,
-        babyId: babyId,
-        recordedBy: userId,
-        date: date.toISOString(),
-        weight: Math.round(currentWeight * 100) / 100, // Round to 2 decimal places
-        notes: i === 0 ? 'Great weight gain this week!' : 
-               i === 2 ? 'Steady progress, doctor is happy' : 
-               i === 4 ? 'Back to birth weight!' : '',
-        createdAt: date.toISOString()
-      });
+      // Generate weekly weight records
+      for (let i = weeksOld; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - (i * 7)); // Weekly intervals
+        
+        // Baby gains approximately 150-200g per week initially, then slows down
+        const weeklyGain = i > 8 ? 0.10 + (Math.random() * 0.05) : 0.15 + (Math.random() * 0.05);
+        currentWeight += weeklyGain;
+        
+        records.push({
+          id: `weight-${baby.id}-${i}`,
+          babyId: baby.id,
+          recordedBy: userId,
+          date: date.toISOString(),
+          weight: Math.round(currentWeight * 100) / 100, // Round to 2 decimal places
+          height: baby.id === 'baby-123' ? 50 + (weeksOld - i) * 0.8 : 52 + (weeksOld - i) * 0.9, // Height growth
+          notes: i === 0 ? `Great weight gain this week for ${baby.name}!` : 
+                 i === 2 ? `Steady progress, doctor is happy with ${baby.name}` : 
+                 i === 4 ? `${baby.name} back to birth weight!` : '',
+          enteredViaVoice: Math.random() > 0.8, // 20% chance of voice entry
+          createdAt: date.toISOString()
+        });
+      }
+    });
+    
+    return records;
     }
     
     return records;
