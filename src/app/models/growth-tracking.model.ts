@@ -10,7 +10,16 @@ export interface GrowthRecord {
   supplement: 'breastmilk' | 'formula' | null;
   painLevel: number; // 0-10 scale
   lipstickShape: 'rounded' | 'lipstick';
-  motherMood: 'relaxed' | 'happy' | 'sad' | 'exhausted' | 'anxious';
+  mood?: MotherMood;
+  // Additional tracking fields
+  directFeedingSessions?: number;
+  avgFeedingDuration?: number;
+  pumpingSessions?: number;
+  totalPumpingOutput?: number;
+  formulaIntake?: number;
+  peeCount?: number;
+  poopCount?: number;
+  moodDescription?: string;
   // Emotional state
   notes?: string;
   // Voice entry flag

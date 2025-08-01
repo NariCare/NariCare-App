@@ -75,7 +75,15 @@ export class GrowthPage implements OnInit {
       startTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
       endTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
       painLevel: [0, [Validators.required, Validators.min(0), Validators.max(10)]],
-      notes: ['']
+      notes: [''],
+      directFeedingSessions: [0],
+      avgFeedingDuration: [0],
+      pumpingSessions: [0],
+      totalPumpingOutput: [0],
+      formulaIntake: [0],
+      peeCount: [0],
+      poopCount: [0],
+      moodDescription: ['']
     });
     
     // Weight tracking form
@@ -241,9 +249,10 @@ export class GrowthPage implements OnInit {
     this.selectedMotherMood = mood;
   }
 
-  setPainLevel(level: number) {
-    this.painLevel = level;
-    this.addRecordForm.patchValue({ painLevel: level });
+  setPainLevel(level: number | { lower: number; upper: number }) {
+    const painValue = typeof level === 'number' ? level : level.lower || 0;
+    this.painLevel = painValue;
+    this.addRecordForm.patchValue({ painLevel: painValue });
   }
 
   selectStoolColor(color: StoolColor) {
@@ -439,7 +448,7 @@ export class GrowthPage implements OnInit {
     
     for (const [moodValue, keywords] of Object.entries(moodKeywords)) {
       if (keywords.some(keyword => text.includes(keyword))) {
-        const mood = this.moodOptions.find(m => m.value === moodValue);
+        const mood = this.motherMoodOptions.find(m => m.value === moodValue);
         if (mood) {
           extracted.mood = mood;
           break;
@@ -512,7 +521,7 @@ export class GrowthPage implements OnInit {
     
     // Set mood if extracted
     if (extractedData.mood) {
-      this.selectedMood = extractedData.mood;
+      this.selectedMotherMood = extractedData.mood;
     }
   }
 
@@ -547,7 +556,15 @@ export class GrowthPage implements OnInit {
           supplement: this.selectedSupplement?.value || null,
           painLevel: this.painLevel,
           lipstickShape: this.selectedLipstickShape?.value || 'rounded',
-          motherMood: this.selectedMotherMood?.value || 'relaxed',
+          mood: this.selectedMotherMood,
+          directFeedingSessions: formValue.directFeedingSessions,
+          avgFeedingDuration: formValue.avgFeedingDuration,
+          pumpingSessions: formValue.pumpingSessions,
+          totalPumpingOutput: formValue.totalPumpingOutput,
+          formulaIntake: formValue.formulaIntake,
+          peeCount: formValue.peeCount,
+          poopCount: formValue.poopCount,
+          moodDescription: formValue.moodDescription,
           notes: formValue.notes,
           enteredViaVoice: !!this.voiceTranscript
         };

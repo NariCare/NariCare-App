@@ -130,7 +130,7 @@
           <div class="reference-metrics">
             <span>{{ record.directFeedingSessions }} feeds</span>
             <span>{{ record.pumpingSessions }} pumps</span>
-            <span *ngIf="record.mood">{{ record.mood.emoji }}</span>
+            <span *ngIf="record.mood">{{ record.mood?.emoji }}</span>
           </div>
         </div>
       </div>
