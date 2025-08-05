@@ -91,6 +91,7 @@ export class AuthService {
       email: 'demo@NariCare.app',
       firstName: 'Demo',
       lastName: 'User',
+      role: 'user',
       tier: {
         type: 'basic',
         startDate: new Date(),
@@ -356,6 +357,7 @@ export class AuthService {
       email: email,
       firstName: 'Demo',
       lastName: 'User',
+      role: 'user',
       tier: {
         type: 'basic',
         startDate: new Date(),

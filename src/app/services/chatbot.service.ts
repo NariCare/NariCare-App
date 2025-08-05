@@ -717,6 +717,25 @@ export class ChatbotService {
     }, 500);
   }
 
+  addSystemMessage(content: string): void {
+    const systemMessage: ChatbotMessage = {
+      id: this.generateId(),
+      content: content,
+      sender: 'bot',
+      timestamp: new Date(),
+      isPlaying: false
+    };
+
+    this.messagesSubject.next([...this.messagesSubject.value, systemMessage]);
+    
+    // Auto-speak system message if enabled
+    if (this.autoSpeakEnabled) {
+      setTimeout(() => {
+        this.speakMessage(systemMessage.id, systemMessage.content);
+      }, 500);
+    }
+  }
+
   // Voice chat methods
   async speakMessage(messageId: string, text: string): Promise<void> {
     if (!this.speechSynthesis || !this.selectedVoice) {

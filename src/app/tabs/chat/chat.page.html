@@ -26,26 +26,66 @@
         <p>Connect with other mothers in topic-based chat rooms</p>
       </div>
 
-      <div class="chat-rooms-list">
-        <div 
-          *ngFor="let room of chatRooms$ | async"
-          class="room-card"
-          (click)="joinRoom(room)">
-          <div class="room-icon">
-            <ion-icon [name]="getRoomIcon(room.topic)"></ion-icon>
-          </div>
-          <div class="room-content">
-            <div class="room-header">
-              <h3>{{ room.name }}</h3>
-              <span class="participant-count">{{ room.participants.length }} members</span>
+      <!-- General Groups Section -->
+      <div class="groups-section">
+        <h3 class="subsection-title">🌟 Join a Support Group</h3>
+        <p class="subsection-description">Connect with up to 20 mothers and expert moderators</p>
+        
+        <div class="chat-rooms-list">
+          <div 
+            *ngFor="let room of chatRooms$ | async"
+            class="room-card"
+            [class.room-full]="room.participants.length >= room.maxParticipants"
+            (click)="joinRoom(room)">
+            <div class="room-icon">
+              <ion-icon [name]="getRoomIcon(room.topic)"></ion-icon>
             </div>
-            <p class="room-description">{{ room.description }}</p>
-            <div class="room-footer" *ngIf="room.lastMessage">
-              <span class="last-message">{{ room.lastMessage.senderName }}: {{ room.lastMessage.message }}</span>
-              <span class="last-time">{{ getMessageTime(room.lastMessage.timestamp) }}</span>
+            <div class="room-content">
+              <div class="room-header">
+                <h3>{{ room.name }}</h3>
+                <div class="room-stats">
+                  <span class="participant-count">{{ room.participants.length }}/{{ room.maxParticipants }}</span>
+                  <ion-chip color="success" size="small" *ngIf="room.moderators.length > 0">
+                    <ion-icon name="shield-checkmark" slot="start"></ion-icon>
+                    Expert Moderated
+                  </ion-chip>
+                </div>
+              </div>
+              <p class="room-description">{{ room.description }}</p>
+              <div class="room-footer">
+                <div class="room-topics">
+                  <ion-chip color="light" size="small">{{ room.topic | titlecase }}</ion-chip>
+                </div>
+                <span class="join-status" *ngIf="room.participants.length >= room.maxParticipants">
+                  Group Full
+                </span>
+                <span class="join-status" *ngIf="room.participants.length < room.maxParticipants">
+                  {{ room.maxParticipants - room.participants.length }} spots left
+                </span>
+              </div>
+            </div>
+            <div class="room-action">
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [disabled]="room.participants.length >= room.maxParticipants"
+                class="join-room-button">
+                <ion-icon [name]="room.participants.length >= room.maxParticipants ? 'lock-closed' : 'enter'" slot="start"></ion-icon>
+                {{ room.participants.length >= room.maxParticipants ? 'Full' : 'Join' }}
+              </ion-button>
             </div>
           </div>
-          <ion-icon name="chevron-forward-outline" class="room-arrow"></ion-icon>
+        </div>
+      </div>
+
+      <!-- Popular Topics -->
+      <div class="popular-topics">
+        <h3 class="subsection-title">💬 Popular Discussion Topics</h3>
+        <div class="topics-grid">
+          <div class="topic-card" *ngFor="let topic of ['Newborn Care', 'Pumping Tips', 'Sleep Training', 'Nutrition', 'Working Moms', 'Twins & Multiples']">
+            <ion-icon [name]="getTopicIcon(topic)"></ion-icon>
+            <span>{{ topic }}</span>
+          </div>
         </div>
       </div>
     </div>

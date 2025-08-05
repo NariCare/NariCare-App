@@ -5,6 +5,7 @@ export interface User {
   lastName: string;
   phoneNumber?: string;
   profileImage?: string;
+  role: 'user' | 'expert' | 'admin';
   tier: UserTier;
   createdAt: Date;
   isOnboardingCompleted: boolean;

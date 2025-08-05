@@ -364,6 +364,18 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     return currentMessages && currentMessages.length > 0;
   }
 
+  getTopicIcon(topic: string): string {
+    const topicIcons: { [key: string]: string } = {
+      'Newborn Care': 'baby',
+      'Pumping Tips': 'water',
+      'Sleep Training': 'moon',
+      'Nutrition': 'nutrition',
+      'Working Moms': 'briefcase',
+      'Twins & Multiples': 'people'
+    };
+    return topicIcons[topic] || 'chatbubbles';
+  }
+
   ngAfterViewChecked() {
   }
 

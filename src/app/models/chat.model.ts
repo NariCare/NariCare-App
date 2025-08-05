@@ -2,11 +2,14 @@ export interface ChatRoom {
   id: string;
   name: string;
   description: string;
+  type: 'general' | 'consultation';
   topic: string;
   isPrivate: boolean;
   participants: string[];
   moderators: string[];
+  maxParticipants: number;
   createdAt: Date;
+  lastMessageTimestamp?: Date;
   lastMessage?: ChatMessage;
 }
 
