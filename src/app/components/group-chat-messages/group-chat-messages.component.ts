@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ModalController } from '@ionic/angular';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
-import { ChatMessage, ChatRoom, ChatAttachment } from '../../models/chat.model';
+import { ChatMessage, ChatRoom, MessageAttachment } from '../../models/chat.model';
 import { User } from '../../models/user.model';
 import { VideoPlayerModalComponent } from '../video-player-modal/video-player-modal.component';
 
@@ -114,7 +114,7 @@ export class GroupChatMessagesComponent implements OnInit, OnChanges, AfterViewC
     return currentDate !== previousDate;
   }
 
-  async openVideoModal(attachment: ChatAttachment) {
+  async openVideoModal(attachment: MessageAttachment) {
     const modal = await this.modalController.create({
       component: VideoPlayerModalComponent,
       componentProps: {

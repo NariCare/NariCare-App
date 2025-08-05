@@ -45,7 +45,6 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     private router: Router,
     private alertController: AlertController,
     private modalController: ModalController
-    private modalController: ModalController
   ) {
     this.chatRooms$ = this.chatService.getChatRooms();
     this.chatbotMessages$ = this.chatbotService.messages$;
@@ -310,7 +309,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     await alert.present();
   }
 
-  private getYouTubeThumbnail(url: string): string {
+  getYouTubeThumbnail(url: string): string {
     let videoId = '';
     
     if (url.includes('youtube.com/watch?v=')) {
