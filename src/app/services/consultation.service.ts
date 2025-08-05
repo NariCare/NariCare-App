@@ -87,7 +87,7 @@ export class ConsultationService {
         expertId: 'expert-1',
         type: 'scheduled',
         status: 'scheduled',
-        scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+        scheduledAt: new Date(Date.now() + 0.1 * 60 * 60 * 1000), // 2 days from now
         duration: 30,
         topic: 'Latching Issues',
         notes: 'Baby having trouble latching properly',
