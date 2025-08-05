@@ -30,8 +30,8 @@ export interface MessageAttachment {
   id: string;
   type: 'image' | 'document' | 'video';
   url: string;
-  filename: string;
-  size: number;
+  filename?: string;
+  size?: number;
   title?: string;
   description?: string;
   thumbnail?: string;

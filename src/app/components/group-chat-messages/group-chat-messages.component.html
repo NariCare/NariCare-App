@@ -86,8 +86,8 @@
                   <!-- Video Attachment -->
                   <div *ngIf="attachment.type === 'video'" class="video-attachment" (click)="openVideoModal(attachment)">
                     <div class="video-thumbnail">
-                      <img [src]="getYouTubeThumbnail(attachment.url)" [alt]="attachment.title || 'Video thumbnail'" *ngIf="getYouTubeThumbnail(attachment.url)">
-                      <div class="video-placeholder" *ngIf="!getYouTubeThumbnail(attachment.url)">
+                      <img [src]="attachment.thumbnail || getYouTubeThumbnail(attachment.url)" [alt]="attachment.title || 'Video thumbnail'" *ngIf="attachment.thumbnail || getYouTubeThumbnail(attachment.url)">
+                      <div class="video-placeholder" *ngIf="!attachment.thumbnail && !getYouTubeThumbnail(attachment.url)">
                         <ion-icon name="videocam"></ion-icon>
                       </div>
                       <div class="play-overlay">

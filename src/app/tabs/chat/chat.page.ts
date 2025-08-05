@@ -1,12 +1,13 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { AfterViewChecked, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
+import { AlertController, ModalController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { ChatRoom, ChatMessage, ChatAttachment } from '../../models/chat.model';
+import { VideoPlayerModalComponent } from '../../components/video-player-modal/video-player-modal.component';
 
 @Component({
   selector: 'app-chat',
@@ -43,6 +44,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private alertController: AlertController,
+    private modalController: ModalController
     private modalController: ModalController
   ) {
     this.chatRooms$ = this.chatService.getChatRooms();
@@ -323,6 +325,19 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
+
+  async openVideoModal(attachment: ChatAttachment) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: attachment.url,
+        title: attachment.title || 'Shared Video'
+      },
+      cssClass: 'video-modal'
+    });
+    return await modal.present();
+  }
+
   async sendGroupMessage() {
     if (this.groupMessageText.trim() && this.selectedRoom && this.currentUser) {
       const message: Omit<ChatMessage, 'id'> = {
