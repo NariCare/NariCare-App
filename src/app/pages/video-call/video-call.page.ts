@@ -23,7 +23,7 @@ export class VideoCallPage implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
+    public router: Router,
     private sanitizer: DomSanitizer // Not strictly needed for Jitsi API embedding, but good practice if using iframe src directly
   ) {}
 
