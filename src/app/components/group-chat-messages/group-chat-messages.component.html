@@ -42,7 +42,7 @@
         [class.moderator-message]="message.senderRole === 'moderator'">
         
         <!-- Date Separator -->
-        <div class="date-separator" *ngIf="i === 0 || (messages[i-1] && new Date(message.timestamp).toDateString() !== new Date(messages[i-1].timestamp).toDateString())">
+        <div class="date-separator" *ngIf="isNewDay(i, messages, message.timestamp)">
           <span>{{ message.timestamp | date:'fullDate' }}</span>
         </div>
 

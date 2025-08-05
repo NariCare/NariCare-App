@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
-import { ChatRoom } from '../../models/chat.model';
+import { ChatRoom, ChatMessage } from '../../models/chat.model';
 
 @Component({
   selector: 'app-chat',

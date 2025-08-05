@@ -100,4 +100,14 @@ export class GroupChatMessagesComponent implements OnInit, OnChanges, AfterViewC
     formatted = formatted.replace(/\n/g, '<br>');
     return formatted;
   }
+
+  isNewDay(currentIndex: number, messages: ChatMessage[], currentTimestamp: Date): boolean {
+    if (currentIndex === 0) return true;
+    if (!messages[currentIndex - 1]) return true;
+    
+    const currentDate = new Date(currentTimestamp).toDateString();
+    const previousDate = new Date(messages[currentIndex - 1].timestamp).toDateString();
+    
+    return currentDate !== previousDate;
+  }
 }
