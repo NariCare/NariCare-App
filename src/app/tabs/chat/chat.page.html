@@ -21,13 +21,53 @@
 
     <!-- Group Chat Tab -->
     <div class="tab-content" *ngIf="selectedTab === 'groups'">
-      <div class="groups-header">
-        <h2>Mom-to-Mom Support Groups</h2>
-        <p>Connect with other mothers in topic-based chat rooms</p>
+      
+      <!-- Group Chat Room View -->
+      <div class="group-chat-view" *ngIf="selectedRoom; else groupsList">
+        <div class="group-chat-header">
+          <ion-button fill="clear" (click)="backToGroupList()" class="back-to-groups-button">
+            <ion-icon name="arrow-back" slot="start"></ion-icon>
+            Back to Groups
+          </ion-button>
+        </div>
+        
+        <!-- Group Chat Messages Component -->
+        <div class="group-messages-wrapper" #groupMessagesContainer>
+          <app-group-chat-messages [room]="selectedRoom"></app-group-chat-messages>
+        </div>
+        
+        <!-- Group Message Input -->
+        <div class="group-message-input-container">
+          <div class="group-message-input">
+            <ion-textarea
+              [(ngModel)]="groupMessageText"
+              placeholder="Type your message to the group..."
+              rows="1"
+              autoGrow="true"
+              maxlength="500"
+              (keydown)="onGroupKeyDown($event)"
+              class="group-message-textarea">
+            </ion-textarea>
+            <ion-button 
+              fill="clear" 
+              (click)="sendGroupMessage()"
+              [disabled]="!groupMessageText?.trim()"
+              class="group-send-button">
+              <ion-icon name="send" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
       </div>
 
-      <!-- General Groups Section -->
-      <div class="groups-section">
+      <!-- Groups List Template -->
+      <ng-template #groupsList>
+        <div class="groups-header">
+        <h2>Mom-to-Mom Support Groups</h2>
+        <p>Connect with other mothers in topic-based chat rooms</p>
+        </div>
+
+        <!-- General Groups Section -->
+        <div class="groups-section">
         <h3 class="subsection-title">🌟 Join a Support Group</h3>
         <p class="subsection-description">Connect with up to 20 mothers and expert moderators</p>
         
@@ -76,10 +116,9 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Popular Topics -->
-      <div class="popular-topics">
+        <!-- Popular Topics -->
+        <div class="popular-topics">
         <h3 class="subsection-title">💬 Popular Discussion Topics</h3>
         <div class="topics-grid">
           <div class="topic-card" *ngFor="let topic of ['Newborn Care', 'Pumping Tips', 'Sleep Training', 'Nutrition', 'Working Moms', 'Twins & Multiples']">
@@ -87,7 +126,8 @@
             <span>{{ topic }}</span>
           </div>
         </div>
-      </div>
+        </div>
+      </ng-template>
     </div>
 
     <!-- AI Assistant Tab -->
@@ -369,7 +409,7 @@
   </div>
 
   <!-- Message Input (for AI chat) -->
-  <div class="message-input-container fixed-bottom" *ngIf="selectedTab === 'ai' && !(voiceMode$ | async)?.isActive">
+  <div class="message-input-container fixed-bottom" *ngIf="selectedTab === 'ai' && !(voiceMode$ | async)?.isActive && !selectedRoom">
     <div class="message-input">
       <ion-textarea
         [(ngModel)]="messageText"

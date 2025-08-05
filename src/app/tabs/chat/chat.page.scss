@@ -1087,6 +1087,85 @@
   }
 }
 
+/* Group Chat Styles */
+.group-chat-view {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px); /* Account for header and tab selector */
+}
+
+.group-chat-header {
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.back-to-groups-button {
+  --color: #e91e63;
+  --padding-start: 0;
+  --padding-end: 8px;
+  margin: 0;
+  font-weight: 500;
+  
+  &:hover {
+    --background: rgba(233, 30, 99, 0.1);
+  }
+}
+
+.group-messages-wrapper {
+  flex: 1;
+  overflow: hidden;
+}
+
+.group-message-input-container {
+  background: #ffffff;
+  border-top: 1px solid #f1f5f9;
+  padding: 1rem;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.group-message-input {
+  display: flex;
+  align-items: flex-end;
+  background: #f8fafc;
+  border-radius: 24px;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  gap: 0.5rem;
+}
+
+.group-message-textarea {
+  flex: 1;
+  --background: transparent;
+  --color: #2d3748;
+  --placeholder-color: #94a3b8;
+  --padding-start: 1rem;
+  --padding-end: 0.5rem;
+  --padding-top: 0.5rem;
+  --padding-bottom: 0.5rem;
+  font-size: 0.9rem;
+  max-height: 120px;
+}
+
+.group-send-button {
+  --color: #e91e63;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  margin: 0;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  &:disabled {
+    --color: #cbd5e1;
+  }
+  
+  &:not([disabled]):hover {
+    --background: rgba(233, 30, 99, 0.1);
+    transform: scale(1.1);
+  }
+}
+
 .test-voice-button {
   --border-radius: 8px;
   --padding-start: 12px;
