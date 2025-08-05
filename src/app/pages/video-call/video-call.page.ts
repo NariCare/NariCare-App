@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
@@ -10,8 +11,8 @@ declare const JitsiMeetExternalAPI: any;
   templateUrl: './video-call.page.html',
   styleUrls: ['./video-call.page.scss'],
 })
-export class VideoCallPage implements OnInit, OnDestroy {
-  @ViewChild('jitsiContainer', { static: true }) jitsiContainer!: ElementRef;
+export class VideoCallPage implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('jitsiContainer', { static: false }) jitsiContainer!: ElementRef;
 
   jitsiAPI: any;
   meetingId: string = '';
@@ -20,6 +21,7 @@ export class VideoCallPage implements OnInit, OnDestroy {
   callStartTime: Date | null = null;
   callEndTime: Date | null = null;
   jitsiApiLoaded: boolean = false;
+  jitsiScriptLoaded: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -32,8 +34,8 @@ export class VideoCallPage implements OnInit, OnDestroy {
       this.meetingId = params.get('meetingId') || '';
       if (this.meetingId) {
         this.loadJitsiScript().then(() => {
+          this.jitsiScriptLoaded = true;
           this.jitsiApiLoaded = true;
-          this.initializeJitsi();
         }).catch(error => {
           console.error('Failed to load Jitsi script:', error);
           this.router.navigate(['/tabs/dashboard']); // Redirect on script load failure
@@ -43,6 +45,13 @@ export class VideoCallPage implements OnInit, OnDestroy {
         this.router.navigate(['/tabs/dashboard']); // Redirect if no meeting ID
       }
     });
+  }
+
+  ngAfterViewInit() {
+    // Initialize Jitsi only after the view has been initialized and the script is loaded
+    if (this.jitsiScriptLoaded && this.jitsiContainer?.nativeElement) {
+      this.initializeJitsi();
+    }
   }
 
   private loadJitsiScript(): Promise<boolean> {
