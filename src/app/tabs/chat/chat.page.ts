@@ -42,7 +42,8 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     private chatService: ChatService,
     private authService: AuthService,
     private router: Router,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private modalController: ModalController
   ) {
     this.chatRooms$ = this.chatService.getChatRooms();
     this.chatbotMessages$ = this.chatbotService.messages$;
