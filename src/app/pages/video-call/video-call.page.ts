@@ -12,7 +12,7 @@ declare const JitsiMeetExternalAPI: any;
   styleUrls: ['./video-call.page.scss'],
 })
 export class VideoCallPage implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('jitsiContainer', { static: false }) jitsiContainer!: ElementRef;
+  @ViewChild('jitsiContainer', { static: true }) jitsiContainer!: ElementRef;
 
   jitsiAPI: any;
   meetingId: string = '';
@@ -20,7 +20,7 @@ export class VideoCallPage implements OnInit, AfterViewInit, OnDestroy {
   callEnded: boolean = false;
   callStartTime: Date | null = null;
   callEndTime: Date | null = null;
-  jitsiApiLoaded: boolean = false;
+  jitsiInitialized: boolean = false;
   jitsiScriptLoaded: boolean = false;
 
   constructor(
@@ -35,7 +35,10 @@ export class VideoCallPage implements OnInit, AfterViewInit, OnDestroy {
       if (this.meetingId) {
         this.loadJitsiScript().then(() => {
           this.jitsiScriptLoaded = true;
-          this.jitsiApiLoaded = true;
+          // Initialize Jitsi after script loads and DOM is ready
+          setTimeout(() => {
+            this.initializeJitsi();
+          }, 100);
         }).catch(error => {
           console.error('Failed to load Jitsi script:', error);
           this.router.navigate(['/tabs/dashboard']); // Redirect on script load failure
@@ -48,10 +51,7 @@ export class VideoCallPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    // Initialize Jitsi only after the view has been initialized and the script is loaded
-    if (this.jitsiScriptLoaded && this.jitsiContainer?.nativeElement) {
-      this.initializeJitsi();
-    }
+    console.log('ngAfterViewInit - jitsiContainer available:', !!this.jitsiContainer?.nativeElement);
   }
 
   private loadJitsiScript(): Promise<boolean> {
@@ -69,6 +69,19 @@ export class VideoCallPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initializeJitsi() {
+    console.log('Initializing Jitsi...');
+    console.log('Container element available:', !!this.jitsiContainer?.nativeElement);
+    
+    if (!this.jitsiContainer?.nativeElement) {
+      console.error('Jitsi container element not available');
+      return;
+    }
+    
+    if (typeof JitsiMeetExternalAPI === 'undefined') {
+      console.error('JitsiMeetExternalAPI not loaded');
+      return;
+    }
+    
     const domain = 'meet.jit.si';
     const options = {
       roomName: this.meetingId,
@@ -105,6 +118,9 @@ export class VideoCallPage implements OnInit, AfterViewInit, OnDestroy {
     this.jitsiAPI.addEventListener('participantLeft', this.onParticipantLeft.bind(this));
     this.jitsiAPI.addEventListener('videoConferenceLeft', this.onVideoConferenceLeft.bind(this));
     this.jitsiAPI.addEventListener('readyToClose', this.onReadyToClose.bind(this));
+    
+    this.jitsiInitialized = true;
+    console.log('Jitsi API initialized successfully');
   }
 
   private onVideoConferenceJoined(event: any) {

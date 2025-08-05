@@ -9,8 +9,8 @@
 
 <ion-content [fullscreen]="true">
   <div class="jitsi-wrapper">
-    <div id="jitsi-container" #jitsiContainer class="jitsi-container" *ngIf="jitsiApiLoaded && jitsiScriptLoaded"></div>
-    <div class="loading-state" *ngIf="!jitsiApiLoaded || !jitsiScriptLoaded">
+    <div id="jitsi-container" #jitsiContainer class="jitsi-container"></div>
+    <div class="loading-state" *ngIf="!jitsiInitialized">
       <ion-spinner name="crescent"></ion-spinner>
       <p>Loading video call...</p>
     </div>
