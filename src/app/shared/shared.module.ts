@@ -6,13 +6,15 @@ import { VideoPlayerModalComponent } from '../components/video-player-modal/vide
 import { TimelineModalComponent } from '../components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from '../components/specific-week-modal/specific-week-modal.component';
 import { ConsultationBookingModalComponent } from '../components/consultation-booking-modal/consultation-booking-modal.component';
+import { GroupChatMessagesComponent } from '../components/group-chat-messages/group-chat-messages.component';
 
 @NgModule({
   declarations: [
     VideoPlayerModalComponent,
     TimelineModalComponent,
     SpecificWeekModalComponent,
-    ConsultationBookingModalComponent
+    ConsultationBookingModalComponent,
+    GroupChatMessagesComponent
   ],
   imports: [
     CommonModule,
@@ -23,7 +25,8 @@ import { ConsultationBookingModalComponent } from '../components/consultation-bo
     VideoPlayerModalComponent,
     TimelineModalComponent,
     SpecificWeekModalComponent,
-    ConsultationBookingModalComponent
+    ConsultationBookingModalComponent,
+    GroupChatMessagesComponent
   ]
 })
 export class SharedModule { }
