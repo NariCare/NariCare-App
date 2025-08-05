@@ -155,6 +155,7 @@ export class AuthService {
         firstName: userData.firstName || '',
         lastName: userData.lastName || '',
         phoneNumber: userData.phoneNumber,
+        role: 'user',
         tier: {
           type: userData.tier?.type || 'basic',
           startDate: new Date(),
