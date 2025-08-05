@@ -311,6 +311,7 @@ export class AuthService {
     const mockUser: User = {
       uid: 'mock-user-' + Date.now(),
       email: email,
+      role: 'user',
       firstName: userData.firstName || '',
       lastName: userData.lastName || '',
       phoneNumber: userData.phoneNumber,
@@ -355,6 +356,7 @@ export class AuthService {
     const mockUser: User = {
       uid: 'mock-user-123',
       email: email,
+      role: 'user',
       firstName: 'Demo',
       lastName: 'User',
       role: 'user',

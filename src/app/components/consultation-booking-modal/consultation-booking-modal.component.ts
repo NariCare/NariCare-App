@@ -20,6 +20,8 @@ export class ConsultationBookingModalComponent implements OnInit {
   selectedExpert: Expert | null = null;
   currentStep = 1;
   totalSteps = 3;
+  minDate = new Date().toISOString();
+  maxDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
   constructor(
     private formBuilder: FormBuilder,
