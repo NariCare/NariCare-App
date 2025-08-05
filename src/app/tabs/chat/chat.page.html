@@ -39,6 +39,20 @@
         <!-- Group Message Input -->
         <div class="group-message-input-container">
           <div class="group-message-input">
+            <ion-button 
+              fill="clear" 
+              size="small"
+              (click)="openPhotoInput()"
+              class="attachment-button">
+              <ion-icon name="image" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button 
+              fill="clear" 
+              size="small"
+              (click)="openVideoLinkInput()"
+              class="attachment-button">
+              <ion-icon name="videocam" slot="icon-only"></ion-icon>
+            </ion-button>
             <ion-textarea
               [(ngModel)]="groupMessageText"
               placeholder="Type your message to the group..."
@@ -412,6 +426,20 @@
   <!-- Message Input (for AI chat) -->
   <div class="message-input-container fixed-bottom" *ngIf="selectedTab === 'ai' && !(voiceMode$ | async)?.isActive && !selectedRoom">
     <div class="message-input">
+      <ion-button 
+        fill="clear" 
+        size="small"
+        (click)="openPhotoInput()"
+        class="attachment-button">
+        <ion-icon name="image" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button 
+        fill="clear" 
+        size="small"
+        (click)="openVideoLinkInput()"
+        class="attachment-button">
+        <ion-icon name="videocam" slot="icon-only"></ion-icon>
+      </ion-button>
       <ion-textarea
         [(ngModel)]="messageText"
         placeholder="Ask about breastfeeding, baby care, or any concerns..."

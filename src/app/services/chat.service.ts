@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, BehaviorSubject } from 'rxjs';
-import { ChatRoom, ChatMessage } from '../models/chat.model';
+import { ChatRoom, ChatMessage, ChatAttachment } from '../models/chat.model';
 import { Storage } from '@ionic/storage-angular';
 
 @Injectable({
@@ -122,6 +122,26 @@ export class ChatService {
         message: 'I went through the same thing with my little one! It gets easier around 6 weeks. Hang in there mama! 🌟',
         timestamp: new Date(Date.now() - 80 * 60 * 1000), // 80 minutes ago
         isEdited: false
+      },
+      {
+        id: 'msg-newborn-6',
+        roomId: 'general-newborn-support',
+        senderId: 'user-demo-3',
+        senderName: 'Rachel M.',
+        senderRole: 'user',
+        message: 'Here\'s a helpful video about newborn feeding cues that really helped me!',
+        timestamp: new Date(Date.now() - 70 * 60 * 1000), // 70 minutes ago
+        isEdited: false,
+        attachments: [
+          {
+            id: 'attachment-1',
+            type: 'video',
+            url: 'https://youtu.be/ABAXgubx58Q',
+            title: 'Recognizing Baby Hunger Cues',
+            description: 'Learn to identify your baby\'s hunger signals before they cry',
+            thumbnail: 'https://img.youtube.com/vi/ABAXgubx58Q/maxresdefault.jpg'
+          }
+        ]
       },
       {
         id: 'msg-newborn-5',

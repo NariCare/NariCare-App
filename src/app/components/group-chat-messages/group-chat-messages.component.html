@@ -72,6 +72,38 @@
             <!-- Message Bubble -->
             <div class="message-bubble">
               <div class="message-text" [innerHTML]="formatMessageContent(message.message)"></div>
+              
+              <!-- Message Attachments -->
+              <div class="message-attachments" *ngIf="message.attachments && message.attachments.length > 0">
+                <div *ngFor="let attachment of message.attachments" class="attachment-item">
+                  
+                  <!-- Image Attachment -->
+                  <div *ngIf="attachment.type === 'image'" class="image-attachment">
+                    <img [src]="attachment.url" [alt]="attachment.title || 'Shared image'" class="attachment-image">
+                    <p *ngIf="attachment.title" class="attachment-title">{{ attachment.title }}</p>
+                  </div>
+                  
+                  <!-- Video Attachment -->
+                  <div *ngIf="attachment.type === 'video'" class="video-attachment" (click)="openVideoModal(attachment)">
+                    <div class="video-thumbnail">
+                      <img [src]="getYouTubeThumbnail(attachment.url)" [alt]="attachment.title || 'Video thumbnail'" *ngIf="getYouTubeThumbnail(attachment.url)">
+                      <div class="video-placeholder" *ngIf="!getYouTubeThumbnail(attachment.url)">
+                        <ion-icon name="videocam"></ion-icon>
+                      </div>
+                      <div class="play-overlay">
+                        <ion-icon name="play"></ion-icon>
+                      </div>
+                    </div>
+                    <div class="video-info">
+                      <h5 *ngIf="attachment.title">{{ attachment.title }}</h5>
+                      <p *ngIf="attachment.description">{{ attachment.description }}</p>
+                      <span class="video-url">{{ attachment.url }}</span>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+              
               <div class="message-meta">
                 <span class="message-time">{{ getMessageTime(message.timestamp) }}</span>
                 <ion-icon name="checkmark-done" class="read-indicator" *ngIf="isOwnMessage(message)"></ion-icon>

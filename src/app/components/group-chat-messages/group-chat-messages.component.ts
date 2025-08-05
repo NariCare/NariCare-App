@@ -110,4 +110,28 @@ export class GroupChatMessagesComponent implements OnInit, OnChanges, AfterViewC
     
     return currentDate !== previousDate;
   }
+
+  async openVideoModal(attachment: ChatAttachment) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: attachment.url,
+        title: attachment.title || 'Shared Video'
+      },
+      cssClass: 'video-modal'
+    });
+    return await modal.present();
+  }
+
+  getYouTubeThumbnail(url: string): string {
+    let videoId = '';
+    
+    if (url.includes('youtube.com/watch?v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
+    } else if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1].split('?')[0];
+    }
+    
+    return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : attachment.thumbnail || '';
+  }
 }

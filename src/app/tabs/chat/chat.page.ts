@@ -1,11 +1,12 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { AfterViewChecked, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
-import { ChatRoom, ChatMessage } from '../../models/chat.model';
+import { ChatRoom, ChatMessage, ChatAttachment } from '../../models/chat.model';
 
 @Component({
   selector: 'app-chat',
@@ -40,7 +41,8 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     private chatbotService: ChatbotService,
     private chatService: ChatService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private alertController: AlertController
   ) {
     this.chatRooms$ = this.chatService.getChatRooms();
     this.chatbotMessages$ = this.chatbotService.messages$;
@@ -198,6 +200,128 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
+  async sendAttachment(type: 'image' | 'video', url: string, title?: string, description?: string) {
+    const attachment: ChatAttachment = {
+      id: this.generateId(),
+      type,
+      url,
+      title,
+      description,
+      thumbnail: type === 'video' ? this.getYouTubeThumbnail(url) : undefined
+    };
+
+    const messageContent = type === 'image' ? 'Shared a photo' : `Shared a video: ${title || 'Video'}`;
+
+    if (this.selectedTab === 'ai') {
+      await this.chatbotService.sendMessage(messageContent, [attachment]);
+    } else if (this.selectedRoom && this.currentUser) {
+      const message: Omit<ChatMessage, 'id'> = {
+        roomId: this.selectedRoom.id,
+        senderId: this.currentUser.uid,
+        senderName: `${this.currentUser.firstName} ${this.currentUser.lastName}`,
+        senderRole: 'user',
+        message: messageContent,
+        timestamp: new Date(),
+        isEdited: false,
+        attachments: [attachment]
+      };
+      
+      await this.chatService.sendMessage(this.selectedRoom.id, message);
+    }
+    
+    this.scrollToBottom();
+  }
+
+  async openPhotoInput() {
+    const alert = await this.alertController.create({
+      header: 'Share Photo',
+      message: 'Enter the URL of the photo you want to share',
+      inputs: [
+        {
+          name: 'photoUrl',
+          type: 'url',
+          placeholder: 'https://example.com/photo.jpg'
+        },
+        {
+          name: 'photoTitle',
+          type: 'text',
+          placeholder: 'Photo description (optional)'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Share',
+          handler: (data) => {
+            if (data.photoUrl && data.photoUrl.trim()) {
+              this.sendAttachment('image', data.photoUrl.trim(), data.photoTitle?.trim());
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async openVideoLinkInput() {
+    const alert = await this.alertController.create({
+      header: 'Share Video Link',
+      message: 'Share a helpful video with the group',
+      inputs: [
+        {
+          name: 'videoUrl',
+          type: 'url',
+          placeholder: 'https://youtube.com/watch?v=...'
+        },
+        {
+          name: 'videoTitle',
+          type: 'text',
+          placeholder: 'Video title (optional)'
+        },
+        {
+          name: 'videoDescription',
+          type: 'text',
+          placeholder: 'Brief description (optional)'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Share',
+          handler: (data) => {
+            if (data.videoUrl && data.videoUrl.trim()) {
+              this.sendAttachment('video', data.videoUrl.trim(), data.videoTitle?.trim(), data.videoDescription?.trim());
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private getYouTubeThumbnail(url: string): string {
+    let videoId = '';
+    
+    if (url.includes('youtube.com/watch?v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
+    } else if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1].split('?')[0];
+    }
+    
+    return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '';
+  }
+
+  private generateId(): string {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
   async sendGroupMessage() {
     if (this.groupMessageText.trim() && this.selectedRoom && this.currentUser) {
       const message: Omit<ChatMessage, 'id'> = {
