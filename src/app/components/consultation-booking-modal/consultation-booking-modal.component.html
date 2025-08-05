@@ -1,0 +1,242 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Book Expert Consultation</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="closeModal()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="booking-container">
+    
+    <!-- Progress indicator -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="(currentStep / totalSteps) * 100"></div>
+      </div>
+      <p class="progress-text">Step {{ currentStep }} of {{ totalSteps }}</p>
+    </div>
+
+    <form [formGroup]="bookingForm" class="booking-form">
+      
+      <!-- Step 1: Select Expert -->
+      <div class="form-step" *ngIf="currentStep === 1">
+        <h2 class="step-title">Choose Your Expert</h2>
+        <p class="step-description">Select a lactation consultant who specializes in your needs</p>
+        
+        <div class="experts-list">
+          <div 
+            *ngFor="let expert of experts$ | async"
+            class="expert-card"
+            [class.selected]="selectedExpert?.id === expert.id"
+            (click)="selectExpert(expert)">
+            
+            <div class="expert-avatar">
+              <img [src]="expert.profileImage" [alt]="expert.name" *ngIf="expert.profileImage">
+              <ion-icon name="person" *ngIf="!expert.profileImage"></ion-icon>
+            </div>
+            
+            <div class="expert-info">
+              <h3>{{ expert.name }}</h3>
+              <p class="credentials">{{ expert.credentials }}</p>
+              
+              <div class="rating">
+                <ion-icon 
+                  *ngFor="let star of getExpertRatingStars(expert.rating)" 
+                  [name]="star" 
+                  class="star-icon">
+                </ion-icon>
+                <span class="rating-text">({{ expert.rating }}/5)</span>
+              </div>
+              
+              <div class="specialties">
+                <ion-chip 
+                  *ngFor="let specialty of expert.specialties" 
+                  color="light" 
+                  size="small">
+                  {{ specialty }}
+                </ion-chip>
+              </div>
+              
+              <p class="bio">{{ expert.bio }}</p>
+              
+              <div class="consultation-count">
+                <ion-icon name="people"></ion-icon>
+                <span>{{ expert.totalConsultations }} consultations completed</span>
+              </div>
+            </div>
+            
+            <ion-icon name="checkmark-circle" class="selected-icon" *ngIf="selectedExpert?.id === expert.id"></ion-icon>
+          </div>
+        </div>
+
+        <ion-button 
+          expand="block" 
+          (click)="nextStep()" 
+          [disabled]="!selectedExpert"
+          class="next-button">
+          Continue
+        </ion-button>
+      </div>
+
+      <!-- Step 2: Select Date & Time -->
+      <div class="form-step" *ngIf="currentStep === 2">
+        <h2 class="step-title">Choose Date & Time</h2>
+        <p class="step-description">Select when you'd like to have your consultation</p>
+        
+        <div class="selected-expert-summary" *ngIf="selectedExpert">
+          <div class="expert-summary-avatar">
+            <img [src]="selectedExpert.profileImage" [alt]="selectedExpert.name" *ngIf="selectedExpert.profileImage">
+            <ion-icon name="person" *ngIf="!selectedExpert.profileImage"></ion-icon>
+          </div>
+          <div class="expert-summary-info">
+            <h4>{{ selectedExpert.name }}</h4>
+            <p>{{ selectedExpert.credentials }}</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label">📅 Consultation Date</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-datetime-button datetime="consultationDate">
+              <ion-label>Select Date</ion-label>
+            </ion-datetime-button>
+          </ion-item>
+          <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime 
+                id="consultationDate" 
+                formControlName="scheduledDate"
+                presentation="date"
+                [min]="new Date().toISOString()"
+                [max]="new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()">
+              </ion-datetime>
+            </ng-template>
+          </ion-modal>
+          <div class="error-message" *ngIf="bookingForm.get('scheduledDate')?.invalid && bookingForm.get('scheduledDate')?.touched">
+            {{ getErrorMessage('scheduledDate') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label">⏰ Consultation Time</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="time-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-select 
+              formControlName="scheduledTime"
+              placeholder="Select Time"
+              interface="popover">
+              <ion-select-option 
+                *ngFor="let time of getAvailableTimeSlots()" 
+                [value]="time">
+                {{ time }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+          <div class="error-message" *ngIf="bookingForm.get('scheduledTime')?.invalid && bookingForm.get('scheduledTime')?.touched">
+            {{ getErrorMessage('scheduledTime') }}
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button (click)="nextStep()" class="next-button">
+            Continue
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Step 3: Topic & Notes -->
+      <div class="form-step" *ngIf="currentStep === 3">
+        <h2 class="step-title">Consultation Details</h2>
+        <p class="step-description">Tell us what you'd like to discuss</p>
+        
+        <div class="consultation-summary" *ngIf="selectedExpert">
+          <div class="summary-header">
+            <ion-icon name="calendar"></ion-icon>
+            <h4>Consultation Summary</h4>
+          </div>
+          <div class="summary-details">
+            <p><strong>Expert:</strong> {{ selectedExpert.name }}</p>
+            <p><strong>Date:</strong> {{ bookingForm.get('scheduledDate')?.value | date:'fullDate' }}</p>
+            <p><strong>Time:</strong> {{ bookingForm.get('scheduledTime')?.value }}</p>
+            <p><strong>Duration:</strong> 30 minutes</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label">💬 Main Topic</label>
+          <ion-item lines="none" class="input-item">
+            <ion-select 
+              formControlName="topic"
+              placeholder="What would you like to discuss?"
+              interface="popover">
+              <ion-select-option value="latching-issues">Latching Issues</ion-select-option>
+              <ion-select-option value="milk-supply">Milk Supply Concerns</ion-select-option>
+              <ion-select-option value="pumping-help">Pumping Help</ion-select-option>
+              <ion-select-option value="feeding-schedule">Feeding Schedule</ion-select-option>
+              <ion-select-option value="weaning-guidance">Weaning Guidance</ion-select-option>
+              <ion-select-option value="return-to-work">Return to Work</ion-select-option>
+              <ion-select-option value="baby-weight">Baby Weight Concerns</ion-select-option>
+              <ion-select-option value="general-support">General Support</ion-select-option>
+              <ion-select-option value="other">Other</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <div class="error-message" *ngIf="bookingForm.get('topic')?.invalid && bookingForm.get('topic')?.touched">
+            {{ getErrorMessage('topic') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="field-label">📝 Additional Notes (Optional)</label>
+          <ion-item lines="none" class="input-item">
+            <ion-textarea
+              formControlName="notes"
+              placeholder="Share any specific concerns or questions you'd like to discuss..."
+              rows="4"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+        </div>
+
+        <div class="consultation-info">
+          <div class="info-card">
+            <ion-icon name="videocam"></ion-icon>
+            <div class="info-content">
+              <h5>Video Consultation</h5>
+              <p>You'll receive a secure video link before your appointment</p>
+            </div>
+          </div>
+          
+          <div class="info-card">
+            <ion-icon name="shield-checkmark"></ion-icon>
+            <div class="info-content">
+              <h5>Private & Secure</h5>
+              <p>All consultations are confidential and HIPAA compliant</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button 
+            (click)="bookConsultation()" 
+            [disabled]="!bookingForm.valid"
+            class="book-button">
+            <ion-icon name="calendar" slot="start"></ion-icon>
+            Book Consultation
+          </ion-button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</ion-content>

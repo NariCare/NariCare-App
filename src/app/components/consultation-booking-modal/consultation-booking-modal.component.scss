@@ -1,0 +1,421 @@
+.booking-container {
+  padding: 1rem;
+}
+
+.progress-container {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.progress-bar {
+  height: 6px;
+  background-color: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e91e63, #f06292);
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.form-step {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.step-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+  text-align: center;
+}
+
+.step-description {
+  margin: 0 0 2rem 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.experts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.expert-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &.selected {
+    border-color: #e91e63;
+    background: linear-gradient(135deg, #fef7f7, #ffffff);
+    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.15);
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.expert-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e91e63, #f06292);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ion-icon {
+    font-size: 1.8rem;
+    color: #ffffff;
+  }
+}
+
+.expert-info {
+  flex: 1;
+
+  h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .credentials {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+
+    .star-icon {
+      font-size: 0.9rem;
+      color: #fbbf24;
+    }
+
+    .rating-text {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-left: 0.25rem;
+    }
+  }
+
+  .specialties {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+
+    ion-chip {
+      font-size: 0.75rem;
+    }
+  }
+
+  .bio {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .consultation-count {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+
+    ion-icon {
+      font-size: 1rem;
+    }
+  }
+}
+
+.selected-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: #e91e63;
+  font-size: 1.5rem;
+}
+
+.selected-expert-summary {
+  background: linear-gradient(135deg, #fef7f7, #ffffff);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #fce4ec;
+  display: flex;
+  align-items: center;
+}
+
+.expert-summary-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e91e63, #f06292);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: #ffffff;
+  }
+}
+
+.expert-summary-info {
+  h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+}
+
+.consultation-summary {
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #0ea5e9;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  ion-icon {
+    font-size: 1.25rem;
+    color: #0ea5e9;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0c4a6e;
+  }
+}
+
+.summary-details {
+  p {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #0369a1;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.input-item {
+  --background: #f8fafc;
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 52px;
+  margin-bottom: 0.5rem;
+
+  &.error {
+    --border-color: #ef4444;
+    --border-width: 1px;
+  }
+}
+
+.input-icon {
+  color: #94a3b8;
+  margin-right: 12px;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-left: 16px;
+  margin-top: 4px;
+}
+
+.consultation-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #f1f5f9;
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: #e91e63;
+    flex-shrink: 0;
+  }
+
+  .info-content {
+    flex: 1;
+
+    h5 {
+      margin: 0 0 0.25rem 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
+  }
+}
+
+.next-button,
+.book-button {
+  --background: #e91e63;
+  --background-hover: #d81b60;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+  --color: #ffffff;
+  height: 52px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+
+  &:disabled {
+    --background: #e2e8f0;
+    --color: #94a3b8;
+    --box-shadow: none;
+  }
+}
+
+.button-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.back-button {
+  --color: #64748b;
+  --border-color: #cbd5e1;
+  --border-radius: 12px;
+  flex: 1;
+  height: 52px;
+}
+
+.next-button,
+.book-button {
+  flex: 2;
+}
+
+@media (min-width: 768px) {
+  .booking-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .experts-list {
+    gap: 1.5rem;
+  }
+
+  .consultation-info {
+    flex-direction: row;
+    gap: 1rem;
+
+    .info-card {
+      flex: 1;
+    }
+  }
+}
