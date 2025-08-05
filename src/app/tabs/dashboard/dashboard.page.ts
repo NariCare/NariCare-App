@@ -5,10 +5,13 @@ import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ChatbotService } from '../../services/chatbot.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
+import { ConsultationService } from '../../services/consultation.service';
 import { BabyTimelineItem, BabyTimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
+import { Consultation, Expert } from '../../models/consultation.model';
 import { TimelineModalComponent } from '../../components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from '../../components/specific-week-modal/specific-week-modal.component';
+import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,6 +24,8 @@ export class DashboardPage implements OnInit, AfterViewInit {
   user: User | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
   currentTimelineData: BabyTimelineData | null = null;
+  upcomingConsultations: Consultation[] = [];
+  experts: Expert[] = [];
   quickActions = [
     {
       title: 'Ask AI Assistant',
@@ -52,25 +57,14 @@ export class DashboardPage implements OnInit, AfterViewInit {
     }
   ];
 
-  upcomingReminders = [
-    {
-      title: 'Growth Check-up',
-      time: 'Tomorrow at 2:00 PM',
-      type: 'growth'
-    },
-    {
-      title: 'Expert Consultation',
-      time: 'Friday at 10:00 AM',
-      type: 'consultation'
-    }
-  ];
 
   constructor(
     private authService: AuthService,
     private router: Router,
     private chatbotService: ChatbotService,
     private timelineService: BabyTimelineService,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private consultationService: ConsultationService
   ) {}
 
   ngOnInit() {
@@ -78,8 +72,11 @@ export class DashboardPage implements OnInit, AfterViewInit {
       this.user = user;
       if (user && user.babies.length > 0) {
         this.loadTimelineData(user.babies[0].dateOfBirth);
+        this.loadUpcomingConsultations();
       }
     });
+    
+    this.loadExperts();
   }
 
   ngAfterViewInit() {
@@ -93,6 +90,24 @@ export class DashboardPage implements OnInit, AfterViewInit {
     this.timelineData$ = this.timelineService.getTimelineForBaby(birthDate);
     this.timelineData$?.subscribe(data => {
       this.currentTimelineData = data;
+    });
+  }
+
+  private loadUpcomingConsultations() {
+    if (this.user) {
+      this.consultationService.getUserConsultations(this.user.uid).subscribe(consultations => {
+        // Filter for upcoming consultations only
+        const now = new Date();
+        this.upcomingConsultations = consultations.filter(consultation => 
+          consultation.scheduledAt > now && consultation.status === 'scheduled'
+        );
+      });
+    }
+  }
+
+  private loadExperts() {
+    this.consultationService.getExperts().subscribe(experts => {
+      this.experts = experts;
     });
   }
 
@@ -136,6 +151,46 @@ export class DashboardPage implements OnInit, AfterViewInit {
     if (hour < 12) return `Good morning, ${firstName}!`;
     if (hour < 17) return `Good afternoon, ${firstName}!`;
     return `Good evening, ${firstName}!`;
+  }
+
+  async openConsultationBooking() {
+    const modal = await this.modalController.create({
+      component: ConsultationBookingModalComponent,
+      cssClass: 'consultation-booking-modal'
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.booked) {
+        // Refresh consultations list
+        this.loadUpcomingConsultations();
+      }
+    });
+
+    return await modal.present();
+  }
+
+  getExpertName(expertId: string): string {
+    const expert = this.experts.find(e => e.id === expertId);
+    return expert?.name || 'Expert';
+  }
+
+  isConsultationReady(consultation: Consultation): boolean {
+    const now = new Date();
+    const consultationTime = new Date(consultation.scheduledAt);
+    const timeDiff = consultationTime.getTime() - now.getTime();
+    const minutesDiff = timeDiff / (1000 * 60);
+    
+    // Allow joining 15 minutes before scheduled time
+    return minutesDiff <= 15 && minutesDiff >= -30;
+  }
+
+  joinConsultation(consultation: Consultation) {
+    if (consultation.meetingLink) {
+      // Extract the room name from the Jitsi meeting link
+      const roomName = consultation.meetingLink.split('/').pop();
+      // Navigate to the new video call page
+      this.router.navigate(['/video-call', roomName]);
+    }
   }
 
   getTierDisplay(): string {
