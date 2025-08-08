@@ -18,6 +18,7 @@ import {
   StoolTexture,
   StoolSize
 } from '../../../models/growth-tracking.model';
+import { User, Baby } from '../../../models/user.model';
 import { take } from 'rxjs/operators';
 
 @Component({
@@ -208,9 +209,6 @@ export class BabyDetailPage implements OnInit {
     if (!this.baby) return;
     
     const weightRecords = await this.weightRecords$?.pipe(take(1)).toPromise() || [];
-    
-    // Dynamically import the component
-    const { WeightChartModalComponent } = await import('../../../components/weight-chart-modal/weight-chart-modal.component');
     
     // Dynamically import the component
     const { WeightChartModalComponent } = await import('../../../components/weight-chart-modal/weight-chart-modal.component');
