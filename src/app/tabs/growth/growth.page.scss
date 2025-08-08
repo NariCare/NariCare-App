@@ -1,6 +1,6 @@
 .content-container {
   padding: 1rem;
-  background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+  // background: linear-gradient(135deg, #a8dadc, #b8e6e8);
   min-height: 100vh;
 }
 
@@ -341,18 +341,18 @@
 }
 
 .see-charts-button {
-  --background: #a8dadc;
-  --background-hover: #9bc5c7;
+  // --background: #a8dadc;
+  // --background-hover: #9bc5c7;
   --border-radius: 25px;
   --color: #ffffff;
-  --box-shadow: 0 4px 12px rgba(168, 218, 220, 0.4);
+  // --box-shadow: 0 4px 12px rgba(168, 218, 220, 0.4);
   height: 50px;
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 
   &:hover {
-    --box-shadow: 0 6px 16px rgba(168, 218, 220, 0.5);
+    // --box-shadow: 0 6px 16px rgba(168, 218, 220, 0.5);
     transform: translateY(-1px);
   }
 }
