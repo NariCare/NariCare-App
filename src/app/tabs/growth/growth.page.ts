@@ -137,6 +137,7 @@ export class GrowthPage implements OnInit {
     
     this.breastSideOptions = this.growthService.getBreastSideOptions();
     this.supplementOptions = this.growthService.getSupplementOptions();
+  }
 
   private async loadSummaryData(babyId: string) {
     this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
