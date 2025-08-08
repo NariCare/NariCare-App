@@ -338,4 +338,62 @@ export class GrowthTrackingService {
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
+
+  // New methods for summary data
+  async getLastFeedingRecord(babyId: string): Promise<any> {
+    const records = this.recordsSubject.value
+      .filter(record => record.babyId === babyId && record.directFeedingSessions > 0)
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+    
+    if (records.length === 0) return null;
+    
+    const lastRecord = records[0];
+    return {
+      time: lastRecord.startTime,
+      date: lastRecord.date,
+      breastSide: lastRecord.breastSide,
+      duration: this.calculateDuration(lastRecord.startTime, lastRecord.endTime),
+      painLevel: lastRecord.painLevel
+    };
+  }
+
+  async getDailySummary(babyId: string): Promise<any> {
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    // Get records from last 24 hours
+    const dailyRecords = this.recordsSubject.value
+      .filter(record => record.babyId === babyId && record.date >= yesterday);
+    
+    const stoolRecords = this.stoolRecordsSubject.value
+      .filter(record => record.babyId === babyId && record.date >= yesterday);
+    
+    const totalFeeds = dailyRecords.reduce((sum, record) => sum + (record.directFeedingSessions || 0), 0);
+    const totalPumps = dailyRecords.reduce((sum, record) => sum + (record.pumpingSessions || 0), 0);
+    const totalPees = stoolRecords.reduce((sum, record) => sum + (record.peeCount || 0), 0);
+    const totalPoops = stoolRecords.reduce((sum, record) => sum + (record.poopCount || 0), 0);
+    
+    const painLevels = dailyRecords.map(record => record.painLevel).filter(level => level !== undefined);
+    const avgPainLevel = painLevels.length > 0 ? 
+      Math.round(painLevels.reduce((sum, level) => sum + level, 0) / painLevels.length) : 0;
+    
+    return {
+      totalFeeds,
+      totalPumps,
+      totalPees,
+      totalPoops,
+      avgPainLevel,
+      recordsCount: dailyRecords.length
+    };
+  }
+
+  private calculateDuration(startTime: string, endTime: string): number {
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+    
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    
+    return endMinutes - startMinutes;
+  }
 }

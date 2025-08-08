@@ -29,7 +29,7 @@ export class GrowthPage implements OnInit {
   stoolRecords$: Observable<StoolRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
-  selectedTab: 'daily' | 'timeline' | 'weight' | 'stool' = 'daily';
+  selectedMainTab: 'my-babies' | 'breastfeeding-history' = 'my-babies';
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
@@ -67,6 +67,8 @@ export class GrowthPage implements OnInit {
   extractedDataWeight: any = {};
   extractedDataStool: any = {};
   painLevel: number = 0;
+  lastTrack: any = null;
+  dailySummary: any = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -124,6 +126,7 @@ export class GrowthPage implements OnInit {
         this.selectedBaby = user.babies[0];
         this.loadTrackingData(this.selectedBaby.id);
         this.loadTimelineData(this.selectedBaby.dateOfBirth);
+        this.loadSummaryData(this.selectedBaby.id);
       }
     });
     
@@ -140,6 +143,11 @@ export class GrowthPage implements OnInit {
     this.stoolTextureOptions = this.growthService.getStoolTextureOptions();
     this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
     this.loadStarPerformers();
+  }
+
+  private async loadSummaryData(babyId: string) {
+    this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
+    this.dailySummary = await this.growthService.getDailySummary(babyId);
   }
 
   private loadTrackingData(babyId: string) {
@@ -216,8 +224,50 @@ export class GrowthPage implements OnInit {
     }
   }
 
-  onTabChange(event: any) {
-    this.selectedTab = event.detail.value;
+  onMainTabChange(event: any) {
+    this.selectedMainTab = event.detail.value;
+  }
+
+  // Action button handlers
+  onFastFeed() {
+    // Pre-fill form for quick entry
+    this.addRecordForm.patchValue({
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
+      painLevel: 0,
+      directFeedingSessions: 1,
+      avgFeedingDuration: 15
+    });
+    this.openAddRecordModal();
+  }
+
+  onFeed() {
+    this.openAddRecordModal();
+  }
+
+  onWeightSize() {
+    this.openAddWeightModal();
+  }
+
+  onPoo() {
+    this.openAddStoolModal();
+  }
+
+  selectBaby(baby: any) {
+    this.selectedBaby = baby;
+    this.loadTrackingData(baby.id);
+    this.loadTimelineData(baby.dateOfBirth);
+    this.loadSummaryData(baby.id);
+    this.selectedMainTab = 'breastfeeding-history';
+  }
+
+  navigateToDetailedTracker() {
+    // For now, switch to the old detailed view
+    // In future, this will navigate to a new detailed tracker page
+    this.router.navigate(['/tabs/growth'], { 
+      queryParams: { view: 'detailed', babyId: this.selectedBaby?.id } 
+    });
   }
 
   // Baby selection methods
@@ -1025,7 +1075,7 @@ export class GrowthPage implements OnInit {
   }
 
   getAddButtonText(): string {
-    switch (this.selectedTab) {
+    switch (this.selectedMainTab) {
       case 'daily': return 'Add Daily Record';
       case 'weight': return 'Add Weight & Size';
       case 'stool': return 'Add Stool Track';
@@ -1034,11 +1084,11 @@ export class GrowthPage implements OnInit {
   }
 
   openAddModal() {
-    if (this.selectedTab === 'daily') {
+    if (this.selectedMainTab === 'daily') {
       this.openAddRecordModal();
-    } else if (this.selectedTab === 'weight') {
+    } else if (this.selectedMainTab === 'weight') {
       this.openAddWeightModal();
-    } else if (this.selectedTab === 'stool') {
+    } else if (this.selectedMainTab === 'stool') {
       this.openAddStoolModal();
     }
   }
@@ -1097,6 +1147,48 @@ export class GrowthPage implements OnInit {
       return gender;
     }
     return 'female';
+  }
+
+  calculateBabyAgeForBaby(birthDate: Date): string {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
+    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
+    
+    if (diffWeeks < 4) {
+      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} old`;
+    } else if (diffWeeks < 52) {
+      const months = Math.floor(diffWeeks / 4);
+      const remainingWeeks = diffWeeks % 4;
+      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
+    } else {
+      const years = Math.floor(diffWeeks / 52);
+      const remainingWeeks = diffWeeks % 52;
+      const months = Math.floor(remainingWeeks / 4);
+      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
+    }
+  }
+
+  getLastTrackTime(): string {
+    if (!this.lastTrack) return '--';
+    return this.lastTrack.time;
+  }
+
+  getLastTrackDate(): string {
+    if (!this.lastTrack) return '--';
+    return this.formatDate(this.lastTrack.date);
+  }
+
+  getLastTrackBreastSide(): string {
+    if (!this.lastTrack) return '--';
+    return this.lastTrack.breastSide;
+  }
+
+  getDailySummaryTracks(): number {
+    return this.dailySummary?.totalFeeds || 0;
+  }
+
+  getDailySummaryPain(): number {
+    return this.dailySummary?.avgPainLevel || 0;
   }
 
   getCategoryLabel(category: string): string {
