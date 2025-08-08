@@ -137,14 +137,6 @@ export class GrowthPage implements OnInit {
     
     this.breastSideOptions = this.growthService.getBreastSideOptions();
     this.supplementOptions = this.growthService.getSupplementOptions();
-    this.lipstickShapeOptions = this.growthService.getLipstickShapeOptions();
-    this.motherMoodOptions = this.growthService.getMotherMoodOptions();
-    this.stoolColorOptions = this.growthService.getStoolColorOptions();
-    this.stoolTextureOptions = this.growthService.getStoolTextureOptions();
-    this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
-    this.loadStarPerformers();
-  }
-
   private async loadSummaryData(babyId: string) {
     this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
     this.dailySummary = await this.growthService.getDailySummary(babyId);
@@ -1135,13 +1127,6 @@ export class GrowthPage implements OnInit {
     return moodOption?.label || mood;
   }
 
-  getBabyGenderForChart(gender: 'male' | 'female' | 'other' | undefined): 'male' | 'female' {
-    if (gender === 'male' || gender === 'female') {
-      return gender;
-    }
-    return 'female';
-  }
-
   calculateBabyAgeForBaby(birthDate: Date): string {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birthDate.getTime());
@@ -1187,23 +1172,4 @@ export class GrowthPage implements OnInit {
   getCategoryLabel(category: string): string {
     const categoryLabels: { [key: string]: string } = {
       'feeding': 'Feeding',
-      'development': 'Development',
-      'sleep': 'Sleep',
-      'milestone': 'Milestone',
-      'health': 'Health'
-    };
-    return categoryLabels[category] || category;
-  }
-
-  getCategoryColor(category: string): string {
-    const categoryColors: { [key: string]: string } = {
-      'feeding': 'primary',
-      'development': 'success',
-      'sleep': 'tertiary',
-      'milestone': 'warning',
-      'health': 'danger'
-    };
-    return categoryColors[category] || 'medium';
-  }
-
 }
