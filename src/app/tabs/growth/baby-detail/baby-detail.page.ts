@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ToastController, AlertController } from '@ionic/angular';
+import { ToastController, AlertController, ModalController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
+import { WHOGrowthChartService } from '../../../services/who-growth-chart.service';
 import { 
   GrowthRecord, 
   WeightRecord, 
@@ -18,6 +19,7 @@ import {
   StoolSize
 } from '../../../models/growth-tracking.model';
 import { User, Baby } from '../../../models/user.model';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-baby-detail',
@@ -78,6 +80,9 @@ export class BabyDetailPage implements OnInit {
   extractedData: any = {};
   extractedDataWeight: any = {};
   extractedDataStool: any = {};
+  
+  // Health summary data
+  healthSummary: any = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -86,7 +91,9 @@ export class BabyDetailPage implements OnInit {
     private authService: AuthService,
     private growthService: GrowthTrackingService,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private modalController: ModalController,
+    private whoService: WHOGrowthChartService
   ) {
     // Initialize forms
     this.addRecordForm = this.formBuilder.group({
@@ -135,6 +142,7 @@ export class BabyDetailPage implements OnInit {
       this.user = user;
       if (user && this.babyId) {
         this.baby = user.babies.find(b => b.id === this.babyId) || null;
+        this.calculateHealthSummary();
       }
     });
     
@@ -153,7 +161,65 @@ export class BabyDetailPage implements OnInit {
       this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId);
       this.weightRecords$ = this.growthService.getWeightRecords(this.babyId);
       this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
+      
+      // Calculate health summary when weight records are loaded
+      this.weightRecords$?.subscribe(records => {
+        this.calculateHealthSummary();
+      });
     }
+  }
+
+  private calculateHealthSummary() {
+    if (!this.baby) return;
+    
+    this.weightRecords$?.subscribe(weightRecords => {
+      if (weightRecords && weightRecords.length > 0) {
+        const latestRecord = weightRecords[0]; // Most recent record
+        const ageInWeeks = this.whoService.calculateAgeInWeeks(this.baby!.dateOfBirth, latestRecord.date);
+        const percentile = this.whoService.calculatePercentile(ageInWeeks, latestRecord.weight, this.baby!.gender);
+        const interpretation = this.whoService.getPercentileInterpretation(percentile);
+        
+        this.healthSummary = {
+          currentWeight: latestRecord.weight,
+          currentHeight: latestRecord.height || this.baby!.birthHeight,
+          percentile: percentile,
+          status: interpretation.status,
+          message: interpretation.message,
+          color: interpretation.color,
+          isHealthy: percentile >= 10 && percentile <= 90,
+          lastWeighed: latestRecord.date
+        };
+      } else {
+        // No weight records yet
+        this.healthSummary = {
+          currentWeight: this.baby!.birthWeight,
+          currentHeight: this.baby!.birthHeight,
+          percentile: 50,
+          status: 'No Data',
+          message: 'Add weight records to track growth',
+          color: '#94a3b8',
+          isHealthy: true,
+          lastWeighed: this.baby!.dateOfBirth
+        };
+      }
+    }).unsubscribe();
+  }
+
+  async openWeightChartModal() {
+    if (!this.baby) return;
+    
+    const weightRecords = await this.weightRecords$?.pipe(take(1)).toPromise() || [];
+    
+    const modal = await this.modalController.create({
+      component: 'WeightChartModalComponent',
+      componentProps: {
+        baby: this.baby,
+        weightRecords: weightRecords
+      },
+      cssClass: 'weight-chart-modal'
+    });
+    
+    return await modal.present();
   }
 
   goBack() {
