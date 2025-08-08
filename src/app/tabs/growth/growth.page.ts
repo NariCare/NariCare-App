@@ -254,19 +254,14 @@ export class GrowthPage implements OnInit {
   }
 
   selectBaby(baby: any) {
-    this.selectedBaby = baby;
-    this.loadTrackingData(baby.id);
-    this.loadTimelineData(baby.dateOfBirth);
-    this.loadSummaryData(baby.id);
-    this.selectedMainTab = 'breastfeeding-history';
+    // Navigate to detailed baby page
+    this.router.navigate(['/tabs/growth/baby-detail', baby.id]);
   }
 
   navigateToDetailedTracker() {
-    // For now, switch to the old detailed view
-    // In future, this will navigate to a new detailed tracker page
-    this.router.navigate(['/tabs/growth'], { 
-      queryParams: { view: 'detailed', babyId: this.selectedBaby?.id } 
-    });
+    if (this.selectedBaby) {
+      this.router.navigate(['/tabs/growth/baby-detail', this.selectedBaby.id]);
+    }
   }
 
   // Baby selection methods

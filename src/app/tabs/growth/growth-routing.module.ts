@@ -8,6 +8,10 @@ const routes: Routes = [
     component: GrowthPage
   },
   {
+    path: 'baby-detail/:id',
+    loadChildren: () => import('./baby-detail/baby-detail.module').then(m => m.BabyDetailPageModule)
+  },
+  {
     path: 'timeline',
     loadChildren: () => import('./timeline/timeline.module').then(m => m.TimelinePageModule)
   },
