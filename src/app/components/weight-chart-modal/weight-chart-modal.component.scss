@@ -1,0 +1,26 @@
+.weight-chart-modal-container {
+  padding: 1rem;
+  background: #f8fafc;
+  min-height: 100%;
+}
+
+/* Ensure the chart component takes full width in modal */
+app-weight-chart {
+  display: block;
+  width: 100%;
+}
+
+/* Modal specific styling */
+ion-header {
+  ion-toolbar {
+    --background: linear-gradient(135deg, #e91e63 0%, #f06292 100%);
+    --color: #ffffff;
+    --border-width: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .weight-chart-modal-container {
+    padding: 2rem;
+  }
+}

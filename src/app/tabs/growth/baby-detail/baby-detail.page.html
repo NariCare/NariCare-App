@@ -51,7 +51,7 @@
       
       <!-- See Charts Button -->
       <div class="charts-button-section">
-        <ion-button expand="block" fill="solid" class="see-charts-button">
+        <ion-button expand="block" fill="solid" class="see-charts-button" (click) = 'openWeightChartModal()'>
           SEE CHARTS
         </ion-button>
       </div>
@@ -80,13 +80,13 @@
       </div>
 
       <!-- WHO Weight Chart -->
-      <div class="chart-section" *ngIf="baby && weightRecords$">
+      <!-- <div class="chart-section" *ngIf="baby && weightRecords$">
         <app-weight-chart 
           [weightRecords]="weightRecords$ | async"
           [babyGender]="baby.gender"
           [babyBirthDate]="baby.dateOfBirth">
         </app-weight-chart>
-      </div>
+      </div> -->
 
       <!-- Weight Records List -->
       <div class="records-section">

@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ToastController, AlertController } from '@ionic/angular';
+import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
+import { WHOGrowthChartService } from '../../../services/who-growth-chart.service';
+import { WeightChartModalComponent } from '../../../components/weight-chart-modal/weight-chart-modal.component';
 import { 
   GrowthRecord, 
   WeightRecord, 
@@ -86,7 +88,8 @@ export class BabyDetailPage implements OnInit {
     private authService: AuthService,
     private growthService: GrowthTrackingService,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private modalController: ModalController
   ) {
     // Initialize forms
     this.addRecordForm = this.formBuilder.group({
@@ -361,6 +364,24 @@ export class BabyDetailPage implements OnInit {
         this.showToast('Failed to save stool record. Please try again.', 'danger');
       }
     }
+  }
+
+  async openWeightChartModal() {
+    if (!this.baby || !this.weightRecords$) return;
+
+    this.weightRecords$.subscribe(async (weightRecords) => {
+      const modal = await this.modalController.create({
+        component: WeightChartModalComponent,
+        componentProps: {
+          weightRecords: weightRecords,
+          babyGender: this.baby!.gender,
+          babyBirthDate: this.baby!.dateOfBirth,
+          babyName: this.baby!.name
+        },
+        cssClass: 'weight-chart-modal'
+      });
+      await modal.present();
+    }).unsubscribe();
   }
 
   // Helper methods
