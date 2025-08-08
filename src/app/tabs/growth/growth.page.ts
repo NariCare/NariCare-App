@@ -279,13 +279,6 @@ export class GrowthPage implements OnInit {
     this.showBabySelector = false;
   }
 
-  selectBaby(baby: any) {
-    this.selectedBaby = baby;
-    this.loadTrackingData(baby.id);
-    this.loadTimelineData(baby.dateOfBirth);
-    this.closeBabySelector();
-  }
-
   openAddRecordModal() {
     this.showAddRecordModal = true;
   }
