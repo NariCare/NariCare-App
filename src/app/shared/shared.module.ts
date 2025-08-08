@@ -8,7 +8,6 @@ import { SpecificWeekModalComponent } from '../components/specific-week-modal/sp
 import { ConsultationBookingModalComponent } from '../components/consultation-booking-modal/consultation-booking-modal.component';
 import { GroupChatMessagesComponent } from '../components/group-chat-messages/group-chat-messages.component';
 import { WeightChartComponent } from '../components/weight-chart/weight-chart.component';
-import { WeightChartModalComponent } from '../components/weight-chart-modal/weight-chart-modal.component';
 
 @NgModule({
   declarations: [
@@ -17,8 +16,7 @@ import { WeightChartModalComponent } from '../components/weight-chart-modal/weig
     SpecificWeekModalComponent,
     ConsultationBookingModalComponent,
     GroupChatMessagesComponent,
-    WeightChartComponent,
-    WeightChartModalComponent
+    WeightChartComponent
   ],
   imports: [
     CommonModule,
@@ -31,8 +29,7 @@ import { WeightChartModalComponent } from '../components/weight-chart-modal/weig
     SpecificWeekModalComponent,
     ConsultationBookingModalComponent,
     GroupChatMessagesComponent,
-    WeightChartComponent,
-    WeightChartModalComponent
+    WeightChartComponent
   ]
 })
 export class SharedModule { }
