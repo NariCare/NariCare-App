@@ -137,7 +137,6 @@ export class GrowthPage implements OnInit {
     
     this.breastSideOptions = this.growthService.getBreastSideOptions();
     this.supplementOptions = this.growthService.getSupplementOptions();
-  }
 
   private async loadSummaryData(babyId: string) {
     this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
@@ -1062,25 +1061,6 @@ export class GrowthPage implements OnInit {
 
   isVoiceSupported(): boolean {
     return !!this.recognition;
-  }
-
-  getAddButtonText(): string {
-    switch (this.selectedMainTab) {
-      case 'daily': return 'Add Daily Record';
-      case 'weight': return 'Add Weight & Size';
-      case 'stool': return 'Add Stool Track';
-      default: return 'Add Record';
-    }
-  }
-
-  openAddModal() {
-    if (this.selectedMainTab === 'daily') {
-      this.openAddRecordModal();
-    } else if (this.selectedMainTab === 'weight') {
-      this.openAddWeightModal();
-    } else if (this.selectedMainTab === 'stool') {
-      this.openAddStoolModal();
-    }
   }
 
   formatDate(date: Date): string {
