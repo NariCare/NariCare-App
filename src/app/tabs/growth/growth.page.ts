@@ -137,6 +137,8 @@ export class GrowthPage implements OnInit {
     
     this.breastSideOptions = this.growthService.getBreastSideOptions();
     this.supplementOptions = this.growthService.getSupplementOptions();
+  }
+
   private async loadSummaryData(babyId: string) {
     this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
     this.dailySummary = await this.growthService.getDailySummary(babyId);
@@ -469,6 +471,7 @@ export class GrowthPage implements OnInit {
       this.isProcessingVoiceStool = false;
     }
   }
+
   private extractDataFromSpeech(transcript: string): any {
     const text = transcript.toLowerCase().trim();
     const extracted: any = {};
@@ -869,6 +872,7 @@ export class GrowthPage implements OnInit {
       this.addStoolForm.patchValue(formUpdates);
     }
   }
+
   getVoiceInputSummary(): string {
     const extractedFields = Object.keys(this.extractedData).filter(key => 
       this.extractedData[key] !== null && this.extractedData[key] !== undefined
@@ -904,6 +908,7 @@ export class GrowthPage implements OnInit {
     
     return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
   }
+
   async saveGrowthRecord() {
     if (this.addRecordForm.valid && this.user && this.selectedBaby) {
       try {
@@ -1172,4 +1177,7 @@ export class GrowthPage implements OnInit {
   getCategoryLabel(category: string): string {
     const categoryLabels: { [key: string]: string } = {
       'feeding': 'Feeding',
+    };
+    return categoryLabels[category] || category;
+  }
 }
