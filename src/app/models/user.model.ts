@@ -17,7 +17,7 @@ export interface Baby {
   id: string;
   name: string;
   dateOfBirth: Date;
-  gender: 'male' | 'female' | 'other';
+  gender: 'male' | 'female';
   birthWeight: number;
   birthHeight: number;
   currentWeight?: number;

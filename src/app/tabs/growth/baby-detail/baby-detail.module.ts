@@ -4,7 +4,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { BabyDetailPageRoutingModule } from './baby-detail-routing.module';
 import { BabyDetailPage } from './baby-detail.page';
-import { WeightChartComponent } from '../../../components/weight-chart/weight-chart.component';
 import { SharedModule } from '../../../shared/shared.module';
 
 @NgModule({

@@ -4,7 +4,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { GrowthPageRoutingModule } from './growth-routing.module';
 import { GrowthPage } from './growth.page';
-import { WeightChartComponent } from '../../components/weight-chart/weight-chart.component';
 import { SharedModule } from '../../shared/shared.module';
 
 @NgModule({
@@ -16,6 +15,6 @@ import { SharedModule } from '../../shared/shared.module';
     GrowthPageRoutingModule,
     SharedModule
   ],
-  declarations: [GrowthPage, WeightChartComponent]
+  declarations: [GrowthPage]
 })
 export class GrowthPageModule {}

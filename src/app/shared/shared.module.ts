@@ -7,6 +7,7 @@ import { TimelineModalComponent } from '../components/timeline-modal/timeline-mo
 import { SpecificWeekModalComponent } from '../components/specific-week-modal/specific-week-modal.component';
 import { ConsultationBookingModalComponent } from '../components/consultation-booking-modal/consultation-booking-modal.component';
 import { GroupChatMessagesComponent } from '../components/group-chat-messages/group-chat-messages.component';
+import { WeightChartComponent } from '../components/weight-chart/weight-chart.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import { GroupChatMessagesComponent } from '../components/group-chat-messages/gr
     TimelineModalComponent,
     SpecificWeekModalComponent,
     ConsultationBookingModalComponent,
-    GroupChatMessagesComponent
+    GroupChatMessagesComponent,
+    WeightChartComponent
   ],
   imports: [
     CommonModule,
@@ -26,7 +28,8 @@ import { GroupChatMessagesComponent } from '../components/group-chat-messages/gr
     TimelineModalComponent,
     SpecificWeekModalComponent,
     ConsultationBookingModalComponent,
-    GroupChatMessagesComponent
+    GroupChatMessagesComponent,
+    WeightChartComponent
   ]
 })
 export class SharedModule { }
