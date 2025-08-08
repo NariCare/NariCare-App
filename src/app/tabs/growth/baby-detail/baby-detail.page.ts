@@ -210,11 +210,8 @@ export class BabyDetailPage implements OnInit {
     
     const weightRecords = await this.weightRecords$?.pipe(take(1)).toPromise() || [];
     
-    // Dynamically import the component
-    const { WeightChartModalComponent } = await import('../../../components/weight-chart-modal/weight-chart-modal.component');
-    
     const modal = await this.modalController.create({
-      component: WeightChartModalComponent,
+      component: 'WeightChartModalComponent',
       componentProps: {
         baby: this.baby,
         weightRecords: weightRecords
