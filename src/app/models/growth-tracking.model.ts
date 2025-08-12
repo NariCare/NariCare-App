@@ -2,18 +2,26 @@ export interface GrowthRecord {
   id: string;
   babyId: string;
   recordedBy: string;
-  date: Date;
-  // Feed tracking
-  startTime: string; // HH:MM format
-  endTime: string; // HH:MM format
-  breastSide: 'left' | 'right' | 'both';
-  supplement: 'breastmilk' | 'formula' | null;
-  painLevel: number; // 0-10 scale
-  lipstickShape: 'rounded' | 'lipstick';
-  mood?: MotherMood;
-  // Additional tracking fields
-  directFeedingSessions?: number;
-  avgFeedingDuration?: number;
+  record_date: Date;
+  
+  // New Feed Type fields
+  feed_types: ('direct' | 'expressed' | 'formula')[];
+  
+  // Direct Feeding specific fields
+  direct_feeding_start_time?: string; // HH:MM format
+  direct_feeding_end_time?: string; // HH:MM format
+  breast_side?: 'left' | 'right' | 'both';
+  duration_minutes?: number; // Duration in minutes for direct feeding
+  pain_level?: number; // 0-10 scale
+  lipstick_shape?: 'rounded' | 'lipstick';
+  mother_mood?: MotherMood;
+
+  // Expressed Milk specific fields
+  ebm_quantity_ml?: number;
+  
+  // Formula specific fields
+  formula_quantity_ml?: number;
+
   pumpingSessions?: number;
   totalPumpingOutput?: number;
   formulaIntake?: number;
@@ -36,6 +44,17 @@ export interface VoiceInputData {
   confidence: number;
 }
 
+export interface FeedTypeOption {
+  value: 'direct' | 'expressed' | 'formula';
+  label: string;
+  icon: string;
+}
+
+export interface QuantityPreset {
+  value: number;
+  label: string;
+}
+
 export interface BreastSide {
   value: 'left' | 'right' | 'both';
   label: string;
@@ -44,11 +63,6 @@ export interface BreastSide {
 
 export interface SupplementType {
   value: 'breastmilk' | 'formula';
-  label: string;
-  icon: string;
-}
-
-export interface LipstickShape {
   value: 'rounded' | 'lipstick';
   label: string;
   icon: string;

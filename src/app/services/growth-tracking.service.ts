@@ -11,7 +11,9 @@ import {
   BreastSide,
   SupplementType,
   LipstickShape,
-  MotherMood,
+  MotherMood, 
+  FeedTypeOption, 
+  QuantityPreset,
   StarPerformer, 
   QuickLogSuggestion 
 } from '../models/growth-tracking.model';
@@ -51,6 +53,27 @@ export class GrowthTrackingService {
     { value: 'sad', label: 'Sad', emoji: '😢', color: '#6b7280' },
     { value: 'exhausted', label: 'Exhausted', emoji: '😴', color: '#f59e0b' },
     { value: 'anxious', label: 'Anxious', emoji: '😰', color: '#ef4444' }
+  ];
+
+  // Available feed type options
+  readonly feedTypeOptions: FeedTypeOption[] = [
+    { value: 'direct', label: 'Fed baby directly', icon: 'body' },
+    { value: 'expressed', label: 'Gave expressed breastmilk', icon: 'water' },
+    { value: 'formula', label: 'Gave formula', icon: 'nutrition' }
+  ];
+
+  // Quantity presets for expressed milk and formula
+  readonly quantityPresets: QuantityPreset[] = [
+    { value: 30, label: '30ml' },
+    { value: 60, label: '60ml' },
+    { value: 90, label: '90ml' },
+    { value: 120, label: '120ml' },
+    { value: 150, label: '150ml' },
+    { value: 180, label: '180ml' },
+    { value: 210, label: '210ml' },
+    { value: 240, label: '240ml' },
+    { value: 270, label: '270ml' },
+    { value: 300, label: '300ml' }
   ];
 
   // Available stool color options
@@ -95,9 +118,12 @@ export class GrowthTrackingService {
       
       this.recordsSubject.next(records.map((r: any) => ({
         ...r,
-        date: new Date(r.date),
+        record_date: new Date(r.record_date || r.date),
         createdAt: new Date(r.createdAt),
-        updatedAt: new Date(r.updatedAt)
+        updatedAt: new Date(r.updatedAt || r.createdAt),
+        feed_types: r.feed_types || (r.directFeedingSessions ? ['direct'] : []),
+        duration_minutes: r.duration_minutes || r.avgFeedingDuration,
+        mother_mood: r.mother_mood || r.mood,
       })));
       
       this.weightRecordsSubject.next(weightRecords.map((r: any) => ({
@@ -131,7 +157,6 @@ export class GrowthTrackingService {
     this.recordsSubject.next(updatedRecords);
     await this.storage.set('growthRecords', updatedRecords);
     
-    // Check for quick log suggestions
     this.generateQuickLogSuggestions(record.recordedBy);
   }
 
@@ -139,7 +164,7 @@ export class GrowthTrackingService {
     return this.recordsSubject.pipe(
       map(records => records
         .filter(record => record.babyId === babyId)
-        .sort((a, b) => b.date.getTime() - a.date.getTime())
+        .sort((a, b) => b.record_date.getTime() - a.record_date.getTime())
       )
     );
   }
@@ -151,7 +176,7 @@ export class GrowthTrackingService {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - days);
         
-        return records.filter(record => record.date >= cutoffDate);
+        return records.filter(record => record.record_date >= cutoffDate);
       })
     );
   }
@@ -227,7 +252,7 @@ export class GrowthTrackingService {
     
     const allRecords = this.recordsSubject.value;
     const weekRecords = allRecords.filter(record => 
-      record.date >= weekStartDate && record.date < weekEndDate
+      record.record_date >= weekStartDate && record.record_date < weekEndDate
     );
     
     // Group by user and calculate consistency scores
@@ -261,13 +286,13 @@ export class GrowthTrackingService {
   generateQuickLogSuggestions(userId: string): void {
     const userRecords = this.recordsSubject.value
       .filter(record => record.recordedBy === userId)
-      .sort((a, b) => b.date.getTime() - a.date.getTime());
+      .sort((a, b) => b.record_date.getTime() - a.record_date.getTime());
     
     if (userRecords.length < 2) return;
     
     const lastRecord = userRecords[0];
     const now = new Date();
-    const hoursSinceLastLog = (now.getTime() - lastRecord.date.getTime()) / (1000 * 60 * 60);
+    const hoursSinceLastLog = (now.getTime() - lastRecord.record_date.getTime()) / (1000 * 60 * 60);
     
     // Suggest feeding if it's been 2-4 hours
     if (hoursSinceLastLog >= 2 && hoursSinceLastLog <= 6) {
@@ -275,7 +300,7 @@ export class GrowthTrackingService {
         id: this.generateId(),
         userId,
         suggestedAction: 'feeding',
-        lastLoggedTime: lastRecord.date,
+        lastLoggedTime: lastRecord.record_date,
         suggestedTime: now,
         message: `You logged a feed ${Math.floor(hoursSinceLastLog)} hours ago. Baby usually feeds every 2–3 hours. Should you log another?`,
         isActive: true,
@@ -301,6 +326,14 @@ export class GrowthTrackingService {
 
   getMotherMoodOptions(): MotherMood[] {
     return this.motherMoodOptions;
+  }
+
+  getFeedTypeOptions(): FeedTypeOption[] {
+    return this.feedTypeOptions;
+  }
+
+  getQuantityPresets(): QuantityPreset[] {
+    return this.quantityPresets;
   }
 
   getStoolColorOptions(): StoolColor[] {
@@ -342,17 +375,17 @@ export class GrowthTrackingService {
   // New methods for summary data
   async getLastFeedingRecord(babyId: string): Promise<any> {
     const records = this.recordsSubject.value
-      .filter(record => record.babyId === babyId && record.directFeedingSessions > 0)
-      .sort((a, b) => b.date.getTime() - a.date.getTime());
+      .filter(record => record.babyId === babyId && record.feed_types.includes('direct'))
+      .sort((a, b) => b.record_date.getTime() - a.record_date.getTime());
     
     if (records.length === 0) return null;
     
     const lastRecord = records[0];
     return {
-      time: lastRecord.startTime,
-      date: lastRecord.date,
+      time: lastRecord.direct_feeding_start_time,
+      date: lastRecord.record_date,
       breastSide: lastRecord.breastSide,
-      duration: this.calculateDuration(lastRecord.startTime, lastRecord.endTime),
+      duration: lastRecord.duration_minutes,
       painLevel: lastRecord.painLevel
     };
   }
@@ -363,12 +396,18 @@ export class GrowthTrackingService {
     
     // Get records from last 24 hours
     const dailyRecords = this.recordsSubject.value
-      .filter(record => record.babyId === babyId && record.date >= yesterday);
+      .filter(record => record.babyId === babyId && record.record_date >= yesterday);
     
     const stoolRecords = this.stoolRecordsSubject.value
       .filter(record => record.babyId === babyId && record.date >= yesterday);
     
-    const totalFeeds = dailyRecords.reduce((sum, record) => sum + (record.directFeedingSessions || 0), 0);
+    const totalDirectFeeds = dailyRecords.filter(record => record.feed_types.includes('direct')).length;
+    const totalExpressedFeeds = dailyRecords.filter(record => record.feed_types.includes('expressed')).length;
+    const totalFormulaFeeds = dailyRecords.filter(record => record.feed_types.includes('formula')).length;
+
+    const totalEBMGiven = dailyRecords.reduce((sum, record) => sum + (record.ebm_quantity_ml || 0), 0);
+    const totalFormulaGiven = dailyRecords.reduce((sum, record) => sum + (record.formula_quantity_ml || 0), 0);
+
     const totalPumps = dailyRecords.reduce((sum, record) => sum + (record.pumpingSessions || 0), 0);
     const totalPees = stoolRecords.reduce((sum, record) => sum + (record.peeCount || 0), 0);
     const totalPoops = stoolRecords.reduce((sum, record) => sum + (record.poopCount || 0), 0);
@@ -378,7 +417,11 @@ export class GrowthTrackingService {
       Math.round(painLevels.reduce((sum, level) => sum + level, 0) / painLevels.length) : 0;
     
     return {
-      totalFeeds,
+      totalDirectFeeds,
+      totalExpressedFeeds,
+      totalFormulaFeeds,
+      totalEBMGiven,
+      totalFormulaGiven,
       totalPumps,
       totalPees,
       totalPoops,
@@ -386,14 +429,16 @@ export class GrowthTrackingService {
       recordsCount: dailyRecords.length
     };
   }
-
-  private calculateDuration(startTime: string, endTime: string): number {
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const [endHour, endMin] = endTime.split(':').map(Number);
-    
-    const startMinutes = startHour * 60 + startMin;
-    const endMinutes = endHour * 60 + endMin;
-    
-    return endMinutes - startMinutes;
+  
+  // New method to get recent feeding data for warnings
+  async getRecentFeedingData(babyId: string): Promise<GrowthRecord[]> {
+    const records = await this.recordsSubject.pipe(
+      map(allRecords => allRecords
+        .filter(record => record.babyId === babyId && record.feed_types.includes('direct'))
+        .sort((a, b) => b.record_date.getTime() - a.record_date.getTime())
+      ),
+      take(1)
+    ).toPromise();
+    return records || [];
   }
 }
