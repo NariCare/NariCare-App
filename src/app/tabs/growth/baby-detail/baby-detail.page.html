@@ -128,9 +128,9 @@
             <div class="record-date">{{ getRecordDate(record) }}</div>
             <div class="record-details">
               <div class="breast-side-indicator">
-                <ion-icon name="ellipse" *ngIf="record.breast_side === 'both'"></ion-icon>
-                <ion-icon name="radio-button-on" *ngIf="record.breast_side !== 'both'"></ion-icon>
-                <span>{{ record.breast_side | titlecase }}</span>
+                <ion-icon name="ellipse" *ngIf="record.breastSide === 'both'"></ion-icon>
+                <ion-icon name="radio-button-on" *ngIf="record.breastSide !== 'both'"></ion-icon>
+                <span>{{ record.breastSide | titlecase }}</span>
               </div>
               <div class="pain-indicator" *ngIf="record.pain_level !== undefined">
                 <span class="pain-level">{{ record.pain_level }}</span>
@@ -231,7 +231,7 @@
                 *ngFor="let babyOption of user.babies"
                 class="selection-option baby-option"
                 [class.selected]="addRecordForm.get('selectedBabyId')?.value === babyOption.id"
-                (click)="selectBabyForFeed(babyOption)">
+                (click)="selectBaby(babyOption)">
                 <div class="baby-option-avatar">
                   <ion-icon name="baby"></ion-icon>
                 </div>
