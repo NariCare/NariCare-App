@@ -506,36 +506,8 @@
               (click)="saveGrowthRecord()"
               [disabled]="!addRecordForm.valid || selectedFeedTypes.length === 0"
               class="save-button">
-            
-            <div class="form-row">
-              <div class="form-group half-width">
-                <label class="field-label">Start</label>
-                <ion-item lines="none" class="input-item time-input">
-                  <ion-input
-                    formControlName="startTime"
-                    type="time"
-                    [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
-                  </ion-input>
-                </ion-item>
-                <div class="error-message" *ngIf="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
-                  {{ getErrorMessage('startTime') }}
-                </div>
-              </div>
-              
-              <div class="form-group half-width">
-                <label class="field-label">End</label>
-                <ion-item lines="none" class="input-item time-input">
-                  <ion-input
-                    formControlName="endTime"
-                    type="time"
-                    [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
-                  </ion-input>
-                </ion-item>
-                <div class="error-message" *ngIf="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
-                  {{ getErrorMessage('endTime') }}
-                </div>
-              </div>
-            </div>
+              Accept
+            </ion-button>
           </div>
 
           <!-- Breast Side Selection -->

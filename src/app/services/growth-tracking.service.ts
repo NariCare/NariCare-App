@@ -384,9 +384,9 @@ export class GrowthTrackingService {
     return {
       time: lastRecord.direct_feeding_start_time,
       date: lastRecord.record_date,
-      breastSide: lastRecord.breastSide,
+      breastSide: lastRecord.breast_side,
       duration: lastRecord.duration_minutes,
-      painLevel: lastRecord.painLevel
+      painLevel: lastRecord.pain_level
     };
   }
 
@@ -412,7 +412,7 @@ export class GrowthTrackingService {
     const totalPees = stoolRecords.reduce((sum, record) => sum + (record.peeCount || 0), 0);
     const totalPoops = stoolRecords.reduce((sum, record) => sum + (record.poopCount || 0), 0);
     
-    const painLevels = dailyRecords.map(record => record.painLevel).filter(level => level !== undefined);
+    const painLevels = dailyRecords.map(record => record.pain_level).filter(level => level !== undefined);
     const avgPainLevel = painLevels.length > 0 ? 
       Math.round(painLevels.reduce((sum, level) => sum + level, 0) / painLevels.length) : 0;
     
