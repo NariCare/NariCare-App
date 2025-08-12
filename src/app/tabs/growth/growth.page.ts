@@ -379,6 +379,9 @@ export class GrowthPage implements OnInit {
     this.selectedMotherMood = mood;
   }
 
+  onSelectSupplement(supplement: SupplementType) {
+    this.selectedSupplement = supplement;
+  }
 
   setPainLevel(level: number | { lower: number; upper: number }) { // For direct feeding pain
     const painValue = typeof level === 'number' ? level : level.lower || 0;

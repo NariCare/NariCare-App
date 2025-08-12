@@ -202,7 +202,7 @@
           
           <div class="babies-list">
             <div 
-              *ngFor="let supplement of []"
+              *ngFor="let baby of user?.babies"
               class="baby-option"
               [class.selected]="selectedBaby?.id === baby.id"
               (click)="selectBaby(baby)">

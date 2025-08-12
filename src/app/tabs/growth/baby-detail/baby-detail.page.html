@@ -138,8 +138,8 @@
               </div>
             </div>
             <div class="record-mood" *ngIf="record.mother_mood">
-              <span class="mood-emoji">{{ record.mother_mood?.emoji || '😊' }}</span>
-              <span class="mood-label">{{ record.mother_mood?.label || record.mother_mood }}</span>
+              <span class="mood-emoji">{{ getMotherMoodEmoji(record.mother_mood) }}</span>
+              <span class="mood-label">{{ getMotherMoodLabel(record.mother_mood) }}</span>
             </div>
           </div>
         </div>
