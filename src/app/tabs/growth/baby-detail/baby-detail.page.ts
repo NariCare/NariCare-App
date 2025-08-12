@@ -492,6 +492,20 @@ export class BabyDetailPage implements OnInit {
     return !!this.recognition;
   }
 
+  getMotherMoodEmoji(mood: string): string {
+    const moodOption = this.motherMoodOptions.find(m => m.value === mood);
+    return moodOption?.emoji || '😊';
+  }
+
+  getMotherMoodLabel(mood: string): string {
+    const moodOption = this.motherMoodOptions.find(m => m.value === mood);
+    return moodOption?.label || mood;
+  }
+
+  public selectBabyForFeed(baby: any) {
+    this.addRecordForm.get('selectedBabyId')?.setValue(baby.id);
+  }
+
   // Helper methods
   calculateBabyAge(): string {
     if (!this.baby) return '';

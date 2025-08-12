@@ -535,7 +535,7 @@
                 *ngFor="let supplement of supplementOptions"
                 class="selection-option supplement-option"
                 [class.selected]="selectedSupplement?.value === supplement.value"
-                (click)="selectSupplement(supplement)">
+                (click)="onSelectSupplement(supplement)">
                 <div class="supplement-icon">
                   <ion-icon [name]="supplement.icon"></ion-icon>
                 </div>
