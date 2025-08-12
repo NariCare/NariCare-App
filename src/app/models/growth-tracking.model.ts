@@ -63,11 +63,6 @@ export interface BreastSide {
 
 export interface SupplementType {
   value: 'breastmilk' | 'formula';
-  label: string;
-  icon: string;
-}
-
-export interface LipstickShape {
   value: 'rounded' | 'lipstick';
   label: string;
   icon: string;
