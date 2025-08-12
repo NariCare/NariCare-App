@@ -9,10 +9,11 @@ import { AuthService } from '../../services/auth.service';
 import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { 
-  GrowthRecord, WeightRecord, StoolRecord, BreastSide, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer, FeedTypeOption, QuantityPreset 
+  GrowthRecord, WeightRecord, StoolRecord, BreastSide, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer, FeedTypeOption, QuantityPreset, 
+  SupplementType,
 } from '../../models/growth-tracking.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
-import { User } from '../../models/user.model';
+import { Baby, User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from 'src/app/components/specific-week-modal/specific-week-modal.component';
 
