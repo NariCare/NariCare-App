@@ -551,7 +551,7 @@ export class BabyDetailPage implements OnInit {
   }
 
   getRecordDate(record: GrowthRecord): string {
-    return this.formatDate(record.record_date);
+    return this.formatDate(record.date);
   }
 
   getStoolTime(record: StoolRecord): string {

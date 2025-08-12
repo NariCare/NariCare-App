@@ -132,14 +132,14 @@
                 <ion-icon name="radio-button-on" *ngIf="record.breastSide !== 'both'"></ion-icon>
                 <span>{{ record.breastSide | titlecase }}</span>
               </div>
-              <div class="pain-indicator" *ngIf="record.pain_level !== undefined">
-                <span class="pain-level">{{ record.pain_level }}</span>
+              <div class="pain-indicator" *ngIf="record.painLevel !== undefined">
+                <span class="pain-level">{{ record.painLevel }}</span>
                 <span class="pain-label">Pain</span>
               </div>
             </div>
-            <div class="record-mood" *ngIf="record.mother_mood">
-              <span class="mood-emoji">{{ getMotherMoodEmoji(record.mother_mood) }}</span>
-              <span class="mood-label">{{ getMotherMoodLabel(record.mother_mood) }}</span>
+            <div class="record-mood" *ngIf="record.mood">
+              <span class="mood-emoji">{{ record.mood.emoji }}</span>
+              <span class="mood-label">{{ record.mood.label }}</span>
             </div>
           </div>
         </div>
@@ -231,7 +231,7 @@
                 *ngFor="let babyOption of user.babies"
                 class="selection-option baby-option"
                 [class.selected]="addRecordForm.get('selectedBabyId')?.value === babyOption.id"
-                (click)="selectBaby(babyOption)">
+                (click)="onBabySelectForFeed(babyOption)">
                 <div class="baby-option-avatar">
                   <ion-icon name="baby"></ion-icon>
                 </div>
