@@ -336,28 +336,6 @@ export class GrowthPage implements OnInit {
       formulaGroup: { formula_quantity_ml: 0 },
       notes: ''
     });
-      record_date: new Date().toISOString(),
-      feedTypes: [],
-      directFeedingGroup: {
-        direct_feeding_start_time: new Date().toTimeString().slice(0, 5),
-        direct_feeding_end_time: new Date().toTimeString().slice(0, 5),
-        duration_minutes: 0, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null
-      },
-      expressedMilkGroup: { ebm_quantity_ml: 0 },
-      formulaGroup: { formula_quantity_ml: 0 },
-      notes: ''
-    });
-      record_date: new Date().toISOString(),
-      feedTypes: [],
-      directFeedingGroup: {
-        direct_feeding_start_time: new Date().toTimeString().slice(0, 5),
-        direct_feeding_end_time: new Date().toTimeString().slice(0, 5),
-        duration_minutes: 0, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null
-      },
-      expressedMilkGroup: { ebm_quantity_ml: 0 },
-      formulaGroup: { formula_quantity_ml: 0 },
-      notes: ''
-    });
   }
 
   closeAddWeightModal() {
@@ -1067,7 +1045,6 @@ export class GrowthPage implements OnInit {
           notes: formValue.notes,
         };
         await this.growthService.addStoolRecord(record);
-        this.showToast('Stool record saved successfully!', 'success');
         this.closeAddStoolModal();
       } catch (error) {
         this.showToast('Failed to save stool record. Please try again.', 'danger');
@@ -1121,12 +1098,13 @@ export class GrowthPage implements OnInit {
     this.openAddRecordModal();
   }
 
-  private async showToast(message: string, color: 'success' | 'warning' | 'danger') {
+  private async showToast(message: string, color: string) {
     const toast = await this.toastController.create({
       message,
-      duration: 2000,
-      color: color
-    });
+      record_date: new Date().toISOString(),
+      feedTypes: ['expressed'],
+      expressedMilkGroup: { ebm_quantity_ml: 100 }, // Default pumping output
+      notes: 'Quick log for pumping session'
     await toast.present();
   }
 
