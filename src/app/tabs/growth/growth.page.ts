@@ -336,28 +336,6 @@ export class GrowthPage implements OnInit {
       formulaGroup: { formula_quantity_ml: 0 },
       notes: ''
     });
-      record_date: new Date().toISOString(),
-      feedTypes: [],
-      directFeedingGroup: {
-        direct_feeding_start_time: new Date().toTimeString().slice(0, 5),
-        direct_feeding_end_time: new Date().toTimeString().slice(0, 5),
-        duration_minutes: 0, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null
-      },
-      expressedMilkGroup: { ebm_quantity_ml: 0 },
-      formulaGroup: { formula_quantity_ml: 0 },
-      notes: ''
-    });
-      record_date: new Date().toISOString(),
-      feedTypes: [],
-      directFeedingGroup: {
-        direct_feeding_start_time: new Date().toTimeString().slice(0, 5),
-        direct_feeding_end_time: new Date().toTimeString().slice(0, 5),
-        duration_minutes: 0, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null
-      },
-      expressedMilkGroup: { ebm_quantity_ml: 0 },
-      formulaGroup: { formula_quantity_ml: 0 },
-      notes: ''
-    });
   }
 
   closeAddWeightModal() {
