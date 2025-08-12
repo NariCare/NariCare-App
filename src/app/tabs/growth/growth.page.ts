@@ -48,10 +48,6 @@ export class GrowthPage implements OnInit {
   feedTypeOptions: FeedTypeOption[] = []; // New: for feed type selection
   selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = []; // New: for multi-select feed types
   quantityPresets: QuantityPreset[] = []; // New: for quantity sliders
-  selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = []; // New: for multi-select feed types
-  quantityPresets: QuantityPreset[] = []; // New: for quantity sliders
-  selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = []; // New: for multi-select feed types
-  quantityPresets: QuantityPreset[] = []; // New: for quantity sliders
   lipstickShapeOptions: LipstickShape[] = [];
   motherMoodOptions: MotherMood[] = [];
   stoolColorOptions: StoolColor[] = [];
@@ -59,10 +55,6 @@ export class GrowthPage implements OnInit {
   stoolSizeOptions: StoolSize[] = [];
   starPerformers: StarPerformer[] = [];
   currentTimelineData: BabyTimelineData | null = null;
-
-  // New feed form properties
-  selectedBabyForFeed: Baby | null = null; // To handle baby selection in the modal
-
 
   // New feed form properties
   selectedBabyForFeed: Baby | null = null; // To handle baby selection in the modal
@@ -83,7 +75,6 @@ export class GrowthPage implements OnInit {
   painLevel: number = 0;
   lastTrack: any = null;
   dailySummary: any = null;
-  feedingWarnings: { type: 'red' | 'yellow', message: string }[] = []; // For warnings/flags
   feedingWarnings: { type: 'red' | 'yellow', message: string }[] = []; // For warnings/flags
 
   constructor(
@@ -112,12 +103,6 @@ export class GrowthPage implements OnInit {
       }),
       expressedMilkGroup: this.formBuilder.group({ ebm_quantity_ml: [0, [Validators.min(0)]] }),
       formulaGroup: this.formBuilder.group({ formula_quantity_ml: [0, [Validators.min(0)]] }),
-      notes: [''],
-      // These fields are now part of the conditional groups or derived
-      // pumpingSessions: [0], totalPumpingOutput: [0], peeCount: [0], poopCount: [0], moodDescription: ['']
-      notes: [''],
-      // These fields are now part of the conditional groups or derived
-      // pumpingSessions: [0], totalPumpingOutput: [0], peeCount: [0], poopCount: [0], moodDescription: ['']
       notes: [''],
       // These fields are now part of the conditional groups or derived
       // pumpingSessions: [0], totalPumpingOutput: [0], peeCount: [0], poopCount: [0], moodDescription: ['']
