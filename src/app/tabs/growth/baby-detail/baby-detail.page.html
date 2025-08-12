@@ -223,26 +223,6 @@
             </div>
           </div>
 
-          <!-- Step 1: Baby Selection (only if multiple babies exist) -->
-          <div class="form-section" *ngIf="user && user.babies && user.babies.length > 1">
-            <h4>👶 Select Baby</h4>
-            <div class="selection-grid baby-selection-grid">
-              <div 
-                *ngFor="let babyOption of user.babies"
-                class="selection-option baby-option"
-                [class.selected]="addRecordForm.get('selectedBabyId')?.value === babyOption.id"
-                (click)="onBabySelectForFeed(babyOption)">
-                <div class="baby-option-avatar">
-                  <ion-icon name="baby"></ion-icon>
-                </div>
-                <span class="option-label">{{ babyOption.name }}</span>
-              </div>
-            </div>
-            <div class="error-message" *ngIf="addRecordForm.get('selectedBabyId')?.invalid && addRecordForm.get('selectedBabyId')?.touched">
-              {{ getErrorMessage('selectedBabyId') }}
-            </div>
-          </div>
-
           <!-- Smart Voice Input Section -->
           <div class="smart-voice-section" *ngIf="isVoiceSupported()">
             <div class="voice-input-header">
@@ -277,180 +257,91 @@
             </div>
           </div>
 
-          <!-- Step 2: Feed Type -->
+          <!-- Breastfeeding Time -->
           <div class="form-section">
-            <h4>🍼 Feed Type</h4>
-            <p class="section-note">Select all that apply</p>
-            <div class="selection-grid feed-type-grid">
+            <h4>Breastfeeding time</h4>
+            
+            <div class="form-row">
+              <div class="form-group half-width">
+                <label class="field-label">Start</label>
+                <ion-item lines="none" class="input-item time-input">
+                  <ion-input
+                    formControlName="startTime"
+                    type="time"
+                    [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
+                  </ion-input>
+                </ion-item>
+              </div>
+              
+              <div class="form-group half-width">
+                <label class="field-label">End</label>
+                <ion-item lines="none" class="input-item time-input">
+                  <ion-input
+                    formControlName="endTime"
+                    type="time"
+                    [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
+                  </ion-input>
+                </ion-item>
+              </div>
+            </div>
+          </div>
+
+          <!-- Breast Side Selection -->
+          <div class="form-section">
+            <h4>Breast side</h4>
+            <div class="selection-grid breast-side-grid">
               <div 
-                *ngFor="let type of feedTypeOptions"
-                class="selection-option feed-type-option"
-                [class.selected]="selectedFeedTypes.includes(type.value)"
-                (click)="onFeedTypeToggle(type.value, !selectedFeedTypes.includes(type.value))">
-                <div class="feed-type-icon">
-                  <ion-icon [name]="type.icon"></ion-icon>
+                *ngFor="let side of breastSideOptions"
+                class="selection-option breast-side-option"
+                [class.selected]="selectedBreastSide?.value === side.value"
+                (click)="selectBreastSide(side)">
+                <div class="breast-side-icon">
+                  <ion-icon [name]="side.icon"></ion-icon>
                 </div>
-                <span class="option-label">{{ type.label }}</span>
-              </div>
-            </div>
-            <div class="error-message" *ngIf="addRecordForm.get('feedTypes')?.invalid && addRecordForm.get('feedTypes')?.touched">
-              {{ getErrorMessage('feedTypes') }}
-            </div>
-          </div>
-
-          <!-- Step 3: Conditional Sections -->
-          <!-- Direct Feeding Section -->
-          <div class="form-section" *ngIf="selectedFeedTypes.includes('direct')" formGroupName="directFeedingGroup">
-            <h4>👶 Direct Breastfeeding</h4>
-            <div class="form-group">
-              <label class="field-label">Start Time</label>
-              <ion-item lines="none" class="input-item time-input">
-                <ion-input formControlName="direct_feeding_start_time" type="time"></ion-input>
-              </ion-item>
-            </div>
-            <div class="form-group">
-              <label class="field-label">End Time</label>
-              <ion-item lines="none" class="input-item time-input">
-                <ion-input formControlName="direct_feeding_end_time" type="time"></ion-input>
-              </ion-item>
-            </div>
-            <div class="form-group">
-              <label class="field-label">Duration (minutes)</label>
-              <ion-item lines="none" class="input-item">
-                <ion-input formControlName="duration_minutes" type="number" min="0" max="120"></ion-input>
-              </ion-item>
-            </div>
-
-            <!-- Breast Side Selection -->
-            <div class="form-section">
-              <h4>Breast side</h4>
-              <div class="selection-grid breast-side-grid">
-                <div 
-                  *ngFor="let side of breastSideOptions"
-                  class="selection-option breast-side-option"
-                  [class.selected]="selectedBreastSide?.value === side.value"
-                  (click)="selectBreastSide(side)">
-                  <div class="breast-side-icon">
-                    <ion-icon [name]="side.icon"></ion-icon>
-                  </div>
-                  <span class="option-label">{{ side.label }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Pain Level -->
-            <div class="form-section">
-              <h4>Pain while feeding?</h4>
-              <p class="section-note">Consider 0 is no pain and 10 is a lot of pain</p>
-              <div class="pain-level-container">
-                <div class="pain-level-display">{{ painLevel }}</div>
-                <ion-range
-                  min="0"
-                  max="10"
-                  step="1"
-                  [(ngModel)]="painLevel"
-                  (ionInput)="setPainLevel($event.detail.value)"
-                  color="secondary"
-                  class="pain-slider">
-                  <ion-label slot="start">0</ion-label>
-                  <ion-label slot="end">10</ion-label>
-                </ion-range>
-              </div>
-            </div>
-
-            <!-- Lipstick Shape -->
-            <div class="form-section">
-              <h4>Lipstick shape?</h4>
-              <p class="section-note">It can change after the feed</p>
-              <div class="selection-grid lipstick-grid">
-                <div 
-                  *ngFor="let shape of lipstickShapeOptions"
-                  class="selection-option lipstick-option"
-                  [class.selected]="selectedLipstickShape?.value === shape.value"
-                  (click)="selectLipstickShape(shape)">
-                  <div class="lipstick-icon">
-                    <ion-icon [name]="shape.icon"></ion-icon>
-                  </div>
-                  <span class="option-label">{{ shape.label }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- How do you feel -->
-            <div class="form-section">
-              <h4>How do you feel?</h4>
-              <div class="selection-grid mood-grid">
-                <div 
-                  *ngFor="let mood of motherMoodOptions"
-                  class="selection-option mood-option"
-                  [class.selected]="selectedMotherMood?.value === mood.value"
-                  (click)="selectMotherMood(mood)">
-                  <div class="mood-emoji-circle">{{ mood.emoji }}</div>
-                  <span class="option-label">{{ mood.label }}</span>
-                </div>
+                <span class="option-label">{{ side.label }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Expressed Milk Section -->
-          <div class="form-section" *ngIf="selectedFeedTypes.includes('expressed')" formGroupName="expressedMilkGroup">
-            <h4>🍼 Expressed Breastmilk</h4>
-            <div class="form-group">
-              <label class="field-label">Quantity Given (ml)</label>
-              <ion-range
-                formControlName="ebm_quantity_ml"
-                min="0"
-                max="300"
-                step="10"
-                color="secondary"
-                class="quantity-slider">
-                <ion-label slot="start">0ml</ion-label>
-                <ion-label slot="end">300ml</ion-label>
-              </ion-range>
-              <div class="quantity-display">{{ addRecordForm.get('expressedMilkGroup.ebm_quantity_ml')?.value || 0 }} ml</div>
-              <div class="quick-tap-presets">
-                <ion-button 
-                  *ngFor="let preset of quantityPresets" 
-                  fill="outline" 
-                  size="small" 
-                  (click)="setQuantity('expressedMilkGroup', 'ebm_quantity_ml', preset.value)">
-                  {{ preset.label }}
-                </ion-button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Formula Section -->
-          <div class="form-section" *ngIf="selectedFeedTypes.includes('formula')" formGroupName="formulaGroup">
-            <h4>🥛 Formula</h4>
-            <div class="form-group">
-              <label class="field-label">Quantity Given (ml)</label>
-              <ion-range
-                formControlName="formula_quantity_ml"
-                min="0"
-                max="300"
-                step="10"
-                color="secondary"
-                class="quantity-slider">
-                <ion-label slot="start">0ml</ion-label>
-                <ion-label slot="end">300ml</ion-label>
-              </ion-range>
-              <div class="quantity-display">{{ addRecordForm.get('formulaGroup.formula_quantity_ml')?.value || 0 }} ml</div>
-              <div class="quick-tap-presets">
-                <ion-button 
-                  *ngFor="let preset of quantityPresets" 
-                  fill="outline" 
-                  size="small" 
-                  (click)="setQuantity('formulaGroup', 'formula_quantity_ml', preset.value)">
-                  {{ preset.label }}
-                </ion-button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 4: Notes -->
+          <!-- Pain Level -->
           <div class="form-section">
-            <h4>📝 Notes</h4>
+            <h4>Pain</h4>
+            <p class="section-note">Consider 0 is no pain and 10 is a lot of pain</p>
+            
+            <div class="pain-level-container">
+              <div class="pain-level-display">{{ painLevel }}</div>
+              <ion-range
+                min="0"
+                max="10"
+                step="1"
+                [(ngModel)]="painLevel"
+                (ionInput)="setPainLevel($event.detail.value)"
+                color="secondary"
+                class="pain-slider">
+                <ion-label slot="start">0</ion-label>
+                <ion-label slot="end">10</ion-label>
+              </ion-range>
+            </div>
+          </div>
+
+          <!-- How do you feel -->
+          <div class="form-section">
+            <h4>How do you feel?</h4>
+            <div class="selection-grid mood-grid">
+              <div 
+                *ngFor="let mood of motherMoodOptions"
+                class="selection-option mood-option"
+                [class.selected]="selectedMotherMood?.value === mood.value"
+                (click)="selectMotherMood(mood)">
+                <div class="mood-emoji-circle">{{ mood.emoji }}</div>
+                <span class="option-label">{{ mood.label }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="form-section">
+            <h4>Your notes</h4>
             <div class="form-group">
               <ion-item lines="none" class="input-item">
                 <ion-textarea
@@ -463,12 +354,12 @@
             </div>
           </div>
 
-          <!-- Step 5: Save Button (Sticky Footer) -->
-          <div class="form-actions sticky-footer">
-            <ion-button
-              expand="block"
+          <!-- Form Actions -->
+          <div class="form-actions">
+            <ion-button 
+              expand="block" 
               (click)="saveGrowthRecord()"
-              [disabled]="!addRecordForm.valid || selectedFeedTypes.length === 0"
+              [disabled]="!addRecordForm.valid || !selectedBreastSide || !selectedMotherMood"
               class="save-button">
               Accept
             </ion-button>

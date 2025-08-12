@@ -10,9 +10,10 @@ import { WeightChartModalComponent } from '../../../components/weight-chart-moda
 import { 
   GrowthRecord, 
   WeightRecord, 
-  StoolRecord, 
+  StoolRecord,
   BreastSide,
-  LipstickShape, 
+  SupplementType,
+  LipstickShape,
   MotherMood,
   StoolColor,
   StoolTexture,
@@ -42,36 +43,29 @@ export class BabyDetailPage implements OnInit {
   showAddStoolModal = false;
   
   // Forms
-  addRecordForm: FormGroup; // Main form for feed tracking
+  addRecordForm: FormGroup;
   addWeightForm: FormGroup;
   addStoolForm: FormGroup;
   
   // Selection states
   selectedBreastSide: BreastSide | null = null;
+  selectedSupplement: SupplementType | null = null;
   selectedLipstickShape: LipstickShape | null = null;
   selectedMotherMood: MotherMood | null = null;
   selectedStoolColor: StoolColor | null = null;
   selectedStoolTexture: StoolTexture | null = null;
   selectedStoolSize: StoolSize | null = null;
-
-  // New feed form properties
-  feedTypeOptions: any[] = [];
-  selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = [];
-  quantityPresets: any[] = [];
   painLevel: number = 0;
   
   // Options
   breastSideOptions: BreastSide[] = [];
+  supplementOptions: SupplementType[] = [];
   lipstickShapeOptions: LipstickShape[] = [];
   motherMoodOptions: MotherMood[] = [];
   stoolColorOptions: StoolColor[] = [];
   stoolTextureOptions: StoolTexture[] = [];
   stoolSizeOptions: StoolSize[] = [];
   
-  // Summary and Warnings
-  todaySummary: any = {};
-  feedingWarnings: { type: 'red' | 'yellow', message: string }[] = [];
-
   // Voice input
   isRecording = false;
   isProcessingVoice = false;
@@ -98,20 +92,20 @@ export class BabyDetailPage implements OnInit {
     private modalController: ModalController
   ) {
     // Initialize forms
-    this.addRecordForm = this.formBuilder.group({ // Main form for feed tracking
-      record_date: [new Date().toISOString(), [Validators.required]],
-      feedTypes: this.formBuilder.array([], [Validators.required, Validators.minLength(1)]),
-      directFeedingGroup: this.formBuilder.group({
-        direct_feeding_start_time: [new Date().toTimeString().slice(0, 5)],
-        direct_feeding_end_time: [new Date().toTimeString().slice(0, 5)],
-        duration_minutes: [0, [Validators.min(0)]],
-        pain_level: [0, [Validators.min(0), Validators.max(10)]],
-        lipstick_shape: ['rounded'],
-        mother_mood: [null],
-      }),
-      expressedMilkGroup: this.formBuilder.group({ ebm_quantity_ml: [0, [Validators.min(0)]] }),
-      formulaGroup: this.formBuilder.group({ formula_quantity_ml: [0, [Validators.min(0)]] }),
+    this.addRecordForm = this.formBuilder.group({
+      date: [new Date().toISOString(), [Validators.required]],
+      startTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      endTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      painLevel: [0, [Validators.required, Validators.min(0), Validators.max(10)]],
       notes: [''],
+      directFeedingSessions: [0],
+      avgFeedingDuration: [0],
+      pumpingSessions: [0],
+      totalPumpingOutput: [0],
+      formulaIntake: [0],
+      peeCount: [0],
+      poopCount: [0],
+      moodDescription: ['']
     });
     
     this.addWeightForm = this.formBuilder.group({
@@ -146,12 +140,10 @@ export class BabyDetailPage implements OnInit {
         this.baby = user.babies.find(b => b.id === this.babyId) || null;
       }
     });
-
-    this.updateTodaySummaryAndWarnings();
     
     // Load options
     this.breastSideOptions = this.growthService.getBreastSideOptions();
-    this.feedTypeOptions = this.growthService.getFeedTypeOptions();
+    this.supplementOptions = this.growthService.getSupplementOptions();
     this.lipstickShapeOptions = this.growthService.getLipstickShapeOptions();
     this.motherMoodOptions = this.growthService.getMotherMoodOptions();
     this.stoolColorOptions = this.growthService.getStoolColorOptions();
@@ -159,7 +151,6 @@ export class BabyDetailPage implements OnInit {
     this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
   }
 
-  // Load baby's tracking data
   private loadBabyData() {
     if (this.babyId) {
       this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId);
@@ -168,7 +159,6 @@ export class BabyDetailPage implements OnInit {
     }
   }
 
-  // Navigation
   goBack() {
     this.router.navigate(['/tabs/growth']);
   }
@@ -178,10 +168,10 @@ export class BabyDetailPage implements OnInit {
   }
 
   onEditClick() {
-    // Open appropriate modal based on current sub-tab or default to feed
+    // Open appropriate modal based on current sub-tab
     switch (this.selectedSubTab) {
       case 'weight-size':
-        this.openAddWeightModal(); // This will open the weight modal
+        this.openAddWeightModal();
         break;
       case 'feed-tracks':
         this.openAddRecordModal();
@@ -189,8 +179,6 @@ export class BabyDetailPage implements OnInit {
       case 'stool-tracks':
         this.openAddStoolModal();
         break;
-      default:
-        this.openAddRecordModal(); // Default to feed modal
     }
   }
 
@@ -223,23 +211,17 @@ export class BabyDetailPage implements OnInit {
   }
 
   private resetRecordForm() {
-    this.selectedFeedTypes = [];
     this.selectedBreastSide = null;
+    this.selectedSupplement = null;
     this.selectedLipstickShape = null;
     this.selectedMotherMood = null;
     this.painLevel = 0;
     this.clearVoiceInput();
     this.addRecordForm.reset({
-      record_date: new Date().toISOString(),
-      feedTypes: [],
-      directFeedingGroup: {
-        direct_feeding_start_time: new Date().toTimeString().slice(0, 5),
-        direct_feeding_end_time: new Date().toTimeString().slice(0, 5),
-        duration_minutes: 0, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null
-      },
-      expressedMilkGroup: { ebm_quantity_ml: 0 },
-      formulaGroup: { formula_quantity_ml: 0 },
-      notes: ''
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date().toTimeString().slice(0, 5),
+      painLevel: 0
     });
   }
 
@@ -261,25 +243,13 @@ export class BabyDetailPage implements OnInit {
     });
   }
 
-  onFeedTypeToggle(type: 'direct' | 'expressed' | 'formula', isChecked: boolean) {
-    if (isChecked) {
-      if (!this.selectedFeedTypes.includes(type)) {
-        this.selectedFeedTypes.push(type);
-      }
-    } else {
-      this.selectedFeedTypes = this.selectedFeedTypes.filter(t => t !== type);
-    }
-    this.addRecordForm.get('feedTypes')?.setValue(this.selectedFeedTypes);
-    this.addRecordForm.get('feedTypes')?.markAsDirty(); // Mark as dirty to trigger validation
-    this.addRecordForm.get('feedTypes')?.markAsTouched(); // Mark as touched
-  }
-
+  // Selection methods
   selectBreastSide(side: BreastSide) {
     this.selectedBreastSide = side;
   }
 
-  setQuantity(groupName: string, controlName: string, quantity: number) {
-    this.addRecordForm.get(groupName)?.get(controlName)?.setValue(quantity);
+  selectSupplement(supplement: SupplementType) {
+    this.selectedSupplement = supplement;
   }
 
   selectLipstickShape(shape: LipstickShape) {
@@ -309,25 +279,26 @@ export class BabyDetailPage implements OnInit {
   }
 
   // Save methods
-  async saveGrowthRecord() { // Updated save method
-    if (this.addRecordForm.valid && this.user && this.baby && this.selectedFeedTypes.length > 0) {
+  async saveGrowthRecord() {
+    if (this.addRecordForm.valid && this.user && this.baby) {
       try {
         const formValue = this.addRecordForm.value;
-        const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = { // Construct GrowthRecord
+        const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = {
           babyId: this.baby.id,
           recordedBy: this.user.uid,
-          record_date: new Date(formValue.record_date),
-          feed_types: this.selectedFeedTypes,
-          
-          direct_feeding_start_time: formValue.directFeedingGroup.direct_feeding_start_time,
-          direct_feeding_end_time: formValue.directFeedingGroup.direct_feeding_end_time,
-          breast_side: this.selectedBreastSide?.value,
-          duration_minutes: formValue.directFeedingGroup.duration_minutes,
-          pain_level: formValue.directFeedingGroup.pain_level,
-          lipstick_shape: formValue.directFeedingGroup.lipstick_shape,
-          mother_mood: formValue.directFeedingGroup.mother_mood,
-          ebm_quantity_ml: formValue.expressedMilkGroup.ebm_quantity_ml,
-          formula_quantity_ml: formValue.formulaGroup.formula_quantity_ml,
+          date: new Date(formValue.date),
+          startTime: formValue.startTime,
+          endTime: formValue.endTime,
+          breastSide: this.selectedBreastSide?.value || 'both',
+          supplement: this.selectedSupplement?.value || null,
+          painLevel: this.painLevel,
+          lipstickShape: this.selectedLipstickShape?.value || 'rounded',
+          mood: this.selectedMotherMood,
+          directFeedingSessions: formValue.directFeedingSessions,
+          avgFeedingDuration: formValue.avgFeedingDuration,
+          pumpingSessions: formValue.pumpingSessions,
+          totalPumpingOutput: formValue.totalPumpingOutput,
+          formulaIntake: formValue.formulaIntake,
           peeCount: formValue.peeCount,
           poopCount: formValue.poopCount,
           moodDescription: formValue.moodDescription,
@@ -338,7 +309,6 @@ export class BabyDetailPage implements OnInit {
         await this.growthService.addGrowthRecord(record);
         this.showToast('Daily record saved successfully!', 'success');
         this.closeAddRecordModal();
-        this.updateTodaySummaryAndWarnings(); // Update summary after saving
       } catch (error) {
         this.showToast('Failed to save record. Please try again.', 'danger');
       }
@@ -396,70 +366,6 @@ export class BabyDetailPage implements OnInit {
     }
   }
 
-  // Summary and Warnings
-  async updateTodaySummaryAndWarnings() {
-    if (!this.baby) return;
-    this.todaySummary = await this.growthService.getDailySummary(this.baby.id);
-    const recentDirectFeeds = await this.growthService.getRecentFeedingData(this.baby.id);
-    this.checkFeedingWarnings(recentDirectFeeds, this.todaySummary);
-  }
-
-  checkFeedingWarnings(recentDirectFeeds: GrowthRecord[], summary: any) {
-    this.feedingWarnings = [];
-
-    // 1. Feeding fewer than 8 times per 24 hours or skipping night feeds
-    if (summary.totalDirectFeeds < 8) {
-      this.feedingWarnings.push({
-        type: 'red',
-        message: 'Feeding fewer than 8 times per 24 hours. May indicate insufficient milk intake; urgent assessment needed to prevent dehydration & weight loss.'
-      });
-    }
-    // Note: Skipping night feeds is harder to detect without more complex time-based logic.
-
-    // 2. Feeding more than 12 times per 24 hours without satisfaction
-    if (summary.totalDirectFeeds > 12) {
-      this.feedingWarnings.push({
-        type: 'yellow',
-        message: 'Feeding more than 12 times per 24 hours. Could signal ineffective milk transfer or low milk supply; monitor closely.'
-      });
-    }
-
-    // 3. Nursing sessions consistently <5–10 minutes or >50–60 minutes
-    const shortSessions = recentDirectFeeds.filter(r => r.duration_minutes && r.duration_minutes < 10);
-    const longSessions = recentDirectFeeds.filter(r => r.duration_minutes && r.duration_minutes > 50);
-    if (shortSessions.length > 0 && shortSessions.length >= recentDirectFeeds.length * 0.5) { // More than 50% are short
-      this.feedingWarnings.push({
-        type: 'yellow',
-        message: 'Many nursing sessions are consistently very short (<10 minutes). May indicate poor latch or low milk transfer.'
-      });
-    }
-    if (longSessions.length > 0 && longSessions.length >= recentDirectFeeds.length * 0.5) { // More than 50% are long
-      this.feedingWarnings.push({
-        type: 'yellow',
-        message: 'Many nursing sessions are consistently very long (>50 minutes). May indicate poor latch or low milk transfer.'
-      });
-    }
-
-    // 4. Baby frequently falls asleep at breast or hard to wake to feed
-    // This requires subjective input, cannot be directly derived from current data.
-    // Could be added as a checkbox in the form. For now, just a placeholder.
-    // if (this.addRecordForm.get('babyFallsAsleep')?.value) { // Example if we add this field
-    //   this.feedingWarnings.push({
-    //     type: 'red',
-    //     message: 'Baby frequently falls asleep at breast or is hard to wake to feed. May indicate fatigue from underfeeding or low intake; immediate assessment advised.'
-    //   });
-    // }
-
-    // 5. Persistent hunger cues (rooting, hand sucking) or baby still hungry after feeds
-    // This also requires subjective input.
-    // if (this.addRecordForm.get('persistentHunger')?.value) { // Example if we add this field
-    //   this.feedingWarnings.push({
-    //     type: 'yellow',
-    //     message: 'Baby shows persistent hunger cues or seems hungry after feeds. Sign baby may not be satisfied; evaluate feeding and latch.'
-    //   });
-    // }
-  }
-
   async openWeightChartModal() {
     if (!this.baby || !this.weightRecords$) return;
 
@@ -478,25 +384,11 @@ export class BabyDetailPage implements OnInit {
     }).unsubscribe();
   }
 
-  private async showToast(message: string, color: string) {
-    const toast = await this.toastController.create({
-      message,
-      duration: 2000,
-      color,
-      position: 'top'
-    });
-    await toast.present();
-  }
-
-  isVoiceSupported(): boolean { // Check if speech recognition is available
-    return !!this.recognition;
-  }
-
   // Helper methods
   calculateBabyAge(): string {
     if (!this.baby) return '';
     
-    const birthDate = new Date(this.baby.dateOfBirth); // Assuming baby.dateOfBirth is a Date object
+    const birthDate = new Date(this.baby.dateOfBirth);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birthDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -529,7 +421,7 @@ export class BabyDetailPage implements OnInit {
 
   formatBirthDate(): string {
     if (!this.baby) return '';
-    return new Date(this.baby.dateOfBirth).toLocaleDateString('en-US', { // Assuming baby.dateOfBirth is a Date object
+    return new Date(this.baby.dateOfBirth).toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -547,7 +439,7 @@ export class BabyDetailPage implements OnInit {
   }
 
   getRecordTime(record: GrowthRecord): string {
-    return record.direct_feeding_start_time || '';
+    return record.startTime;
   }
 
   getRecordDate(record: GrowthRecord): string {
@@ -587,7 +479,7 @@ export class BabyDetailPage implements OnInit {
       this.recognition.onstart = () => {
         if (this.isProcessingVoice) {
           this.isRecording = true;
-        } else if (this.isProcessingVoiceWeight) { // For weight modal
+        } else if (this.isProcessingVoiceWeight) {
           this.isRecordingWeight = true;
         } else if (this.isProcessingVoiceStool) {
           this.isRecordingStool = true;
@@ -604,7 +496,7 @@ export class BabyDetailPage implements OnInit {
         
         if (finalTranscript.trim()) {
           if (this.isProcessingVoice) {
-            this.voiceTranscript = finalTranscript.trim(); // For feed modal
+            this.voiceTranscript = finalTranscript.trim();
             this.processSmartVoiceInput(finalTranscript.trim());
           } else if (this.isProcessingVoiceWeight) {
             this.processSmartVoiceInputWeight(finalTranscript.trim());
@@ -744,7 +636,7 @@ export class BabyDetailPage implements OnInit {
     const text = transcript.toLowerCase().trim();
     const extracted: any = {};
     
-    // Extract direct feeding sessions (assuming this is the primary "feed" action)
+    // Extract feeding sessions
     const feedingPatterns = [
       /(?:fed|feed|feeding|nursed|nursing|breastfed|breastfeeding).*?(\d+).*?(?:times|sessions?|feeds?)/i,
       /(\d+).*?(?:feeding|nursing|breastfeeding).*?(?:sessions?|times|feeds?)/i,
@@ -754,7 +646,7 @@ export class BabyDetailPage implements OnInit {
     for (const pattern of feedingPatterns) {
       const match = text.match(pattern);
       if (match && match[1]) {
-        const sessions = parseInt(match[1]); // This is now just a count, not directly used for form field
+        const sessions = parseInt(match[1]);
         if (sessions >= 1 && sessions <= 20) {
           extracted.directFeedingSessions = sessions;
           break;
@@ -762,7 +654,7 @@ export class BabyDetailPage implements OnInit {
       }
     }
     
-    // Extract mother's mood
+    // Extract mood
     const moodKeywords = {
       'relaxed': ['relaxed', 'calm', 'peaceful', 'serene'],
       'happy': ['happy', 'good', 'well', 'fine', 'positive'],
@@ -774,7 +666,7 @@ export class BabyDetailPage implements OnInit {
     for (const [moodValue, keywords] of Object.entries(moodKeywords)) {
       if (keywords.some(keyword => text.includes(keyword))) {
         const mood = this.motherMoodOptions.find(m => m.value === moodValue);
-        if (mood) { // Assign to extracted.mood
+        if (mood) {
           extracted.mood = mood;
           break;
         }
@@ -788,10 +680,10 @@ export class BabyDetailPage implements OnInit {
     const text = transcript.toLowerCase().trim();
     const extracted: any = {};
     
-    // Extract weight (kg)
+    // Extract weight
     const weightPatterns = [
-      /(?:weighs?|weight|is)\s*(\d+(?:\.\d+)?)\s*(?:kg|kilograms?|kilos?)/i,
-      /(\d+(?:\.\d+)?)\s*(?:kg|kilograms?|kilos?)/i
+      /(?:weighs?|weight|is).*?(\d+(?:\.\d+)?).*?(?:kg|kilograms?|kilos?)/i,
+      /(\d+(?:\.\d+)?).*?(?:kg|kilograms?|kilos?)/i
     ];
     
     for (const pattern of weightPatterns) {
@@ -805,10 +697,10 @@ export class BabyDetailPage implements OnInit {
       }
     }
     
-    // Extract height (cm)
+    // Extract height
     const heightPatterns = [
-      /(?:height|length|tall|long)\s*(\d+(?:\.\d+)?)\s*(?:cm|centimeters?)/i,
-      /(\d+(?:\.\d+)?)\s*(?:cm|centimeters?)\s*(?:tall|long|height|length)/i
+      /(?:height|length|tall|long).*?(\d+(?:\.\d+)?).*?(?:cm|centimeters?)/i,
+      /(\d+(?:\.\d+)?).*?(?:cm|centimeters?).*?(?:tall|long|height|length)/i
     ];
     
     for (const pattern of heightPatterns) {
@@ -868,23 +760,22 @@ export class BabyDetailPage implements OnInit {
   }
 
   private autoFillFormFields(extractedData: any) {
-    // Auto-fill feed types
-    if (extractedData.directFeedingSessions) {
-      this.onFeedTypeToggle('direct', true);
-      this.addRecordForm.get('directFeedingGroup.direct_feeding_start_time')?.setValue(new Date().toTimeString().slice(0, 5));
-      this.addRecordForm.get('directFeedingGroup.direct_feeding_end_time')?.setValue(new Date().toTimeString().slice(0, 5));
-      this.addRecordForm.get('directFeedingGroup.duration_minutes')?.setValue(20); // Default duration
+    const formUpdates: any = {};
+    
+    if (extractedData.directFeedingSessions !== undefined) {
+      formUpdates.directFeedingSessions = extractedData.directFeedingSessions;
     }
-
-    // Auto-fill mood
+    
+    if (extractedData.notes !== undefined) {
+      formUpdates.notes = extractedData.notes;
+    }
+    
+    if (Object.keys(formUpdates).length > 0) {
+      this.addRecordForm.patchValue(formUpdates);
+    }
+    
     if (extractedData.mood) {
       this.selectedMotherMood = extractedData.mood;
-      this.addRecordForm.get('directFeedingGroup.mother_mood')?.setValue(extractedData.mood);
-    }
-
-    // Auto-fill notes
-    if (extractedData.notes) {
-      this.addRecordForm.get('notes')?.setValue(extractedData.notes);
     }
   }
 
@@ -917,12 +808,6 @@ export class BabyDetailPage implements OnInit {
   clearVoiceInput() {
     this.voiceTranscript = '';
     this.extractedData = {};
-    this.selectedFeedTypes = []; // Clear feed types selected by voice
-    this.addRecordForm.get('feedTypes')?.setValue([]);
-    this.addRecordForm.get('directFeedingGroup')?.reset();
-    this.addRecordForm.get('expressedMilkGroup')?.reset();
-    this.addRecordForm.get('formulaGroup')?.reset();
-    this.addRecordForm.get('notes')?.reset();
   }
 
   clearVoiceInputWeight() {
@@ -936,10 +821,9 @@ export class BabyDetailPage implements OnInit {
   }
 
   getVoiceInputSummary(): string {
-    const extractedFields = [];
-    if (this.extractedData.directFeedingSessions) extractedFields.push('Direct Feeds');
-    if (this.extractedData.mood) extractedFields.push('Mood');
-    if (this.extractedData.notes) extractedFields.push('Notes');
+    const extractedFields = Object.keys(this.extractedData).filter(key => 
+      this.extractedData[key] !== null && this.extractedData[key] !== undefined
+    );
     
     if (extractedFields.length === 0) {
       return 'No data extracted from voice input';
@@ -949,9 +833,9 @@ export class BabyDetailPage implements OnInit {
   }
 
   getVoiceInputSummaryWeight(): string {
-    const extractedFields = [];
-    if (this.extractedDataWeight.weight !== undefined) extractedFields.push('Weight');
-    if (this.extractedDataWeight.height !== undefined) extractedFields.push('Height');
+    const extractedFields = Object.keys(this.extractedDataWeight).filter(key => 
+      this.extractedDataWeight[key] !== null && this.extractedDataWeight[key] !== undefined
+    );
     
     if (extractedFields.length === 0) {
       return 'No data extracted from voice input';
@@ -961,9 +845,9 @@ export class BabyDetailPage implements OnInit {
   }
 
   getVoiceInputSummaryStool(): string {
-    const extractedFields = [];
-    if (this.extractedDataStool.color) extractedFields.push('Color');
-    if (this.extractedDataStool.texture) extractedFields.push('Texture');
+    const extractedFields = Object.keys(this.extractedDataStool).filter(key => 
+      this.extractedDataStool[key] !== null && this.extractedDataStool[key] !== undefined
+    );
     
     if (extractedFields.length === 0) {
       return 'No data extracted from voice input';
@@ -972,20 +856,23 @@ export class BabyDetailPage implements OnInit {
     return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
   }
 
+  isVoiceSupported(): boolean {
+    return !!this.recognition;
+  }
+
+  private async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      color,
+      position: 'top'
+    });
+    await toast.present();
+  }
+
   getErrorMessage(field: string): string {
     const control = this.addRecordForm.get(field) || this.addWeightForm.get(field) || this.addStoolForm.get(field);
-    // Check nested form groups for errors
-    if (!control) {
-      const directGroup = this.addRecordForm.get('directFeedingGroup');
-      const expressedGroup = this.addRecordForm.get('expressedMilkGroup');
-      const formulaGroup = this.addRecordForm.get('formulaGroup');
-
-      if (directGroup?.get(field)?.hasError('required')) return 'This field is required';
-      if (expressedGroup?.get(field)?.hasError('required')) return 'This field is required';
-      if (formulaGroup?.get(field)?.hasError('required')) return 'This field is required';
-    }
-
-    if (control?.hasError('required') || control?.hasError('minlength')) { // minlength for feedTypes array
+    if (control?.hasError('required')) {
       return 'This field is required';
     }
     if (control?.hasError('min')) {

@@ -4,13 +4,11 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
-import { GrowthTrackingService } from '../../services/growth-tracking.service'; // Import GrowthTrackingService
+import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
 import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
-import { 
-  GrowthRecord, WeightRecord, StoolRecord, BreastSide, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer, FeedTypeOption, QuantityPreset 
-} from '../../models/growth-tracking.model';
+import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer } from '../../models/growth-tracking.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
@@ -32,12 +30,14 @@ export class GrowthPage implements OnInit {
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
   selectedMainTab: 'my-babies' | 'breastfeeding-history' = 'my-babies';
-  
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
   showBabySelector = false;
   addRecordForm: FormGroup;
+  addWeightForm: FormGroup;
+  addStoolForm: FormGroup;
+  selectedBreastSide: BreastSide | null = null;
   selectedSupplement: SupplementType | null = null;
   selectedLipstickShape: LipstickShape | null = null;
   selectedMotherMood: MotherMood | null = null;
@@ -45,13 +45,7 @@ export class GrowthPage implements OnInit {
   selectedStoolTexture: StoolTexture | null = null;
   selectedStoolSize: StoolSize | null = null;
   breastSideOptions: BreastSide[] = [];
-  feedTypeOptions: FeedTypeOption[] = []; // New: for feed type selection
-  selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = []; // New: for multi-select feed types
-  quantityPresets: QuantityPreset[] = []; // New: for quantity sliders
-  selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = []; // New: for multi-select feed types
-  quantityPresets: QuantityPreset[] = []; // New: for quantity sliders
-  selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = []; // New: for multi-select feed types
-  quantityPresets: QuantityPreset[] = []; // New: for quantity sliders
+  supplementOptions: SupplementType[] = [];
   lipstickShapeOptions: LipstickShape[] = [];
   motherMoodOptions: MotherMood[] = [];
   stoolColorOptions: StoolColor[] = [];
@@ -59,14 +53,6 @@ export class GrowthPage implements OnInit {
   stoolSizeOptions: StoolSize[] = [];
   starPerformers: StarPerformer[] = [];
   currentTimelineData: BabyTimelineData | null = null;
-
-  // New feed form properties
-  selectedBabyForFeed: Baby | null = null; // To handle baby selection in the modal
-
-
-  // New feed form properties
-  selectedBabyForFeed: Baby | null = null; // To handle baby selection in the modal
-
   isRecording = false;
   isProcessingVoice = false;
   isRecordingWeight = false;
@@ -83,8 +69,6 @@ export class GrowthPage implements OnInit {
   painLevel: number = 0;
   lastTrack: any = null;
   dailySummary: any = null;
-  feedingWarnings: { type: 'red' | 'yellow', message: string }[] = []; // For warnings/flags
-  feedingWarnings: { type: 'red' | 'yellow', message: string }[] = []; // For warnings/flags
 
   constructor(
     private formBuilder: FormBuilder,
@@ -98,29 +82,20 @@ export class GrowthPage implements OnInit {
     private router: Router
   ) {
     // Daily tracking form
-    this.addRecordForm = this.formBuilder.group({ // Main form for feed tracking
-      selectedBabyId: [this.selectedBaby?.id || '', [Validators.required]], // For baby selection in modal
-      record_date: [new Date().toISOString(), [Validators.required]],
-      feedTypes: this.formBuilder.array([], [Validators.required, Validators.minLength(1)]), // Multi-select
-      directFeedingGroup: this.formBuilder.group({
-        direct_feeding_start_time: [new Date().toTimeString().slice(0, 5)],
-        direct_feeding_end_time: [new Date().toTimeString().slice(0, 5)],
-        duration_minutes: [0, [Validators.min(0)]],
-        pain_level: [0, [Validators.min(0), Validators.max(10)]],
-        lipstick_shape: ['rounded'],
-        mother_mood: [null],
-      }),
-      expressedMilkGroup: this.formBuilder.group({ ebm_quantity_ml: [0, [Validators.min(0)]] }),
-      formulaGroup: this.formBuilder.group({ formula_quantity_ml: [0, [Validators.min(0)]] }),
+    this.addRecordForm = this.formBuilder.group({
+      date: [new Date().toISOString(), [Validators.required]],
+      startTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      endTime: [new Date().toTimeString().slice(0, 5), [Validators.required]],
+      painLevel: [0, [Validators.required, Validators.min(0), Validators.max(10)]],
       notes: [''],
-      // These fields are now part of the conditional groups or derived
-      // pumpingSessions: [0], totalPumpingOutput: [0], peeCount: [0], poopCount: [0], moodDescription: ['']
-      notes: [''],
-      // These fields are now part of the conditional groups or derived
-      // pumpingSessions: [0], totalPumpingOutput: [0], peeCount: [0], poopCount: [0], moodDescription: ['']
-      notes: [''],
-      // These fields are now part of the conditional groups or derived
-      // pumpingSessions: [0], totalPumpingOutput: [0], peeCount: [0], poopCount: [0], moodDescription: ['']
+      directFeedingSessions: [0],
+      avgFeedingDuration: [0],
+      pumpingSessions: [0],
+      totalPumpingOutput: [0],
+      formulaIntake: [0],
+      peeCount: [0],
+      poopCount: [0],
+      moodDescription: ['']
     });
     
     // Weight tracking form
@@ -160,15 +135,10 @@ export class GrowthPage implements OnInit {
       this.currentTimelineData = data;
     });
     
-    this.breastSideOptions = this.growthService.getBreastSideOptions(); // For direct feeding
-    this.feedTypeOptions = this.growthService.getFeedTypeOptions(); // For feed type selection
-    this.quantityPresets = this.growthService.getQuantityPresets(); // For quantity sliders
-    this.quantityPresets = this.growthService.getQuantityPresets(); // For quantity sliders
-    this.quantityPresets = this.growthService.getQuantityPresets(); // For quantity sliders
+    this.breastSideOptions = this.growthService.getBreastSideOptions();
+    this.supplementOptions = this.growthService.getSupplementOptions();
     this.lipstickShapeOptions = this.growthService.getLipstickShapeOptions();
     this.motherMoodOptions = this.growthService.getMotherMoodOptions();
-    
-    
     this.stoolColorOptions = this.growthService.getStoolColorOptions();
     this.stoolTextureOptions = this.growthService.getStoolTextureOptions();
     this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
@@ -180,14 +150,14 @@ export class GrowthPage implements OnInit {
   }
 
   private loadTrackingData(babyId: string) {
-    this.growthRecords$ = this.growthService.getGrowthRecords(babyId); // This will now include new fields
+    this.growthRecords$ = this.growthService.getGrowthRecords(babyId);
     this.weightRecords$ = this.growthService.getWeightRecords(babyId);
     this.stoolRecords$ = this.growthService.getStoolRecords(babyId);
     this.recentRecords$ = this.growthService.getRecentRecords(babyId, 3);
   }
 
   private loadTimelineData(birthDate: Date) {
-    this.timelineData$ = this.timelineService.getTimelineForBaby(birthDate); // Assuming birthDate is a Date object
+    this.timelineData$ = this.timelineService.getTimelineForBaby(birthDate);
   }
 
   private async loadStarPerformers() {
@@ -261,18 +231,13 @@ export class GrowthPage implements OnInit {
   onFastFeed() {
     // Pre-fill form for quick entry
     this.addRecordForm.patchValue({
-      record_date: new Date().toISOString(),
-      feedTypes: ['direct'],
-      directFeedingGroup: {
-        direct_feeding_start_time: new Date().toTimeString().slice(0, 5),
-        direct_feeding_end_time: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
-        duration_minutes: 15, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null
-      }
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
+      painLevel: 0,
+      directFeedingSessions: 1,
+      avgFeedingDuration: 15
     });
-    this.selectedFeedTypes = ['direct']; // Manually set selected feed type
-    this.selectedFeedTypes = ['direct']; // Manually set selected feed type
-    });
-    this.selectedFeedTypes = ['direct'];
     this.openAddRecordModal();
   }
 
@@ -289,9 +254,6 @@ export class GrowthPage implements OnInit {
   }
 
   selectBaby(baby: any) {
-    this.selectedBaby = baby; // Update selected baby in parent component
-    this.selectedBaby = baby; // Update selected baby in parent component
-    this.selectedBaby = baby; // Update selected baby in parent component
     // Navigate to detailed baby page
     this.router.navigate(['/tabs/growth/baby-detail', baby.id]);
   }
@@ -308,9 +270,6 @@ export class GrowthPage implements OnInit {
   }
 
   closeBabySelector() {
-    this.addRecordForm.get('selectedBabyId')?.setValue(this.selectedBaby?.id || ''); // Update form control
-    this.addRecordForm.get('selectedBabyId')?.setValue(this.selectedBaby?.id || ''); // Update form control
-    this.addRecordForm.get('selectedBabyId')?.setValue(this.selectedBaby?.id || ''); // Update form control
     this.showBabySelector = false;
   }
 
@@ -328,50 +287,17 @@ export class GrowthPage implements OnInit {
 
   closeAddRecordModal() {
     this.showAddRecordModal = false;
-    this.resetRecordForm();
-  }
-
-  private resetRecordForm() {
-    this.selectedFeedTypes = [];
     this.selectedBreastSide = null;
+    this.selectedSupplement = null;
     this.selectedLipstickShape = null;
     this.selectedMotherMood = null;
-    this.painLevel = 0; // Reset pain level slider
-    this.clearVoiceInput(); // Clear voice input fields
-    this.addRecordForm.reset({ // Reset form controls
-      selectedBabyId: this.selectedBaby?.id || '',
-      record_date: new Date().toISOString(),
-      feedTypes: [],
-      directFeedingGroup: {
-        direct_feeding_start_time: new Date().toTimeString().slice(0, 5),
-        direct_feeding_end_time: new Date().toTimeString().slice(0, 5),
-        duration_minutes: 0, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null
-      },
-      expressedMilkGroup: { ebm_quantity_ml: 0 },
-      formulaGroup: { formula_quantity_ml: 0 },
-      notes: ''
-    });
-      record_date: new Date().toISOString(),
-      feedTypes: [],
-      directFeedingGroup: {
-        direct_feeding_start_time: new Date().toTimeString().slice(0, 5),
-        direct_feeding_end_time: new Date().toTimeString().slice(0, 5),
-        duration_minutes: 0, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null
-      },
-      expressedMilkGroup: { ebm_quantity_ml: 0 },
-      formulaGroup: { formula_quantity_ml: 0 },
-      notes: ''
-    });
-      record_date: new Date().toISOString(),
-      feedTypes: [],
-      directFeedingGroup: {
-        direct_feeding_start_time: new Date().toTimeString().slice(0, 5),
-        direct_feeding_end_time: new Date().toTimeString().slice(0, 5),
-        duration_minutes: 0, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null
-      },
-      expressedMilkGroup: { ebm_quantity_ml: 0 },
-      formulaGroup: { formula_quantity_ml: 0 },
-      notes: ''
+    this.painLevel = 0;
+    this.clearVoiceInput();
+    this.addRecordForm.reset({
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date().toTimeString().slice(0, 5),
+      painLevel: 0
     });
   }
 
@@ -399,41 +325,8 @@ export class GrowthPage implements OnInit {
     this.selectedBreastSide = side;
   }
 
-  onFeedTypeToggle(type: 'direct' | 'expressed' | 'formula', isChecked: boolean) {
-    if (isChecked) {
-      if (!this.selectedFeedTypes.includes(type)) {
-        this.selectedFeedTypes.push(type);
-      }
-    } else {
-      this.selectedFeedTypes = this.selectedFeedTypes.filter(t => t !== type);
-    }
-    this.addRecordForm.get('feedTypes')?.setValue(this.selectedFeedTypes);
-  }
-
-  setQuantity(groupName: string, controlName: string, quantity: number) {
-    this.addRecordForm.get(groupName)?.get(controlName)?.setValue(quantity);
-      if (!this.selectedFeedTypes.includes(type)) {
-        this.selectedFeedTypes.push(type);
-      }
-    } else {
-      this.selectedFeedTypes = this.selectedFeedTypes.filter(t => t !== type);
-    }
-    this.addRecordForm.get('feedTypes')?.setValue(this.selectedFeedTypes);
-  }
-
-  setQuantity(groupName: string, controlName: string, quantity: number) {
-    this.addRecordForm.get(groupName)?.get(controlName)?.setValue(quantity);
-      if (!this.selectedFeedTypes.includes(type)) {
-        this.selectedFeedTypes.push(type);
-      }
-    } else {
-      this.selectedFeedTypes = this.selectedFeedTypes.filter(t => t !== type);
-    }
-    this.addRecordForm.get('feedTypes')?.setValue(this.selectedFeedTypes);
-  }
-
-  setQuantity(groupName: string, controlName: string, quantity: number) {
-    this.addRecordForm.get(groupName)?.get(controlName)?.setValue(quantity);
+  selectSupplement(supplement: SupplementType) {
+    this.selectedSupplement = supplement;
   }
 
   selectLipstickShape(shape: LipstickShape) {
@@ -444,7 +337,7 @@ export class GrowthPage implements OnInit {
     this.selectedMotherMood = mood;
   }
 
-  setPainLevel(level: number | { lower: number; upper: number }) { // For direct feeding pain
+  setPainLevel(level: number | { lower: number; upper: number }) {
     const painValue = typeof level === 'number' ? level : level.lower || 0;
     this.painLevel = painValue;
     this.addRecordForm.patchValue({ painLevel: painValue });
@@ -1017,29 +910,38 @@ export class GrowthPage implements OnInit {
   }
 
   async saveGrowthRecord() {
-    if (this.addRecordForm.valid && this.user && this.selectedBaby && this.selectedFeedTypes.length > 0) {
+    if (this.addRecordForm.valid && this.user && this.selectedBaby) {
       try {
         const formValue = this.addRecordForm.value;
-        const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = { // Construct GrowthRecord
-          record_date: new Date(formValue.record_date),
-          feed_types: this.selectedFeedTypes,
-          
-          direct_feeding_start_time: formValue.directFeedingGroup.direct_feeding_start_time,
-          direct_feeding_end_time: formValue.directFeedingGroup.direct_feeding_end_time,
-          breast_side: this.selectedBreastSide?.value,
-          duration_minutes: formValue.directFeedingGroup.duration_minutes,
-          pain_level: formValue.directFeedingGroup.pain_level,
-          lipstick_shape: formValue.directFeedingGroup.lipstick_shape,
-          mother_mood: formValue.directFeedingGroup.mother_mood,
-          ebm_quantity_ml: formValue.expressedMilkGroup.ebm_quantity_ml,
-          formula_quantity_ml: formValue.formulaGroup.formula_quantity_ml,
+        const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = {
+          babyId: this.selectedBaby.id,
+          recordedBy: this.user.uid,
+          date: new Date(formValue.date),
+          startTime: formValue.startTime,
+          endTime: formValue.endTime,
+          breastSide: this.selectedBreastSide?.value || 'both',
+          supplement: this.selectedSupplement?.value || null,
+          painLevel: this.painLevel,
+          lipstickShape: this.selectedLipstickShape?.value || 'rounded',
+          mood: this.selectedMotherMood,
+          directFeedingSessions: formValue.directFeedingSessions,
+          avgFeedingDuration: formValue.avgFeedingDuration,
+          pumpingSessions: formValue.pumpingSessions,
+          totalPumpingOutput: formValue.totalPumpingOutput,
+          formulaIntake: formValue.formulaIntake,
           peeCount: formValue.peeCount,
           poopCount: formValue.poopCount,
           moodDescription: formValue.moodDescription,
           notes: formValue.notes,
           enteredViaVoice: !!this.voiceTranscript
+        };
+
+        await this.growthService.addGrowthRecord(record);
         this.showToast('Daily record saved successfully!', 'success');
+
+        this.closeAddRecordModal();
       } catch (error) {
+        this.showToast('Failed to save record. Please try again.', 'danger');
       }
     }
   }
@@ -1052,11 +954,15 @@ export class GrowthPage implements OnInit {
           babyId: this.selectedBaby.id,
           recordedBy: this.user.uid,
           date: new Date(formValue.date),
-          weight: parseFloat(formValue.weight), // Ensure weight is parsed as float
+          weight: parseFloat(formValue.weight),
+          height: formValue.height ? parseFloat(formValue.height) : undefined,
           notes: formValue.notes,
-          weight: parseFloat(formValue.weight), // Ensure weight is parsed as float
+          enteredViaVoice: !!this.voiceTranscriptWeight
+        };
+
         await this.growthService.addWeightRecord(record);
         this.showToast('Weight record saved successfully!', 'success');
+
         this.closeAddWeightModal();
       } catch (error) {
         this.showToast('Failed to save weight record. Please try again.', 'danger');
@@ -1080,8 +986,12 @@ export class GrowthPage implements OnInit {
           peeCount: formValue.peeCount ? parseInt(formValue.peeCount) : undefined,
           poopCount: formValue.poopCount ? parseInt(formValue.poopCount) : undefined,
           notes: formValue.notes,
+          enteredViaVoice: !!this.voiceTranscriptStool
         };
+
         await this.growthService.addStoolRecord(record);
+        this.showToast('Stool record saved successfully!', 'success');
+
         this.closeAddStoolModal();
       } catch (error) {
         this.showToast('Failed to save stool record. Please try again.', 'danger');
@@ -1112,24 +1022,29 @@ export class GrowthPage implements OnInit {
         }
       ]
     });
+
+    await alert.present();
   }
 
   private async quickLogFeeding() {
     // Pre-fill form with common values for quick entry
     this.addRecordForm.patchValue({
-      record_date: new Date().toISOString(),
-      record_date: new Date().toISOString(),
-      feedTypes: ['direct'],
-      directFeedingGroup: { direct_feeding_start_time: new Date().toTimeString().slice(0, 5), direct_feeding_end_time: new Date(Date.now() + 20 * 60000).toTimeString().slice(0, 5), duration_minutes: 20, pain_level: 0, lipstick_shape: 'rounded', mother_mood: null }
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 20 * 60000).toTimeString().slice(0, 5), // 20 minutes later
+      painLevel: 0
+    });
+    
+    this.openAddRecordModal();
   }
 
   private async quickLogPumping() {
     // For now, use the same form - could be extended later
     this.addRecordForm.patchValue({
-      record_date: new Date().toISOString(),
-      feedTypes: ['expressed'],
-      expressedMilkGroup: { ebm_quantity_ml: 100 }, // Default pumping output
-      notes: 'Quick log for pumping session'
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
+      painLevel: 0
     });
     
     this.openAddRecordModal();
@@ -1138,10 +1053,10 @@ export class GrowthPage implements OnInit {
   private async showToast(message: string, color: string) {
     const toast = await this.toastController.create({
       message,
-      record_date: new Date().toISOString(),
-      feedTypes: ['expressed'],
-      expressedMilkGroup: { ebm_quantity_ml: 100 }, // Default pumping output
-      notes: 'Quick log for pumping session'
+      duration: 2000,
+      color,
+      position: 'top'
+    });
     await toast.present();
   }
 
@@ -1156,7 +1071,7 @@ export class GrowthPage implements OnInit {
   calculateBabyAge(): string {
     if (!this.selectedBaby) return '';
     
-    const birthDate = new Date(this.selectedBaby.dateOfBirth); // Assuming birthDate is a Date object
+    const birthDate = new Date(this.selectedBaby.dateOfBirth);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birthDate.getTime());
     const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
@@ -1173,7 +1088,7 @@ export class GrowthPage implements OnInit {
   getErrorMessage(field: string): string {
     const control = this.addRecordForm.get(field);
     if (control?.hasError('required')) {
-      return 'This field is required'; // Generic message for now
+      return 'This field is required';
     }
     if (control?.hasError('min')) {
       return 'Value is too low';
@@ -1218,7 +1133,7 @@ export class GrowthPage implements OnInit {
   }
 
   getLastTrackTime(): string {
-    if (!this.lastTrack) return '--:--'; // Default time format
+    if (!this.lastTrack) return '--';
     return this.lastTrack.time;
   }
 
@@ -1233,7 +1148,7 @@ export class GrowthPage implements OnInit {
   }
 
   getDailySummaryTracks(): number {
-    return this.dailySummary?.totalDirectFeeds || 0; // Updated to new summary field
+    return this.dailySummary?.totalFeeds || 0;
   }
 
   getDailySummaryPain(): number {
