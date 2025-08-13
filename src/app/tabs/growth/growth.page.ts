@@ -1127,7 +1127,28 @@ export class GrowthPage implements OnInit {
   }
 
   getDailySummaryPain(): number {
+  async openFeedLogModal(isFastFeed: boolean = false) {
+    if (!this.selectedBaby) {
+      this.showToast('Please select a baby first', 'warning');
+      return;
+    }
     return this.dailySummary?.avgPainLevel || 0;
+    const modal = await this.modalController.create({
+      component: FeedLogModalComponent,
+      componentProps: {
+        prefilledData: { babyId: this.selectedBaby.id },
+        isFastFeed: isFastFeed
+      }
+    });
+  }
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.saved) {
+        this.loadTrackingData(this.selectedBaby.id);
+        this.loadSummaryData(this.selectedBaby.id);
+      }
+    });
+
+    return await modal.present();
   }
 
   getCategoryLabel(category: string): string {

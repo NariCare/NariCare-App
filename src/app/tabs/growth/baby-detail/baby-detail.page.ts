@@ -359,6 +359,25 @@ export class BabyDetailPage implements OnInit {
     }).unsubscribe();
   }
 
+  async openFeedLogModal() {
+    const modal = await this.modalController.create({
+      component: FeedLogModalComponent,
+      componentProps: {
+        prefilledData: this.baby ? { babyId: this.baby.id } : undefined,
+        isFastFeed: false
+      }
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.saved) {
+        this.loadBabyData();
+        this.loadSummaryData(this.baby!.id);
+      }
+    });
+
+    return await modal.present();
+  }
+
   // Helper methods
   calculateBabyAge(): string {
     if (!this.baby) return '';
