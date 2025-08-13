@@ -21,6 +21,7 @@ interface FeedTypeOption {
 export class FeedLogModalComponent implements OnInit {
   @Input() prefilledData?: Partial<GrowthRecord>;
   @Input() isFastFeed: boolean = false;
+  @Input() selectedBaby?: Baby;
 
   feedForm: FormGroup;
   user: User | null = null;
@@ -98,8 +99,11 @@ export class FeedLogModalComponent implements OnInit {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
       if (user && user.babies.length > 0) {
-        // Auto-select baby if only one exists
-        if (user.babies.length === 1) {
+        // Auto-select baby if passed as input or only one exists
+        if (this.selectedBaby) {
+          this.feedForm.patchValue({ selectedBaby: this.selectedBaby.id });
+          this.currentStep = 2; // Skip baby selection step
+        } else if (user.babies.length === 1) {
           this.selectedBaby = user.babies[0];
           this.feedForm.patchValue({ selectedBaby: user.babies[0].id });
           this.currentStep = 2; // Skip baby selection step

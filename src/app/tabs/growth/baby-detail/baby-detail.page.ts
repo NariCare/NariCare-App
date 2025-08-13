@@ -364,7 +364,8 @@ export class BabyDetailPage implements OnInit {
       component: FeedLogModalComponent,
       componentProps: {
         prefilledData: this.baby ? { babyId: this.baby.id } : undefined,
-        isFastFeed: false
+        isFastFeed: false,
+        selectedBaby: this.baby
       }
     });
 
