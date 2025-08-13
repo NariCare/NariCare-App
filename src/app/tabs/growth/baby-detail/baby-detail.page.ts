@@ -371,7 +371,7 @@ export class BabyDetailPage implements OnInit {
     modal.onDidDismiss().then((result) => {
       if (result.data?.saved) {
         this.loadBabyData();
-        this.loadSummaryData(this.baby!.id);
+        this.loadTrackingData(this.baby!.id);
       }
     });
 

@@ -1133,6 +1133,14 @@ export class GrowthPage implements OnInit {
       return;
     }
     return this.dailySummary?.avgPainLevel || 0;
+  }
+
+  async openFeedLogModal(isFastFeed: boolean = false) {
+    if (!this.selectedBaby) {
+      this.showToast('Please select a baby first', 'warning');
+      return;
+    }
+
     const modal = await this.modalController.create({
       component: FeedLogModalComponent,
       componentProps: {
@@ -1140,7 +1148,7 @@ export class GrowthPage implements OnInit {
         isFastFeed: isFastFeed
       }
     });
-  }
+
     modal.onDidDismiss().then((result) => {
       if (result.data?.saved) {
         this.loadTrackingData(this.selectedBaby.id);
