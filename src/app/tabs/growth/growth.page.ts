@@ -922,7 +922,9 @@ export class GrowthPage implements OnInit {
   }
 
   async saveWeightRecord() {
-    if (this.addWeightForm.valid && this.user && this.selectedBaby) {
+    if (this.addWeightForm.valid && this.user && this.selectedBab
+  }
+}y) {
       try {
         const formValue = this.addWeightForm.value;
         const record: Omit<WeightRecord, 'id' | 'createdAt'> = {
