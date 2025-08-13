@@ -136,7 +136,6 @@ export class GrowthPage implements OnInit {
     });
     
     this.breastSideOptions = this.growthService.getBreastSideOptions();
-    this.supplementOptions = this.growthService.getSupplementOptions();
     this.lipstickShapeOptions = this.growthService.getLipstickShapeOptions();
     this.motherMoodOptions = this.growthService.getMotherMoodOptions();
     this.stoolColorOptions = this.growthService.getStoolColorOptions();

@@ -368,18 +368,33 @@ export class GrowthTrackingService {
     const stoolRecords = this.stoolRecordsSubject.value
       .filter(record => record.babyId === babyId && record.date >= yesterday);
     
-    const totalFeeds = dailyRecords.reduce((sum, record) => sum + (record.directFeedingSessions || 0), 0);
-    const totalPumps = dailyRecords.reduce((sum, record) => sum + (record.pumpingSessions || 0), 0);
+    const totalDirectFeeds = dailyRecords.filter(record => record.feedTypes?.includes('direct')).length;
+    const totalExpressedFeeds = dailyRecords.filter(record => record.feedTypes?.includes('expressed')).length;
+    const totalFormulaFeeds = dailyRecords.filter(record => record.feedTypes?.includes('formula')).length;
+    
+    const totalExpressedMl = dailyRecords
+      .filter(record => record.feedTypes?.includes('expressed'))
+      .reduce((sum, record) => sum + (record.expressedMilkDetails?.quantity || 0), 0);
+    
+    const totalFormulaMl = dailyRecords
+      .filter(record => record.feedTypes?.includes('formula'))
+      .reduce((sum, record) => sum + (record.formulaDetails?.quantity || 0), 0);
+    
     const totalPees = stoolRecords.reduce((sum, record) => sum + (record.peeCount || 0), 0);
     const totalPoops = stoolRecords.reduce((sum, record) => sum + (record.poopCount || 0), 0);
     
-    const painLevels = dailyRecords.map(record => record.painLevel).filter(level => level !== undefined);
+    const painLevels = dailyRecords
+      .map(record => record.directFeedDetails?.painLevel)
+      .filter(level => level !== undefined && level !== null) as number[];
     const avgPainLevel = painLevels.length > 0 ? 
       Math.round(painLevels.reduce((sum, level) => sum + level, 0) / painLevels.length) : 0;
     
     return {
-      totalFeeds,
-      totalPumps,
+      totalDirectFeeds,
+      totalExpressedFeeds,
+      totalFormulaFeeds,
+      totalExpressedMl,
+      totalFormulaMl,
       totalPees,
       totalPoops,
       avgPainLevel,
