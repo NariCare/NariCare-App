@@ -185,7 +185,7 @@ export class BabyDetailPage implements OnInit {
 
   // Modal controls
   openAddRecordModal() {
-    this.showAddRecordModal = true;
+    this.openFeedLogModal();
   }
 
   openAddWeightModal() {
@@ -283,14 +283,7 @@ export class BabyDetailPage implements OnInit {
   async saveGrowthRecord() {
     if (this.addRecordForm.valid && this.user && this.baby) {
       try {
-        const formValue = this.addRecordForm.value;
-        // This is now handled by the FeedLogModalComponent
-        // Keep this method for backward compatibility but redirect to new modal
         await this.openFeedLogModal();
-        return;
-        
-        this.showToast('Daily record saved successfully!', 'success');
-        this.closeAddRecordModal();
       } catch (error) {
         this.showToast('Failed to save record. Please try again.', 'danger');
       }

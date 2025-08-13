@@ -44,13 +44,13 @@ export class FeedLogModalComponent implements OnInit {
       icon: 'nutrition',
       description: 'Formula feeding'
     }
-  ];
+  ] as const;
 
   breastSideOptions = [
     { value: 'left', label: 'Left', icon: 'radio-button-on' },
     { value: 'right', label: 'Right', icon: 'radio-button-on' },
     { value: 'both', label: 'Both', icon: 'ellipse' }
-  ];
+  ] as const;
 
   painLevelOptions: PainLevel[] = [
     { value: 0, emoji: '😌', label: 'No pain' },
