@@ -7,6 +7,7 @@ import { AuthService } from '../../../services/auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
 import { WHOGrowthChartService } from '../../../services/who-growth-chart.service';
 import { WeightChartModalComponent } from '../../../components/weight-chart-modal/weight-chart-modal.component';
+import { FeedLogModalComponent } from '../../../components/feed-log-modal/feed-log-modal.component';
 import { 
   GrowthRecord, 
   WeightRecord, 
@@ -285,7 +286,7 @@ export class BabyDetailPage implements OnInit {
         const formValue = this.addRecordForm.value;
         // This is now handled by the FeedLogModalComponent
         // Keep this method for backward compatibility but redirect to new modal
-        this.openFeedLogModal();
+        await this.openFeedLogModal();
         return;
         
         this.showToast('Daily record saved successfully!', 'success');

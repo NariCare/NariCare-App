@@ -142,11 +142,11 @@
             <div class="record-date">{{ formatDate(record.date) }}</div>
             <div class="record-details">
               <div class="breast-side-indicator">
-                <ion-icon name="ellipse" *ngIf="record.breastSide === 'both'"></ion-icon>
-                <ion-icon name="radio-button-on" *ngIf="record.breastSide !== 'both'"></ion-icon>
+                <ion-icon name="ellipse" *ngIf="record.directFeedDetails?.breastSide === 'both'"></ion-icon>
+                <ion-icon name="radio-button-on" *ngIf="record.directFeedDetails?.breastSide !== 'both'"></ion-icon>
               </div>
               <div class="pain-indicator">
-                <span class="pain-level">{{ record.painLevel }}</span>
+                <span class="pain-level">{{ record.directFeedDetails?.painLevel || 0 }}</span>
                 <span class="pain-label">Pain</span>
               </div>
             </div>

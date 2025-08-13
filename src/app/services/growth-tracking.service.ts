@@ -342,18 +342,18 @@ export class GrowthTrackingService {
   // New methods for summary data
   async getLastFeedingRecord(babyId: string): Promise<any> {
     const records = this.recordsSubject.value
-      .filter(record => record.babyId === babyId && record.directFeedingSessions > 0)
+      .filter(record => record.babyId === babyId && record.feedTypes.includes('direct'))
       .sort((a, b) => b.date.getTime() - a.date.getTime());
     
     if (records.length === 0) return null;
     
     const lastRecord = records[0];
     return {
-      time: lastRecord.startTime,
+      time: lastRecord.directFeedDetails?.startTime || '--',
       date: lastRecord.date,
-      breastSide: lastRecord.breastSide,
-      duration: this.calculateDuration(lastRecord.startTime, lastRecord.endTime),
-      painLevel: lastRecord.painLevel
+      breastSide: lastRecord.directFeedDetails?.breastSide || '--',
+      duration: lastRecord.directFeedDetails?.duration || 0,
+      painLevel: lastRecord.directFeedDetails?.painLevel || 0
     };
   }
 

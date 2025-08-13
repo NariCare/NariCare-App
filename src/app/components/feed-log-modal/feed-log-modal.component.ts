@@ -21,7 +21,7 @@ export class FeedLogModalComponent implements OnInit {
   totalSteps = 5;
   selectedBaby: Baby | null = null;
   selectedFeedTypes: string[] = [];
-  selectedBreastSide: string = '';
+  selectedBreastSide: 'left' | 'right' | 'both' | '' = '';
   selectedPainLevel: number | null = null;
 
   // Options
@@ -277,7 +277,7 @@ export class FeedLogModalComponent implements OnInit {
           feedTypes: this.selectedFeedTypes,
           directFeedDetails: this.selectedFeedTypes.includes('direct') ? {
             startTime: formValue.startTime,
-            breastSide: this.selectedBreastSide,
+            breastSide: this.selectedBreastSide as 'left' | 'right' | 'both',
             duration: formValue.duration,
             painLevel: this.selectedPainLevel
           } : undefined,
