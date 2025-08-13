@@ -20,8 +20,8 @@ export class FeedLogModalComponent implements OnInit {
   currentStep = 1;
   totalSteps = 5;
   selectedBaby: Baby | null = null;
-  selectedFeedTypes: string[] = [];
-  selectedBreastSide: 'left' | 'right' | 'both' | '' = '';
+  selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = [];
+  selectedBreastSide: 'left' | 'right' | 'both' | null = null;
   selectedPainLevel: number | null = null;
 
   // Options
@@ -229,7 +229,7 @@ export class FeedLogModalComponent implements OnInit {
   }
 
   // Feed type selection
-  toggleFeedType(feedType: string) {
+  toggleFeedType(feedType: 'direct' | 'expressed' | 'formula') {
     const index = this.selectedFeedTypes.indexOf(feedType);
     if (index > -1) {
       this.selectedFeedTypes.splice(index, 1);
@@ -239,12 +239,12 @@ export class FeedLogModalComponent implements OnInit {
     this.feedForm.patchValue({ feedTypes: this.selectedFeedTypes });
   }
 
-  isFeedTypeSelected(feedType: string): boolean {
+  isFeedTypeSelected(feedType: 'direct' | 'expressed' | 'formula'): boolean {
     return this.selectedFeedTypes.includes(feedType);
   }
 
   // Breast side selection
-  selectBreastSide(side: string) {
+  selectBreastSide(side: 'left' | 'right' | 'both') {
     this.selectedBreastSide = side;
     this.feedForm.patchValue({ breastSide: side });
   }
@@ -274,10 +274,10 @@ export class FeedLogModalComponent implements OnInit {
           babyId: this.selectedBaby.id,
           recordedBy: this.user.uid,
           date: new Date(),
-          feedTypes: this.selectedFeedTypes,
+          feedTypes: this.selectedFeedTypes as ('direct' | 'expressed' | 'formula')[],
           directFeedDetails: this.selectedFeedTypes.includes('direct') ? {
             startTime: formValue.startTime,
-            breastSide: this.selectedBreastSide as 'left' | 'right' | 'both',
+            breastSide: this.selectedBreastSide!,
             duration: formValue.duration,
             painLevel: this.selectedPainLevel
           } : undefined,

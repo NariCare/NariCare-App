@@ -421,7 +421,7 @@ export class BabyDetailPage implements OnInit {
   }
 
   getRecordTime(record: GrowthRecord): string {
-    return record.startTime;
+    return record.directFeedDetails?.startTime || '--';
   }
 
   getRecordDate(record: GrowthRecord): string {

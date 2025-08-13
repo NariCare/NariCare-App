@@ -138,7 +138,7 @@
       <div class="recent-records-section">
         <div class="records-list" *ngIf="recentRecords$ | async as recentRecords; else noRecentRecords">
           <div *ngFor="let record of recentRecords | slice:0:5" class="record-item">
-            <div class="record-time">{{ record.startTime }}</div>
+            <div class="record-time">{{ record.directFeedDetails?.startTime || '--' }}</div>
             <div class="record-date">{{ formatDate(record.date) }}</div>
             <div class="record-details">
               <div class="breast-side-indicator">

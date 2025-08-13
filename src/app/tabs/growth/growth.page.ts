@@ -913,33 +913,8 @@ export class GrowthPage implements OnInit {
     if (this.addRecordForm.valid && this.user && this.selectedBaby) {
       try {
         const formValue = this.addRecordForm.value;
-        const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = {
-          babyId: this.selectedBaby.id,
-          recordedBy: this.user.uid,
-          date: new Date(formValue.date),
-          startTime: formValue.startTime,
-          endTime: formValue.endTime,
-          breastSide: this.selectedBreastSide?.value || 'both',
-          supplement: this.selectedSupplement?.value || null,
-          painLevel: this.painLevel,
-          lipstickShape: this.selectedLipstickShape?.value || 'rounded',
-          mood: this.selectedMotherMood,
-          directFeedingSessions: formValue.directFeedingSessions,
-          avgFeedingDuration: formValue.avgFeedingDuration,
-          pumpingSessions: formValue.pumpingSessions,
-          totalPumpingOutput: formValue.totalPumpingOutput,
-          formulaIntake: formValue.formulaIntake,
-          peeCount: formValue.peeCount,
-          poopCount: formValue.poopCount,
-          moodDescription: formValue.moodDescription,
-          notes: formValue.notes,
-          enteredViaVoice: !!this.voiceTranscript
-        };
-
-        await this.growthService.addGrowthRecord(record);
-        this.showToast('Daily record saved successfully!', 'success');
-
-        this.closeAddRecordModal();
+        // Use the new FeedLogModalComponent instead
+        await this.openFeedLogModal();
       } catch (error) {
         this.showToast('Failed to save record. Please try again.', 'danger');
       }
