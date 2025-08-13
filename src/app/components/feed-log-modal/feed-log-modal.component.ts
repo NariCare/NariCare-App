@@ -27,7 +27,7 @@ export class FeedLogModalComponent implements OnInit {
   user: User | null = null;
   currentStep = 1;
   totalSteps = 5;
-  selectedBaby: Baby | null = null;
+  // selectedBaby: Baby | null = null;
   selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = [];
   selectedBreastSide: 'left' | 'right' | 'both' | null = null;
   selectedPainLevel: number | null = null;
