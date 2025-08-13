@@ -13,6 +13,7 @@ import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.m
 import { User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from 'src/app/components/specific-week-modal/specific-week-modal.component';
+import { FeedLogModalComponent } from 'src/app/components/feed-log-modal/feed-log-modal.component';
 
 @Component({
   selector: 'app-growth',
