@@ -923,8 +923,6 @@ export class GrowthPage implements OnInit {
 
   async saveWeightRecord() {
     if (this.addWeightForm.valid && this.user && this.selectedBaby) {
-  }
-}y) {
       try {
         const formValue = this.addWeightForm.value;
         const record: Omit<WeightRecord, 'id' | 'createdAt'> = {
@@ -1129,11 +1127,6 @@ export class GrowthPage implements OnInit {
   }
 
   getDailySummaryPain(): number {
-  async openFeedLogModal(isFastFeed: boolean = false) {
-    if (!this.selectedBaby) {
-      this.showToast('Please select a baby first', 'warning');
-      return;
-    }
     return this.dailySummary?.avgPainLevel || 0;
   }
 
