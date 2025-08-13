@@ -109,7 +109,7 @@ export class FeedLogModalComponent implements OnInit {
     this.setupFormValidation();
   }
 
-  private getCurrentTime(): string {
+  getCurrentTime(): string {
     const now = new Date();
     return now.toTimeString().slice(0, 5);
   }
@@ -196,7 +196,7 @@ export class FeedLogModalComponent implements OnInit {
     }
   }
 
-  private validateConditionalSections(): boolean {
+  validateConditionalSections(): boolean {
     let isValid = true;
 
     if (this.selectedFeedTypes.includes('direct')) {
