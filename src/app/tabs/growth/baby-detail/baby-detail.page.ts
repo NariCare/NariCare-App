@@ -283,30 +283,11 @@ export class BabyDetailPage implements OnInit {
     if (this.addRecordForm.valid && this.user && this.baby) {
       try {
         const formValue = this.addRecordForm.value;
-        const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = {
-          babyId: this.baby.id,
-          recordedBy: this.user.uid,
-          date: new Date(formValue.date),
-          startTime: formValue.startTime,
-          endTime: formValue.endTime,
-          breastSide: this.selectedBreastSide?.value || 'both',
-          supplement: this.selectedSupplement?.value || null,
-          painLevel: this.painLevel,
-          lipstickShape: this.selectedLipstickShape?.value || 'rounded',
-          mood: this.selectedMotherMood,
-          directFeedingSessions: formValue.directFeedingSessions,
-          avgFeedingDuration: formValue.avgFeedingDuration,
-          pumpingSessions: formValue.pumpingSessions,
-          totalPumpingOutput: formValue.totalPumpingOutput,
-          formulaIntake: formValue.formulaIntake,
-          peeCount: formValue.peeCount,
-          poopCount: formValue.poopCount,
-          moodDescription: formValue.moodDescription,
-          notes: formValue.notes,
-          enteredViaVoice: !!this.voiceTranscript
-        };
-
-        await this.growthService.addGrowthRecord(record);
+        // This is now handled by the FeedLogModalComponent
+        // Keep this method for backward compatibility but redirect to new modal
+        this.openFeedLogModal();
+        return;
+        
         this.showToast('Daily record saved successfully!', 'success');
         this.closeAddRecordModal();
       } catch (error) {

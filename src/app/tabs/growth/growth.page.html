@@ -346,21 +346,6 @@
           </div>
 
           <!-- Supplement Selection -->
-          <div class="form-section">
-            <h4>Supplement ?</h4>
-            <div class="selection-grid supplement-grid">
-              <div 
-                *ngFor="let supplement of supplementOptions"
-                class="selection-option supplement-option"
-                [class.selected]="selectedSupplement?.value === supplement.value"
-                (click)="selectSupplement(supplement)">
-                <div class="supplement-icon">
-                  <ion-icon [name]="supplement.icon"></ion-icon>
-                </div>
-                <span class="option-label">{{ supplement.label }}</span>
-              </div>
-            </div>
-          </div>
 
           <!-- Pain Level -->
           <div class="form-section">

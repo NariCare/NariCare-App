@@ -128,18 +128,18 @@
             <div class="record-date">{{ getRecordDate(record) }}</div>
             <div class="record-details">
               <div class="breast-side-indicator">
-                <ion-icon name="ellipse" *ngIf="record.breastSide === 'both'"></ion-icon>
-                <ion-icon name="radio-button-on" *ngIf="record.breastSide !== 'both'"></ion-icon>
-                <span>{{ record.breastSide | titlecase }}</span>
+                <ion-icon name="ellipse" *ngIf="record.directFeedDetails?.breastSide === 'both'"></ion-icon>
+                <ion-icon name="radio-button-on" *ngIf="record.directFeedDetails?.breastSide !== 'both'"></ion-icon>
+                <span>{{ record.directFeedDetails?.breastSide | titlecase }}</span>
               </div>
-              <div class="pain-indicator" *ngIf="record.painLevel !== undefined">
-                <span class="pain-level">{{ record.painLevel }}</span>
+              <div class="pain-indicator" *ngIf="record.directFeedDetails?.painLevel !== undefined">
+                <span class="pain-level">{{ record.directFeedDetails?.painLevel }}</span>
                 <span class="pain-label">Pain</span>
               </div>
             </div>
-            <div class="record-mood" *ngIf="record.mood">
-              <span class="mood-emoji">{{ record.mood.emoji }}</span>
-              <span class="mood-label">{{ record.mood.label }}</span>
+            <div class="record-mood" *ngIf="record.notes">
+              <span class="mood-emoji">📝</span>
+              <span class="mood-label">Notes</span>
             </div>
           </div>
         </div>
