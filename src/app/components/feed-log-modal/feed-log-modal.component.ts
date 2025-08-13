@@ -50,6 +50,7 @@ export class FeedLogModalComponent implements OnInit {
     { value: 'left', label: 'Left', icon: 'radio-button-on' },
     { value: 'right', label: 'Right', icon: 'radio-button-on' },
     { value: 'both', label: 'Both', icon: 'ellipse' }
+  ]
 
   painLevelOptions: PainLevel[] = [
     { value: 0, emoji: '😌', label: 'No pain' },
