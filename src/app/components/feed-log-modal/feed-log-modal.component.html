@@ -243,7 +243,26 @@
         <h2 class="step-title">📝 Notes</h2>
         <p class="step-description">Add any additional notes about this feeding session (optional)</p>
         
+        <!-- Quick Notes Section -->
+        <div class="quick-notes-section">
+          <h4 class="quick-notes-title">Quick Notes - Common Concerns</h4>
+          <p class="quick-notes-description">Tap any concern to add it to your notes</p>
+          
+          <div class="predefined-notes-grid">
+            <ion-chip 
+              *ngFor="let note of predefinedNotes"
+              [class.note-red]="note.indicator === 'red'"
+              [class.note-yellow]="note.indicator === 'yellow'"
+              (click)="appendPredefinedNote(note)"
+              class="predefined-note-chip">
+              <div class="note-indicator" [class.indicator-red]="note.indicator === 'red'" [class.indicator-yellow]="note.indicator === 'yellow'"></div>
+              <span class="note-text">{{ note.text.split(' - ')[0] }}</span>
+            </ion-chip>
+          </div>
+        </div>
+
         <div class="form-group">
+          <label class="field-label">Your Notes</label>
           <ion-item lines="none" class="input-item notes-input">
             <ion-textarea
               formControlName="notes"

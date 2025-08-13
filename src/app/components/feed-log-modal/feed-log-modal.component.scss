@@ -503,6 +503,114 @@
   }
 }
 
+/* Quick Notes Section */
+.quick-notes-section {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.quick-notes-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.quick-notes-description {
+  margin: 0 0 1rem 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.predefined-notes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.predefined-note-chip {
+  --background: #ffffff;
+  --color: #374151;
+  --border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0.75rem 1rem;
+  height: auto;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  
+  &:hover {
+    --background: #f8fafc;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  
+  &.note-red {
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(135deg, #fef2f2, #ffffff);
+    
+    &:hover {
+      background: linear-gradient(135deg, #fee2e2, #fef2f2);
+    }
+  }
+  
+  &.note-yellow {
+    border-left: 4px solid #f59e0b;
+    background: linear-gradient(135deg, #fffbeb, #ffffff);
+    
+    &:hover {
+      background: linear-gradient(135deg, #fef3c7, #fffbeb);
+    }
+  }
+  
+  .note-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    
+    &.indicator-red {
+      background: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+    
+    &.indicator-yellow {
+      background: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+  }
+  
+  .note-text {
+    font-size: 0.85rem;
+    line-height: 1.4;
+    text-align: left;
+    flex: 1;
+    font-weight: 500;
+  }
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
 /* Buttons */
 .next-button,
 .save-button {
