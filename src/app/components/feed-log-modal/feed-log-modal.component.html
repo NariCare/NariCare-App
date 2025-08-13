@@ -334,7 +334,7 @@
             [disabled]="!canSave()"
             class="save-button">
             <ion-icon name="save" slot="start"></ion-icon>
-            Save Feed Log
+            Save
           </ion-button>
         </div>
       </div>
@@ -343,7 +343,7 @@
   </div>
 
   <!-- Sticky Save Button (alternative to step 5) -->
-  <div class="sticky-save-footer" *ngIf="currentStep >= 3 && currentStep < 5">
+  <!-- <div class="sticky-save-footer" *ngIf="currentStep >= 3 && currentStep < 5">
     <ion-button 
       expand="block"
       (click)="saveFeedLog()" 
@@ -352,5 +352,5 @@
       <ion-icon name="save" slot="start"></ion-icon>
       💾 Save Log
     </ion-button>
-  </div>
+  </div> -->
 </ion-content>

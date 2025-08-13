@@ -243,7 +243,7 @@ export class GrowthPage implements OnInit {
   }
 
   onFeed() {
-    this.openAddRecordModal();
+    this.openFeedLogModal();
   }
 
   onWeightSize() {
@@ -915,7 +915,7 @@ export class GrowthPage implements OnInit {
       try {
         const formValue = this.addRecordForm.value;
         // Use the new FeedLogModalComponent instead
-        await this.openFeedLogModal();
+        // await this.openFeedLogModal();
       } catch (error) {
         this.showToast('Failed to save record. Please try again.', 'danger');
       }
