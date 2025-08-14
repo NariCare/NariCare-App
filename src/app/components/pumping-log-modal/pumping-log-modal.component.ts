@@ -74,6 +74,10 @@ export class PumpingLogModalComponent implements OnInit {
     this.pumpingForm.patchValue({ totalOutput: quantity });
   }
 
+  onOutputChange(event: any) {
+    this.pumpingForm.patchValue({ totalOutput: event.detail.value });
+  }
+
   // Timer functionality
 
   startTimer() {
