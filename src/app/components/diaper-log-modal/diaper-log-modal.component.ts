@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController } from '@ionic/angular';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
-import { DiaperChangeRecord } from '../../models/growth-tracking.model';
+import { ChangeTypeOptions, DiaperChangeRecord, WetnessOptions } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
 
 @Component({
@@ -22,13 +22,13 @@ export class DiaperLogModalComponent implements OnInit {
   selectedChangeType: 'pee' | 'poop' | 'both' | null = null;
   selectedWetness: 'light' | 'medium' | 'heavy' | null = null;
 
-  changeTypeOptions = [
+  changeTypeOptions: ChangeTypeOptions[] = [
     { value: 'pee', label: 'Pee', icon: '💦', description: 'Wet diaper only' },
     { value: 'poop', label: 'Poop', icon: '💩', description: 'Dirty diaper only' },
     { value: 'both', label: 'Both', icon: '💦💩', description: 'Wet and dirty' }
   ];
 
-  wetnessOptions = [
+  wetnessOptions: WetnessOptions[] = [
     { value: 'light', label: 'Light', description: '1 pee - barely wet' },
     { value: 'medium', label: 'Medium', description: '2 pees - moderately wet' },
     { value: 'heavy', label: 'Heavy', description: '3+ pees - soaked' }
@@ -221,7 +221,7 @@ export class DiaperLogModalComponent implements OnInit {
     }
   }
 
-  private getCurrentTime(): string {
+  public getCurrentTime(): string {
     const now = new Date();
     return now.toTimeString().slice(0, 5);
   }

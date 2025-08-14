@@ -163,18 +163,18 @@
             <div class="record-time">{{ getStoolTime(record) }}</div>
             <div class="record-date">{{ getStoolDate(record) }}</div>
             <div class="record-details">
-              <div class="stool-color">
+              <!-- <div class="stool-color">
                 <div class="color-dot" [style.background-color]="record.color.color"></div>
                 <span>{{ getStoolColorDisplay(record.color) }}</span>
-              </div>
-              <div class="stool-texture">
+              </div> -->
+              <!-- <div class="stool-texture">
                 <ion-icon [name]="record.texture.icon"></ion-icon>
                 <span>{{ getStoolTextureDisplay(record.texture) }}</span>
               </div>
               <div class="stool-size">
                 <ion-icon [name]="record.size.icon"></ion-icon>
                 <span>{{ getStoolSizeDisplay(record.size) }}</span>
-              </div>
+              </div> -->
             </div>
             <div class="diaper-counts" *ngIf="record.peeCount || record.poopCount">
               <span *ngIf="record.peeCount">{{ record.peeCount }} wet</span>

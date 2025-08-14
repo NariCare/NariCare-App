@@ -153,6 +153,19 @@ export interface PumpingSide {
   icon: string;
 }
 
+export interface ChangeTypeOptions {
+  value: 'pee' | 'poop' | 'both';
+  label: string;
+  icon: string;
+  description: string;
+}
+
+export interface WetnessOptions {
+  value: 'light' | 'medium' | 'heavy';
+  label: string;
+  description: string;
+}
+
 export interface MoodType {
   emoji: string;
   label: string;
