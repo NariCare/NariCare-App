@@ -212,6 +212,10 @@ export class BabyDetailPage implements OnInit {
     this.resetStoolForm();
   }
 
+  openAddPumpingModal() {
+    this.showAddPumpingModal = true;
+  }
+
   closeAddPumpingModal() {
     this.showAddPumpingModal = false;
   }
