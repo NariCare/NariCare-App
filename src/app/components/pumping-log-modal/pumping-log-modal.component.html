@@ -15,7 +15,7 @@
     <form [formGroup]="pumpingForm" class="pumping-form">
       
       <!-- Baby Info Header -->
-      <div class="baby-info-header">
+      <!-- <div class="baby-info-header">
         <div class="baby-avatar">
           <ion-icon name="water"></ion-icon>
         </div>
@@ -23,7 +23,7 @@
           <h3>Pumping Session</h3>
           <p>Track your milk expression</p>
         </div>
-      </div>
+      </div> -->
 
       <!-- Time of Pumping -->
       <div class="form-section">
@@ -64,7 +64,6 @@
           <ion-range
             formControlName="totalOutput"
             min="0"
-            [ngModelOptions]="{standalone: true}"
             min="0"
             max="500"
             step="5"

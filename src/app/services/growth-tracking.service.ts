@@ -82,9 +82,9 @@ export class GrowthTrackingService {
   ];
 
   readonly pumpingSideOptions: PumpingSide[] = [
-    { value: 'left', label: '', icon: 'ellipse-outline' },
-    { value: 'right', label: '', icon: 'ellipse' },
-    { value: 'both', label: '', icon: 'ellipse' }
+    { value: 'left', label: 'Left', icon: 'radio-button-on' },
+    { value: 'right', label: 'Right', icon: 'radio-button-on' },
+    { value: 'both', label: 'Both', icon: 'ellipse' }
   ];
 
   constructor(private storage: Storage) {
