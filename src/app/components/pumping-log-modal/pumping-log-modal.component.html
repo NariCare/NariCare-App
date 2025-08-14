@@ -88,7 +88,7 @@
       <div class="form-section">
         <h4>⏳ Duration</h4>
         <div class="duration-mode-selector">
-          <ion-segment [(ngModel)]="isTimerMode">
+          <ion-segment [(ngModel)]="isTimerMode" [ngModelOptions]="{standalone: true}">
             <ion-segment-button [value]="false">
               <ion-label>Manual Entry</ion-label>
             </ion-segment-button>
