@@ -64,7 +64,11 @@
           <ion-range
             formControlName="totalOutput"
             min="0"
+            [ngModelOptions]="{standalone: true}"
+            min="0"
             max="500"
+            step="5"
+            color="secondary">
             step="5"
             color="secondary"
             class="quantity-slider">
