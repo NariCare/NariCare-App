@@ -81,6 +81,12 @@ export class GrowthTrackingService {
     { value: 'bigger', label: 'Bigger', icon: 'ellipse' }
   ];
 
+  readonly pumpingSideOptions: PumpingSide[] = [
+    { value: 'left', label: '', icon: 'ellipse-outline' },
+    { value: 'right', label: '', icon: 'ellipse' },
+    { value: 'both', label: '', icon: 'ellipse' }
+  ];
+
   constructor(private storage: Storage) {
     this.initStorage();
   }
