@@ -216,3 +216,12 @@ export interface ChartDataPoint {
   value: number;
   percentile?: number;
 }
+
+// Re-export emotion checkin types for convenience
+export { 
+  EmotionCheckinRecord, 
+  EmotionalStruggle, 
+  PositiveMoment, 
+  ConcerningThought,
+  EmotionCheckinSummary 
+} from './emotion-checkin.model';

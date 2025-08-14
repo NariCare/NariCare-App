@@ -15,6 +15,7 @@ import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeli
 import { SpecificWeekModalComponent } from 'src/app/components/specific-week-modal/specific-week-modal.component';
 import { FeedLogModalComponent } from 'src/app/components/feed-log-modal/feed-log-modal.component';
 import { DiaperLogModalComponent } from 'src/app/components/diaper-log-modal/diaper-log-modal.component';
+import { EmotionCheckinModalComponent } from 'src/app/components/emotion-checkin-modal/emotion-checkin-modal.component';
 
 @Component({
   selector: 'app-growth',
@@ -38,6 +39,7 @@ export class GrowthPage implements OnInit {
   showAddStoolModal = false;
   showDiaperLogModal = false;
   showAddPumpingModal = false;
+  showEmotionCheckinModal = false;
   showBabySelector = false;
   addRecordForm: FormGroup;
   addWeightForm: FormGroup;
@@ -258,6 +260,10 @@ export class GrowthPage implements OnInit {
     this.showDiaperLogModal = true;
   }
 
+  onEmotionCheckin() {
+    this.openEmotionCheckinModal();
+  }
+
   selectBaby(baby: any) {
     // Navigate to detailed baby page
     this.router.navigate(['/tabs/growth/baby-detail', baby.id]);
@@ -328,6 +334,25 @@ export class GrowthPage implements OnInit {
 
   closeAddPumpingModal() {
     this.showAddPumpingModal = false;
+  }
+
+  async openEmotionCheckinModal() {
+    const modal = await this.modalController.create({
+      component: EmotionCheckinModalComponent,
+      cssClass: 'emotion-checkin-modal'
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.saved) {
+        this.showToast('Emotion check-in saved. Thank you for taking care of yourself! 💕', 'success');
+      }
+    });
+
+    return await modal.present();
+  }
+
+  closeEmotionCheckinModal() {
+    this.showEmotionCheckinModal = false;
   }
 
   selectBreastSide(side: BreastSide) {
