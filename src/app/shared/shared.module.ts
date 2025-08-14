@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { VideoPlayerModalComponent } from '../components/video-player-modal/video-player-modal.component';
 import { TimelineModalComponent } from '../components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from '../components/specific-week-modal/specific-week-modal.component';
@@ -27,7 +27,8 @@ import { PumpingLogModalComponent } from '../components/pumping-log-modal/pumpin
   imports: [
     CommonModule,
     IonicModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FormsModule
   ],
   exports: [
     VideoPlayerModalComponent,
