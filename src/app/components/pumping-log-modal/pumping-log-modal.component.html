@@ -15,13 +15,13 @@
     <form [formGroup]="pumpingForm" class="pumping-form">
       
       <!-- Baby Info Header -->
-      <div class="baby-info-header" *ngIf="selectedBaby">
+      <div class="baby-info-header">
         <div class="baby-avatar">
           <ion-icon name="water"></ion-icon>
         </div>
         <div class="baby-details">
-          <h3>{{ selectedBaby.name }}</h3>
-          <p>{{ calculateBabyAge(selectedBaby) }}</p>
+          <h3>Pumping Session</h3>
+          <p>Track your milk expression</p>
         </div>
       </div>
 

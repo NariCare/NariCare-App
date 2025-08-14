@@ -12,7 +12,6 @@ import { User, Baby } from '../../models/user.model';
   styleUrls: ['./pumping-log-modal.component.scss']
 })
 export class PumpingLogModalComponent implements OnInit {
-  @Input() selectedBaby?: Baby;
 
   pumpingForm: FormGroup;
   user: User | null = null;
@@ -125,12 +124,12 @@ export class PumpingLogModalComponent implements OnInit {
 
   // Form submission
   async savePumpingLog() {
-    if (this.pumpingForm.valid && this.user && this.selectedBaby && this.selectedPumpingSide) {
+    if (this.pumpingForm.valid && this.user && this.selectedPumpingSide) {
       try {
         const formValue = this.pumpingForm.value;
         
         const record: Omit<PumpingRecord, 'id' | 'createdAt'> = {
-          babyId: this.selectedBaby.id,
+          babyId: this.user.babies[0]?.id || 'default-baby',
           recordedBy: this.user.uid,
           date: new Date(),
           time: formValue.time,
