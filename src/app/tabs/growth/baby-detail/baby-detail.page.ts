@@ -21,6 +21,7 @@ import {
   StoolSize
 } from '../../../models/growth-tracking.model';
 import { User, Baby } from '../../../models/user.model';
+import { PumpingRecord } from '../../../models/growth-tracking.model';
 
 @Component({
   selector: 'app-baby-detail',
@@ -179,9 +180,6 @@ export class BabyDetailPage implements OnInit {
         break;
       case 'stool-tracks':
         this.openAddStoolModal();
-        break;
-      case 'pumping-tracks':
-        this.openPumpingLogModal();
         break;
     }
   }

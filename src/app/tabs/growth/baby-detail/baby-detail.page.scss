@@ -824,6 +824,15 @@
   }
 }
 
+  &.poo .action-icon {
+    background: rgba(168, 218, 220, 0.9);
+  }
+
+  &.pumping .action-icon {
+    background: rgba(38, 166, 154, 0.9);
+  }
+}
+
 @media (min-width: 768px) {
   .current-stats {
     gap: 1.5rem;
