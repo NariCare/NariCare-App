@@ -1023,7 +1023,7 @@ export class GrowthPage implements OnInit {
     this.openAddRecordModal();
   }
 
-  private async quickLogPumping() {
+  public async quickLogPumping() {
     this.openAddPumpingModal();
   }
 
