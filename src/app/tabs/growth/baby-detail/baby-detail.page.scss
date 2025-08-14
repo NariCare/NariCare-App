@@ -370,6 +370,7 @@
   }
   
   &.stool-record {
+  &.diaper-record {
     display: grid;
     grid-template-columns: auto auto 1fr auto;
     gap: 1rem;
@@ -391,24 +392,33 @@
       align-items: center;
       gap: 1rem;
       
-      .stool-color,
-      .stool-texture,
-      .stool-size {
+      .change-type,
+      .wetness-level {
         display: flex;
         align-items: center;
         gap: 0.25rem;
         
-        .color-dot {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          border: 2px solid #ffffff;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        .type-emoji {
+          font-size: 1rem;
         }
         
         ion-icon {
           font-size: 0.9rem;
-          // color: #a8dadc;
+          
+          &.wetness-light {
+            opacity: 0.4;
+            color: #3b82f6;
+          }
+          
+          &.wetness-medium {
+            opacity: 0.7;
+            color: #3b82f6;
+          }
+          
+          &.wetness-heavy {
+            opacity: 1;
+            color: #1d4ed8;
+          }
         }
         
         span {
@@ -419,15 +429,13 @@
       }
     }
     
-    .diaper-counts {
+    .record-notes {
       display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
+      align-items: center;
       
-      span {
-        font-size: 0.75rem;
+      ion-icon {
+        font-size: 1rem;
         color: #64748b;
-        font-weight: 500;
       }
     }
   }

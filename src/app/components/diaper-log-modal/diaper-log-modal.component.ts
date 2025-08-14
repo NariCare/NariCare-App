@@ -220,4 +220,9 @@ export class DiaperLogModalComponent implements OnInit {
       return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
     }
   }
+
+  private getCurrentTime(): string {
+    const now = new Date();
+    return now.toTimeString().slice(0, 5);
+  }
 }

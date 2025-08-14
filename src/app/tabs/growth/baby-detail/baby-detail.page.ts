@@ -209,7 +209,8 @@ export class BabyDetailPage implements OnInit {
   }
 
   closeAddStoolModal() {
-    this.showDiaperLogModal = false;
+    this.showAddStoolModal = false;
+    this.resetStoolForm();
   }
 
   openAddPumpingModal() {
@@ -458,16 +459,13 @@ export class BabyDetailPage implements OnInit {
     return this.formatDate(record.date);
   }
 
-  getStoolColorDisplay(color: StoolColor): string {
-    return color.label;
-  }
-
-  getStoolTextureDisplay(texture: StoolTexture): string {
-    return texture.label;
-  }
-
-  getStoolSizeDisplay(size: StoolSize): string {
-    return size.label;
+  getChangeTypeEmoji(type: 'pee' | 'poop' | 'both'): string {
+    switch (type) {
+      case 'pee': return '💦';
+      case 'poop': return '💩';
+      case 'both': return '💦💩';
+      default: return '💧';
+    }
   }
 
   // Voice input methods
