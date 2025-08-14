@@ -8,7 +8,7 @@ import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
 import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
-import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer } from '../../models/growth-tracking.model';
+import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer, DiaperChangeRecord } from '../../models/growth-tracking.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
