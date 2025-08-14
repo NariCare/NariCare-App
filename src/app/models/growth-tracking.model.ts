@@ -100,6 +100,19 @@ export interface StoolRecord {
   createdAt: Date;
 }
 
+export interface DiaperChangeRecord {
+  id: string;
+  babyId: string;
+  recordedBy: string;
+  date: Date;
+  time: string; // HH:MM format
+  type: 'pee' | 'poop' | 'both';
+  wetness?: 'light' | 'medium' | 'heavy'; // Only for pee or both
+  notes?: string;
+  enteredViaVoice?: boolean;
+  createdAt: Date;
+}
+
 export interface StoolColor {
   value: 'very-dark' | 'dark-green' | 'dark-brown' | 'mustard-yellow' | 'other';
   label: string;

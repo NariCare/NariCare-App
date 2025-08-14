@@ -14,6 +14,7 @@ import { User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from 'src/app/components/specific-week-modal/specific-week-modal.component';
 import { FeedLogModalComponent } from 'src/app/components/feed-log-modal/feed-log-modal.component';
+import { DiaperLogModalComponent } from 'src/app/components/diaper-log-modal/diaper-log-modal.component';
 
 @Component({
   selector: 'app-growth',
@@ -28,12 +29,14 @@ export class GrowthPage implements OnInit {
   growthRecords$: Observable<GrowthRecord[]> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
   stoolRecords$: Observable<StoolRecord[]> | null = null;
+  diaperChangeRecords$: Observable<DiaperChangeRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
   selectedMainTab: 'my-babies' | 'breastfeeding-history' = 'my-babies';
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
+  showDiaperLogModal = false;
   showAddPumpingModal = false;
   showBabySelector = false;
   addRecordForm: FormGroup;

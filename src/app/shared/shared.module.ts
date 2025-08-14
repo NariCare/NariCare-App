@@ -11,6 +11,7 @@ import { WeightChartComponent } from '../components/weight-chart/weight-chart.co
 import { WeightChartModalComponent } from '../components/weight-chart-modal/weight-chart-modal.component';
 import { FeedLogModalComponent } from '../components/feed-log-modal/feed-log-modal.component';
 import { PumpingLogModalComponent } from '../components/pumping-log-modal/pumping-log-modal.component';
+import { DiaperLogModalComponent } from '../components/diaper-log-modal/diaper-log-modal.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { PumpingLogModalComponent } from '../components/pumping-log-modal/pumpin
     WeightChartComponent,
     WeightChartModalComponent,
     FeedLogModalComponent,
-    PumpingLogModalComponent
+    PumpingLogModalComponent,
+    DiaperLogModalComponent
   ],
   imports: [
     CommonModule,
@@ -39,7 +41,8 @@ import { PumpingLogModalComponent } from '../components/pumping-log-modal/pumpin
     WeightChartComponent,
     WeightChartModalComponent,
     FeedLogModalComponent,
-    PumpingLogModalComponent
+    PumpingLogModalComponent,
+    DiaperLogModalComponent
   ]
 })
 export class SharedModule { }

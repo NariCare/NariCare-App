@@ -9,6 +9,7 @@ import {
   StoolColor,
   StoolTexture,
   StoolSize,
+  DiaperChangeRecord,
   BreastSide,
   PumpingSide,
   SupplementType,
@@ -26,6 +27,7 @@ export class GrowthTrackingService {
   private recordsSubject = new BehaviorSubject<GrowthRecord[]>([]);
   private weightRecordsSubject = new BehaviorSubject<WeightRecord[]>([]);
   private stoolRecordsSubject = new BehaviorSubject<StoolRecord[]>([]);
+  private diaperChangeRecordsSubject = new BehaviorSubject<DiaperChangeRecord[]>([]);
   private pumpingRecordsSubject = new BehaviorSubject<PumpingRecord[]>([]);
   
   // Available breast side options
@@ -101,6 +103,7 @@ export class GrowthTrackingService {
       const records = await this.storage.get('growthRecords') || [];
       const weightRecords = await this.storage.get('weightRecords') || [];
       const stoolRecords = await this.storage.get('stoolRecords') || [];
+      const diaperChangeRecords = await this.storage.get('diaperChangeRecords') || [];
       
       this.recordsSubject.next(records.map((r: any) => ({
         ...r,
@@ -116,6 +119,12 @@ export class GrowthTrackingService {
       })));
       
       this.stoolRecordsSubject.next(stoolRecords.map((r: any) => ({
+        ...r,
+        date: new Date(r.date),
+        createdAt: new Date(r.createdAt)
+      })));
+      
+      this.diaperChangeRecordsSubject.next(diaperChangeRecords.map((r: any) => ({
         ...r,
         date: new Date(r.date),
         createdAt: new Date(r.createdAt)
@@ -210,6 +219,21 @@ export class GrowthTrackingService {
     await this.storage.set('pumpingRecords', updatedRecords);
   }
 
+  async addDiaperChangeRecord(record: Omit<DiaperChangeRecord, 'id' | 'createdAt'>): Promise<void> {
+    const id = this.generateId();
+    const newRecord: DiaperChangeRecord = {
+      ...record,
+      id,
+      createdAt: new Date()
+    };
+    
+    const currentRecords = this.diaperChangeRecordsSubject.value;
+    const updatedRecords = [newRecord, ...currentRecords];
+    
+    this.diaperChangeRecordsSubject.next(updatedRecords);
+    await this.storage.set('diaperChangeRecords', updatedRecords);
+  }
+
   getPumpingRecords(babyId: string): Observable<PumpingRecord[]> {
     return this.pumpingRecordsSubject.pipe(
       map(records => records
@@ -220,6 +244,15 @@ export class GrowthTrackingService {
   }
   getStoolRecords(babyId: string): Observable<StoolRecord[]> {
     return this.stoolRecordsSubject.pipe(
+      map(records => records
+        .filter(record => record.babyId === babyId)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+      )
+    );
+  }
+
+  getDiaperChangeRecords(babyId: string): Observable<DiaperChangeRecord[]> {
+    return this.diaperChangeRecordsSubject.pipe(
       map(records => records
         .filter(record => record.babyId === babyId)
         .sort((a, b) => b.date.getTime() - a.date.getTime())
