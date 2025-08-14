@@ -255,7 +255,7 @@ export class GrowthPage implements OnInit {
   }
 
   onPoo() {
-    this.openDiaperLogModal();
+    this.showDiaperLogModal = true;
   }
 
   selectBaby(baby: any) {
@@ -315,6 +315,10 @@ export class GrowthPage implements OnInit {
   }
 
   closeAddStoolModal() {
+    this.showDiaperLogModal = false;
+  }
+
+  closeDiaperLogModal() {
     this.showDiaperLogModal = false;
   }
 
