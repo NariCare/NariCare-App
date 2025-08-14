@@ -193,6 +193,46 @@
       </div>
     </div>
 
+    <!-- Pumping Tracks Tab -->
+    <div class="tab-content" *ngIf="selectedSubTab === 'pumping-tracks'">
+      <div class="records-section">
+        <h3 class="section-title">Recent Pumping Records</h3>
+        <div class="records-list" *ngIf="pumpingRecords$ | async as pumpingRecords; else noPumpingRecords">
+          <div *ngFor="let record of pumpingRecords | slice:0:10" class="record-item pumping-record">
+            <div class="record-time">{{ record.time }}</div>
+            <div class="record-date">{{ formatDate(record.date) }}</div>
+            <div class="record-details">
+              <div class="pumping-side-indicator">
+                <ion-icon name="ellipse" *ngIf="record.pumpingSide === 'both'"></ion-icon>
+                <ion-icon name="radio-button-on" *ngIf="record.pumpingSide !== 'both'"></ion-icon>
+                <span>{{ record.pumpingSide | titlecase }}</span>
+              </div>
+              <div class="output-indicator">
+                <span class="output-amount">{{ record.totalOutput }}ml</span>
+                <span class="output-label">Output</span>
+              </div>
+              <div class="duration-indicator" *ngIf="record.duration">
+                <span class="duration-time">{{ record.duration }}min</span>
+                <span class="duration-label">Duration</span>
+              </div>
+            </div>
+            <div class="record-notes" *ngIf="record.notes">
+              <span class="notes-emoji">📝</span>
+              <span class="notes-label">Notes</span>
+            </div>
+          </div>
+        </div>
+        
+        <ng-template #noPumpingRecords>
+          <div class="empty-records">
+            <ion-icon name="water"></ion-icon>
+            <h4>No pumping records yet</h4>
+            <p>Start tracking by clicking the edit button above</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
   </div>
 
   <!-- Daily Record Modal -->

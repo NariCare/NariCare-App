@@ -796,4 +796,14 @@
       </ion-content>
     </ng-template>
   </ion-modal>
+
+  <!-- Pumping Log Modal -->
+  <ion-modal [isOpen]="showAddPumpingModal" (didDismiss)="closeAddPumpingModal()">
+    <ng-template>
+      <app-pumping-log-modal 
+        [selectedBaby]="selectedBaby"
+        (ionModalDidDismiss)="closeAddPumpingModal()">
+      </app-pumping-log-modal>
+    </ng-template>
+  </ion-modal>
 </ion-content>

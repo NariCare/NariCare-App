@@ -10,6 +10,7 @@ import { GroupChatMessagesComponent } from '../components/group-chat-messages/gr
 import { WeightChartComponent } from '../components/weight-chart/weight-chart.component';
 import { WeightChartModalComponent } from '../components/weight-chart-modal/weight-chart-modal.component';
 import { FeedLogModalComponent } from '../components/feed-log-modal/feed-log-modal.component';
+import { PumpingLogModalComponent } from '../components/pumping-log-modal/pumping-log-modal.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { FeedLogModalComponent } from '../components/feed-log-modal/feed-log-mod
     GroupChatMessagesComponent,
     WeightChartComponent,
     WeightChartModalComponent,
-    FeedLogModalComponent
+    FeedLogModalComponent,
+    PumpingLogModalComponent
   ],
   imports: [
     CommonModule,
@@ -35,7 +37,8 @@ import { FeedLogModalComponent } from '../components/feed-log-modal/feed-log-mod
     GroupChatMessagesComponent,
     WeightChartComponent,
     WeightChartModalComponent,
-    FeedLogModalComponent
+    FeedLogModalComponent,
+    PumpingLogModalComponent
   ]
 })
 export class SharedModule { }

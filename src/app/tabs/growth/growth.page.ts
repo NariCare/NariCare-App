@@ -322,6 +322,10 @@ export class GrowthPage implements OnInit {
     });
   }
 
+  closeAddPumpingModal() {
+    this.showAddPumpingModal = false;
+  }
+
   selectBreastSide(side: BreastSide) {
     this.selectedBreastSide = side;
   }

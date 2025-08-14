@@ -180,6 +180,9 @@ export class BabyDetailPage implements OnInit {
       case 'stool-tracks':
         this.openAddStoolModal();
         break;
+      case 'pumping-tracks':
+        this.openPumpingLogModal();
+        break;
     }
   }
 
