@@ -78,71 +78,16 @@ export class FeedLogModalComponent implements OnInit {
   formulaPresets = [30, 60, 90, 120, 160];
 
   predefinedNotes: PredefinedNote[] = [
-    {
-      id: '1',
-      text: 'Feeding fewer than 8 times per 24 hours or skipping night feeds - May indicate insufficient milk intake; urgent assessment needed to prevent dehydration & weight loss',
-      indicator: 'red'
-    },
-    {
-      id: '2',
-      text: 'Feeding more than 12 times per 24 hours without satisfaction - Could signal ineffective milk transfer or low milk supply; monitor closely',
-      indicator: 'yellow'
-    },
-    {
-      id: '3',
-      text: 'Nursing sessions consistently <5–10 minutes or >50–60 minutes - Very short or very long sessions may indicate poor latch or low milk transfer',
-      indicator: 'yellow'
-    },
-    {
-      id: '4',
-      text: 'Baby frequently falls asleep at breast or hard to wake to feed - May indicate fatigue from underfeeding or low intake; immediate assessment advised',
-      indicator: 'red'
-    },
-    {
-      id: '5',
-      text: 'Persistent hunger cues (rooting, hand sucking) or baby still hungry after feeds - Sign baby may not be satisfied; evaluate feeding and latch',
-      indicator: 'yellow'
-    },
-    {
-      id: '6',
-      text: 'Severe nipple pain persisting through feeds - May indicate damage or infection; urgent treatment needed',
-      indicator: 'red'
-    },
-    {
-      id: '7',
-      text: 'Cracked, bleeding, blistered, or discolored nipples - Requires lactation or medical support',
-      indicator: 'yellow'
-    },
-    {
-      id: '8',
-      text: 'Severe, unrelieved engorgement preventing latch - May reduce milk supply and cause pain; urgent treatment needed',
-      indicator: 'red'
-    },
-    {
-      id: '9',
-      text: 'Red, tender, warm breasts with fever/chills (possible mastitis) - Requires immediate medical treatment',
-      indicator: 'red'
-    },
-    {
-      id: '10',
-      text: 'Open breast sores not healing - Infection risk; professional care needed',
-      indicator: 'yellow'
-    },
-    {
-      id: '11',
-      text: 'No breast fullness or milk coming in signs by day 4-5 postpartum - May indicate delayed milk production; urgent support advised',
-      indicator: 'red'
-    },
-    {
-      id: '12',
-      text: 'Extreme fussiness or persistent crying not soothed by feeding - Could indicate hunger or discomfort; evaluation needed',
-      indicator: 'yellow'
-    },
-    {
-      id: '13',
-      text: 'Baby never appearing satisfied after feeds - Suggests insufficient intake; reassess feeding',
-      indicator: 'yellow'
-    }
+    { id: '4', text: 'Sleeps at breast', indicator: 'red' },
+    { id: '5', text: 'Hunger after feed', indicator: 'yellow' },
+    { id: '6', text: 'Severe nipple pain', indicator: 'red' },
+    { id: '7', text: 'Cracked/bleeding nipples', indicator: 'yellow' },
+    { id: '8', text: 'Engorged, can’t latch', indicator: 'red' },
+    { id: '9', text: 'Red breasts + fever', indicator: 'red' },
+    { id: '10', text: 'Sores not healing', indicator: 'yellow' },
+    { id: '11', text: 'No milk by day 5', indicator: 'red' },
+    { id: '12', text: 'Extreme fussiness', indicator: 'yellow' },
+    { id: '13', text: 'Never satisfied', indicator: 'yellow' }
   ];
 
   constructor(
