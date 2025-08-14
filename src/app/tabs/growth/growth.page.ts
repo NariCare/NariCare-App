@@ -315,15 +315,7 @@ export class GrowthPage implements OnInit {
   }
 
   closeAddStoolModal() {
-    this.showAddStoolModal = false;
-    this.selectedStoolColor = null;
-    this.selectedStoolTexture = null;
-    this.selectedStoolSize = null;
-    this.clearVoiceInputStool();
-    this.addStoolForm.reset({
-      date: new Date().toISOString(),
-      time: new Date().toTimeString().slice(0, 5)
-    });
+    this.showDiaperLogModal = false;
   }
 
   openAddPumpingModal() {

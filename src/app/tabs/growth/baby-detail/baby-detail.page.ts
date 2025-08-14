@@ -209,8 +209,7 @@ export class BabyDetailPage implements OnInit {
   }
 
   closeAddStoolModal() {
-    this.showAddStoolModal = false;
-    this.resetStoolForm();
+    this.showDiaperLogModal = false;
   }
 
   openAddPumpingModal() {
