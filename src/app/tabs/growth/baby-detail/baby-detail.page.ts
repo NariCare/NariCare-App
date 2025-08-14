@@ -212,6 +212,10 @@ export class BabyDetailPage implements OnInit {
     this.resetStoolForm();
   }
 
+  closeAddPumpingModal() {
+    this.showAddPumpingModal = false;
+  }
+
   private resetRecordForm() {
     this.selectedBreastSide = null;
     this.selectedSupplement = null;

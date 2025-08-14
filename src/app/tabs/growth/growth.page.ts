@@ -1019,15 +1019,7 @@ export class GrowthPage implements OnInit {
   }
 
   private async quickLogPumping() {
-    // For now, use the same form - could be extended later
-    this.addRecordForm.patchValue({
-      date: new Date().toISOString(),
-      startTime: new Date().toTimeString().slice(0, 5),
-      endTime: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
-      painLevel: 0
-    });
-    
-    this.openAddRecordModal();
+    this.openAddPumpingModal();
   }
 
   private async showToast(message: string, color: string) {
