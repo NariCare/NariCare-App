@@ -255,7 +255,7 @@ export class GrowthPage implements OnInit {
   }
 
   onPoo() {
-    this.openAddStoolModal();
+    this.openDiaperLogModal();
   }
 
   selectBaby(baby: any) {
