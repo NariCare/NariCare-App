@@ -47,7 +47,7 @@
         <ion-button 
           expand="block" 
           (click)="nextStep()" 
-          [disabled]="!selectedBabyLocal"
+          [disabled]="selectedBabyLocal === null"
           class="next-button">
           Continue
         </ion-button>
@@ -76,14 +76,14 @@
         </div>
 
         <div class="button-row">
-          <ion-button fill="outline" (click)="previousStep()" class="back-button" *ngIf="user && user.babies && user.babies.length > 1">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button" *ngIf="getUserBabiesLength() > 1">
             Back
           </ion-button>
           <ion-button 
             (click)="nextStep()" 
-            [disabled]="!selectedChangeType"
+            [disabled]="selectedChangeType === null"
             class="next-button"
-            [style.flex]="user && user.babies && user.babies.length > 1 ? '2' : '1'">
+            [style.flex]="getFlexValue()">
             Continue
           </ion-button>
         </div>
@@ -101,7 +101,7 @@
             [class.selected]="selectedWetness === wetness.value"
             (click)="selectWetness(wetness.value)">
             <div class="wetness-icon">
-              <ion-icon name="water" [class.light]="wetness.value === 'light'" [class.medium]="wetness.value === 'medium'" [class.heavy]="wetness.value === 'heavy'"></ion-icon>
+              <ion-icon name="water" [class]="'wetness-' + wetness.value"></ion-icon>
             </div>
             <div class="wetness-content">
               <h4>{{ wetness.label }}</h4>
@@ -117,7 +117,7 @@
           </ion-button>
           <ion-button 
             (click)="nextStep()" 
-            [disabled]="!selectedWetness"
+            [disabled]="selectedWetness === null"
             class="next-button">
             Continue
           </ion-button>
@@ -125,7 +125,7 @@
       </div>
 
       <!-- Step 3/4: Notes (skip wetness if poop only) -->
-      <div class="form-step" *ngIf="(currentStep === 3 && !shouldShowWetnessStep()) || (currentStep === 4 && shouldShowWetnessStep())">
+      <div class="form-step" *ngIf="getNotesStepCondition()">
         <h2 class="step-title">📝 Add Notes</h2>
         <p class="step-description">Add any additional details about the diaper change (optional)</p>
 
@@ -152,7 +152,7 @@
       </div>
 
       <!-- Step 4/5: Review & Save -->
-      <div class="form-step" *ngIf="(currentStep === 4 && !shouldShowWetnessStep()) || (currentStep === 5 && shouldShowWetnessStep())">
+      <div class="form-step" *ngIf="getReviewStepCondition()">
         <h2 class="step-title">📊 Review & Save</h2>
         <p class="step-description">Review your diaper change log before saving</p>
         
@@ -174,8 +174,8 @@
               <div class="detail-item">
                 <span class="detail-label">Type:</span>
                 <span class="detail-value">
-                  {{ changeTypeOptions.find(opt => opt.value === selectedChangeType)?.icon }}
-                  {{ changeTypeOptions.find(opt => opt.value === selectedChangeType)?.label }}
+                  {{ getChangeTypeIcon() }}
+                  {{ getChangeTypeLabel() }}
                 </span>
               </div>
               
@@ -198,7 +198,7 @@
           </ion-button>
           <ion-button 
             (click)="saveDiaperLog()" 
-            [disabled]="!canSave()"
+            [disabled]="canSaveCheck() === false"
             class="save-button">
             <ion-icon name="save" slot="start"></ion-icon>
             💾 Save Diaper Log

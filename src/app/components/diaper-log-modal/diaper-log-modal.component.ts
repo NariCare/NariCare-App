@@ -225,4 +225,36 @@ export class DiaperLogModalComponent implements OnInit {
     const now = new Date();
     return now.toTimeString().slice(0, 5);
   }
+
+  getUserBabiesLength(): number {
+    return this.user && this.user.babies ? this.user.babies.length : 0;
+  }
+
+  getFlexValue(): string {
+    return this.getUserBabiesLength() > 1 ? '2' : '1';
+  }
+
+  getNotesStepCondition(): boolean {
+    return (this.currentStep === 3 && !this.shouldShowWetnessStep()) || 
+           (this.currentStep === 4 && this.shouldShowWetnessStep());
+  }
+
+  getReviewStepCondition(): boolean {
+    return (this.currentStep === 4 && !this.shouldShowWetnessStep()) || 
+           (this.currentStep === 5 && this.shouldShowWetnessStep());
+  }
+
+  canSaveCheck(): boolean {
+    return this.canSave();
+  }
+
+  getChangeTypeIcon(): string {
+    const changeType = this.changeTypeOptions.find(opt => opt.value === this.selectedChangeType);
+    return changeType ? changeType.icon : '';
+  }
+
+  getChangeTypeLabel(): string {
+    const changeType = this.changeTypeOptions.find(opt => opt.value === this.selectedChangeType);
+    return changeType ? changeType.label : '';
+  }
 }
