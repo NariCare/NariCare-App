@@ -598,6 +598,14 @@
 
   <!-- Stool Track Modal (preserved) -->
 
+  <!-- Diaper Log Modal -->
+  <ion-modal [isOpen]="showDiaperLogModal" (didDismiss)="closeDiaperLogModal()">
+    <ng-template>
+      <app-diaper-log-modal (ionModalDidDismiss)="closeDiaperLogModal()">
+      </app-diaper-log-modal>
+    </ng-template>
+  </ion-modal>
+
   <!-- Pumping Log Modal -->
   <ion-modal [isOpen]="showAddPumpingModal" (didDismiss)="closeAddPumpingModal()">
     <ng-template>
