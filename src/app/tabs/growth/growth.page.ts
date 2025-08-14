@@ -34,6 +34,7 @@ export class GrowthPage implements OnInit {
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
+  showAddPumpingModal = false;
   showBabySelector = false;
   addRecordForm: FormGroup;
   addWeightForm: FormGroup;
@@ -320,6 +321,10 @@ export class GrowthPage implements OnInit {
       date: new Date().toISOString(),
       time: new Date().toTimeString().slice(0, 5)
     });
+  }
+
+  openAddPumpingModal() {
+    this.showAddPumpingModal = true;
   }
 
   closeAddPumpingModal() {
