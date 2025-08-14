@@ -43,6 +43,7 @@ export class BabyDetailPage implements OnInit {
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
+  showAddPumpingModal = false;
   
   // Forms
   addRecordForm: FormGroup;
