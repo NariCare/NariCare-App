@@ -50,7 +50,7 @@ export class PumpingLogModalComponent implements OnInit {
       this.user = user;
     });
 
-    this.pumpingSideOptions = this.growthService.pumpingSideOptions;
+    this.pumpingSideOptions = this.growthService.getPumpingSideOptions();
   }
 
   getCurrentTime(): string {
@@ -75,6 +75,12 @@ export class PumpingLogModalComponent implements OnInit {
   }
 
   // Timer functionality
+  toggleTimerMode() {
+    this.isTimerMode = !this.isTimerMode;
+    if (!this.isTimerMode) {
+      this.stopTimer();
+    }
+  }
 
   startTimer() {
     if (this.isTimerRunning) return;

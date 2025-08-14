@@ -26,7 +26,6 @@ export class GrowthTrackingService {
   private recordsSubject = new BehaviorSubject<GrowthRecord[]>([]);
   private weightRecordsSubject = new BehaviorSubject<WeightRecord[]>([]);
   private stoolRecordsSubject = new BehaviorSubject<StoolRecord[]>([]);
-  private pumpingRecordsSubject = new BehaviorSubject<PumpingRecord[]>([]);
   
   // Available breast side options
   readonly breastSideOptions: BreastSide[] = [
@@ -189,29 +188,6 @@ export class GrowthTrackingService {
     await this.storage.set('stoolRecords', updatedRecords);
   }
 
-  async addPumpingRecord(record: Omit<PumpingRecord, 'id' | 'createdAt'>): Promise<void> {
-    const id = this.generateId();
-    const newRecord: PumpingRecord = {
-      ...record,
-      id,
-      createdAt: new Date()
-    };
-    
-    const currentRecords = this.pumpingRecordsSubject.value;
-    const updatedRecords = [newRecord, ...currentRecords];
-    
-    this.pumpingRecordsSubject.next(updatedRecords);
-    await this.storage.set('pumpingRecords', updatedRecords);
-  }
-
-  getPumpingRecords(babyId: string): Observable<PumpingRecord[]> {
-    return this.pumpingRecordsSubject.pipe(
-      map(records => records
-        .filter(record => record.babyId === babyId)
-        .sort((a, b) => b.date.getTime() - a.date.getTime())
-      )
-    );
-  }
   getStoolRecords(babyId: string): Observable<StoolRecord[]> {
     return this.stoolRecordsSubject.pipe(
       map(records => records
