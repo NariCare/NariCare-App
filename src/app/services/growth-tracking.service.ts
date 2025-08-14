@@ -18,6 +18,7 @@ import {
   StarPerformer, 
   QuickLogSuggestion 
 } from '../models/growth-tracking.model';
+import { EmotionCheckinRecord } from '../models/emotion-checkin.model';
 import { Storage } from '@ionic/storage-angular';
 
 @Injectable({
@@ -29,6 +30,7 @@ export class GrowthTrackingService {
   private stoolRecordsSubject = new BehaviorSubject<StoolRecord[]>([]);
   private diaperChangeRecordsSubject = new BehaviorSubject<DiaperChangeRecord[]>([]);
   private pumpingRecordsSubject = new BehaviorSubject<PumpingRecord[]>([]);
+  private emotionCheckinRecordsSubject = new BehaviorSubject<EmotionCheckinRecord[]>([]);
   
   // Available breast side options
   readonly breastSideOptions: BreastSide[] = [
@@ -104,6 +106,7 @@ export class GrowthTrackingService {
       const weightRecords = await this.storage.get('weightRecords') || [];
       const stoolRecords = await this.storage.get('stoolRecords') || [];
       const diaperChangeRecords = await this.storage.get('diaperChangeRecords') || [];
+      const emotionCheckinRecords = await this.storage.get('emotionCheckinRecords') || [];
       
       this.recordsSubject.next(records.map((r: any) => ({
         ...r,
@@ -125,6 +128,12 @@ export class GrowthTrackingService {
       })));
       
       this.diaperChangeRecordsSubject.next(diaperChangeRecords.map((r: any) => ({
+        ...r,
+        date: new Date(r.date),
+        createdAt: new Date(r.createdAt)
+      })));
+      
+      this.emotionCheckinRecordsSubject.next(emotionCheckinRecords.map((r: any) => ({
         ...r,
         date: new Date(r.date),
         createdAt: new Date(r.createdAt)
@@ -232,6 +241,49 @@ export class GrowthTrackingService {
     
     this.diaperChangeRecordsSubject.next(updatedRecords);
     await this.storage.set('diaperChangeRecords', updatedRecords);
+  }
+
+  async addEmotionCheckinRecord(record: Omit<EmotionCheckinRecord, 'id' | 'createdAt'>): Promise<void> {
+    const id = this.generateId();
+    const newRecord: EmotionCheckinRecord = {
+      ...record,
+      id,
+      createdAt: new Date()
+    };
+    
+    const currentRecords = this.emotionCheckinRecordsSubject.value;
+    const updatedRecords = [newRecord, ...currentRecords];
+    
+    this.emotionCheckinRecordsSubject.next(updatedRecords);
+    await this.storage.set('emotionCheckinRecords', updatedRecords);
+  }
+
+  getEmotionCheckinRecords(userId: string): Observable<EmotionCheckinRecord[]> {
+    return this.emotionCheckinRecordsSubject.pipe(
+      map(records => records
+        .filter(record => record.userId === userId)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+      )
+    );
+  }
+
+  getRecentEmotionCheckins(userId: string, days: number = 7): Observable<EmotionCheckinRecord[]> {
+    return this.getEmotionCheckinRecords(userId).pipe(
+      map(records => {
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - days);
+        
+        return records.filter(record => record.date >= cutoffDate);
+      })
+    );
+  }
+
+  async getLastEmotionCheckin(userId: string): Promise<EmotionCheckinRecord | null> {
+    const records = this.emotionCheckinRecordsSubject.value
+      .filter(record => record.userId === userId)
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+    
+    return records.length > 0 ? records[0] : null;
   }
 
   getPumpingRecords(babyId: string): Observable<PumpingRecord[]> {

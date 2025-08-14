@@ -12,6 +12,7 @@ import { WeightChartModalComponent } from '../components/weight-chart-modal/weig
 import { FeedLogModalComponent } from '../components/feed-log-modal/feed-log-modal.component';
 import { PumpingLogModalComponent } from '../components/pumping-log-modal/pumping-log-modal.component';
 import { DiaperLogModalComponent } from '../components/diaper-log-modal/diaper-log-modal.component';
+import { EmotionCheckinModalComponent } from '../components/emotion-checkin-modal/emotion-checkin-modal.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { DiaperLogModalComponent } from '../components/diaper-log-modal/diaper-l
     WeightChartModalComponent,
     FeedLogModalComponent,
     PumpingLogModalComponent,
-    DiaperLogModalComponent
+    DiaperLogModalComponent,
+    EmotionCheckinModalComponent
   ],
   imports: [
     CommonModule,
@@ -42,7 +44,8 @@ import { DiaperLogModalComponent } from '../components/diaper-log-modal/diaper-l
     WeightChartModalComponent,
     FeedLogModalComponent,
     PumpingLogModalComponent,
-    DiaperLogModalComponent
+    DiaperLogModalComponent,
+    EmotionCheckinModalComponent
   ]
 })
 export class SharedModule { }
