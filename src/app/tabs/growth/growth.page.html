@@ -22,19 +22,19 @@
         </div>
         <span class="action-label">Feed</span>
       </div>
-      
-      <div class="action-button weight-size" (click)="onWeightSize()">
-        <div class="action-icon">
-          <ion-icon name="scale"></ion-icon>
-        </div>
-        <span class="action-label">Weight & Size</span>
-      </div>
-      
+
       <div class="action-button poo" (click)="onPoo()">
         <div class="action-icon">
           <ion-icon name="swap-horizontal"></ion-icon>
         </div>
         <span class="action-label">Diaper Change</span>
+      </div>
+      
+      <div class="action-button weight-size" (click)="onWeightSize()">
+        <div class="action-icon">
+          <ion-icon name="scale"></ion-icon>
+        </div>
+        <span class="action-label">Weight</span>
       </div>
 
       <div class="action-button pump" (click)="quickLogPumping()">
@@ -43,6 +43,14 @@
         </div>
         <span class="action-label">Pump</span>
       </div>
+
+      <div class="action-button pump" (click)="quickLogPumping()">
+        <div class="action-icon">
+          <ion-icon name="heart"></ion-icon>
+        </div>
+        <span class="action-label">Emotion Check-In</span>
+      </div>
+
     </div>
 
     <!-- Main Tab Selector -->
