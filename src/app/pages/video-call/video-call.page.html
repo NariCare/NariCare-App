@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/profile"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Video Call</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="jitsi-wrapper">
+    <div id="jitsi-container" #jitsiContainer class="jitsi-container"></div>
+    <div class="loading-state" *ngIf="!jitsiInitialized">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Loading video call...</p>
+    </div>
+  </div>
+
+  <div class="call-status-info" *ngIf="callEnded">
+    <h3>Call Summary</h3>
+    <p><strong>Meeting ID:</strong> {{ meetingId }}</p>
+    <p><strong>Call started:</strong> {{ callStartTime | date:'mediumTime' }}</p>
+    <p><strong>Call ended:</strong> {{ callEndTime | date:'mediumTime' }}</p>
+    <p><strong>Duration:</strong> {{ getCallDuration() }}</p>
+    
+    <div *ngIf="participants.length > 0">
+      <h4>Participants:</h4>
+      <ul>
+        <li *ngFor="let p of participants">{{ p.displayName || 'Unknown User' }} (ID: {{ p.participantId }})</li>
+      </ul>
+    </div>
+    <ion-button expand="block" color="primary" (click)="router.navigate(['/tabs/dashboard'])">
+      Return to Dashboard
+    </ion-button>
+  </div>
+</ion-content>

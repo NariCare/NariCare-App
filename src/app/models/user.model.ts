@@ -5,6 +5,7 @@ export interface User {
   lastName: string;
   phoneNumber?: string;
   profileImage?: string;
+  role: 'user' | 'expert' | 'admin';
   tier: UserTier;
   createdAt: Date;
   isOnboardingCompleted: boolean;
@@ -16,7 +17,7 @@ export interface Baby {
   id: string;
   name: string;
   dateOfBirth: Date;
-  gender: 'male' | 'female' | 'other';
+  gender: 'male' | 'female';
   birthWeight: number;
   birthHeight: number;
   currentWeight?: number;

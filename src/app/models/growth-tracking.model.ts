@@ -3,23 +3,20 @@ export interface GrowthRecord {
   babyId: string;
   recordedBy: string;
   date: Date;
-  // Feed tracking
-  startTime: string; // HH:MM format
-  endTime: string; // HH:MM format
-  breastSide: 'left' | 'right' | 'both';
-  supplement: 'breastmilk' | 'formula' | null;
-  painLevel: number; // 0-10 scale
-  lipstickShape: 'rounded' | 'lipstick';
-  mood?: MotherMood;
-  // Additional tracking fields
-  directFeedingSessions?: number;
-  avgFeedingDuration?: number;
-  pumpingSessions?: number;
-  totalPumpingOutput?: number;
-  formulaIntake?: number;
-  peeCount?: number;
-  poopCount?: number;
-  moodDescription?: string;
+  // Feed tracking - new structure
+  feedTypes: ('direct' | 'expressed' | 'formula')[];
+  directFeedDetails?: {
+    startTime: string; // HH:MM format
+    breastSide: 'left' | 'right' | 'both';
+    duration: number; // in minutes
+    painLevel?: number; // 0-4 scale (emoji based)
+  };
+  expressedMilkDetails?: {
+    quantity: number; // in ml
+  };
+  formulaDetails?: {
+    quantity: number; // in ml
+  };
   // Emotional state
   notes?: string;
   // Voice entry flag
@@ -60,6 +57,20 @@ export interface MotherMood {
   emoji: string;
   color: string;
 }
+
+export interface FeedType {
+  value: 'direct' | 'expressed' | 'formula';
+  label: string;
+  icon: string;
+  description: string;
+}
+
+export interface PainLevel {
+  value: number;
+  emoji: string;
+  label: string;
+}
+
 export interface WeightRecord {
   id: string;
   babyId: string;
@@ -89,6 +100,19 @@ export interface StoolRecord {
   createdAt: Date;
 }
 
+export interface DiaperChangeRecord {
+  id: string;
+  babyId: string;
+  recordedBy: string;
+  date: Date;
+  time: string; // HH:MM format
+  type: 'pee' | 'poop' | 'both';
+  wetness?: 'light' | 'medium' | 'heavy'; // Only for pee or both
+  notes?: string;
+  enteredViaVoice?: boolean;
+  createdAt: Date;
+}
+
 export interface StoolColor {
   value: 'very-dark' | 'dark-green' | 'dark-brown' | 'mustard-yellow' | 'other';
   label: string;
@@ -105,6 +129,41 @@ export interface StoolSize {
   value: 'coin' | 'tablespoon' | 'bigger';
   label: string;
   icon: string;
+}
+
+export interface PumpingRecord {
+  id: string;
+  babyId: string;
+  recordedBy: string;
+  date: Date;
+  time: string; // HH:MM format
+  pumpingSide: 'left' | 'right' | 'both';
+  totalOutput: number; // in ml
+  duration?: number; // in minutes
+  startTime?: string; // HH:MM format
+  endTime?: string; // HH:MM format
+  notes?: string;
+  enteredViaVoice?: boolean;
+  createdAt: Date;
+}
+
+export interface PumpingSide {
+  value: 'left' | 'right' | 'both';
+  label: string;
+  icon: string;
+}
+
+export interface ChangeTypeOptions {
+  value: 'pee' | 'poop' | 'both';
+  label: string;
+  icon: string;
+  description: string;
+}
+
+export interface WetnessOptions {
+  value: 'light' | 'medium' | 'heavy';
+  label: string;
+  description: string;
 }
 
 export interface MoodType {
@@ -157,3 +216,12 @@ export interface ChartDataPoint {
   value: number;
   percentile?: number;
 }
+
+// Re-export emotion checkin types for convenience
+export { 
+  EmotionCheckinRecord, 
+  EmotionalStruggle, 
+  PositiveMoment, 
+  ConcerningThought,
+  EmotionCheckinSummary 
+} from './emotion-checkin.model';

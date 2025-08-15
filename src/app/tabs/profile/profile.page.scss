@@ -170,6 +170,86 @@
   }
 }
 
+.consultations-section {
+  margin-bottom: 2rem;
+}
+
+.consultations-list {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+}
+
+.consultation-card {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.consultation-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #42a5f5, #64b5f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: #ffffff;
+  }
+}
+
+.consultation-info {
+  flex: 1;
+
+  h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .expert-name {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+
+  .consultation-time {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #94a3b8;
+  }
+}
+
+.join-button {
+  --border-radius: 8px;
+  --border-color: #42a5f5;
+  --color: #42a5f5;
+  height: 36px;
+  font-size: 0.85rem;
+
+  &:not([disabled]):hover {
+    --background: rgba(66, 165, 245, 0.1);
+  }
+
+  &[disabled] {
+    --color: #cbd5e1;
+    --border-color: #e2e8f0;
+  }
+}
+
 @media (min-width: 768px) {
   .content-container {
     max-width: 600px;

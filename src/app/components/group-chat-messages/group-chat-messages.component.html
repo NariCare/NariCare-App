@@ -1,0 +1,138 @@
+<div class="group-chat-container" *ngIf="room">
+  
+  <!-- Chat Room Header -->
+  <div class="chat-room-header">
+    <div class="room-info">
+      <div class="room-icon">
+        <ion-icon name="people"></ion-icon>
+      </div>
+      <div class="room-details">
+        <h3>{{ room.name }}</h3>
+        <p>{{ room.participants.length }}/{{ room.maxParticipants }} members</p>
+      </div>
+    </div>
+    <div class="room-status">
+      <ion-chip color="success" size="small" *ngIf="room.moderators.length > 0">
+        <ion-icon name="shield-checkmark" slot="start"></ion-icon>
+        Expert Moderated
+      </ion-chip>
+    </div>
+  </div>
+
+  <!-- Messages Container -->
+  <div class="messages-container" #messagesContainer>
+    <div class="messages-list" *ngIf="messages$ | async as messages">
+      
+      <!-- Welcome Message -->
+      <div class="welcome-message" *ngIf="messages.length === 0">
+        <div class="welcome-icon">
+          <ion-icon name="chatbubbles"></ion-icon>
+        </div>
+        <h4>Welcome to {{ room.name }}!</h4>
+        <p>{{ room.description }}</p>
+        <p class="welcome-note">Start the conversation by sending your first message below.</p>
+      </div>
+
+      <!-- Chat Messages -->
+      <div 
+        *ngFor="let message of messages; let i = index"
+        class="message-wrapper"
+        [class.own-message]="isOwnMessage(message)"
+        [class.expert-message]="message.senderRole === 'expert'"
+        [class.moderator-message]="message.senderRole === 'moderator'">
+        
+        <!-- Date Separator -->
+        <div class="date-separator" *ngIf="isNewDay(i, messages, message.timestamp)">
+          <span>{{ message.timestamp | date:'fullDate' }}</span>
+        </div>
+
+        <div class="message">
+          <!-- Sender Avatar (for other users) -->
+          <div class="message-avatar" *ngIf="!isOwnMessage(message)">
+            <div class="avatar-circle" [style.background-color]="getSenderRoleColor(message.senderRole)">
+              <span class="avatar-initials">{{ getSenderInitials(message.senderName) }}</span>
+              <ion-icon [name]="getSenderRoleIcon(message.senderRole)" class="role-icon" *ngIf="message.senderRole !== 'user'"></ion-icon>
+            </div>
+          </div>
+          
+          <div class="message-content">
+            <!-- Sender Name (for other users) -->
+            <div class="sender-info" *ngIf="!isOwnMessage(message)">
+              <span class="sender-name" [style.color]="getSenderRoleColor(message.senderRole)">
+                {{ message.senderName }}
+              </span>
+              <ion-chip 
+                [color]="message.senderRole === 'expert' ? 'primary' : message.senderRole === 'moderator' ? 'warning' : 'medium'" 
+                size="small" 
+                *ngIf="message.senderRole !== 'user'">
+                {{ message.senderRole | titlecase }}
+              </ion-chip>
+            </div>
+            
+            <!-- Message Bubble -->
+            <div class="message-bubble">
+              <div class="message-text" [innerHTML]="formatMessageContent(message.message)"></div>
+              
+              <!-- Message Attachments -->
+              <div class="message-attachments" *ngIf="message.attachments && message.attachments.length > 0">
+                <div *ngFor="let attachment of message.attachments" class="attachment-item">
+                  
+                  <!-- Image Attachment -->
+                  <div *ngIf="attachment.type === 'image'" class="image-attachment">
+                    <img [src]="attachment.url" [alt]="attachment.title || 'Shared image'" class="attachment-image">
+                    <p *ngIf="attachment.title" class="attachment-title">{{ attachment.title }}</p>
+                  </div>
+                  
+                  <!-- Video Attachment -->
+                  <div *ngIf="attachment.type === 'video'" class="video-attachment" (click)="openVideoModal(attachment)">
+                    <div class="video-thumbnail">
+                      <img [src]="attachment.thumbnail || getYouTubeThumbnail(attachment.url)" [alt]="attachment.title || 'Video thumbnail'" *ngIf="attachment.thumbnail || getYouTubeThumbnail(attachment.url)">
+                      <div class="video-placeholder" *ngIf="!attachment.thumbnail && !getYouTubeThumbnail(attachment.url)">
+                        <ion-icon name="videocam"></ion-icon>
+                      </div>
+                      <div class="play-overlay">
+                        <ion-icon name="play"></ion-icon>
+                      </div>
+                    </div>
+                    <div class="video-info">
+                      <h5 *ngIf="attachment.title">{{ attachment.title }}</h5>
+                      <p *ngIf="attachment.description">{{ attachment.description }}</p>
+                      <span class="video-url">{{ attachment.url }}</span>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+              
+              <div class="message-meta">
+                <span class="message-time">{{ getMessageTime(message.timestamp) }}</span>
+                <ion-icon name="checkmark-done" class="read-indicator" *ngIf="isOwnMessage(message)"></ion-icon>
+              </div>
+            </div>
+          </div>
+
+          <!-- Own Message Avatar -->
+          <div class="message-avatar own-avatar" *ngIf="isOwnMessage(message)">
+            <div class="avatar-circle">
+              <span class="avatar-initials">{{ getSenderInitials(user?.firstName + ' ' + user?.lastName || 'You') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-messages" *ngIf="!(messages$ | async)">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Loading messages...</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Empty State -->
+<div class="empty-chat-state" *ngIf="!room">
+  <ion-icon name="chatbubbles-outline"></ion-icon>
+  <h3>Select a Group Chat</h3>
+  <p>Choose a support group to start chatting with other mothers</p>
+</div>

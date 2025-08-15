@@ -1,0 +1,20 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ babyName }}'s Growth Chart</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="closeModal()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="weight-chart-modal-container">
+    <app-weight-chart 
+      [weightRecords]="weightRecords"
+      [babyGender]="babyGender"
+      [babyBirthDate]="babyBirthDate">
+    </app-weight-chart>
+  </div>
+</ion-content>

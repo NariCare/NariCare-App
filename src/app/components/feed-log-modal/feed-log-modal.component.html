@@ -1,0 +1,376 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ isFastFeed ? 'Quick Feed Log' : 'Feed Log' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="closeModal()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="feed-log-container">
+    
+    <!-- Progress indicator -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+      </div>
+      <p class="progress-text">Step {{ currentStep }} of {{ totalSteps }}</p>
+    </div>
+
+    <form [formGroup]="feedForm" class="feed-form">
+      
+      <!-- Step 1: Baby Selection (only if multiple babies) -->
+      <div class="form-step" *ngIf="currentStep === 1 && user && user.babies && user.babies.length > 1">
+        <h2 class="step-title">👶 Select Baby</h2>
+        <p class="step-description">Which baby are you logging this feed for?</p>
+        
+        <div class="baby-selection-grid">
+          <div 
+            *ngFor="let baby of user.babies"
+            class="baby-option"
+            [class.selected]="selectedBaby?.id === baby.id"
+            (click)="selectBaby(baby)">
+            <div class="baby-avatar">
+              <ion-icon name="baby"></ion-icon>
+            </div>
+            <div class="baby-info">
+              <h3>{{ baby.name }}</h3>
+              <p>{{ calculateBabyAge(baby) }}</p>
+            </div>
+            <ion-icon name="checkmark-circle" class="selected-icon" *ngIf="selectedBaby?.id === baby.id"></ion-icon>
+          </div>
+        </div>
+
+        <ion-button 
+          expand="block" 
+          (click)="nextStep()" 
+          [disabled]="!selectedBaby"
+          class="next-button">
+          Continue
+        </ion-button>
+      </div>
+
+      <!-- Step 2: Feed Type Selection -->
+      <div class="form-step" *ngIf="currentStep === 2">
+        <h2 class="step-title">🍼 Feed Type</h2>
+        <p class="step-description">What type of feeding occurred? You can select multiple options.</p>
+        
+        <div class="feed-type-grid">
+          <div 
+            *ngFor="let feedType of feedTypeOptions"
+            class="feed-type-option"
+            [class.selected]="isFeedTypeSelected(feedType.value)"
+            (click)="toggleFeedType(feedType.value)">
+            <div class="feed-type-icon">
+              <ion-icon [name]="feedType.icon"></ion-icon>
+            </div>
+            <div class="feed-type-content">
+              <h4>{{ feedType.label }}</h4>
+              <p>{{ feedType.description }}</p>
+            </div>
+            <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isFeedTypeSelected(feedType.value)"></ion-icon>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button" *ngIf="user && user.babies && user.babies.length > 1">
+            Back
+          </ion-button>
+          <ion-button 
+            (click)="nextStep()" 
+            [disabled]="selectedFeedTypes.length === 0"
+            class="next-button"
+            [style.flex]="user && user.babies && user.babies.length > 1 ? '2' : '1'">
+            Continue
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Step 3: Conditional Sections -->
+      <div class="form-step" *ngIf="currentStep === 3">
+        <h2 class="step-title">📝 Feed Details</h2>
+        <p class="step-description">Provide details for each selected feed type</p>
+        
+        <!-- Direct Feeding Section -->
+        <div class="conditional-section direct-feeding" *ngIf="isFeedTypeSelected('direct')">
+          <div class="section-header">
+            <ion-icon name="body"></ion-icon>
+            <h3>Breastfeeding</h3>
+          </div>
+          
+          <div class="form-group">
+            <label class="field-label">🕒 Start Time</label>
+            <ion-item lines="none" class="input-item time-input">
+              <ion-input
+                formControlName="startTime"
+                type="time">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">➡️ Breast Side</label>
+            <div class="selection-grid breast-side-grid">
+              <div 
+                *ngFor="let side of breastSideOptions"
+                class="selection-option"
+                [class.selected]="selectedBreastSide === side.value"
+                (click)="selectBreastSide(side.value)">
+                <div class="option-icon">
+                  <ion-icon [name]="side.icon"></ion-icon>
+                </div>
+                <span class="option-label">{{ side.label }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">⏳ Duration (minutes)</label>
+            <ion-item lines="none" class="input-item">
+              <ion-input
+                formControlName="duration"
+                type="number"
+                min="1"
+                max="120"
+                placeholder="15">
+              </ion-input>
+            </ion-item>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">😖 Pain while feeding? (optional)</label>
+            <div class="selection-grid pain-level-grid">
+              <div 
+                *ngFor="let pain of painLevelOptions"
+                class="selection-option pain-option"
+                [class.selected]="selectedPainLevel === pain.value"
+                (click)="selectPainLevel(pain.value)">
+                <div class="pain-emoji">{{ pain.emoji }}</div>
+                <span class="option-label">{{ pain.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expressed Milk Section -->
+        <div class="conditional-section expressed-milk" *ngIf="isFeedTypeSelected('expressed')">
+          <div class="section-header">
+            <ion-icon name="water"></ion-icon>
+            <h3>Expressed Milk</h3>
+          </div>
+          
+          <div class="form-group">
+            <label class="field-label">🍼 EBM Quantity Given</label>
+            <div class="quantity-container">
+              <div class="quantity-display">{{ feedForm.get('ebmQuantity')?.value || 0 }}ml</div>
+              <ion-range
+                formControlName="ebmQuantity"
+                min="0"
+                max="300"
+                step="5"
+                color="primary"
+                class="quantity-slider">
+                <ion-label slot="start">0ml</ion-label>
+                <ion-label slot="end">300ml</ion-label>
+              </ion-range>
+              <div class="preset-buttons">
+                <ion-button 
+                  *ngFor="let preset of ebmPresets"
+                  fill="outline" 
+                  size="small"
+                  (click)="setEbmQuantity(preset)"
+                  class="preset-button">
+                  {{ preset }}ml
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formula Section -->
+        <div class="conditional-section formula" *ngIf="isFeedTypeSelected('formula')">
+          <div class="section-header">
+            <ion-icon name="nutrition"></ion-icon>
+            <h3>Formula</h3>
+          </div>
+          
+          <div class="form-group">
+            <label class="field-label">🍼 Formula Quantity Given</label>
+            <div class="quantity-container">
+              <div class="quantity-display">{{ feedForm.get('formulaQuantity')?.value || 0 }}ml</div>
+              <ion-range
+                formControlName="formulaQuantity"
+                min="0"
+                max="300"
+                step="5"
+                color="warning"
+                class="quantity-slider">
+                <ion-label slot="start">0ml</ion-label>
+                <ion-label slot="end">300ml</ion-label>
+              </ion-range>
+              <div class="preset-buttons">
+                <ion-button 
+                  *ngFor="let preset of formulaPresets"
+                  fill="outline" 
+                  size="small"
+                  (click)="setFormulaQuantity(preset)"
+                  class="preset-button">
+                  {{ preset }}ml
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button 
+            (click)="nextStep()" 
+            [disabled]="!validateConditionalSections()"
+            class="next-button">
+            Continue
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Step 4: Notes -->
+      <div class="form-step" *ngIf="currentStep === 4">
+        <h2 class="step-title">📝 Notes</h2>
+        <p class="step-description">Add any additional notes about this feeding session (optional)</p>
+
+        <div class="form-group">
+          <label class="field-label">Your Notes</label>
+          <ion-item lines="none" class="input-item notes-input">
+            <ion-textarea
+              formControlName="notes"
+              placeholder="Write any additional details about the feeding session..."
+              rows="4"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+        </div>
+        
+        <!-- Quick Notes Section -->
+        <div class="quick-notes-section">
+          <!-- <h4 class="quick-notes-title">Quick Notes - Common Concerns</h4>
+          <p class="quick-notes-description">Tap any concern to add it to your notes</p> -->
+          
+          <div class="predefined-notes-grid">
+            <ion-chip 
+              *ngFor="let note of predefinedNotes"
+              [class.note-red]="note.indicator === 'red'"
+              [class.note-yellow]="note.indicator === 'yellow'"
+              (click)="appendPredefinedNote(note)"
+              class="predefined-note-chip">
+              <!-- <div class="note-indicator" [class.indicator-red]="note.indicator === 'red'" [class.indicator-yellow]="note.indicator === 'yellow'"></div> -->
+              <!-- <span class="note-text">{{ note.text.split(' - ')[0] }}</span> -->
+              {{ note.text }}
+            </ion-chip>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button (click)="nextStep()" class="next-button">
+            Continue
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Step 5: Review & Save -->
+      <div class="form-step" *ngIf="currentStep === 5">
+        <h2 class="step-title">📊 Review & Save</h2>
+        <p class="step-description">Review your feed log before saving</p>
+        
+        <div class="review-summary">
+          <div class="summary-header">
+            <div class="baby-summary">
+              <ion-icon name="baby"></ion-icon>
+              <span>{{ selectedBaby?.name }}</span>
+            </div>
+            <div class="time-summary">
+              <ion-icon name="time"></ion-icon>
+              <span>{{ getCurrentTime() }}</span>
+            </div>
+          </div>
+
+          <div class="feed-types-summary">
+            <h4>Feed Types:</h4>
+            <div class="selected-types">
+              <ion-chip color="primary" *ngIf="isFeedTypeSelected('direct')">
+                <ion-icon name="body" slot="start"></ion-icon>
+                Direct Feeding
+              </ion-chip>
+              <ion-chip color="secondary" *ngIf="isFeedTypeSelected('expressed')">
+                <ion-icon name="water" slot="start"></ion-icon>
+                Expressed Milk
+              </ion-chip>
+              <ion-chip color="tertiary" *ngIf="isFeedTypeSelected('formula')">
+                <ion-icon name="nutrition" slot="start"></ion-icon>
+                Formula
+              </ion-chip>
+            </div>
+          </div>
+
+          <div class="details-summary">
+            <div class="detail-item" *ngIf="isFeedTypeSelected('direct')">
+              <h5>Breastfeeding Details:</h5>
+              <p>Start: {{ feedForm.get('startTime')?.value }}</p>
+              <p>Side: {{ selectedBreastSide | titlecase }}</p>
+              <p>Duration: {{ feedForm.get('duration')?.value }} minutes</p>
+              <p *ngIf="selectedPainLevel !== null">Pain Level: {{ painLevelOptions[selectedPainLevel]?.emoji }} {{ painLevelOptions[selectedPainLevel]?.label }}</p>
+            </div>
+
+            <div class="detail-item" *ngIf="isFeedTypeSelected('expressed')">
+              <h5>Expressed Milk:</h5>
+              <p>Quantity: {{ feedForm.get('ebmQuantity')?.value }}ml</p>
+            </div>
+
+            <div class="detail-item" *ngIf="isFeedTypeSelected('formula')">
+              <h5>Formula:</h5>
+              <p>Quantity: {{ feedForm.get('formulaQuantity')?.value }}ml</p>
+            </div>
+
+            <div class="detail-item" *ngIf="feedForm.get('notes')?.value">
+              <h5>Notes:</h5>
+              <p>{{ feedForm.get('notes')?.value }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button 
+            (click)="saveFeedLog()" 
+            [disabled]="!canSave()"
+            class="save-button">
+            <ion-icon name="save" slot="start"></ion-icon>
+            Save
+          </ion-button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+
+  <!-- Sticky Save Button (alternative to step 5) -->
+  <!-- <div class="sticky-save-footer" *ngIf="currentStep >= 3 && currentStep < 5">
+    <ion-button 
+      expand="block"
+      (click)="saveFeedLog()" 
+      [disabled]="!canSave()"
+      class="sticky-save-button">
+      <ion-icon name="save" slot="start"></ion-icon>
+      💾 Save Log
+    </ion-button>
+  </div> -->
+</ion-content>

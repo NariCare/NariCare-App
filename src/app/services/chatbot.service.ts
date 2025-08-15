@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ApiKeyService } from './api-key.service';
+import { ChatAttachment } from '../models/chat.model';
 
 export interface ChatbotMessage {
   id: string;
@@ -13,6 +14,7 @@ export interface ChatbotMessage {
   followUpOptions?: FollowUpOption[];
   isPlaying?: boolean;
   audioUrl?: string;
+  attachments?: ChatAttachment[];
 }
 
 export interface ChatbotContent {
@@ -217,12 +219,13 @@ export class ChatbotService {
     this.messagesSubject.next([welcomeMessage]);
   }
 
-  async sendMessage(content: string): Promise<void> {
+  async sendMessage(content: string, attachments?: ChatAttachment[]): Promise<void> {
     const userMessage: ChatbotMessage = {
       id: this.generateId(),
       content,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      attachments
     };
 
     const currentMessages = this.messagesSubject.value;
@@ -715,6 +718,25 @@ export class ChatbotService {
     setTimeout(() => {
       this.speakMessage(expertMessage.id, expertMessage.content);
     }, 500);
+  }
+
+  addSystemMessage(content: string): void {
+    const systemMessage: ChatbotMessage = {
+      id: this.generateId(),
+      content: content,
+      sender: 'bot',
+      timestamp: new Date(),
+      isPlaying: false
+    };
+
+    this.messagesSubject.next([...this.messagesSubject.value, systemMessage]);
+    
+    // Auto-speak system message if enabled
+    if (this.autoSpeakEnabled) {
+      setTimeout(() => {
+        this.speakMessage(systemMessage.id, systemMessage.content);
+      }, 500);
+    }
   }
 
   // Voice chat methods

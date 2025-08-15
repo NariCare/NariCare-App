@@ -1,0 +1,211 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>💩 Diaper Change Log</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="closeModal()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="diaper-log-container">
+    
+    <!-- Progress indicator -->
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
+      </div>
+      <p class="progress-text">Step {{ currentStep }} of {{ totalSteps }}</p>
+    </div>
+
+    <form [formGroup]="diaperForm" class="diaper-form">
+      
+      <!-- Step 1: Baby Selection (only if multiple babies) -->
+      <div class="form-step" *ngIf="currentStep === 1 && user && user.babies && user.babies.length > 1">
+        <h2 class="step-title">👶 Who is this for?</h2>
+        <p class="step-description">Select which baby you're logging this diaper change for</p>
+        
+        <div class="baby-selection-grid">
+          <div 
+            *ngFor="let baby of user.babies"
+            class="baby-option"
+            [class.selected]="selectedBabyLocal?.id === baby.id"
+            (click)="selectBaby(baby)">
+            <div class="baby-avatar">
+              <ion-icon name="baby"></ion-icon>
+            </div>
+            <div class="baby-info">
+              <h3>{{ baby.name }}</h3>
+              <p>{{ calculateBabyAge(baby) }}</p>
+            </div>
+            <ion-icon name="checkmark-circle" class="selected-icon" *ngIf="selectedBabyLocal?.id === baby.id"></ion-icon>
+          </div>
+        </div>
+
+        <ion-button 
+          expand="block" 
+          (click)="nextStep()" 
+          [disabled]="selectedBabyLocal === null"
+          class="next-button">
+          Continue
+        </ion-button>
+      </div>
+
+      <!-- Step 2: Change Type Selection -->
+      <div class="form-step" *ngIf="currentStep === 2">
+        <h2 class="step-title">💩 What type of diaper change was it?</h2>
+        <p class="step-description">Select the type of diaper change</p>
+        
+        <div class="change-type-grid">
+          <div 
+            *ngFor="let changeType of changeTypeOptions"
+            class="change-type-option"
+            [class.selected]="selectedChangeType === changeType.value"
+            (click)="selectChangeType(changeType.value)">
+            <div class="change-type-icon">
+              <span class="emoji-icon">{{ changeType.icon }}</span>
+            </div>
+            <div class="change-type-content">
+              <h4>{{ changeType.label }}</h4>
+              <p>{{ changeType.description }}</p>
+            </div>
+            <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="selectedChangeType === changeType.value"></ion-icon>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button" *ngIf="getUserBabiesLength() > 1">
+            Back
+          </ion-button>
+          <ion-button 
+            (click)="nextStep()" 
+            [disabled]="selectedChangeType === null"
+            class="next-button"
+            [style.flex]="getFlexValue()">
+            Continue
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Step 3: Wetness Level (only for pee or both) -->
+      <div class="form-step" *ngIf="currentStep === 3 && shouldShowWetnessStep()">
+        <h2 class="step-title">💦 How full was the diaper?</h2>
+        <p class="step-description">Select the wetness level of the diaper</p>
+        
+        <div class="wetness-grid">
+          <div 
+            *ngFor="let wetness of wetnessOptions"
+            class="wetness-option"
+            [class.selected]="selectedWetness === wetness.value"
+            (click)="selectWetness(wetness.value)">
+            <div class="wetness-icon">
+              <ion-icon name="water" [class]="'wetness-' + wetness.value"></ion-icon>
+            </div>
+            <div class="wetness-content">
+              <h4>{{ wetness.label }}</h4>
+              <p>{{ wetness.description }}</p>
+            </div>
+            <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="selectedWetness === wetness.value"></ion-icon>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button 
+            (click)="nextStep()" 
+            [disabled]="selectedWetness === null"
+            class="next-button">
+            Continue
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Step 3/4: Notes (skip wetness if poop only) -->
+      <div class="form-step" *ngIf="getNotesStepCondition()">
+        <h2 class="step-title">📝 Add Notes</h2>
+        <p class="step-description">Add any additional details about the diaper change (optional)</p>
+
+        <div class="form-group">
+          <label class="field-label">Notes</label>
+          <ion-item lines="none" class="input-item notes-input">
+            <ion-textarea
+              formControlName="notes"
+              placeholder="Example: 'Color was greenish', 'Slight rash', 'Loose poop'"
+              rows="4"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button (click)="nextStep()" class="next-button">
+            Continue
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Step 4/5: Review & Save -->
+      <div class="form-step" *ngIf="getReviewStepCondition()">
+        <h2 class="step-title">📊 Review & Save</h2>
+        <p class="step-description">Review your diaper change log before saving</p>
+        
+        <div class="review-summary">
+          <div class="summary-header">
+            <div class="baby-summary">
+              <ion-icon name="baby"></ion-icon>
+              <span>{{ selectedBabyLocal?.name }}</span>
+            </div>
+            <div class="time-summary">
+              <ion-icon name="time"></ion-icon>
+              <span>{{ getCurrentTime() }}</span>
+            </div>
+          </div>
+
+          <div class="change-summary">
+            <h4>Diaper Change Details:</h4>
+            <div class="change-details">
+              <div class="detail-item">
+                <span class="detail-label">Type:</span>
+                <span class="detail-value">
+                  {{ getChangeTypeIcon() }}
+                  {{ getChangeTypeLabel() }}
+                </span>
+              </div>
+              
+              <div class="detail-item" *ngIf="selectedWetness">
+                <span class="detail-label">Wetness:</span>
+                <span class="detail-value">{{ selectedWetness | titlecase }}</span>
+              </div>
+
+              <div class="detail-item" *ngIf="diaperForm.get('notes')?.value">
+                <span class="detail-label">Notes:</span>
+                <span class="detail-value">{{ diaperForm.get('notes')?.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button 
+            (click)="saveDiaperLog()" 
+            [disabled]="canSaveCheck() === false"
+            class="save-button">
+            <ion-icon name="save" slot="start"></ion-icon>
+            💾 Save Diaper Log
+          </ion-button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</ion-content>

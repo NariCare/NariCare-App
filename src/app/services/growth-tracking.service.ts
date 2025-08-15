@@ -5,16 +5,20 @@ import {
   GrowthRecord, 
   WeightRecord, 
   StoolRecord,
+  PumpingRecord,
   StoolColor,
   StoolTexture,
   StoolSize,
+  DiaperChangeRecord,
   BreastSide,
+  PumpingSide,
   SupplementType,
   LipstickShape,
   MotherMood,
   StarPerformer, 
   QuickLogSuggestion 
 } from '../models/growth-tracking.model';
+import { EmotionCheckinRecord } from '../models/emotion-checkin.model';
 import { Storage } from '@ionic/storage-angular';
 
 @Injectable({
@@ -24,6 +28,9 @@ export class GrowthTrackingService {
   private recordsSubject = new BehaviorSubject<GrowthRecord[]>([]);
   private weightRecordsSubject = new BehaviorSubject<WeightRecord[]>([]);
   private stoolRecordsSubject = new BehaviorSubject<StoolRecord[]>([]);
+  private diaperChangeRecordsSubject = new BehaviorSubject<DiaperChangeRecord[]>([]);
+  private pumpingRecordsSubject = new BehaviorSubject<PumpingRecord[]>([]);
+  private emotionCheckinRecordsSubject = new BehaviorSubject<EmotionCheckinRecord[]>([]);
   
   // Available breast side options
   readonly breastSideOptions: BreastSide[] = [
@@ -78,6 +85,12 @@ export class GrowthTrackingService {
     { value: 'bigger', label: 'Bigger', icon: 'ellipse' }
   ];
 
+  readonly pumpingSideOptions: PumpingSide[] = [
+    { value: 'left', label: 'Left', icon: 'radio-button-on' },
+    { value: 'right', label: 'Right', icon: 'radio-button-on' },
+    { value: 'both', label: 'Both', icon: 'ellipse' }
+  ];
+
   constructor(private storage: Storage) {
     this.initStorage();
   }
@@ -92,6 +105,8 @@ export class GrowthTrackingService {
       const records = await this.storage.get('growthRecords') || [];
       const weightRecords = await this.storage.get('weightRecords') || [];
       const stoolRecords = await this.storage.get('stoolRecords') || [];
+      const diaperChangeRecords = await this.storage.get('diaperChangeRecords') || [];
+      const emotionCheckinRecords = await this.storage.get('emotionCheckinRecords') || [];
       
       this.recordsSubject.next(records.map((r: any) => ({
         ...r,
@@ -107,6 +122,18 @@ export class GrowthTrackingService {
       })));
       
       this.stoolRecordsSubject.next(stoolRecords.map((r: any) => ({
+        ...r,
+        date: new Date(r.date),
+        createdAt: new Date(r.createdAt)
+      })));
+      
+      this.diaperChangeRecordsSubject.next(diaperChangeRecords.map((r: any) => ({
+        ...r,
+        date: new Date(r.date),
+        createdAt: new Date(r.createdAt)
+      })));
+      
+      this.emotionCheckinRecordsSubject.next(emotionCheckinRecords.map((r: any) => ({
         ...r,
         date: new Date(r.date),
         createdAt: new Date(r.createdAt)
@@ -186,8 +213,98 @@ export class GrowthTrackingService {
     await this.storage.set('stoolRecords', updatedRecords);
   }
 
+  async addPumpingRecord(record: Omit<PumpingRecord, 'id' | 'createdAt'>): Promise<void> {
+    const id = this.generateId();
+    const newRecord: PumpingRecord = {
+      ...record,
+      id,
+      createdAt: new Date()
+    };
+    
+    const currentRecords = this.pumpingRecordsSubject.value;
+    const updatedRecords = [newRecord, ...currentRecords];
+    
+    this.pumpingRecordsSubject.next(updatedRecords);
+    await this.storage.set('pumpingRecords', updatedRecords);
+  }
+
+  async addDiaperChangeRecord(record: Omit<DiaperChangeRecord, 'id' | 'createdAt'>): Promise<void> {
+    const id = this.generateId();
+    const newRecord: DiaperChangeRecord = {
+      ...record,
+      id,
+      createdAt: new Date()
+    };
+    
+    const currentRecords = this.diaperChangeRecordsSubject.value;
+    const updatedRecords = [newRecord, ...currentRecords];
+    
+    this.diaperChangeRecordsSubject.next(updatedRecords);
+    await this.storage.set('diaperChangeRecords', updatedRecords);
+  }
+
+  async addEmotionCheckinRecord(record: Omit<EmotionCheckinRecord, 'id' | 'createdAt'>): Promise<void> {
+    const id = this.generateId();
+    const newRecord: EmotionCheckinRecord = {
+      ...record,
+      id,
+      createdAt: new Date()
+    };
+    
+    const currentRecords = this.emotionCheckinRecordsSubject.value;
+    const updatedRecords = [newRecord, ...currentRecords];
+    
+    this.emotionCheckinRecordsSubject.next(updatedRecords);
+    await this.storage.set('emotionCheckinRecords', updatedRecords);
+  }
+
+  getEmotionCheckinRecords(userId: string): Observable<EmotionCheckinRecord[]> {
+    return this.emotionCheckinRecordsSubject.pipe(
+      map(records => records
+        .filter(record => record.userId === userId)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+      )
+    );
+  }
+
+  getRecentEmotionCheckins(userId: string, days: number = 7): Observable<EmotionCheckinRecord[]> {
+    return this.getEmotionCheckinRecords(userId).pipe(
+      map(records => {
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - days);
+        
+        return records.filter(record => record.date >= cutoffDate);
+      })
+    );
+  }
+
+  async getLastEmotionCheckin(userId: string): Promise<EmotionCheckinRecord | null> {
+    const records = this.emotionCheckinRecordsSubject.value
+      .filter(record => record.userId === userId)
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+    
+    return records.length > 0 ? records[0] : null;
+  }
+
+  getPumpingRecords(babyId: string): Observable<PumpingRecord[]> {
+    return this.pumpingRecordsSubject.pipe(
+      map(records => records
+        .filter(record => record.babyId === babyId)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+      )
+    );
+  }
   getStoolRecords(babyId: string): Observable<StoolRecord[]> {
     return this.stoolRecordsSubject.pipe(
+      map(records => records
+        .filter(record => record.babyId === babyId)
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+      )
+    );
+  }
+
+  getDiaperChangeRecords(babyId: string): Observable<DiaperChangeRecord[]> {
+    return this.diaperChangeRecordsSubject.pipe(
       map(records => records
         .filter(record => record.babyId === babyId)
         .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -337,5 +454,78 @@ export class GrowthTrackingService {
 
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
+
+  // New methods for summary data
+  async getLastFeedingRecord(babyId: string): Promise<any> {
+    const records = this.recordsSubject.value
+      .filter(record => record.babyId === babyId && record.feedTypes.includes('direct'))
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
+    
+    if (records.length === 0) return null;
+    
+    const lastRecord = records[0];
+    return {
+      time: lastRecord.directFeedDetails?.startTime || '--',
+      date: lastRecord.date,
+      breastSide: lastRecord.directFeedDetails?.breastSide || '--',
+      duration: lastRecord.directFeedDetails?.duration || 0,
+      painLevel: lastRecord.directFeedDetails?.painLevel || 0
+    };
+  }
+
+  async getDailySummary(babyId: string): Promise<any> {
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    // Get records from last 24 hours
+    const dailyRecords = this.recordsSubject.value
+      .filter(record => record.babyId === babyId && record.date >= yesterday);
+    
+    const stoolRecords = this.stoolRecordsSubject.value
+      .filter(record => record.babyId === babyId && record.date >= yesterday);
+    
+    const totalDirectFeeds = dailyRecords.filter(record => record.feedTypes?.includes('direct')).length;
+    const totalExpressedFeeds = dailyRecords.filter(record => record.feedTypes?.includes('expressed')).length;
+    const totalFormulaFeeds = dailyRecords.filter(record => record.feedTypes?.includes('formula')).length;
+    
+    const totalExpressedMl = dailyRecords
+      .filter(record => record.feedTypes?.includes('expressed'))
+      .reduce((sum, record) => sum + (record.expressedMilkDetails?.quantity || 0), 0);
+    
+    const totalFormulaMl = dailyRecords
+      .filter(record => record.feedTypes?.includes('formula'))
+      .reduce((sum, record) => sum + (record.formulaDetails?.quantity || 0), 0);
+    
+    const totalPees = stoolRecords.reduce((sum, record) => sum + (record.peeCount || 0), 0);
+    const totalPoops = stoolRecords.reduce((sum, record) => sum + (record.poopCount || 0), 0);
+    
+    const painLevels = dailyRecords
+      .map(record => record.directFeedDetails?.painLevel)
+      .filter(level => level !== undefined && level !== null) as number[];
+    const avgPainLevel = painLevels.length > 0 ? 
+      Math.round(painLevels.reduce((sum, level) => sum + level, 0) / painLevels.length) : 0;
+    
+    return {
+      totalDirectFeeds,
+      totalExpressedFeeds,
+      totalFormulaFeeds,
+      totalExpressedMl,
+      totalFormulaMl,
+      totalPees,
+      totalPoops,
+      avgPainLevel,
+      recordsCount: dailyRecords.length
+    };
+  }
+
+  private calculateDuration(startTime: string, endTime: string): number {
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+    
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    
+    return endMinutes - startMinutes;
   }
 }

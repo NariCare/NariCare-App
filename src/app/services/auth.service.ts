@@ -91,6 +91,7 @@ export class AuthService {
       email: 'demo@NariCare.app',
       firstName: 'Demo',
       lastName: 'User',
+      role: 'user',
       tier: {
         type: 'basic',
         startDate: new Date(),
@@ -154,6 +155,7 @@ export class AuthService {
         firstName: userData.firstName || '',
         lastName: userData.lastName || '',
         phoneNumber: userData.phoneNumber,
+        role: 'user',
         tier: {
           type: userData.tier?.type || 'basic',
           startDate: new Date(),
@@ -310,6 +312,7 @@ export class AuthService {
     const mockUser: User = {
       uid: 'mock-user-' + Date.now(),
       email: email,
+      role: 'user',
       firstName: userData.firstName || '',
       lastName: userData.lastName || '',
       phoneNumber: userData.phoneNumber,
@@ -356,6 +359,7 @@ export class AuthService {
       email: email,
       firstName: 'Demo',
       lastName: 'User',
+      role: 'user',
       tier: {
         type: 'basic',
         startDate: new Date(),

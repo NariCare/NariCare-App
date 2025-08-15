@@ -1,11 +1,13 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { AfterViewChecked, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController, ModalController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
-import { ChatRoom } from '../../models/chat.model';
+import { ChatRoom, ChatMessage, ChatAttachment } from '../../models/chat.model';
+import { VideoPlayerModalComponent } from '../../components/video-player-modal/video-player-modal.component';
 
 @Component({
   selector: 'app-chat',
@@ -14,8 +16,10 @@ import { ChatRoom } from '../../models/chat.model';
 })
 export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
+  @ViewChild('groupMessagesContainer', { static: false }) groupMessagesContainer!: ElementRef;
   
   selectedTab = 'groups';
+  selectedRoom: ChatRoom | null = null;
   chatRooms$: Observable<ChatRoom[]>;
   chatbotMessages$: Observable<ChatbotMessage[]>;
   voiceMode$: Observable<VoiceMode>;
@@ -31,13 +35,16 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   availableVoices: SpeechSynthesisVoice[] = [];
   selectedVoiceIndex = 0;
   isInitializing = false;
+  groupMessageText = '';
 
   constructor(
     private route: ActivatedRoute,
     private chatbotService: ChatbotService,
     private chatService: ChatService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private alertController: AlertController,
+    private modalController: ModalController
   ) {
     this.chatRooms$ = this.chatService.getChatRooms();
     this.chatbotMessages$ = this.chatbotService.messages$;
@@ -190,11 +197,170 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
       if (this.selectedTab === 'ai') {
         await this.chatbotService.sendMessage(this.messageText);
         this.scrollToBottom();
-      } else {
-        // Handle group chat message
-        console.log('Sending group message:', this.messageText);
       }
       this.messageText = '';
+    }
+  }
+
+  async sendAttachment(type: 'image' | 'video', url: string, title?: string, description?: string) {
+    const attachment: ChatAttachment = {
+      id: this.generateId(),
+      type,
+      url,
+      title,
+      description,
+      thumbnail: type === 'video' ? this.getYouTubeThumbnail(url) : undefined
+    };
+
+    const messageContent = type === 'image' ? 'Shared a photo' : `Shared a video: ${title || 'Video'}`;
+
+    if (this.selectedTab === 'ai') {
+      await this.chatbotService.sendMessage(messageContent, [attachment]);
+    } else if (this.selectedRoom && this.currentUser) {
+      const message: Omit<ChatMessage, 'id'> = {
+        roomId: this.selectedRoom.id,
+        senderId: this.currentUser.uid,
+        senderName: `${this.currentUser.firstName} ${this.currentUser.lastName}`,
+        senderRole: 'user',
+        message: messageContent,
+        timestamp: new Date(),
+        isEdited: false,
+        attachments: [attachment]
+      };
+      
+      await this.chatService.sendMessage(this.selectedRoom.id, message);
+    }
+    
+    this.scrollToBottom();
+  }
+
+  async openPhotoInput() {
+    const alert = await this.alertController.create({
+      header: 'Share Photo',
+      message: 'Enter the URL of the photo you want to share',
+      inputs: [
+        {
+          name: 'photoUrl',
+          type: 'url',
+          placeholder: 'https://example.com/photo.jpg'
+        },
+        {
+          name: 'photoTitle',
+          type: 'text',
+          placeholder: 'Photo description (optional)'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Share',
+          handler: (data) => {
+            if (data.photoUrl && data.photoUrl.trim()) {
+              this.sendAttachment('image', data.photoUrl.trim(), data.photoTitle?.trim());
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async openVideoLinkInput() {
+    const alert = await this.alertController.create({
+      header: 'Share Video Link',
+      message: 'Share a helpful video with the group',
+      inputs: [
+        {
+          name: 'videoUrl',
+          type: 'url',
+          placeholder: 'https://youtube.com/watch?v=...'
+        },
+        {
+          name: 'videoTitle',
+          type: 'text',
+          placeholder: 'Video title (optional)'
+        },
+        {
+          name: 'videoDescription',
+          type: 'text',
+          placeholder: 'Brief description (optional)'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Share',
+          handler: (data) => {
+            if (data.videoUrl && data.videoUrl.trim()) {
+              this.sendAttachment('video', data.videoUrl.trim(), data.videoTitle?.trim(), data.videoDescription?.trim());
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  getYouTubeThumbnail(url: string): string {
+    let videoId = '';
+    
+    if (url.includes('youtube.com/watch?v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
+    } else if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1].split('?')[0];
+    }
+    
+    return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '';
+  }
+
+  private generateId(): string {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
+
+  async openVideoModal(attachment: ChatAttachment) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: attachment.url,
+        title: attachment.title || 'Shared Video'
+      },
+      cssClass: 'video-modal'
+    });
+    return await modal.present();
+  }
+
+  async sendGroupMessage() {
+    if (this.groupMessageText.trim() && this.selectedRoom && this.currentUser) {
+      const message: Omit<ChatMessage, 'id'> = {
+        roomId: this.selectedRoom.id,
+        senderId: this.currentUser.uid,
+        senderName: `${this.currentUser.firstName} ${this.currentUser.lastName}`,
+        senderRole: 'user',
+        message: this.groupMessageText.trim(),
+        timestamp: new Date(),
+        isEdited: false
+      };
+      
+      await this.chatService.sendMessage(this.selectedRoom.id, message);
+      this.groupMessageText = '';
+      this.scrollToBottomGroup();
+    }
+  }
+
+  onGroupKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      if (this.groupMessageText.trim()) {
+        this.sendGroupMessage();
+      }
     }
   }
 
@@ -252,16 +418,35 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     this.chatbotService.requestExpertHelp();
   }
 
-  joinRoom(room: ChatRoom) {
+  async joinRoom(room: ChatRoom) {
     if (this.currentUser) {
-      this.chatService.joinRoom(room.id, this.currentUser.uid);
+      try {
+        await this.chatService.joinRoom(room.id, this.currentUser.uid);
+        this.selectedRoom = room;
+        this.scrollToBottomGroup();
+      } catch (error: any) {
+        console.error('Error joining room:', error);
+        // Handle room full or other errors
+      }
     }
+  }
+
+  backToGroupList() {
+    this.selectedRoom = null;
   }
 
   private scrollToBottom() {
     setTimeout(() => {
       if (this.messagesContainer) {
         this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
+      }
+    }, 300);
+  }
+
+  private scrollToBottomGroup() {
+    setTimeout(() => {
+      if (this.groupMessagesContainer) {
+        this.groupMessagesContainer.nativeElement.scrollTop = this.groupMessagesContainer.nativeElement.scrollHeight;
       }
     }, 300);
   }
@@ -362,6 +547,18 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   hasMessages(): boolean {
     const currentMessages = this.chatbotService.getCurrentMessages();
     return currentMessages && currentMessages.length > 0;
+  }
+
+  getTopicIcon(topic: string): string {
+    const topicIcons: { [key: string]: string } = {
+      'Newborn Care': 'baby',
+      'Pumping Tips': 'water',
+      'Sleep Training': 'moon',
+      'Nutrition': 'nutrition',
+      'Working Moms': 'briefcase',
+      'Twins & Multiples': 'people'
+    };
+    return topicIcons[topic] || 'chatbubbles';
   }
 
   ngAfterViewChecked() {

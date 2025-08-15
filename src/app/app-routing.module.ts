@@ -21,6 +21,11 @@ const routes: Routes = [
     path: 'tabs',
     loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'video-call/:meetingId',
+    loadChildren: () => import('./pages/video-call/video-call.module').then(m => m.VideoCallPageModule),
+    canActivate: [AuthGuard]
   }
 ];
 

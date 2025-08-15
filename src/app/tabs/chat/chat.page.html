@@ -21,33 +21,128 @@
 
     <!-- Group Chat Tab -->
     <div class="tab-content" *ngIf="selectedTab === 'groups'">
-      <div class="groups-header">
-        <h2>Mom-to-Mom Support Groups</h2>
-        <p>Connect with other mothers in topic-based chat rooms</p>
-      </div>
-
-      <div class="chat-rooms-list">
-        <div 
-          *ngFor="let room of chatRooms$ | async"
-          class="room-card"
-          (click)="joinRoom(room)">
-          <div class="room-icon">
-            <ion-icon [name]="getRoomIcon(room.topic)"></ion-icon>
+      
+      <!-- Group Chat Room View -->
+      <div class="group-chat-view" *ngIf="selectedRoom; else groupsList">
+        <div class="group-chat-header">
+          <ion-button fill="clear" (click)="backToGroupList()" class="back-to-groups-button">
+            <ion-icon name="arrow-back" slot="start"></ion-icon>
+            Back to Groups
+          </ion-button>
+        </div>
+        
+        <!-- Group Chat Messages Component -->
+        <div class="group-messages-wrapper" #groupMessagesContainer>
+          <app-group-chat-messages [room]="selectedRoom"></app-group-chat-messages>
+        </div>
+        
+        <!-- Group Message Input -->
+        <div class="group-message-input-container">
+          <div class="group-message-input">
+            <ion-button 
+              fill="clear" 
+              size="small"
+              (click)="openPhotoInput()"
+              class="attachment-button">
+              <ion-icon name="image" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button 
+              fill="clear" 
+              size="small"
+              (click)="openVideoLinkInput()"
+              class="attachment-button">
+              <ion-icon name="videocam" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-textarea
+              [(ngModel)]="groupMessageText"
+              placeholder="Type your message to the group..."
+              rows="1"
+              autoGrow="true"
+              maxlength="500"
+              (keydown)="onGroupKeyDown($event)"
+              class="group-message-textarea">
+            </ion-textarea>
+            <ion-button 
+              fill="clear" 
+              (click)="sendGroupMessage()"
+              [disabled]="!groupMessageText?.trim()"
+              class="group-send-button">
+              <ion-icon name="send" slot="icon-only"></ion-icon>
+            </ion-button>
           </div>
-          <div class="room-content">
-            <div class="room-header">
-              <h3>{{ room.name }}</h3>
-              <span class="participant-count">{{ room.participants.length }} members</span>
-            </div>
-            <p class="room-description">{{ room.description }}</p>
-            <div class="room-footer" *ngIf="room.lastMessage">
-              <span class="last-message">{{ room.lastMessage.senderName }}: {{ room.lastMessage.message }}</span>
-              <span class="last-time">{{ getMessageTime(room.lastMessage.timestamp) }}</span>
-            </div>
-          </div>
-          <ion-icon name="chevron-forward-outline" class="room-arrow"></ion-icon>
         </div>
       </div>
+
+      <!-- Groups List Template -->
+      <ng-template #groupsList>
+        <div class="groups-header">
+        <h2>Mom-to-Mom Support Groups</h2>
+        <p>Connect with other mothers in topic-based chat rooms</p>
+        </div>
+
+        <!-- General Groups Section -->
+        <div class="groups-section">
+        <h3 class="subsection-title">🌟 Join a Support Group</h3>
+        <p class="subsection-description">Connect with up to 20 mothers and expert moderators</p>
+        
+        <div class="chat-rooms-list">
+          <div 
+            *ngFor="let room of chatRooms$ | async"
+            class="room-card"
+            [class.room-full]="room.participants.length >= room.maxParticipants"
+            (click)="joinRoom(room)">
+            <div class="room-icon">
+              <ion-icon [name]="getRoomIcon(room.topic)"></ion-icon>
+            </div>
+            <div class="room-content">
+              <div class="room-header">
+                <h3>{{ room.name }}</h3>
+                <div class="room-stats">
+                  <span class="participant-count">{{ room.participants.length }}/{{ room.maxParticipants }}</span>
+                  <ion-chip color="success" size="small" *ngIf="room.moderators.length > 0">
+                    <ion-icon name="shield-checkmark" slot="start"></ion-icon>
+                    Expert Moderated
+                  </ion-chip>
+                </div>
+              </div>
+              <p class="room-description">{{ room.description }}</p>
+              <div class="room-footer">
+                <div class="room-topics">
+                  <ion-chip color="light" size="small">{{ room.topic | titlecase }}</ion-chip>
+                </div>
+                <span class="join-status" *ngIf="room.participants.length >= room.maxParticipants">
+                  Group Full
+                </span>
+                <span class="join-status" *ngIf="room.participants.length < room.maxParticipants">
+                  {{ room.maxParticipants - room.participants.length }} spots left
+                </span>
+              </div>
+            </div>
+            <div class="room-action">
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [disabled]="room.participants.length >= room.maxParticipants"
+                class="join-room-button">
+                <ion-icon [name]="room.participants.length >= room.maxParticipants ? 'lock-closed' : 'enter'" slot="start"></ion-icon>
+                {{ room.participants.length >= room.maxParticipants ? 'Full' : 'Join' }}
+              </ion-button>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <!-- Popular Topics -->
+        <div class="popular-topics">
+        <h3 class="subsection-title">💬 Popular Discussion Topics</h3>
+        <div class="topics-grid">
+          <div class="topic-card" *ngFor="let topic of ['Newborn Care', 'Pumping Tips', 'Sleep Training', 'Nutrition', 'Working Moms', 'Twins & Multiples']">
+            <ion-icon [name]="getTopicIcon(topic)"></ion-icon>
+            <span>{{ topic }}</span>
+          </div>
+        </div>
+        </div>
+      </ng-template>
     </div>
 
     <!-- AI Assistant Tab -->
@@ -303,6 +398,37 @@
               </ion-button>
             </div>
             
+            <!-- AI Message Attachments -->
+            <div class="message-attachments" *ngIf="message.attachments && message.attachments.length > 0">
+              <div *ngFor="let attachment of message.attachments" class="attachment-item">
+                
+                <!-- Image Attachment -->
+                <div *ngIf="attachment.type === 'image'" class="image-attachment">
+                  <img [src]="attachment.url" [alt]="attachment.title || 'Shared image'" class="attachment-image">
+                  <p *ngIf="attachment.title" class="attachment-title">{{ attachment.title }}</p>
+                </div>
+                
+                <!-- Video Attachment -->
+                <div *ngIf="attachment.type === 'video'" class="video-attachment" (click)="openVideoModal(attachment)">
+                  <div class="video-thumbnail">
+                    <img [src]="getYouTubeThumbnail(attachment.url)" [alt]="attachment.title || 'Video thumbnail'" *ngIf="getYouTubeThumbnail(attachment.url)">
+                    <div class="video-placeholder" *ngIf="!getYouTubeThumbnail(attachment.url)">
+                      <ion-icon name="videocam"></ion-icon>
+                    </div>
+                    <div class="play-overlay">
+                      <ion-icon name="play"></ion-icon>
+                    </div>
+                  </div>
+                  <div class="video-info">
+                    <h5 *ngIf="attachment.title">{{ attachment.title }}</h5>
+                    <p *ngIf="attachment.description">{{ attachment.description }}</p>
+                    <span class="video-url">{{ attachment.url }}</span>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+            
             <span class="message-time">{{ getMessageTime(message.timestamp) }}</span>
           </div>
           
@@ -329,8 +455,22 @@
   </div>
 
   <!-- Message Input (for AI chat) -->
-  <div class="message-input-container fixed-bottom" *ngIf="selectedTab === 'ai' && !(voiceMode$ | async)?.isActive">
+  <div class="message-input-container fixed-bottom" *ngIf="selectedTab === 'ai' && !(voiceMode$ | async)?.isActive && !selectedRoom">
     <div class="message-input">
+      <ion-button 
+        fill="clear" 
+        size="small"
+        (click)="openPhotoInput()"
+        class="attachment-button">
+        <ion-icon name="image" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button 
+        fill="clear" 
+        size="small"
+        (click)="openVideoLinkInput()"
+        class="attachment-button">
+        <ion-icon name="videocam" slot="icon-only"></ion-icon>
+      </ion-button>
       <ion-textarea
         [(ngModel)]="messageText"
         placeholder="Ask about breastfeeding, baby care, or any concerns..."

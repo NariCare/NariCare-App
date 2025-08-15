@@ -28,6 +28,34 @@
       </div>
     </div>
 
+    <!-- Upcoming Consultations -->
+    <div class="consultations-section" *ngIf="upcomingConsultations.length > 0">
+      <h3 class="section-title">Upcoming Consultations</h3>
+      <div class="consultations-list">
+        <div 
+          *ngFor="let consultation of upcomingConsultations"
+          class="consultation-card">
+          <div class="consultation-icon">
+            <ion-icon name="videocam"></ion-icon>
+          </div>
+          <div class="consultation-info">
+            <h4>{{ consultation.topic | titlecase }}</h4>
+            <p class="expert-name">with {{ getExpertName(consultation.expertId) }}</p>
+            <p class="consultation-time">{{ consultation.scheduledAt | date:'MMM d, y - h:mm a' }}</p>
+          </div>
+          <ion-button 
+            fill="outline" 
+            size="small"
+            (click)="joinConsultation(consultation)"
+            [disabled]="!isConsultationReady(consultation)"
+            class="join-button">
+            <ion-icon name="videocam" slot="start"></ion-icon>
+            {{ isConsultationReady(consultation) ? 'Join Call' : 'Not Ready' }}
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
     <!-- Profile Sections -->
     <div class="profile-sections">
       <div *ngFor="let section of profileSections" class="section">

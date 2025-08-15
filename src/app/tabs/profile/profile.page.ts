@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController, ToastController, ModalController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
+import { ConsultationService } from '../../services/consultation.service';
 import { User } from '../../models/user.model';
+import { Consultation, Expert } from '../../models/consultation.model';
+import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
 
 @Component({
   selector: 'app-profile',
@@ -11,6 +14,8 @@ import { User } from '../../models/user.model';
 })
 export class ProfilePage implements OnInit {
   user: User | null = null;
+  upcomingConsultations: Consultation[] = [];
+  experts: Expert[] = [];
 
   profileSections = [
     {
@@ -33,6 +38,7 @@ export class ProfilePage implements OnInit {
       title: 'Support',
       items: [
         { label: 'Help Center', icon: 'help-circle-outline', action: 'help' },
+        { label: 'Book Expert Consultation', icon: 'videocam-outline', action: 'bookConsultation' },
         { label: 'Contact Support', icon: 'mail-outline', action: 'contact' },
         { label: 'Privacy Policy', icon: 'shield-outline', action: 'privacy' }
       ]
@@ -43,12 +49,37 @@ export class ProfilePage implements OnInit {
     private authService: AuthService,
     private router: Router,
     private alertController: AlertController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private modalController: ModalController,
+    private consultationService: ConsultationService
   ) {}
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
+      if (user) {
+        this.loadUpcomingConsultations();
+      }
+    });
+    
+    this.loadExperts();
+  }
+
+  private loadUpcomingConsultations() {
+    if (this.user) {
+      this.consultationService.getUserConsultations(this.user.uid).subscribe(consultations => {
+        // Filter for upcoming consultations only
+        const now = new Date();
+        this.upcomingConsultations = consultations.filter(consultation => 
+          consultation.scheduledAt > now && consultation.status === 'scheduled'
+        );
+      });
+    }
+  }
+
+  private loadExperts() {
+    this.consultationService.getExperts().subscribe(experts => {
+      this.experts = experts;
     });
   }
 
@@ -69,6 +100,9 @@ export class ProfilePage implements OnInit {
       case 'upgrade':
         this.upgradeSubscription();
         break;
+      case 'bookConsultation':
+        this.openConsultationBooking();
+        break;
       case 'billing':
         this.viewBilling();
         break;
@@ -81,6 +115,46 @@ export class ProfilePage implements OnInit {
       case 'privacy':
         this.viewPrivacyPolicy();
         break;
+    }
+  }
+
+  async openConsultationBooking() {
+    const modal = await this.modalController.create({
+      component: ConsultationBookingModalComponent,
+      cssClass: 'consultation-booking-modal'
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.booked) {
+        // Refresh consultations list
+        this.loadUpcomingConsultations();
+      }
+    });
+
+    return await modal.present();
+  }
+
+  getExpertName(expertId: string): string {
+    const expert = this.experts.find(e => e.id === expertId);
+    return expert?.name || 'Expert';
+  }
+
+  isConsultationReady(consultation: Consultation): boolean {
+    const now = new Date();
+    const consultationTime = new Date(consultation.scheduledAt);
+    const timeDiff = consultationTime.getTime() - now.getTime();
+    const minutesDiff = timeDiff / (1000 * 60);
+    
+    // Allow joining 15 minutes before scheduled time
+    return minutesDiff <= 15 && minutesDiff >= -30;
+  }
+
+  joinConsultation(consultation: Consultation) {
+    if (consultation.meetingLink) {
+      // Extract the room name from the Jitsi meeting link
+      const roomName = consultation.meetingLink.split('/').pop();
+      // Navigate to the new video call page
+      this.router.navigate(['/video-call', roomName]);
     }
   }
 

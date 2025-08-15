@@ -8,11 +8,14 @@ import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
 import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
-import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer } from '../../models/growth-tracking.model';
+import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer, DiaperChangeRecord } from '../../models/growth-tracking.model';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { TimelineModalComponent } from 'src/app/components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from 'src/app/components/specific-week-modal/specific-week-modal.component';
+import { FeedLogModalComponent } from 'src/app/components/feed-log-modal/feed-log-modal.component';
+import { DiaperLogModalComponent } from 'src/app/components/diaper-log-modal/diaper-log-modal.component';
+import { EmotionCheckinModalComponent } from 'src/app/components/emotion-checkin-modal/emotion-checkin-modal.component';
 
 @Component({
   selector: 'app-growth',
@@ -27,12 +30,16 @@ export class GrowthPage implements OnInit {
   growthRecords$: Observable<GrowthRecord[]> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
   stoolRecords$: Observable<StoolRecord[]> | null = null;
+  diaperChangeRecords$: Observable<DiaperChangeRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
-  selectedTab: 'daily' | 'timeline' | 'weight' | 'stool' = 'daily';
+  selectedMainTab: 'my-babies' | 'breastfeeding-history' = 'my-babies';
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
+  showDiaperLogModal = false;
+  showAddPumpingModal = false;
+  showEmotionCheckinModal = false;
   showBabySelector = false;
   addRecordForm: FormGroup;
   addWeightForm: FormGroup;
@@ -67,6 +74,8 @@ export class GrowthPage implements OnInit {
   extractedDataWeight: any = {};
   extractedDataStool: any = {};
   painLevel: number = 0;
+  lastTrack: any = null;
+  dailySummary: any = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -124,6 +133,7 @@ export class GrowthPage implements OnInit {
         this.selectedBaby = user.babies[0];
         this.loadTrackingData(this.selectedBaby.id);
         this.loadTimelineData(this.selectedBaby.dateOfBirth);
+        this.loadSummaryData(this.selectedBaby.id);
       }
     });
     
@@ -139,7 +149,11 @@ export class GrowthPage implements OnInit {
     this.stoolColorOptions = this.growthService.getStoolColorOptions();
     this.stoolTextureOptions = this.growthService.getStoolTextureOptions();
     this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
-    this.loadStarPerformers();
+  }
+
+  private async loadSummaryData(babyId: string) {
+    this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
+    this.dailySummary = await this.growthService.getDailySummary(babyId);
   }
 
   private loadTrackingData(babyId: string) {
@@ -216,8 +230,49 @@ export class GrowthPage implements OnInit {
     }
   }
 
-  onTabChange(event: any) {
-    this.selectedTab = event.detail.value;
+  onMainTabChange(event: any) {
+    this.selectedMainTab = event.detail.value;
+  }
+
+  // Action button handlers
+  onFastFeed() {
+    // Pre-fill form for quick entry
+    this.addRecordForm.patchValue({
+      date: new Date().toISOString(),
+      startTime: new Date().toTimeString().slice(0, 5),
+      endTime: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
+      painLevel: 0,
+      directFeedingSessions: 1,
+      avgFeedingDuration: 15
+    });
+    this.openAddRecordModal();
+  }
+
+  onFeed() {
+    this.openFeedLogModal();
+  }
+
+  onWeightSize() {
+    this.openAddWeightModal();
+  }
+
+  onPoo() {
+    this.showDiaperLogModal = true;
+  }
+
+  onEmotionCheckin() {
+    this.openEmotionCheckinModal();
+  }
+
+  selectBaby(baby: any) {
+    // Navigate to detailed baby page
+    this.router.navigate(['/tabs/growth/baby-detail', baby.id]);
+  }
+
+  navigateToDetailedTracker() {
+    if (this.selectedBaby) {
+      this.router.navigate(['/tabs/growth/baby-detail', this.selectedBaby.id]);
+    }
   }
 
   // Baby selection methods
@@ -227,13 +282,6 @@ export class GrowthPage implements OnInit {
 
   closeBabySelector() {
     this.showBabySelector = false;
-  }
-
-  selectBaby(baby: any) {
-    this.selectedBaby = baby;
-    this.loadTrackingData(baby.id);
-    this.loadTimelineData(baby.dateOfBirth);
-    this.closeBabySelector();
   }
 
   openAddRecordModal() {
@@ -273,15 +321,38 @@ export class GrowthPage implements OnInit {
   }
 
   closeAddStoolModal() {
-    this.showAddStoolModal = false;
-    this.selectedStoolColor = null;
-    this.selectedStoolTexture = null;
-    this.selectedStoolSize = null;
-    this.clearVoiceInputStool();
-    this.addStoolForm.reset({
-      date: new Date().toISOString(),
-      time: new Date().toTimeString().slice(0, 5)
+    this.showDiaperLogModal = false;
+  }
+
+  closeDiaperLogModal() {
+    this.showDiaperLogModal = false;
+  }
+
+  openAddPumpingModal() {
+    this.showAddPumpingModal = true;
+  }
+
+  closeAddPumpingModal() {
+    this.showAddPumpingModal = false;
+  }
+
+  async openEmotionCheckinModal() {
+    const modal = await this.modalController.create({
+      component: EmotionCheckinModalComponent,
+      cssClass: 'emotion-checkin-modal'
     });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.saved) {
+        this.showToast('Emotion check-in saved. Thank you for taking care of yourself! 💕', 'success');
+      }
+    });
+
+    return await modal.present();
+  }
+
+  closeEmotionCheckinModal() {
+    this.showEmotionCheckinModal = false;
   }
 
   selectBreastSide(side: BreastSide) {
@@ -434,6 +505,7 @@ export class GrowthPage implements OnInit {
       this.isProcessingVoiceStool = false;
     }
   }
+
   private extractDataFromSpeech(transcript: string): any {
     const text = transcript.toLowerCase().trim();
     const extracted: any = {};
@@ -834,6 +906,7 @@ export class GrowthPage implements OnInit {
       this.addStoolForm.patchValue(formUpdates);
     }
   }
+
   getVoiceInputSummary(): string {
     const extractedFields = Object.keys(this.extractedData).filter(key => 
       this.extractedData[key] !== null && this.extractedData[key] !== undefined
@@ -869,37 +942,13 @@ export class GrowthPage implements OnInit {
     
     return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
   }
+
   async saveGrowthRecord() {
     if (this.addRecordForm.valid && this.user && this.selectedBaby) {
       try {
         const formValue = this.addRecordForm.value;
-        const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = {
-          babyId: this.selectedBaby.id,
-          recordedBy: this.user.uid,
-          date: new Date(formValue.date),
-          startTime: formValue.startTime,
-          endTime: formValue.endTime,
-          breastSide: this.selectedBreastSide?.value || 'both',
-          supplement: this.selectedSupplement?.value || null,
-          painLevel: this.painLevel,
-          lipstickShape: this.selectedLipstickShape?.value || 'rounded',
-          mood: this.selectedMotherMood,
-          directFeedingSessions: formValue.directFeedingSessions,
-          avgFeedingDuration: formValue.avgFeedingDuration,
-          pumpingSessions: formValue.pumpingSessions,
-          totalPumpingOutput: formValue.totalPumpingOutput,
-          formulaIntake: formValue.formulaIntake,
-          peeCount: formValue.peeCount,
-          poopCount: formValue.poopCount,
-          moodDescription: formValue.moodDescription,
-          notes: formValue.notes,
-          enteredViaVoice: !!this.voiceTranscript
-        };
-
-        await this.growthService.addGrowthRecord(record);
-        this.showToast('Daily record saved successfully!', 'success');
-
-        this.closeAddRecordModal();
+        // Use the new FeedLogModalComponent instead
+        // await this.openFeedLogModal();
       } catch (error) {
         this.showToast('Failed to save record. Please try again.', 'danger');
       }
@@ -998,16 +1047,8 @@ export class GrowthPage implements OnInit {
     this.openAddRecordModal();
   }
 
-  private async quickLogPumping() {
-    // For now, use the same form - could be extended later
-    this.addRecordForm.patchValue({
-      date: new Date().toISOString(),
-      startTime: new Date().toTimeString().slice(0, 5),
-      endTime: new Date(Date.now() + 15 * 60000).toTimeString().slice(0, 5), // 15 minutes later
-      painLevel: 0
-    });
-    
-    this.openAddRecordModal();
+  public async quickLogPumping() {
+    this.openAddPumpingModal();
   }
 
   private async showToast(message: string, color: string) {
@@ -1022,25 +1063,6 @@ export class GrowthPage implements OnInit {
 
   isVoiceSupported(): boolean {
     return !!this.recognition;
-  }
-
-  getAddButtonText(): string {
-    switch (this.selectedTab) {
-      case 'daily': return 'Add Daily Record';
-      case 'weight': return 'Add Weight & Size';
-      case 'stool': return 'Add Stool Track';
-      default: return 'Add Record';
-    }
-  }
-
-  openAddModal() {
-    if (this.selectedTab === 'daily') {
-      this.openAddRecordModal();
-    } else if (this.selectedTab === 'weight') {
-      this.openAddWeightModal();
-    } else if (this.selectedTab === 'stool') {
-      this.openAddStoolModal();
-    }
   }
 
   formatDate(date: Date): string {
@@ -1092,33 +1114,76 @@ export class GrowthPage implements OnInit {
     return moodOption?.label || mood;
   }
 
-  getBabyGenderForChart(gender: 'male' | 'female' | 'other' | undefined): 'male' | 'female' {
-    if (gender === 'male' || gender === 'female') {
-      return gender;
+  calculateBabyAgeForBaby(birthDate: Date): string {
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
+    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
+    
+    if (diffWeeks < 4) {
+      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} old`;
+    } else if (diffWeeks < 52) {
+      const months = Math.floor(diffWeeks / 4);
+      const remainingWeeks = diffWeeks % 4;
+      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
+    } else {
+      const years = Math.floor(diffWeeks / 52);
+      const remainingWeeks = diffWeeks % 52;
+      const months = Math.floor(remainingWeeks / 4);
+      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
     }
-    return 'female';
+  }
+
+  getLastTrackTime(): string {
+    if (!this.lastTrack) return '--';
+    return this.lastTrack.time;
+  }
+
+  getLastTrackDate(): string {
+    if (!this.lastTrack) return '--';
+    return this.formatDate(this.lastTrack.date);
+  }
+
+  getLastTrackBreastSide(): string {
+    if (!this.lastTrack) return '--';
+    return this.lastTrack.breastSide;
+  }
+
+  getDailySummaryTracks(): number {
+    return this.dailySummary?.totalDirectFeeds || 0;
+  }
+
+  getDailySummaryPain(): number {
+    return this.dailySummary?.avgPainLevel || 0;
+  }
+
+  async openFeedLogModal(isFastFeed: boolean = false) {
+    if (!this.selectedBaby) {
+      this.showToast('Please select a baby first', 'warning');
+      return;
+    }
+
+    const modal = await this.modalController.create({
+      component: FeedLogModalComponent,
+      componentProps: {
+        prefilledData: { babyId: this.selectedBaby.id },
+        isFastFeed: isFastFeed
+      }
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.saved) {
+        this.loadTrackingData(this.selectedBaby.id);
+        this.loadSummaryData(this.selectedBaby.id);
+      }
+    });
+
+    return await modal.present();
   }
 
   getCategoryLabel(category: string): string {
     const categoryLabels: { [key: string]: string } = {
       'feeding': 'Feeding',
-      'development': 'Development',
-      'sleep': 'Sleep',
-      'milestone': 'Milestone',
-      'health': 'Health'
     };
     return categoryLabels[category] || category;
   }
-
-  getCategoryColor(category: string): string {
-    const categoryColors: { [key: string]: string } = {
-      'feeding': 'primary',
-      'development': 'success',
-      'sleep': 'tertiary',
-      'milestone': 'warning',
-      'health': 'danger'
-    };
-    return categoryColors[category] || 'medium';
-  }
-
 }

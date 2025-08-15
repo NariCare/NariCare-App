@@ -1,0 +1,181 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Pumping Log</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="closeModal()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="pumping-log-container">
+    
+    <form [formGroup]="pumpingForm" class="pumping-form">
+      
+      <!-- Baby Info Header -->
+      <!-- <div class="baby-info-header">
+        <div class="baby-avatar">
+          <ion-icon name="water"></ion-icon>
+        </div>
+        <div class="baby-details">
+          <h3>Pumping Session</h3>
+          <p>Track your milk expression</p>
+        </div>
+      </div> -->
+
+      <!-- Time of Pumping -->
+      <div class="form-section">
+        <h4>⏰ Time of Pumping</h4>
+        <div class="form-group">
+          <ion-item lines="none" class="input-item time-input">
+            <ion-input
+              formControlName="time"
+              type="time"
+              placeholder="Current time">
+            </ion-input>
+          </ion-item>
+        </div>
+      </div>
+
+      <!-- Pumping Side Selection -->
+      <div class="form-section">
+        <h4>➡️ Pumping Side</h4>
+        <div class="selection-grid pumping-side-grid">
+          <div 
+            *ngFor="let side of pumpingSideOptions"
+            class="selection-option"
+            [class.selected]="selectedPumpingSide === side.value"
+            (click)="selectPumpingSide(side.value)">
+            <div class="option-icon">
+              <ion-icon [name]="side.icon"></ion-icon>
+            </div>
+            <span class="option-label">{{ side.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Output -->
+      <div class="form-section">
+        <h4>🍼 Total Output</h4>
+        <div class="quantity-container">
+          <div class="quantity-display">{{ pumpingForm.get('totalOutput')?.value || 0 }}ml</div>
+          <ion-range
+            formControlName="totalOutput"
+            min="0"
+            min="0"
+            max="500"
+            step="5"
+            color="secondary">
+            step="5"
+            color="secondary"
+            class="quantity-slider">
+            <ion-label slot="start">0ml</ion-label>
+            <ion-label slot="end">500ml</ion-label>
+          </ion-range>
+          <div class="preset-buttons">
+            <ion-button 
+              *ngFor="let preset of outputPresets"
+              fill="outline" 
+              size="small"
+              (click)="setOutput(preset)"
+              class="preset-button">
+              {{ preset }}ml
+            </ion-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Duration Section -->
+      <div class="form-section">
+        <h4>⏳ Duration</h4>
+        <div class="duration-mode-selector">
+          <ion-segment [(ngModel)]="isTimerMode" [ngModelOptions]="{standalone: true}">
+            <ion-segment-button [value]="false">
+              <ion-label>Manual Entry</ion-label>
+            </ion-segment-button>
+            <ion-segment-button [value]="true">
+              <ion-label>Timer</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
+
+        <!-- Manual Duration Entry -->
+        <div class="manual-duration" *ngIf="!isTimerMode">
+          <div class="form-group">
+            <label class="field-label">Duration (minutes)</label>
+            <ion-item lines="none" class="input-item">
+              <ion-input
+                formControlName="duration"
+                type="number"
+                min="0"
+                max="120"
+                placeholder="Optional">
+              </ion-input>
+            </ion-item>
+          </div>
+        </div>
+
+        <!-- Timer Mode -->
+        <div class="timer-mode" *ngIf="isTimerMode">
+          <div class="timer-display">
+            <div class="timer-circle">
+              <span class="timer-time">{{ getTimerDisplay() }}</span>
+              <span class="timer-label">{{ isTimerRunning ? 'PUMPING' : 'READY' }}</span>
+            </div>
+          </div>
+          
+          <div class="timer-controls">
+            <ion-button 
+              *ngIf="!isTimerRunning"
+              expand="block"
+              (click)="startTimer()"
+              class="start-timer-button">
+              <ion-icon name="play" slot="start"></ion-icon>
+              Start Pumping
+            </ion-button>
+            
+            <ion-button 
+              *ngIf="isTimerRunning"
+              expand="block"
+              (click)="stopTimer()"
+              class="stop-timer-button">
+              <ion-icon name="stop" slot="start"></ion-icon>
+              Stop Pumping
+            </ion-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-section">
+        <h4>📝 Notes (Optional)</h4>
+        <div class="form-group">
+          <ion-item lines="none" class="input-item notes-input">
+            <ion-textarea
+              formControlName="notes"
+              placeholder="Any notes about this pumping session..."
+              rows="3"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+        </div>
+      </div>
+
+    </form>
+
+  </div>
+
+  <!-- Sticky Save Button -->
+  <div class="sticky-save-footer">
+    <ion-button 
+      expand="block"
+      (click)="savePumpingLog()" 
+      [disabled]="!canSave()"
+      class="save-button">
+      <ion-icon name="save" slot="start"></ion-icon>
+      Save Pumping Log
+    </ion-button>
+  </div>
+</ion-content>

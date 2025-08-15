@@ -72,23 +72,56 @@
     </div>
 
     <!-- Upcoming Reminders -->
-    <div class="section" *ngIf="upcomingReminders.length > 0">
-      <h2 class="section-title">Upcoming Reminders</h2>
-      <div class="reminders-list">
-        <div *ngFor="let reminder of upcomingReminders" class="reminder-item">
-          <div class="reminder-icon">
-            <ion-icon [name]="reminder.type === 'growth' ? 'trending-up' : 'videocam'"
-              [class]="'reminder-icon-' + reminder.type">
-            </ion-icon>
+    <div class="section" *ngIf="upcomingConsultations.length > 0">
+      <h2 class="section-title">Upcoming Consultations</h2>
+      <div class="consultations-list">
+        <div *ngFor="let consultation of upcomingConsultations" class="consultation-card">
+          <div class="consultation-icon">
+            <ion-icon name="videocam"></ion-icon>
           </div>
-          <div class="reminder-content">
-            <h4>{{ reminder.title }}</h4>
-            <p>{{ reminder.time }}</p>
+          <div class="consultation-info">
+            <h4>{{ consultation.topic | titlecase }}</h4>
+            <p class="expert-name">with {{ getExpertName(consultation.expertId) }}</p>
+            <p class="consultation-time">{{ consultation.scheduledAt | date:'MMM d, y - h:mm a' }}</p>
           </div>
-          <ion-button fill="clear" size="small">
-            <ion-icon name="chevron-forward" slot="icon-only"></ion-icon>
+          <ion-button 
+            fill="outline" 
+            size="small"
+            (click)="joinConsultation(consultation)"
+            [disabled]="!isConsultationReady(consultation)"
+            class="join-button">
+            <ion-icon name="videocam" slot="start"></ion-icon>
+            {{ isConsultationReady(consultation) ? 'Join Call' : 'Not Ready' }}
           </ion-button>
         </div>
+      </div>
+    </div>
+
+    <!-- Book Consultation Section -->
+    <div class="section">
+      <h2 class="section-title">Expert Support</h2>
+      <div class="consultation-booking-card">
+        <div class="booking-content">
+          <div class="booking-icon">
+            <ion-icon name="medical"></ion-icon>
+          </div>
+          <div class="booking-text">
+            <h3>Book Expert Consultation</h3>
+            <p>Get personalized help from certified lactation consultants</p>
+            <div class="booking-features">
+              <span>• 30-minute video call</span>
+              <span>• Certified IBCLC experts</span>
+              <span>• Personalized guidance</span>
+            <!-- </ion-icon> -->
+          </div>
+        </div>
+        <ion-button 
+          expand="block" 
+          (click)="openConsultationBooking()"
+          class="book-consultation-button">
+          <ion-icon name="calendar" slot="start"></ion-icon>
+          Book Consultation
+        </ion-button>
       </div>
     </div>
 
@@ -176,4 +209,4 @@
 
   </div>
 
-</ion-content>
+<!-- </ion-content> -->
