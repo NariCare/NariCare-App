@@ -4,6 +4,9 @@ export interface User {
   firstName: string;
   lastName: string;
   phoneNumber?: string;
+  whatsappNumber?: string;
+  motherType?: 'pregnant' | 'new_mom';
+  dueDate?: Date;
   profileImage?: string;
   role: 'user' | 'expert' | 'admin';
   tier: UserTier;

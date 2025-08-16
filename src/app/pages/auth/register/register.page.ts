@@ -23,7 +23,11 @@ export class RegisterPage implements OnInit {
     private loadingController: LoadingController,
     private toastController: ToastController
   ) {
-    this.registerForm = this.formBuilder.group({
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      motherType: ['', [Validators.required]],
+      phoneNumber: ['', [Validators.required]],
+      whatsappNumber: ['', [Validators.required]],
+      dueDate: ['']
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
