@@ -107,6 +107,50 @@ export class LoginPage implements OnInit {
     }
   }
 
+  async signInWithGoogle() {
+    const loading = await this.loadingController.create({
+      message: 'Signing in with Google...',
+      translucent: true
+    });
+    await loading.present();
+
+    try {
+      await this.authService.signInWithGoogle();
+      await loading.dismiss();
+    } catch (error: any) {
+      await loading.dismiss();
+      const toast = await this.toastController.create({
+        message: error.message || 'Google sign-in failed. Please try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
+  }
+
+  async signInWithFacebook() {
+    const loading = await this.loadingController.create({
+      message: 'Signing in with Facebook...',
+      translucent: true
+    });
+    await loading.present();
+
+    try {
+      await this.authService.signInWithFacebook();
+      await loading.dismiss();
+    } catch (error: any) {
+      await loading.dismiss();
+      const toast = await this.toastController.create({
+        message: error.message || 'Facebook sign-in failed. Please try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
+  }
+
   private markFormGroupTouched() {
     Object.keys(this.loginForm.controls).forEach(key => {
       this.loginForm.get(key)?.markAsTouched();
