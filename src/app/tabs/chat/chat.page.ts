@@ -17,10 +17,8 @@ import { VideoPlayerModalComponent } from '../../components/video-player-modal/v
 export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   @ViewChild('groupMessagesContainer', { static: false }) groupMessagesContainer!: ElementRef;
-  
   selectedTab = 'groups';
   selectedRoom: ChatRoom | null = null;
-  chatRooms$: Observable<ChatRoom[]>;
   chatbotMessages$: Observable<ChatbotMessage[]>;
   voiceMode$: Observable<VoiceMode>;
   messageText = '';
@@ -35,7 +33,6 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   availableVoices: SpeechSynthesisVoice[] = [];
   selectedVoiceIndex = 0;
   isInitializing = false;
-  groupMessageText = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -216,19 +213,6 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
 
     if (this.selectedTab === 'ai') {
       await this.chatbotService.sendMessage(messageContent, [attachment]);
-    } else if (this.selectedRoom && this.currentUser) {
-      const message: Omit<ChatMessage, 'id'> = {
-        roomId: this.selectedRoom.id,
-        senderId: this.currentUser.uid,
-        senderName: `${this.currentUser.firstName} ${this.currentUser.lastName}`,
-        senderRole: 'user',
-        message: messageContent,
-        timestamp: new Date(),
-        isEdited: false,
-        attachments: [attachment]
-      };
-      
-      await this.chatService.sendMessage(this.selectedRoom.id, message);
     }
     
     this.scrollToBottom();
@@ -321,6 +305,18 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '';
   }
 
+  async openVideoModal(attachment: ChatAttachment) {
+    const modal = await this.modalController.create({
+      component: VideoPlayerModalComponent,
+      componentProps: {
+        videoUrl: attachment.url,
+        title: attachment.title || 'Shared Video'
+      },
+      cssClass: 'video-modal'
+    });
+    return await modal.present();
+  }
+
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
@@ -335,33 +331,6 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
       cssClass: 'video-modal'
     });
     return await modal.present();
-  }
-
-  async sendGroupMessage() {
-    if (this.groupMessageText.trim() && this.selectedRoom && this.currentUser) {
-      const message: Omit<ChatMessage, 'id'> = {
-        roomId: this.selectedRoom.id,
-        senderId: this.currentUser.uid,
-        senderName: `${this.currentUser.firstName} ${this.currentUser.lastName}`,
-        senderRole: 'user',
-        message: this.groupMessageText.trim(),
-        timestamp: new Date(),
-        isEdited: false
-      };
-      
-      await this.chatService.sendMessage(this.selectedRoom.id, message);
-      this.groupMessageText = '';
-      this.scrollToBottomGroup();
-    }
-  }
-
-  onGroupKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      if (this.groupMessageText.trim()) {
-        this.sendGroupMessage();
-      }
-    }
   }
 
   async handleFollowUpAction(action: string, text: string) {
@@ -419,34 +388,10 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   async joinRoom(room: ChatRoom) {
-    if (this.currentUser) {
-      try {
-        await this.chatService.joinRoom(room.id, this.currentUser.uid);
-        this.selectedRoom = room;
-        this.scrollToBottomGroup();
-      } catch (error: any) {
-        console.error('Error joining room:', error);
-        // Handle room full or other errors
-      }
-    }
-  }
-
-  backToGroupList() {
-    this.selectedRoom = null;
-  }
-
   private scrollToBottom() {
     setTimeout(() => {
       if (this.messagesContainer) {
         this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
-      }
-    }, 300);
-  }
-
-  private scrollToBottomGroup() {
-    setTimeout(() => {
-      if (this.groupMessagesContainer) {
-        this.groupMessagesContainer.nativeElement.scrollTop = this.groupMessagesContainer.nativeElement.scrollHeight;
       }
     }, 300);
   }
