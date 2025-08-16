@@ -49,13 +49,12 @@ export class OnboardingPage implements OnInit {
     });
   }
 
-  ngOnInit() {}
-
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
     });
   }
+
 
   nextStep() {
     if (this.validateCurrentStep()) {
@@ -219,10 +218,9 @@ export class OnboardingPage implements OnInit {
   }
 
   isPregnantMother(): boolean {
+    return this.onboardingForm.get('motherType')?.value === 'pregnant';
   }
-}
-ngOnInit() {
+
   isNewMother(): boolean {
     return this.onboardingForm.get('motherType')?.value === 'new_mom';
   }
-}
