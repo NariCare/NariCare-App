@@ -1,1 +1,455 @@
-(Content omitted)
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Chat & Support</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="chat-container">
+    
+    <!-- Tab Selector -->
+    <div class="tab-selector">
+      <ion-segment [(ngModel)]="selectedTab" (ionChange)="onTabChange($event)">
+        <ion-segment-button value="groups">
+          <ion-label>Groups</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="ai">
+          <ion-label>AI Assistant</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Group Chat Tab -->
+    <div class="tab-content" *ngIf="selectedTab === 'groups'">
+      
+      <!-- Groups List -->
+      <div class="groups-list-container">
+        <div class="groups-header">
+          <h2>Mom-to-Mom Support Groups</h2>
+          <p>Connect with other mothers in topic-based chat rooms</p>
+        </div>
+
+        <!-- General Groups Section -->
+        <div class="groups-section">
+          <h3 class="subsection-title">🌟 Join a Support Group</h3>
+          <p class="subsection-description">Connect with up to 20 mothers and expert moderators</p>
+          
+          <div class="chat-rooms-list">
+            <div 
+              *ngFor="let room of chatRooms$ | async"
+              class="room-card"
+              [class.room-full]="room.participants.length >= room.maxParticipants"
+              (click)="joinRoom(room)">
+              <div class="room-icon">
+                <ion-icon [name]="getRoomIcon(room.topic)"></ion-icon>
+              </div>
+              <div class="room-content">
+                <div class="room-header">
+                  <h3>{{ room.name }}</h3>
+                  <div class="room-stats">
+                    <span class="participant-count">{{ room.participants.length }}/{{ room.maxParticipants }}</span>
+                    <ion-chip color="success" size="small" *ngIf="room.moderators.length > 0">
+                      <ion-icon name="shield-checkmark" slot="start"></ion-icon>
+                      Expert Moderated
+                    </ion-chip>
+                  </div>
+                </div>
+                <p class="room-description">{{ room.description }}</p>
+                <div class="room-footer">
+                  <div class="room-topics">
+                    <ion-chip color="light" size="small">{{ room.topic | titlecase }}</ion-chip>
+                  </div>
+                  <span class="join-status" *ngIf="room.participants.length >= room.maxParticipants">
+                    Group Full
+                  </span>
+                  <span class="join-status" *ngIf="room.participants.length < room.maxParticipants">
+                    {{ room.maxParticipants - room.participants.length }} spots left
+                  </span>
+                </div>
+              </div>
+              <div class="room-action">
+                <ion-button 
+                  fill="outline" 
+                  size="small"
+                  [disabled]="room.participants.length >= room.maxParticipants"
+                  class="join-room-button">
+                  <ion-icon [name]="room.participants.length >= room.maxParticipants ? 'lock-closed' : 'enter'" slot="start"></ion-icon>
+                  {{ room.participants.length >= room.maxParticipants ? 'Full' : 'Join' }}
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popular Topics -->
+        <div class="popular-topics">
+          <h3 class="subsection-title">💬 Popular Discussion Topics</h3>
+          <div class="topics-grid">
+            <div class="topic-card" *ngFor="let topic of ['Newborn Care', 'Pumping Tips', 'Sleep Training', 'Nutrition', 'Working Moms', 'Twins & Multiples']">
+              <ion-icon [name]="getTopicIcon(topic)"></ion-icon>
+              <span>{{ topic }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Assistant Tab -->
+    <div class="tab-content ai-chat" *ngIf="selectedTab === 'ai'">
+      <div class="ai-header">
+        <div class="ai-avatar">
+          <ion-icon name="chatbot"></ion-icon>
+        </div>
+        <div class="ai-info">
+          <h3>AI Lactation Assistant</h3>
+          <p>Get instant help with breastfeeding questions</p>
+        </div>
+        <div class="voice-controls">
+          <ion-button 
+            fill="clear" 
+            size="small"
+            (click)="toggleVoiceMode()"
+            *ngIf="isVoiceModeSupported()"
+            class="voice-mode-button"
+            [class.voice-mode-active]="(voiceMode$ | async)?.isActive"
+            [class.voice-mode-listening]="(voiceMode$ | async)?.isListening">
+            <ion-icon 
+              [name]="(voiceMode$ | async)?.isActive ? 'mic' : 'mic-outline'" 
+              slot="icon-only"
+              [class.listening-pulse]="(voiceMode$ | async)?.isListening">
+            </ion-icon>
+          </ion-button>
+          <ion-button 
+            fill="clear" 
+            size="small"
+            (click)="toggleVoiceSettings()"
+            class="voice-settings-button">
+            <ion-icon name="settings" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Voice Settings Panel -->
+      <div class="voice-settings-panel" *ngIf="showVoiceSettings" (click)="$event.stopPropagation()">
+        <div class="settings-header">
+          <h4>Voice Settings</h4>
+          <ion-button fill="clear" size="small" (click)="toggleVoiceSettings()">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        
+        <div class="settings-content">
+          <div class="setting-group">
+            <label>Speech Rate</label>
+            <p class="setting-description">Adjust speaking speed for comfort</p>
+            <div class="rate-controls">
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 0.5"
+                (click)="setSpeechRate(0.5)">
+                Slow
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 0.75"
+                (click)="setSpeechRate(0.75)">
+                Relaxed
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 0.9"
+                (click)="setSpeechRate(0.9)">
+                Natural
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 1.1"
+                (click)="setSpeechRate(1.1)">
+                Quick
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechRate === 1.3"
+                (click)="setSpeechRate(1.3)">
+                Fast
+              </ion-button>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <label>Voice Warmth</label>
+            <p class="setting-description">Adjust voice tone for comfort</p>
+            <div class="rate-controls">
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechPitch === 0.8"
+                (click)="setSpeechPitch(0.8)">
+                Deep
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechPitch === 0.95"
+                (click)="setSpeechPitch(0.95)">
+                Warm
+              </ion-button>
+              <ion-button 
+                fill="outline" 
+                size="small"
+                [class.active]="speechPitch === 1.1"
+                (click)="setSpeechPitch(1.1)">
+                Bright
+              </ion-button>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <label>Auto-speak responses</label>
+            <p class="setting-description">Automatically read responses aloud</p>
+            <ion-toggle 
+              [(ngModel)]="autoSpeakEnabled"
+              (ionChange)="onAutoSpeakToggle($event)">
+            </ion-toggle>
+          </div>
+
+          <div class="setting-group">
+            <label>Voice Selection</label>
+            <p class="setting-description">Choose your preferred voice assistant</p>
+            <ion-select 
+              [(ngModel)]="selectedVoiceIndex"
+              (ionChange)="onVoiceSelectionChange($event)"
+              interface="popover"
+              placeholder="Select a voice"
+              class="voice-select">
+              <ion-select-option 
+                *ngFor="let voice of availableVoices; let i = index" 
+                [value]="i">
+                {{ getVoiceDisplayName(voice) }}
+              </ion-select-option>
+            </ion-select>
+            <ion-button 
+              fill="outline" 
+              size="small" 
+              (click)="testSelectedVoice()"
+              class="test-voice-button">
+              <ion-icon name="volume-high" slot="start"></ion-icon>
+              Test Voice
+            </ion-button>
+          </div>
+
+          <div class="setting-group">
+            <label>Natural Speech</label>
+            <p class="setting-description">Enable more conversational speech patterns</p>
+            <ion-toggle 
+              [(ngModel)]="naturalSpeechEnabled"
+              (ionChange)="onNaturalSpeechToggle($event)">
+            </ion-toggle>
+          </div>
+        </div>
+      </div>
+      <div class="messages-container" #messagesContainer>
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="isInitializing">
+          <div class="loading-avatar">
+            <ion-icon name="chatbot"></ion-icon>
+          </div>
+          <div class="loading-content">
+            <div class="loading-bubble">
+              <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+            <span class="loading-text">Initializing AI Assistant...</span>
+          </div>
+        </div>
+
+        <div 
+          *ngFor="let message of chatbotMessages$ | async"
+          class="message"
+          [class.user-message]="message.sender === 'user'"
+          [class.bot-message]="message.sender === 'bot'"
+          [class.typing]="message.isTyping"
+          [class.duplicate-hidden]="message.isTyping && hasMultipleTypingMessages()">
+          
+          <div class="message-avatar" *ngIf="message.sender === 'bot'">
+            <ion-icon name="chatbot"></ion-icon>
+          </div>
+          
+          <div class="message-content">
+            <!-- Voice Control for Bot Messages -->
+            <div class="message-voice-control" *ngIf="message.sender === 'bot' && !message.isTyping">
+              <ion-button 
+                fill="clear" 
+                size="small"
+                (click)="toggleMessageSpeech(message.id, message.content)"
+                [class.speaking]="message.isPlaying"
+                class="voice-control-button">
+                <ion-icon 
+                  [name]="message.isPlaying ? 'stop' : 'volume-high'" 
+                  slot="icon-only">
+                </ion-icon>
+              </ion-button>
+            </div>
+
+            <div class="message-bubble">
+              <div *ngIf="!message.isTyping" class="message-text">
+                <div *ngIf="message.formattedContent?.formatting?.sections; else simpleContent">
+                  <div *ngFor="let section of message.formattedContent.formatting.sections" class="content-section">
+                    <h4 *ngIf="section.title" class="section-title">{{ section.title }}</h4>
+                    <div [ngSwitch]="section.type">
+                      <p *ngSwitchCase="'text'" [innerHTML]="formatText(section.content)"></p>
+                      <ul *ngSwitchCase="'list'" class="message-list">
+                        <li *ngFor="let item of parseListItems(section.content)" [innerHTML]="formatText(item)"></li>
+                      </ul>
+                      <div *ngSwitchCase="'callout'" class="message-callout" [innerHTML]="formatText(section.content)"></div>
+                    </div>
+                  </div>
+                </div>
+                <ng-template #simpleContent>
+                  <div [innerHTML]="formatText(message.content)"></div>
+                </ng-template>
+              </div>
+              <div class="typing-indicator" *ngIf="message.isTyping">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              
+              <!-- Speaking Indicator -->
+              <div class="speaking-indicator" *ngIf="message.isPlaying">
+                <div class="sound-wave">
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                  <div class="wave-bar"></div>
+                </div>
+                <span>Speaking...</span>
+              </div>
+            </div>
+            
+            <!-- Follow-up Options -->
+            <div *ngIf="message.followUpOptions && message.followUpOptions.length > 0" class="follow-up-options">
+              <ion-button 
+                *ngFor="let option of message.followUpOptions"
+                fill="outline" 
+                size="small"
+                (click)="handleFollowUpAction(option.action, option.text)"
+                class="follow-up-button">
+                {{ option.text }}
+              </ion-button>
+            </div>
+            
+            <!-- AI Message Attachments -->
+            <div class="message-attachments" *ngIf="message.attachments && message.attachments.length > 0">
+              <div *ngFor="let attachment of message.attachments" class="attachment-item">
+                
+                <!-- Image Attachment -->
+                <div *ngIf="attachment.type === 'image'" class="image-attachment">
+                  <img [src]="attachment.url" [alt]="attachment.title || 'Shared image'" class="attachment-image">
+                  <p *ngIf="attachment.title" class="attachment-title">{{ attachment.title }}</p>
+                </div>
+                
+                <!-- Video Attachment -->
+                <div *ngIf="attachment.type === 'video'" class="video-attachment" (click)="openVideoModal(attachment)">
+                  <div class="video-thumbnail">
+                    <img [src]="getYouTubeThumbnail(attachment.url)" [alt]="attachment.title || 'Video thumbnail'" *ngIf="getYouTubeThumbnail(attachment.url)">
+                    <div class="video-placeholder" *ngIf="!getYouTubeThumbnail(attachment.url)">
+                      <ion-icon name="videocam"></ion-icon>
+                    </div>
+                    <div class="play-overlay">
+                      <ion-icon name="play"></ion-icon>
+                    </div>
+                  </div>
+                  <div class="video-info">
+                    <h5 *ngIf="attachment.title">{{ attachment.title }}</h5>
+                    <p *ngIf="attachment.description">{{ attachment.description }}</p>
+                    <span class="video-url">{{ attachment.url }}</span>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+            
+            <span class="message-time">{{ getMessageTime(message.timestamp) }}</span>
+          </div>
+          
+          <div class="message-avatar user-avatar" *ngIf="message.sender === 'user'">
+            <ion-icon name="person"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="expert-help-banner" *ngIf="(chatbotMessages$ | async) && (chatbotMessages$ | async)!.length > 4">
+        <div class="banner-content">
+          <ion-icon name="people"></ion-icon>
+          <div class="banner-text">
+            <h4>Need personalized help?</h4>
+            <p>Connect with our lactation experts</p>
+          </div>
+        </div>
+        <ion-button fill="outline" size="small" (click)="requestExpertHelp()">
+          Get Expert Help
+        </ion-button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Message Input (for AI chat) -->
+  <div class="message-input-container fixed-bottom" *ngIf="selectedTab === 'ai' && !(voiceMode$ | async)?.isActive">
+    <div class="message-input">
+      <ion-button 
+        fill="clear" 
+        size="small"
+        (click)="openPhotoInput()"
+        class="attachment-button">
+        <ion-icon name="image" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button 
+        fill="clear" 
+        size="small"
+        (click)="openVideoLinkInput()"
+        class="attachment-button">
+        <ion-icon name="videocam" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-textarea
+        [(ngModel)]="messageText"
+        placeholder="Ask about breastfeeding, baby care, or any concerns..."
+        rows="1"
+        autoGrow="true"
+        maxlength="500"
+        (keydown)="onKeyDown($event)"
+        class="message-textarea">
+      </ion-textarea>
+      <ion-button 
+        fill="clear" 
+        (click)="toggleVoiceInput()"
+        [disabled]="isRecording"
+        class="voice-button"
+        [class.recording]="isRecording">
+        <ion-icon [name]="isRecording ? 'stop' : 'mic'" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button 
+        fill="clear" 
+        (click)="sendMessage()"
+        [disabled]="!messageText?.trim()"
+        class="send-button">
+        <ion-icon name="send" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+    <div class="voice-status" *ngIf="isRecording">
+      <div class="recording-indicator">
+        <div class="pulse"></div>
+        <span>Listening...</span>
+      </div>
+    </div>
+  </div>
+</ion-content>
