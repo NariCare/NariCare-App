@@ -32,8 +32,6 @@ export class RegisterPage implements OnInit {
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      phoneNumber: [''],
-      password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
       tierType: ['basic', [Validators.required]],
       agreeToTerms: [false, [Validators.requiredTrue]]
