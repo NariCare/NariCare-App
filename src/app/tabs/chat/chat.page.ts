@@ -388,6 +388,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   async joinRoom(room: ChatRoom) {
+  }
   private scrollToBottom() {
     setTimeout(() => {
       if (this.messagesContainer) {
