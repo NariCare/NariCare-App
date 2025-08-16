@@ -54,6 +54,14 @@ export class RegisterPage implements OnInit {
     return null;
   }
 
+  isPregnantMother(): boolean {
+    return this.registerForm.get('motherType')?.value === 'pregnant';
+  }
+
+  isNewMother(): boolean {
+    return this.registerForm.get('motherType')?.value === 'new_mom';
+  }
+
   nextStep() {
     if (this.currentStep === 1) {
       const personalFields = ['firstName', 'lastName', 'email', 'password', 'confirmPassword'];
