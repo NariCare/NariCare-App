@@ -23,11 +23,12 @@ export class RegisterPage implements OnInit {
     private loadingController: LoadingController,
     private toastController: ToastController
   ) {
+    this.registerForm = this.formBuilder.group({
       password: ['', [Validators.required, Validators.minLength(6)]],
       motherType: ['', [Validators.required]],
       phoneNumber: ['', [Validators.required]],
       whatsappNumber: ['', [Validators.required]],
-      dueDate: ['']
+      dueDate: [''],
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
@@ -52,14 +53,6 @@ export class RegisterPage implements OnInit {
     }
     
     return null;
-  }
-
-  isPregnantMother(): boolean {
-    return this.registerForm.get('motherType')?.value === 'pregnant';
-  }
-
-  isNewMother(): boolean {
-    return this.registerForm.get('motherType')?.value === 'new_mom';
   }
 
   nextStep() {
