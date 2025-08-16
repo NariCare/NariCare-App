@@ -220,6 +220,7 @@ export class OnboardingPage implements OnInit {
 
   isPregnantMother(): boolean {
   }
+}
 ngOnInit() {
   isNewMother(): boolean {
     return this.onboardingForm.get('motherType')?.value === 'new_mom';
