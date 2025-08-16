@@ -16,9 +16,8 @@ import { VideoPlayerModalComponent } from '../../components/video-player-modal/v
 })
 export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
-  @ViewChild('groupMessagesContainer', { static: false }) groupMessagesContainer!: ElementRef;
   selectedTab = 'groups';
-  selectedRoom: ChatRoom | null = null;
+  chatRooms$: Observable<ChatRoom[]>;
   chatbotMessages$: Observable<ChatbotMessage[]>;
   voiceMode$: Observable<VoiceMode>;
   messageText = '';
@@ -319,18 +318,6 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
 
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
-  }
-
-  async openVideoModal(attachment: ChatAttachment) {
-    const modal = await this.modalController.create({
-      component: VideoPlayerModalComponent,
-      componentProps: {
-        videoUrl: attachment.url,
-        title: attachment.title || 'Shared Video'
-      },
-      cssClass: 'video-modal'
-    });
-    return await modal.present();
   }
 
   async handleFollowUpAction(action: string, text: string) {
