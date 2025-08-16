@@ -123,6 +123,50 @@ export class RegisterPage implements OnInit {
     this.router.navigate(['/auth/login']);
   }
 
+  async signInWithGoogle() {
+    const loading = await this.loadingController.create({
+      message: 'Signing up with Google...',
+      translucent: true
+    });
+    await loading.present();
+
+    try {
+      await this.authService.signInWithGoogle();
+      await loading.dismiss();
+    } catch (error: any) {
+      await loading.dismiss();
+      const toast = await this.toastController.create({
+        message: error.message || 'Google sign-up failed. Please try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
+  }
+
+  async signInWithFacebook() {
+    const loading = await this.loadingController.create({
+      message: 'Signing up with Facebook...',
+      translucent: true
+    });
+    await loading.present();
+
+    try {
+      await this.authService.signInWithFacebook();
+      await loading.dismiss();
+    } catch (error: any) {
+      await loading.dismiss();
+      const toast = await this.toastController.create({
+        message: error.message || 'Facebook sign-up failed. Please try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
+  }
+
   private markFormGroupTouched() {
     Object.keys(this.registerForm.controls).forEach(key => {
       this.registerForm.get(key)?.markAsTouched();

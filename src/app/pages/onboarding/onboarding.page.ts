@@ -189,7 +189,18 @@ export class OnboardingPage implements OnInit {
   getErrorMessage(field: string): string {
     const control = this.onboardingForm.get(field);
     if (control?.hasError('required')) {
-      return `This field is required`;
+      const fieldLabels: { [key: string]: string } = {
+        'motherType': 'Please select if you are pregnant or a new mother',
+        'phoneNumber': 'Mobile number is required',
+        'whatsappNumber': 'WhatsApp number is required',
+        'dueDate': 'Due date is required',
+        'babyName': 'Baby\'s name is required',
+        'babyGender': 'Baby\'s gender is required',
+        'dateOfBirth': 'Baby\'s birth date is required',
+        'birthWeight': 'Baby\'s birth weight is required',
+        'birthHeight': 'Baby\'s birth height is required'
+      };
+      return fieldLabels[field] || 'This field is required';
     }
     if (control?.hasError('min')) {
       return `Value is too low`;
@@ -198,5 +209,13 @@ export class OnboardingPage implements OnInit {
       return `Value is too high`;
     }
     return '';
+  }
+
+  isPregnantMother(): boolean {
+    return this.onboardingForm.get('motherType')?.value === 'pregnant';
+  }
+
+  isNewMother(): boolean {
+    return this.onboardingForm.get('motherType')?.value === 'new_mom';
   }
 }
