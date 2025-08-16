@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
-import { Baby } from '../../models/user.model';
+import { Baby, User } from '../../models/user.model';
 import { v4 as uuidv4 } from 'uuid';
 
 @Component({
@@ -219,9 +219,8 @@ export class OnboardingPage implements OnInit {
   }
 
   isPregnantMother(): boolean {
-    return this.onboardingForm.get('motherType')?.value === 'pregnant';
   }
-
+ngOnInit() {
   isNewMother(): boolean {
     return this.onboardingForm.get('motherType')?.value === 'new_mom';
   }

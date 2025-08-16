@@ -11,6 +11,7 @@ export interface User {
   isOnboardingCompleted: boolean;
   notificationPreferences: NotificationPreferences;
   babies: Baby[];
+  socialProvider?: string;
 }
 
 export interface Baby {
