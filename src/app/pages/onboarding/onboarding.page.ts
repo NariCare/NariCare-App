@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class OnboardingPage implements OnInit {
   currentStep = 1;
   totalSteps = 3;
+  user: User | null = null;
   onboardingForm: FormGroup;
 
   constructor(
@@ -49,6 +50,12 @@ export class OnboardingPage implements OnInit {
   }
 
   ngOnInit() {}
+
+  ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.user = user;
+    });
+  }
 
   nextStep() {
     if (this.validateCurrentStep()) {
