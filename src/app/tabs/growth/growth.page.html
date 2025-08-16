@@ -23,7 +23,7 @@
         <span class="action-label">Feed</span>
       </div>
 
-      <div class="action-button poo" (click)="onPoo()">
+      <div class="action-button poo" (click)="openDiaperLogModal()">
         <div class="action-icon">
           <ion-icon name="swap-horizontal"></ion-icon>
         </div>
@@ -37,7 +37,7 @@
         <span class="action-label">Weight</span>
       </div>
 
-      <div class="action-button pump" (click)="quickLogPumping()">
+      <div class="action-button pump" (click)="openPumpLogModal()">
         <div class="action-icon">
           <ion-icon name="medical"></ion-icon>
         </div>
@@ -607,18 +607,18 @@
   <!-- Stool Track Modal (preserved) -->
 
   <!-- Diaper Log Modal -->
-  <ion-modal [isOpen]="showDiaperLogModal" (didDismiss)="closeDiaperLogModal()">
+  <!-- <ion-modal [isOpen]="showDiaperLogModal" (didDismiss)="closeDiaperLogModal()">
     <ng-template>
       <app-diaper-log-modal (ionModalDidDismiss)="closeDiaperLogModal()">
       </app-diaper-log-modal>
     </ng-template>
-  </ion-modal>
+  </ion-modal> -->
 
   <!-- Pumping Log Modal -->
-  <ion-modal [isOpen]="showAddPumpingModal" (didDismiss)="closeAddPumpingModal()">
+  <!-- <ion-modal [isOpen]="showAddPumpingModal" (didDismiss)="closeAddPumpingModal()">
     <ng-template>
       <app-pumping-log-modal (ionModalDidDismiss)="closeAddPumpingModal()">
       </app-pumping-log-modal>
     </ng-template>
-  </ion-modal>
+  </ion-modal> -->
 </ion-content>
