@@ -375,6 +375,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   async joinRoom(room: ChatRoom) {
+    this.router.navigate(['/tabs/chat/room', room.id]);
   }
   private scrollToBottom() {
     setTimeout(() => {
