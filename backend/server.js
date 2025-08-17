@@ -1,4 +1,3 @@
-```javascript
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2/promise');
@@ -125,4 +124,3 @@ app.post('/api/login', async (req, res) => {
 app.listen(PORT, () => {
   console.log(\`Server running on port ${PORT}`);
 });
-```
