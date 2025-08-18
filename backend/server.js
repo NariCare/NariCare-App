@@ -1,128 +1,169 @@
-```javascript
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2/promise');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const { v4: uuidv4 } = require('uuid');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const logger = require('./utils/logger');
+const errorHandler = require('./middleware/errorHandler');
+const db = require('./config/database');
+
+// Import routes
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const babyRoutes = require('./routes/babyRoutes');
+const trackerRoutes = require('./routes/trackerRoutes');
+const emotionRoutes = require('./routes/emotionRoutes');
+const knowledgeRoutes = require('./routes/knowledgeRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const expertRoutes = require('./routes/expertRoutes');
+const consultationRoutes = require('./routes/consultationRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const timelineRoutes = require('./routes/timelineRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
 
-// Database connection pool
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: Math.ceil((parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000) / 1000)
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
-// Test DB connection
-pool.getConnection()
-  .then(connection => {
-    console.log('Connected to MySQL database!');
-    connection.release();
-  })
-  .catch(err => {
-    console.error('Error connecting to database:', err.message);
-    process.exit(1); // Exit if DB connection fails
+app.use(limiter);
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:8100',
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.path}`, {
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    timestamp: new Date().toISOString()
   });
-
-// Register Route
-app.post('/api/register', async (req, res) => {
-  const { email, password, firstName, lastName, phoneNumber, motherType, dueDate, whatsappNumber } = req.body;
-
-  if (!email || !password || !firstName || !lastName) {
-    return res.status(400).json({ message: 'Please provide email, password, first name, and last name.' });
-  }
-
-  try {
-    // Check if user already exists
-    const [existingUsers] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
-    if (existingUsers.length > 0) {
-      return res.status(409).json({ message: 'User with this email already exists.' });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const userId = uuidv4();
-
-    // Insert new user
-    const [result] = await pool.execute(
-      'INSERT INTO users (id, email, password_hash, first_name, last_name, phone_number, mother_type, due_date, whatsapp_number, is_onboarding_completed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [userId, email, hashedPassword, firstName, lastName, phoneNumber, motherType, dueDate, whatsappNumber, false]
-    );
-
-    // Automatically create a basic tier for the new user
-    await pool.execute(
-      'INSERT INTO user_tiers (id, user_id, tier_type, start_date, consultations_remaining, is_active) VALUES (?, ?, ?, CURDATE(), ?, ?)',
-      [uuidv4(), userId, 'basic', 0, true]
-    );
-
-    res.status(201).json({ message: 'User registered successfully!', userId });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration.' });
-  }
+  next();
 });
 
-// Login Route
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Please provide email and password.' });
-  }
-
-  try {
-    // Find user by email
-    const [users] = await pool.execute('SELECT id, email, password_hash, first_name, last_name, role FROM users WHERE email = ?', [email]);
-    const user = users[0];
-
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials.' });
-    }
-
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials.' });
-    }
-
-    // Generate JWT
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' } // Token expires in 1 hour
-    );
-
-    res.status(200).json({
-      message: 'Login successful!',
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login.' });
-  }
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV,
+    version: require('./package.json').version
+  });
 });
 
-// Start the server
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/babies', babyRoutes);
+app.use('/api/tracker', trackerRoutes);
+app.use('/api/emotions', emotionRoutes);
+app.use('/api/knowledge', knowledgeRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/experts', expertRoutes);
+app.use('/api/consultations', consultationRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/timeline', timelineRoutes);
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Endpoint not found',
+    message: `Cannot ${req.method} ${req.originalUrl}`,
+    availableEndpoints: [
+      'GET /health',
+      'POST /api/auth/register',
+      'POST /api/auth/login',
+      'POST /api/auth/2fa/enable',
+      'POST /api/auth/2fa/verify',
+      'GET /api/users/profile',
+      'GET /api/babies',
+      'POST /api/tracker/feed',
+      'GET /api/knowledge/articles'
+    ]
+  });
+});
+
+// Global error handler (must be last)
+app.use(errorHandler);
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  
+  try {
+    await db.end();
+    logger.info('Database connections closed');
+  } catch (error) {
+    logger.error('Error closing database connections:', error);
+  }
+  
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  
+  try {
+    await db.end();
+    logger.info('Database connections closed');
+  } catch (error) {
+    logger.error('Error closing database connections:', error);
+  }
+  
+  process.exit(0);
+});
+
+// Start server
 app.listen(PORT, () => {
-  console.log(\`Server running on port ${PORT}`);
+  logger.info(`🚀 NariCare API server running on port ${PORT}`);
+  logger.info(`📊 Health check available at http://localhost:${PORT}/health`);
+  logger.info(`🌍 Environment: ${process.env.NODE_ENV}`);
+  
+  // Test database connection on startup
+  db.getConnection()
+    .then(connection => {
+      logger.info('✅ Database connection successful');
+      connection.release();
+    })
+    .catch(err => {
+      logger.error('❌ Database connection failed:', err.message);
+    });
 });
-```
+
+module.exports = app;
