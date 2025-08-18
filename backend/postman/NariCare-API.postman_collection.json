@@ -1,0 +1,1352 @@
+{
+  "info": {
+    "name": "NariCare Backend API",
+    "description": "Comprehensive API collection for NariCare breastfeeding support application",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🏥 Health Check",
+      "item": [
+        {
+          "name": "Server Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/../health",
+              "host": ["{{base_url}}"],
+              "path": ["..", "health"]
+            },
+            "description": "Check if the server is running and healthy"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.user && response.user.id) {",
+                  "        pm.environment.set('user_id', response.user.id);",
+                  "        console.log('User ID saved:', response.user.id);",
+                  "    }",
+                  "    if (response.token) {",
+                  "        pm.environment.set('jwt_token', response.token);",
+                  "        console.log('JWT token saved');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Sarah\",\n  \"lastName\": \"Johnson\",\n  \"email\": \"sarah.johnson@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"phoneNumber\": \"+1234567890\",\n  \"motherType\": \"new_mom\",\n  \"tier\": \"basic\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.token) {",
+                  "        pm.environment.set('jwt_token', response.token);",
+                  "        console.log('JWT token saved');",
+                  "    }",
+                  "    if (response.user && response.user.id) {",
+                  "        pm.environment.set('user_id', response.user.id);",
+                  "        console.log('User ID saved:', response.user.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sarah.johnson@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Enable 2FA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"email\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/enable",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "enable"]
+            }
+          }
+        },
+        {
+          "name": "Verify 2FA OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sarah.johnson@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sarah.johnson@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/resend-otp",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "resend-otp"]
+            }
+          }
+        },
+        {
+          "name": "Disable 2FA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/disable",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "disable"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 User Management",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Sarah\",\n  \"lastName\": \"Johnson\",\n  \"phoneNumber\": \"+1234567890\",\n  \"whatsappNumber\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Notification Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"articleUpdates\": true,\n  \"callReminders\": true,\n  \"groupMessages\": false,\n  \"growthReminders\": true,\n  \"expertMessages\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["users", "notifications"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👶 Baby Management",
+      "item": [
+        {
+          "name": "Create Baby",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.baby && response.baby.id) {",
+                  "        pm.environment.set('baby_id', response.baby.id);",
+                  "        console.log('Baby ID saved:', response.baby.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Emma\",\n  \"dateOfBirth\": \"2024-12-01\",\n  \"gender\": \"female\",\n  \"birthWeight\": 3.2,\n  \"birthHeight\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/babies",
+              "host": ["{{base_url}}"],
+              "path": ["babies"]
+            }
+          }
+        },
+        {
+          "name": "Get User Babies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/babies",
+              "host": ["{{base_url}}"],
+              "path": ["babies"]
+            }
+          }
+        },
+        {
+          "name": "Get Baby by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/babies/{{baby_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["babies", "{{baby_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Baby",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Emma Rose\",\n  \"currentWeight\": 4.2,\n  \"currentHeight\": 55\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/babies/{{baby_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["babies", "{{baby_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Growth Tracking",
+      "item": [
+        {
+          "name": "Create Feed Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"babyId\": \"{{baby_id}}\",\n  \"feedTypes\": [\"direct\"],\n  \"directFeedDetails\": {\n    \"startTime\": \"09:30\",\n    \"breastSide\": \"left\",\n    \"duration\": 20,\n    \"painLevel\": 1\n  },\n  \"notes\": \"Good feeding session, baby seemed satisfied\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tracker/growth-records",
+              "host": ["{{base_url}}"],
+              "path": ["tracker", "growth-records"]
+            }
+          }
+        },
+        {
+          "name": "Get Feed Records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tracker/growth-records?babyId={{baby_id}}&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["tracker", "growth-records"],
+              "query": [
+                {
+                  "key": "babyId",
+                  "value": "{{baby_id}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Weight Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"babyId\": \"{{baby_id}}\",\n  \"weight\": 4.2,\n  \"height\": 55,\n  \"notes\": \"Weekly weight check - good growth!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tracker/weight-records",
+              "host": ["{{base_url}}"],
+              "path": ["tracker", "weight-records"]
+            }
+          }
+        },
+        {
+          "name": "Get Weight Records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tracker/weight-records?babyId={{baby_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tracker", "weight-records"],
+              "query": [
+                {
+                  "key": "babyId",
+                  "value": "{{baby_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Stool Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"babyId\": \"{{baby_id}}\",\n  \"time\": \"10:30\",\n  \"color\": {\n    \"value\": \"mustard-yellow\",\n    \"label\": \"Mustard yellow\",\n    \"color\": \"#d97706\"\n  },\n  \"texture\": {\n    \"value\": \"pasty\",\n    \"label\": \"Pasty\",\n    \"icon\": \"ellipse\"\n  },\n  \"size\": {\n    \"value\": \"tablespoon\",\n    \"label\": \"Tablespoon\",\n    \"icon\": \"ellipse\"\n  },\n  \"peeCount\": 6,\n  \"poopCount\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tracker/stool-records",
+              "host": ["{{base_url}}"],
+              "path": ["tracker", "stool-records"]
+            }
+          }
+        },
+        {
+          "name": "Create Pumping Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"babyId\": \"{{baby_id}}\",\n  \"time\": \"14:00\",\n  \"pumpingSide\": \"both\",\n  \"totalOutput\": 120,\n  \"duration\": 15,\n  \"notes\": \"Good pumping session\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tracker/pumping-records",
+              "host": ["{{base_url}}"],
+              "path": ["tracker", "pumping-records"]
+            }
+          }
+        },
+        {
+          "name": "Get Daily Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tracker/daily-summary?babyId={{baby_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["tracker", "daily-summary"],
+              "query": [
+                {
+                  "key": "babyId",
+                  "value": "{{baby_id}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💭 Emotion Check-ins",
+      "item": [
+        {
+          "name": "Create Emotion Check-in",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"selectedStruggles\": [\n    {\n      \"id\": \"tired\",\n      \"text\": \"I feel exhausted and overwhelmed\",\n      \"emoji\": \"😴\",\n      \"category\": \"physical\"\n    }\n  ],\n  \"selectedPositiveMoments\": [\n    {\n      \"id\": \"bonding\",\n      \"text\": \"I felt a special connection with my baby\",\n      \"emoji\": \"🥰\",\n      \"category\": \"bonding\"\n    }\n  ],\n  \"selectedConcerningThoughts\": [],\n  \"gratefulFor\": \"My baby's healthy growth\",\n  \"proudOfToday\": \"Successfully breastfeeding\",\n  \"tomorrowGoal\": \"Get more rest\",\n  \"additionalNotes\": \"Overall feeling positive about the journey\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/emotions/checkins",
+              "host": ["{{base_url}}"],
+              "path": ["emotions", "checkins"]
+            }
+          }
+        },
+        {
+          "name": "Get Emotion Check-ins",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/emotions/checkins?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["emotions", "checkins"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Crisis Check-in (Test Alert)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"selectedStruggles\": [\n    {\n      \"id\": \"hopeless\",\n      \"text\": \"I feel hopeless about the future\",\n      \"emoji\": \"😰\",\n      \"category\": \"emotional\"\n    }\n  ],\n  \"selectedPositiveMoments\": [],\n  \"selectedConcerningThoughts\": [\n    {\n      \"id\": \"harm-thoughts\",\n      \"text\": \"I've thought of harming myself or my baby\",\n      \"emoji\": \"🚨\",\n      \"severity\": \"critical\"\n    }\n  ],\n  \"additionalNotes\": \"Testing crisis intervention system\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/emotions/checkins",
+              "host": ["{{base_url}}"],
+              "path": ["emotions", "checkins"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📚 Knowledge Base",
+      "item": [
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/knowledge/categories",
+              "host": ["{{base_url}}"],
+              "path": ["knowledge", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Articles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/knowledge/articles?featured=true&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["knowledge", "articles"],
+              "query": [
+                {
+                  "key": "featured",
+                  "value": "true"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Articles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/knowledge/articles/search?q=breastfeeding&category=breastfeeding-techniques",
+              "host": ["{{base_url}}"],
+              "path": ["knowledge", "articles", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "breastfeeding"
+                },
+                {
+                  "key": "category",
+                  "value": "breastfeeding-techniques"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Bookmark Article",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"articleId\": \"good-latch-breastfeeding\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/knowledge/bookmarks",
+              "host": ["{{base_url}}"],
+              "path": ["knowledge", "bookmarks"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Chat System",
+      "item": [
+        {
+          "name": "Get Chat Rooms",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chat/rooms",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "rooms"]
+            }
+          }
+        },
+        {
+          "name": "Join Chat Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chat/rooms/general-newborn-support/join",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "rooms", "general-newborn-support", "join"]
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hello everyone! New to the group and excited to connect with other moms. 👋\",\n  \"attachments\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/chat/rooms/general-newborn-support/messages",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "rooms", "general-newborn-support", "messages"]
+            }
+          }
+        },
+        {
+          "name": "Get Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/chat/rooms/general-newborn-support/messages?limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["chat", "rooms", "general-newborn-support", "messages"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👩‍⚕️ Expert System",
+      "item": [
+        {
+          "name": "Get Experts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.experts && response.experts.length > 0) {",
+                  "        pm.environment.set('expert_id', response.experts[0].id);",
+                  "        console.log('Expert ID saved:', response.experts[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/experts?specialty=Newborn Care&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["experts"],
+              "query": [
+                {
+                  "key": "specialty",
+                  "value": "Newborn Care"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Expert by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/experts/{{expert_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["experts", "{{expert_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Expert Availability",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/experts/{{expert_id}}/availability?date=2025-01-15",
+              "host": ["{{base_url}}"],
+              "path": ["experts", "{{expert_id}}", "availability"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-01-15"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📅 Consultations",
+      "item": [
+        {
+          "name": "Book Consultation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.consultation && response.consultation.id) {",
+                  "        pm.environment.set('consultation_id', response.consultation.id);",
+                  "        console.log('Consultation ID saved:', response.consultation.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expertId\": \"{{expert_id}}\",\n  \"scheduledAt\": \"2025-01-20T14:00:00Z\",\n  \"duration\": 30,\n  \"topic\": \"latching-issues\",\n  \"notes\": \"Baby having trouble latching properly, need guidance on positioning\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/consultations",
+              "host": ["{{base_url}}"],
+              "path": ["consultations"]
+            }
+          }
+        },
+        {
+          "name": "Get User Consultations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/consultations?status=scheduled",
+              "host": ["{{base_url}}"],
+              "path": ["consultations"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "scheduled"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Consultation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"notes\": \"Great session, baby is latching much better now\",\n  \"followUpRequired\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/consultations/{{consultation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["consultations", "{{consultation_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 Timeline & Milestones",
+      "item": [
+        {
+          "name": "Get Timeline Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/timeline/items?category=milestone&weekStart=0&weekEnd=12",
+              "host": ["{{base_url}}"],
+              "path": ["timeline", "items"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "milestone"
+                },
+                {
+                  "key": "weekStart",
+                  "value": "0"
+                },
+                {
+                  "key": "weekEnd",
+                  "value": "12"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Baby Timeline",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/timeline/baby/{{baby_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["timeline", "baby", "{{baby_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Mark Timeline Item Completed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timelineItemId\": \"two-months-milestones\",\n  \"notes\": \"Baby is smiling and making eye contact regularly!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/timeline/baby/{{baby_id}}/progress",
+              "host": ["{{base_url}}"],
+              "path": ["timeline", "baby", "{{baby_id}}", "progress"]
+            }
+          }
+        },
+        {
+          "name": "Get Milestone Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/timeline/baby/{{baby_id}}/milestones",
+              "host": ["{{base_url}}"],
+              "path": ["timeline", "baby", "{{baby_id}}", "milestones"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications",
+      "item": [
+        {
+          "name": "Send Push Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Feeding Reminder\",\n  \"body\": \"It's time for your baby's next feeding session\",\n  \"type\": \"feeding_reminder\",\n  \"data\": {\n    \"babyId\": \"{{baby_id}}\",\n    \"action\": \"open_tracker\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/notifications/send",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "send"]
+            }
+          }
+        },
+        {
+          "name": "Schedule Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Weekly Weight Check\",\n  \"body\": \"Don't forget to weigh your baby this week\",\n  \"type\": \"weight_reminder\",\n  \"scheduledFor\": \"2025-01-20T09:00:00Z\",\n  \"data\": {\n    \"babyId\": \"{{baby_id}}\",\n    \"reminderType\": \"weight_check\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/notifications/schedule",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "schedule"]
+            }
+          }
+        },
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications?limit=20&unread=true",
+              "host": ["{{base_url}}"],
+              "path": ["notifications"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "unread",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Analytics",
+      "item": [
+        {
+          "name": "Track User Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"feed_logged\",\n  \"eventData\": {\n    \"babyId\": \"{{baby_id}}\",\n    \"feedType\": \"direct\",\n    \"duration\": 20,\n    \"entryMethod\": \"manual\"\n  },\n  \"metadata\": {\n    \"userAgent\": \"NariCare Mobile App\",\n    \"platform\": \"ios\",\n    \"appVersion\": \"1.0.0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/analytics/events",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "events"]
+            }
+          }
+        },
+        {
+          "name": "Get Dashboard Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/analytics/dashboard?period=7d",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "dashboard"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "7d"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Feature Usage",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/analytics/features?period=30d",
+              "host": ["{{base_url}}"],
+              "path": ["analytics", "features"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "30d"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 Testing & Development",
+      "item": [
+        {
+          "name": "Test SendGrid Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"test@example.com\",\n  \"subject\": \"Test Email from NariCare\",\n  \"text\": \"This is a test email to verify SendGrid integration\",\n  \"html\": \"<h1>Test Email</h1><p>This is a test email to verify SendGrid integration</p>\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/test-email",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "test-email"]
+            }
+          }
+        },
+        {
+          "name": "Test Crisis Intervention",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"selectedConcerningThoughts\": [\n    {\n      \"id\": \"harm-thoughts\",\n      \"text\": \"I've thought of harming myself or my baby\",\n      \"emoji\": \"🚨\",\n      \"severity\": \"critical\"\n    }\n  ],\n  \"additionalNotes\": \"Testing crisis intervention system - this is a test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/emotions/checkins",
+              "host": ["{{base_url}}"],
+              "path": ["emotions", "checkins"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
