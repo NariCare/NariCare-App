@@ -217,9 +217,13 @@ export class ApiService {
       headers: this.getAuthHeaders()
     }).pipe(
       tap(() => {
-        this.clearToken();
+        this.clearUserDataFromStorage();
       }),
-      catchError(this.handleError)
+      catchError((error) => {
+        // Even if the logout API call fails, clear local data
+        this.clearUserDataFromStorage();
+        return this.handleError(error);
+      })
     );
   }
 
@@ -777,6 +781,37 @@ export class ApiService {
 
   private clearToken(): void {
     localStorage.removeItem('naricare_token');
+    this.tokenSubject.next(null);
+  }
+
+  // Public method to clear all user data (for use by other services)
+  public clearAllUserData(): void {
+    this.clearUserDataFromStorage();
+  }
+
+  // Clear all user-related data from localStorage
+  private clearUserDataFromStorage(): void {
+    // Clear authentication token
+    localStorage.removeItem('naricare_token');
+    
+    // Clear chatbot settings (these are user preferences)
+    localStorage.removeItem('speechRate');
+    localStorage.removeItem('speechPitch');
+    localStorage.removeItem('naturalSpeechEnabled');
+    localStorage.removeItem('autoSpeakEnabled');
+    
+    // Clear any other user-specific data keys
+    // Note: We could also clear all localStorage, but that might remove non-app data
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('naricare_') || key.startsWith('speech') || key.includes('user_'))) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
     this.tokenSubject.next(null);
   }
 

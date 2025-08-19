@@ -91,6 +91,10 @@ src/app/
 - **Backend Integration**: Uses `BackendAuthService` for API-based authentication
 - **2FA Support**: Supports two-factor authentication via email OTP
 - **Token Management**: JWT tokens stored in localStorage with automatic refresh
+- **Auto-Redirect**: Automatically redirects to dashboard if user is already logged in on app refresh
+- **Persistent Sessions**: Maintains login state across browser/app refreshes
+- **Secure Logout**: Complete data cleanup on sign out (localStorage + Ionic Storage)
+- **Sign Out Button**: Available in profile page with confirmation dialog
 - Users go through onboarding after registration
 - Tier-based access control (Basic, 1-Month, 3-Month programs)
 - Auth guard protects authenticated routes using backend auth service

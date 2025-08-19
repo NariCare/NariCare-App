@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, ToastController, ModalController } from '@ionic/angular';
-import { AuthService } from '../../services/auth.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { ConsultationService } from '../../services/consultation.service';
 import { User } from '../../models/user.model';
 import { Consultation, Expert } from '../../models/consultation.model';
@@ -46,7 +46,7 @@ export class ProfilePage implements OnInit {
   ];
 
   constructor(
-    private authService: AuthService,
+    private backendAuthService: BackendAuthService,
     private router: Router,
     private alertController: AlertController,
     private toastController: ToastController,
@@ -55,7 +55,7 @@ export class ProfilePage implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+    this.backendAuthService.currentUser$.subscribe(user => {
       this.user = user;
       if (user) {
         this.loadUpcomingConsultations();
@@ -207,7 +207,7 @@ export class ProfilePage implements OnInit {
           text: 'Sign Out',
           handler: async () => {
             try {
-              await this.authService.logout();
+              await this.backendAuthService.logout();
               const toast = await this.toastController.create({
                 message: 'You have been signed out successfully.',
                 duration: 2000,
@@ -216,6 +216,7 @@ export class ProfilePage implements OnInit {
               });
               await toast.present();
             } catch (error) {
+              console.error('Logout error:', error);
               const toast = await this.toastController.create({
                 message: 'Failed to sign out. Please try again.',
                 duration: 3000,

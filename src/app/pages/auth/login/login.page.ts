@@ -37,6 +37,9 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Check if user is already authenticated and redirect
+    this.checkAuthenticationStatus();
+    
     // Listen for 2FA requirement
     this.subscriptions.add(
       this.backendAuthService.twoFactorRequired$.subscribe(required => {
@@ -46,6 +49,32 @@ export class LoginPage implements OnInit, OnDestroy {
         }
       })
     );
+  }
+
+  private checkAuthenticationStatus() {
+    // Check current user and redirect if already authenticated
+    const currentUser = this.backendAuthService.getCurrentUser();
+    if (currentUser) {
+      this.redirectAuthenticatedUser(currentUser);
+    }
+    
+    // Also listen for auth state changes
+    this.subscriptions.add(
+      this.backendAuthService.currentUser$.subscribe(user => {
+        if (user) {
+          this.redirectAuthenticatedUser(user);
+        }
+      })
+    );
+  }
+
+  private redirectAuthenticatedUser(user: any) {
+    // Navigate based on onboarding status
+    if (user.isOnboardingCompleted) {
+      this.router.navigate(['/tabs/dashboard'], { replaceUrl: true });
+    } else {
+      this.router.navigate(['/onboarding'], { replaceUrl: true });
+    }
   }
 
   ngOnDestroy() {

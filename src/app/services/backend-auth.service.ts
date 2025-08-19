@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap, catchError, tap } from 'rxjs/operators';
+import { Storage } from '@ionic/storage-angular';
 import { ApiService, LoginResponse, RegisterResponse, TwoFactorResponse } from './api.service';
 import { User } from '../models/user.model';
 
@@ -19,7 +20,8 @@ export class BackendAuthService {
 
   constructor(
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    private storage: Storage
   ) {
     this.initializeAuth();
   }
@@ -172,10 +174,26 @@ export class BackendAuthService {
       console.warn('Logout API call failed, but clearing local state:', error);
     } finally {
       // Always clear local state
+      await this.clearAllUserData();
       this.currentUserSubject.next(null);
       this.twoFactorRequiredSubject.next(false);
       this.pendingEmail = '';
       this.router.navigate(['/auth/login']);
+    }
+  }
+
+  private async clearAllUserData(): Promise<void> {
+    try {
+      // Initialize storage if not already done
+      await this.storage.create();
+      
+      // Clear all Ionic Storage data
+      await this.storage.clear();
+      
+      // Note: localStorage is cleared by ApiService.clearAllUserData()
+      console.log('All user data cleared from local storage');
+    } catch (error) {
+      console.error('Error clearing user data:', error);
     }
   }
 
