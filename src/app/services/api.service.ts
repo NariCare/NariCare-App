@@ -177,7 +177,7 @@ export class ApiService {
   }
 
   verify2FA(email: string, otp: string): Observable<ApiResponse<TwoFactorResponse>> {
-    return this.http.post<ApiResponse<TwoFactorResponse>>(`${this.baseUrl}/auth/2fa/verify`, { email, otp })
+    return this.http.post<ApiResponse<TwoFactorResponse>>(`${this.baseUrl}/auth/verify-otp`, { email, otp })
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
@@ -189,7 +189,7 @@ export class ApiService {
   }
 
   resendOTP(email: string): Observable<ApiResponse<TwoFactorResponse>> {
-    return this.http.post<ApiResponse<TwoFactorResponse>>(`${this.baseUrl}/auth/2fa/resend-otp`, { email })
+    return this.http.post<ApiResponse<TwoFactorResponse>>(`${this.baseUrl}/auth/resend-otp`, { email })
       .pipe(catchError(this.handleError));
   }
 

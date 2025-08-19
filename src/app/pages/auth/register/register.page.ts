@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
-import { AuthService } from '../../../services/auth.service';
+import { BackendAuthService } from '../../../services/backend-auth.service';
 
 @Component({
   selector: 'app-register',
@@ -18,7 +18,7 @@ export class RegisterPage implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService,
+    private backendAuthService: BackendAuthService,
     private router: Router,
     private loadingController: LoadingController,
     private toastController: ToastController
@@ -82,11 +82,14 @@ export class RegisterPage implements OnInit {
 
       try {
         const formValue = this.registerForm.value;
-        await this.authService.register(formValue.email, formValue.password, {
+        await this.backendAuthService.register({
+          email: formValue.email,
+          password: formValue.password,
           firstName: formValue.firstName,
           lastName: formValue.lastName,
           phoneNumber: formValue.phoneNumber,
-          tier: { type: formValue.tierType } as any
+          motherType: formValue.motherType,
+          tier: formValue.tierType
         });
         
         await loading.dismiss();
@@ -134,7 +137,7 @@ export class RegisterPage implements OnInit {
     await loading.present();
 
     try {
-      await this.authService.signInWithGoogle();
+      await this.backendAuthService.signInWithGoogle();
       await loading.dismiss();
     } catch (error: any) {
       await loading.dismiss();
@@ -156,7 +159,7 @@ export class RegisterPage implements OnInit {
     await loading.present();
 
     try {
-      await this.authService.signInWithFacebook();
+      await this.backendAuthService.signInWithFacebook();
       await loading.dismiss();
     } catch (error: any) {
       await loading.dismiss();

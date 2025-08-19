@@ -1,32 +1,56 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
-import { AuthService } from '../../../services/auth.service';
+import { LoadingController, ToastController, ModalController } from '@ionic/angular';
+import { BackendAuthService } from '../../../services/backend-auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
-export class LoginPage implements OnInit {
+export class LoginPage implements OnInit, OnDestroy {
   loginForm: FormGroup;
+  otpForm: FormGroup;
   showPassword = false;
+  show2FA = false;
+  pendingEmail = '';
+  private subscriptions = new Subscription();
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService,
+    private backendAuthService: BackendAuthService,
     private router: Router,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private modalController: ModalController
   ) {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+    
+    this.otpForm = this.formBuilder.group({
+      otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
+    });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    // Listen for 2FA requirement
+    this.subscriptions.add(
+      this.backendAuthService.twoFactorRequired$.subscribe(required => {
+        this.show2FA = required;
+        if (required) {
+          this.pendingEmail = this.backendAuthService.getPendingEmail();
+        }
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
 
   async onSubmit() {
     if (this.loginForm.valid) {
@@ -38,9 +62,10 @@ export class LoginPage implements OnInit {
 
       try {
         const { email, password } = this.loginForm.value;
-        await this.authService.login(email, password);
+        await this.backendAuthService.login(email, password);
         await loading.dismiss();
       } catch (error: any) {
+        console.log(error);
         await loading.dismiss();
         const toast = await this.toastController.create({
           message: error.message || 'Login failed. Please try again.',
@@ -63,6 +88,68 @@ export class LoginPage implements OnInit {
     this.router.navigate(['/auth/register']);
   }
 
+  async onSubmitOTP() {
+    if (this.otpForm.valid) {
+      const loading = await this.loadingController.create({
+        message: 'Verifying OTP...',
+        translucent: true
+      });
+      await loading.present();
+
+      try {
+        const { otp } = this.otpForm.value;
+        await this.backendAuthService.verify2FA(otp);
+        await loading.dismiss();
+      } catch (error: any) {
+        await loading.dismiss();
+        const toast = await this.toastController.create({
+          message: error.message || 'OTP verification failed. Please try again.',
+          duration: 3000,
+          color: 'danger',
+          position: 'top'
+        });
+        await toast.present();
+      }
+    } else {
+      this.markOTPFormTouched();
+    }
+  }
+
+  async resendOTP() {
+    const loading = await this.loadingController.create({
+      message: 'Resending OTP...',
+      translucent: true
+    });
+    await loading.present();
+
+    try {
+      await this.backendAuthService.resendOTP();
+      await loading.dismiss();
+      
+      const toast = await this.toastController.create({
+        message: 'OTP sent successfully to your email.',
+        duration: 3000,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+    } catch (error: any) {
+      await loading.dismiss();
+      const toast = await this.toastController.create({
+        message: error.message || 'Failed to resend OTP. Please try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
+  }
+
+  goBackToLogin() {
+    this.show2FA = false;
+    this.otpForm.reset();
+  }
+
   async signInWithGoogle() {
     const loading = await this.loadingController.create({
       message: 'Signing in with Google...',
@@ -71,14 +158,14 @@ export class LoginPage implements OnInit {
     await loading.present();
 
     try {
-      await this.authService.signInWithGoogle();
+      await this.backendAuthService.signInWithGoogle();
       await loading.dismiss();
     } catch (error: any) {
       await loading.dismiss();
       const toast = await this.toastController.create({
-        message: error.message || 'Google sign-in failed. Please try again.',
+        message: error.message || 'Google sign-in not available. Please use email/password.',
         duration: 3000,
-        color: 'danger',
+        color: 'warning',
         position: 'top'
       });
       await toast.present();
@@ -93,14 +180,14 @@ export class LoginPage implements OnInit {
     await loading.present();
 
     try {
-      await this.authService.signInWithFacebook();
+      await this.backendAuthService.signInWithFacebook();
       await loading.dismiss();
     } catch (error: any) {
       await loading.dismiss();
       const toast = await this.toastController.create({
-        message: error.message || 'Facebook sign-in failed. Please try again.',
+        message: error.message || 'Facebook sign-in not available. Please use email/password.',
         duration: 3000,
-        color: 'danger',
+        color: 'warning',
         position: 'top'
       });
       await toast.present();
@@ -113,16 +200,32 @@ export class LoginPage implements OnInit {
     });
   }
 
-  getErrorMessage(field: string): string {
-    const control = this.loginForm.get(field);
+  private markOTPFormTouched() {
+    Object.keys(this.otpForm.controls).forEach(key => {
+      this.otpForm.get(key)?.markAsTouched();
+    });
+  }
+
+  getErrorMessage(field: string, formType: 'login' | 'otp' = 'login'): string {
+    const form = formType === 'login' ? this.loginForm : this.otpForm;
+    const control = form.get(field);
+    
     if (control?.hasError('required')) {
-      return `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+      return field === 'otp' ? 'OTP is required' : `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
     }
     if (control?.hasError('email')) {
       return 'Please enter a valid email address';
     }
     if (control?.hasError('minlength')) {
+      if (field === 'otp') {
+        return 'OTP must be 6 digits';
+      }
       return `${field.charAt(0).toUpperCase() + field.slice(1)} must be at least 6 characters`;
+    }
+    if (control?.hasError('maxlength')) {
+      if (field === 'otp') {
+        return 'OTP must be 6 digits';
+      }
     }
     return '';
   }

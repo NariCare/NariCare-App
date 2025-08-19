@@ -42,7 +42,8 @@
   line-height: 1.5;
 }
 
-.login-form {
+.login-form,
+.otp-form {
   margin-bottom: 2rem;
 }
 
@@ -82,7 +83,8 @@
   margin-top: 4px;
 }
 
-.login-button {
+.login-button,
+.verify-button {
   --background: #e91e63;
   --background-hover: #d81b60;
   --border-radius: 12px;
@@ -98,6 +100,20 @@
     --color: #94a3b8;
     --box-shadow: none;
   }
+}
+
+.otp-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.resend-button,
+.back-button {
+  --color: #e91e63;
+  font-weight: 500;
+  flex: 1;
 }
 
 .social-signin-section {

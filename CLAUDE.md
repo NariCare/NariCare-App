@@ -63,6 +63,8 @@ src/app/
 ### Key Services Architecture
 - **Backend Services**: Separate services for each Firebase collection (`backend-*.service.ts`)
 - **Frontend Services**: UI-focused services that use backend services (`*.service.ts`)
+- **Authentication**: `BackendAuthService` handles API-based auth with 2FA support
+- **API Service**: Comprehensive REST API client with JWT token management
 - **Encryption**: Uses `EncryptionService` for sensitive data (OpenAI keys)
 - **API Integration**: Dual architecture supporting both Firebase and REST API backends
 
@@ -86,9 +88,12 @@ src/app/
 ## Development Notes
 
 ### Authentication Flow
+- **Backend Integration**: Uses `BackendAuthService` for API-based authentication
+- **2FA Support**: Supports two-factor authentication via email OTP
+- **Token Management**: JWT tokens stored in localStorage with automatic refresh
 - Users go through onboarding after registration
 - Tier-based access control (Basic, 1-Month, 3-Month programs)
-- Auth guard protects authenticated routes
+- Auth guard protects authenticated routes using backend auth service
 
 ### Data Models
 Key models include:

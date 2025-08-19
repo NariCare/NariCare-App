@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
-import { AuthService } from '../services/auth.service';
+import { BackendAuthService } from '../services/backend-auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,12 +10,12 @@ import { AuthService } from '../services/auth.service';
 export class AuthGuard implements CanActivate {
   
   constructor(
-    private authService: AuthService,
+    private backendAuthService: BackendAuthService,
     private router: Router
   ) {}
 
   canActivate(): Observable<boolean> {
-    return this.authService.isAuthenticated().pipe(
+    return this.backendAuthService.isAuthenticated().pipe(
       take(1),
       map(isAuthenticated => {
         if (!isAuthenticated) {

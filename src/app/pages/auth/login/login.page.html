@@ -6,11 +6,12 @@
         <ion-icon name="heart" class="logo-icon"></ion-icon>
         <h1 class="app-title">NariCare</h1>
       </div>
-      <p class="welcome-text">Welcome back! Sign in to continue your breastfeeding journey.</p>
+      <p class="welcome-text" *ngIf="!show2FA">Welcome back! Sign in to continue your breastfeeding journey.</p>
+      <p class="welcome-text" *ngIf="show2FA">We've sent a verification code to {{ pendingEmail }}</p>
     </div>
 
     <!-- Login Form -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <form *ngIf="!show2FA" [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
       <div class="form-group">
         <ion-item lines="none" class="input-item">
           <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
@@ -59,8 +60,44 @@
       </ion-button>
     </form>
 
+    <!-- 2FA Form -->
+    <form *ngIf="show2FA" [formGroup]="otpForm" (ngSubmit)="onSubmitOTP()" class="otp-form">
+      <div class="form-group">
+        <ion-item lines="none" class="input-item">
+          <ion-icon name="key-outline" slot="start" class="input-icon"></ion-icon>
+          <ion-input
+            formControlName="otp"
+            type="number"
+            placeholder="Enter 6-digit code"
+            maxlength="6"
+            [class.error]="otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched">
+          </ion-input>
+        </ion-item>
+        <div class="error-message" *ngIf="otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched">
+          {{ getErrorMessage('otp', 'otp') }}
+        </div>
+      </div>
+
+      <ion-button
+        type="submit"
+        expand="block"
+        class="verify-button"
+        [disabled]="!otpForm.valid">
+        Verify Code
+      </ion-button>
+
+      <div class="otp-actions">
+        <ion-button fill="clear" (click)="resendOTP()" class="resend-button">
+          Resend Code
+        </ion-button>
+        <ion-button fill="clear" (click)="goBackToLogin()" class="back-button">
+          Back to Login
+        </ion-button>
+      </div>
+    </form>
+
     <!-- Social Sign-in Section -->
-    <div class="social-signin-section">
+    <div class="social-signin-section" *ngIf="!show2FA">
       <div class="divider">
         <span>Or</span>
       </div>
