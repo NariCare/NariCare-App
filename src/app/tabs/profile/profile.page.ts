@@ -159,7 +159,7 @@ export class ProfilePage implements OnInit {
   }
 
   private editProfile() {
-    console.log('Edit profile');
+    this.router.navigate(['/personal-info']);
   }
 
   private editBaby() {

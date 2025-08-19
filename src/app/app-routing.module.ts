@@ -28,6 +28,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'personal-info',
+    loadChildren: () => import('./pages/personal-info/personal-info.module').then(m => m.PersonalInfoPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: '/',
     pathMatch: 'full'

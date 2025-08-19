@@ -58,6 +58,8 @@ src/app/
     ├── knowledge/   # Articles and educational content
     ├── chat/        # Community chat listing
     └── profile/     # User profile and settings
+├── pages/
+│   ├── personal-info/   # Personal information edit page
 ```
 
 ### Key Services Architecture

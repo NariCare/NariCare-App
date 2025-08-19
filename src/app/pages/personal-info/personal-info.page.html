@@ -1,0 +1,215 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Personal Information</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="personal-info-content">
+  <div class="content-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-icon">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <h1>Personal Information</h1>
+      <p>Update your personal details and preferences</p>
+    </div>
+
+    <!-- Personal Information Form -->
+    <form [formGroup]="personalInfoForm" (ngSubmit)="onSubmit()" class="personal-info-form">
+      
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <ion-icon name="person-outline"></ion-icon>
+          Basic Information
+        </h3>
+        
+        <div class="form-row">
+          <div class="form-group half-width">
+            <label class="form-label">First Name *</label>
+            <ion-item lines="none" class="input-item">
+              <ion-input
+                formControlName="firstName"
+                placeholder="Enter your first name"
+                [class.error]="personalInfoForm.get('firstName')?.invalid && personalInfoForm.get('firstName')?.touched">
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="personalInfoForm.get('firstName')?.invalid && personalInfoForm.get('firstName')?.touched">
+              {{ getErrorMessage('firstName') }}
+            </div>
+          </div>
+          
+          <div class="form-group half-width">
+            <label class="form-label">Last Name *</label>
+            <ion-item lines="none" class="input-item">
+              <ion-input
+                formControlName="lastName"
+                placeholder="Enter your last name"
+                [class.error]="personalInfoForm.get('lastName')?.invalid && personalInfoForm.get('lastName')?.touched">
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="personalInfoForm.get('lastName')?.invalid && personalInfoForm.get('lastName')?.touched">
+              {{ getErrorMessage('lastName') }}
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Email Address *</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="email"
+              type="email"
+              placeholder="Enter your email address"
+              [class.error]="personalInfoForm.get('email')?.invalid && personalInfoForm.get('email')?.touched"
+              readonly>
+            </ion-input>
+          </ion-item>
+          <div class="info-message">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            Email cannot be changed. Contact support if needed.
+          </div>
+        </div>
+      </div>
+      
+      <!-- Contact Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <ion-icon name="call-outline"></ion-icon>
+          Contact Information
+        </h3>
+        
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="call-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="phoneNumber"
+              type="tel"
+              placeholder="Enter your phone number"
+              [class.error]="personalInfoForm.get('phoneNumber')?.invalid && personalInfoForm.get('phoneNumber')?.touched">
+            </ion-input>
+          </ion-item>
+          <div class="error-message" *ngIf="personalInfoForm.get('phoneNumber')?.invalid && personalInfoForm.get('phoneNumber')?.touched">
+            {{ getErrorMessage('phoneNumber') }}
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">WhatsApp Number</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="logo-whatsapp" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="whatsappNumber"
+              type="tel"
+              placeholder="Enter your WhatsApp number"
+              [class.error]="personalInfoForm.get('whatsappNumber')?.invalid && personalInfoForm.get('whatsappNumber')?.touched">
+            </ion-input>
+          </ion-item>
+          <div class="error-message" *ngIf="personalInfoForm.get('whatsappNumber')?.invalid && personalInfoForm.get('whatsappNumber')?.touched">
+            {{ getErrorMessage('whatsappNumber') }}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Motherhood Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <ion-icon name="heart-outline"></ion-icon>
+          Motherhood Journey
+        </h3>
+        
+        <div class="form-group">
+          <label class="form-label">Mother Type</label>
+          <ion-item lines="none" class="select-item">
+            <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-select formControlName="motherType" placeholder="Select your current stage">
+              <ion-select-option *ngFor="let type of motherTypes" [value]="type.value">
+                {{ type.label }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+        
+        <div class="form-group" *ngIf="personalInfoForm.get('motherType')?.value === 'pregnant'">
+          <label class="form-label">Due Date</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="dueDate"
+              type="date"
+              placeholder="Select your due date">
+            </ion-input>
+          </ion-item>
+        </div>
+      </div>
+      
+      <!-- Subscription Information Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <ion-icon name="card-outline"></ion-icon>
+          Subscription Information
+        </h3>
+        
+        <div class="subscription-info">
+          <div class="current-plan">
+            <div class="plan-details">
+              <h4>Current Plan</h4>
+              <ion-chip [color]="user?.tier?.type === 'basic' ? 'medium' : 'primary'">
+                {{ getTierDisplay() }}
+              </ion-chip>
+            </div>
+            <div class="plan-actions" *ngIf="isTierUpgradeable()">
+              <ion-button fill="outline" size="small" (click)="handleAction('upgrade')">
+                <ion-icon name="arrow-up-outline" slot="start"></ion-icon>
+                Upgrade Plan
+              </ion-button>
+            </div>
+          </div>
+          
+          <div class="plan-benefits" *ngIf="user?.tier">
+            <p class="benefits-text">
+              <span *ngIf="user.tier.type === 'basic'">
+                You're on our free plan with access to basic features.
+              </span>
+              <span *ngIf="user.tier.type !== 'basic'">
+                Consultations remaining: {{ user.tier.consultationsRemaining || 0 }}
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <ion-button
+          expand="block"
+          type="submit"
+          class="save-button"
+          [disabled]="!personalInfoForm.valid || !personalInfoForm.dirty">
+          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+          Save Changes
+        </ion-button>
+        
+        <ion-button
+          expand="block"
+          fill="outline"
+          (click)="goBack()"
+          class="cancel-button">
+          <ion-icon name="close-outline" slot="start"></ion-icon>
+          Cancel
+        </ion-button>
+      </div>
+      
+    </form>
+    
+  </div>
+</ion-content>
