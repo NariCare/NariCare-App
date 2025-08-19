@@ -1,0 +1,83 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backToGroupList()" class="back-to-groups-button">
+        <ion-icon name="arrow-back" slot="start"></ion-icon>
+        Back to Groups
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ selectedRoom?.name || 'Chat Room' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="chat-room-container" *ngIf="selectedRoom">
+    
+    <!-- Chat Room Header -->
+    <div class="chat-room-header">
+      <div class="room-info">
+        <div class="room-icon">
+          <ion-icon name="people"></ion-icon>
+        </div>
+        <div class="room-details">
+          <h3>{{ selectedRoom.name }}</h3>
+          <p>{{ selectedRoom.description }}</p>
+          <div class="room-stats">
+            <span class="participant-count">{{ selectedRoom.participants.length }}/{{ selectedRoom.maxParticipants }} members</span>
+            <ion-chip color="success" size="small" *ngIf="selectedRoom.moderators.length > 0">
+              <ion-icon name="shield-checkmark" slot="start"></ion-icon>
+              Expert Moderated
+            </ion-chip>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Group Chat Messages Component -->
+    <div class="group-messages-wrapper" #groupMessagesContainer>
+      <app-group-chat-messages [room]="selectedRoom"></app-group-chat-messages>
+    </div>
+    
+    <!-- Group Message Input -->
+    <div class="group-message-input-container">
+      <div class="group-message-input">
+        <ion-button 
+          fill="clear" 
+          size="small"
+          (click)="openPhotoInput()"
+          class="attachment-button">
+          <ion-icon name="image" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button 
+          fill="clear" 
+          size="small"
+          (click)="openVideoLinkInput()"
+          class="attachment-button">
+          <ion-icon name="videocam" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-textarea
+          [(ngModel)]="groupMessageText"
+          placeholder="Type your message to the group..."
+          rows="1"
+          autoGrow="true"
+          maxlength="500"
+          (keydown)="onGroupKeyDown($event)"
+          class="group-message-textarea">
+        </ion-textarea>
+        <ion-button 
+          fill="clear" 
+          (click)="sendGroupMessage()"
+          [disabled]="!groupMessageText?.trim()"
+          class="group-send-button">
+          <ion-icon name="send" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="!selectedRoom">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Loading chat room...</p>
+  </div>
+</ion-content>

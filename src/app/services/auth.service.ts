@@ -306,6 +306,197 @@ export class AuthService {
     }
   }
 
+  async signInWithGoogle(): Promise<void> {
+    if (!this.isFirebaseEnabled) {
+      return this.mockSocialLogin('google');
+    }
+
+    try {
+      // Import Firebase auth
+      const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth');
+      const auth = (window as any).firebase?.auth();
+      
+      if (!auth) {
+        throw new Error('Firebase not properly initialized');
+      }
+
+      const provider = new GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+
+      const result = await signInWithPopup(auth, provider);
+      
+      if (!result.user) {
+        throw new Error('Failed to sign in with Google');
+      }
+
+      // Check if user exists or create new user
+      let user = await this.getUserProfile(result.user.uid);
+      
+      if (!user) {
+        // Create new user from Google data
+        const displayName = result.user.displayName || '';
+        const nameParts = displayName.split(' ');
+        
+        user = {
+          uid: result.user.uid,
+          email: result.user.email || '',
+          firstName: nameParts[0] || '',
+          lastName: nameParts.slice(1).join(' ') || '',
+          role: 'user',
+          tier: {
+            type: 'basic',
+            startDate: new Date(),
+            consultationsRemaining: 0,
+            features: this.getTierFeatures('basic')
+          },
+          createdAt: new Date(),
+          isOnboardingCompleted: false,
+          notificationPreferences: {
+            articleUpdates: true,
+            callReminders: true,
+            groupMessages: true,
+            growthReminders: true,
+            expertMessages: true
+          },
+          babies: [],
+          profileImage: result.user.photoURL || undefined,
+          socialProvider: 'google'
+        };
+
+        // Save user profile to Firestore
+        const firestore = (window as any).firebase?.firestore();
+        if (firestore) {
+          await firestore.collection('users').doc(result.user.uid).set(user);
+        }
+      }
+
+      this.currentUserSubject.next(user);
+      
+      // Navigate based on onboarding status
+      if (user.isOnboardingCompleted) {
+        this.router.navigate(['/tabs/dashboard']);
+      } else {
+        this.router.navigate(['/onboarding']);
+      }
+
+    } catch (error: any) {
+      console.error('Google sign-in error:', error);
+      throw new Error(this.getFirebaseErrorMessage(error.code) || error.message);
+    }
+  }
+
+  async signInWithFacebook(): Promise<void> {
+    if (!this.isFirebaseEnabled) {
+      return this.mockSocialLogin('facebook');
+    }
+
+    try {
+      // Import Firebase auth
+      const { FacebookAuthProvider, signInWithPopup } = await import('firebase/auth');
+      const auth = (window as any).firebase?.auth();
+      
+      if (!auth) {
+        throw new Error('Firebase not properly initialized');
+      }
+
+      const provider = new FacebookAuthProvider();
+      provider.addScope('email');
+
+      const result = await signInWithPopup(auth, provider);
+      
+      if (!result.user) {
+        throw new Error('Failed to sign in with Facebook');
+      }
+
+      // Check if user exists or create new user
+      let user = await this.getUserProfile(result.user.uid);
+      
+      if (!user) {
+        // Create new user from Facebook data
+        const displayName = result.user.displayName || '';
+        const nameParts = displayName.split(' ');
+        
+        user = {
+          uid: result.user.uid,
+          email: result.user.email || '',
+          firstName: nameParts[0] || '',
+          lastName: nameParts.slice(1).join(' ') || '',
+          role: 'user',
+          tier: {
+            type: 'basic',
+            startDate: new Date(),
+            consultationsRemaining: 0,
+            features: this.getTierFeatures('basic')
+          },
+          createdAt: new Date(),
+          isOnboardingCompleted: false,
+          notificationPreferences: {
+            articleUpdates: true,
+            callReminders: true,
+            groupMessages: true,
+            growthReminders: true,
+            expertMessages: true
+          },
+          babies: [],
+          profileImage: result.user.photoURL || undefined,
+          socialProvider: 'facebook'
+        };
+
+        // Save user profile to Firestore
+        const firestore = (window as any).firebase?.firestore();
+        if (firestore) {
+          await firestore.collection('users').doc(result.user.uid).set(user);
+        }
+      }
+
+      this.currentUserSubject.next(user);
+      
+      // Navigate based on onboarding status
+      if (user.isOnboardingCompleted) {
+        this.router.navigate(['/tabs/dashboard']);
+      } else {
+        this.router.navigate(['/onboarding']);
+      }
+
+    } catch (error: any) {
+      console.error('Facebook sign-in error:', error);
+      throw new Error(this.getFirebaseErrorMessage(error.code) || error.message);
+    }
+  }
+
+  // Mock methods for social sign-in when Firebase is not available
+  private async mockSocialLogin(provider: 'google' | 'facebook'): Promise<void> {
+    console.log(`Mock ${provider} sign-in`);
+    const mockUser: User = {
+      uid: `mock-${provider}-user-` + Date.now(),
+      email: `demo-${provider}@naricare.app`,
+      firstName: provider === 'google' ? 'Google' : 'Facebook',
+      lastName: 'User',
+      role: 'user',
+      tier: {
+        type: 'basic',
+        startDate: new Date(),
+        consultationsRemaining: 0,
+        features: this.getTierFeatures('basic')
+      },
+      createdAt: new Date(),
+      isOnboardingCompleted: false,
+      notificationPreferences: {
+        articleUpdates: true,
+        callReminders: true,
+        groupMessages: true,
+        growthReminders: true,
+        expertMessages: true
+      },
+      babies: [],
+      socialProvider: provider
+    };
+    
+    this.currentUserSubject.next(mockUser);
+    this.router.navigate(['/onboarding']);
+  }
+
   // Mock methods for when Firebase is not available
   private async mockRegister(email: string, password: string, userData: Partial<User>): Promise<void> {
     console.log('Mock registration for:', email);

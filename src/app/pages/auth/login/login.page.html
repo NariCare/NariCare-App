@@ -59,6 +59,33 @@
       </ion-button>
     </form>
 
+    <!-- Social Sign-in Section -->
+    <div class="social-signin-section">
+      <div class="divider">
+        <span>Or</span>
+      </div>
+      
+      <div class="social-buttons">
+        <ion-button
+          expand="block"
+          fill="outline"
+          (click)="signInWithGoogle()"
+          class="social-button google-button">
+          <ion-icon name="logo-google" slot="start"></ion-icon>
+          Sign in with Google
+        </ion-button>
+        
+        <ion-button
+          expand="block"
+          fill="outline"
+          (click)="signInWithFacebook()"
+          class="social-button facebook-button">
+          <ion-icon name="logo-facebook" slot="start"></ion-icon>
+          Sign in with Facebook
+        </ion-button>
+      </div>
+    </div>
+
     <!-- Footer -->
     <div class="footer-section">
       <p class="register-prompt">

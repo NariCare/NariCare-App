@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
-import { Baby } from '../../models/user.model';
+import { Baby, User } from '../../models/user.model';
 import { v4 as uuidv4 } from 'uuid';
 
 @Component({
@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 export class OnboardingPage implements OnInit {
   currentStep = 1;
   totalSteps = 3;
+  user: User | null = null;
   onboardingForm: FormGroup;
 
   constructor(
@@ -48,7 +49,12 @@ export class OnboardingPage implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.authService.currentUser$.subscribe(user => {
+      this.user = user;
+    });
+  }
+
 
   nextStep() {
     if (this.validateCurrentStep()) {
@@ -189,7 +195,18 @@ export class OnboardingPage implements OnInit {
   getErrorMessage(field: string): string {
     const control = this.onboardingForm.get(field);
     if (control?.hasError('required')) {
-      return `This field is required`;
+      const fieldLabels: { [key: string]: string } = {
+        'motherType': 'Please select if you are pregnant or a new mother',
+        'phoneNumber': 'Mobile number is required',
+        'whatsappNumber': 'WhatsApp number is required',
+        'dueDate': 'Due date is required',
+        'babyName': 'Baby\'s name is required',
+        'babyGender': 'Baby\'s gender is required',
+        'dateOfBirth': 'Baby\'s birth date is required',
+        'birthWeight': 'Baby\'s birth weight is required',
+        'birthHeight': 'Baby\'s birth height is required'
+      };
+      return fieldLabels[field] || 'This field is required';
     }
     if (control?.hasError('min')) {
       return `Value is too low`;
@@ -198,5 +215,13 @@ export class OnboardingPage implements OnInit {
       return `Value is too high`;
     }
     return '';
+  }
+
+  isPregnantMother(): boolean {
+    return this.onboardingForm.get('motherType')?.value === 'pregnant';
+  }
+
+  isNewMother(): boolean {
+    return this.onboardingForm.get('motherType')?.value === 'new_mom';
   }
 }

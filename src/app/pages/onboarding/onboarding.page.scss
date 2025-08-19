@@ -248,6 +248,70 @@ ion-chip {
   flex: 2;
 }
 
+.subsection-title {
+  margin: 1.5rem 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.mother-type-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  
+  .radio-item {
+    --background: #ffffff;
+    --border-radius: 12px;
+    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 0.5rem;
+    --padding-start: 16px;
+    --min-height: 60px;
+    
+    ion-label {
+      h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2d3748;
+      }
+      
+      p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #64748b;
+      }
+    }
+  }
+}
+
+.conditional-fields {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.baby-info-section {
+  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #bbf7d0;
+}
+
 @media (min-width: 768px) {
   .onboarding-container {
     max-width: 520px;

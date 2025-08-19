@@ -16,6 +16,7 @@ import { SpecificWeekModalComponent } from 'src/app/components/specific-week-mod
 import { FeedLogModalComponent } from 'src/app/components/feed-log-modal/feed-log-modal.component';
 import { DiaperLogModalComponent } from 'src/app/components/diaper-log-modal/diaper-log-modal.component';
 import { EmotionCheckinModalComponent } from 'src/app/components/emotion-checkin-modal/emotion-checkin-modal.component';
+import { PumpingLogModalComponent } from 'src/app/components/pumping-log-modal/pumping-log-modal.component';
 
 @Component({
   selector: 'app-growth',
@@ -1168,6 +1169,45 @@ export class GrowthPage implements OnInit {
         prefilledData: { babyId: this.selectedBaby.id },
         isFastFeed: isFastFeed
       }
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.saved) {
+        this.loadTrackingData(this.selectedBaby.id);
+        this.loadSummaryData(this.selectedBaby.id);
+      }
+    });
+
+    return await modal.present();
+  }
+
+  async openDiaperLogModal() {
+    // if (!this.selectedBaby) {
+    //   this.showToast('Please select a baby first', 'warning');
+    //   return;
+    // }
+
+    const modal = await this.modalController.create({
+      component: DiaperLogModalComponent,
+      // componentProps: {
+      //   selectedBaby: this.selectedBaby
+      // }
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.saved) {
+        this.loadTrackingData(this.selectedBaby.id);
+        this.loadSummaryData(this.selectedBaby.id);
+      }
+    });
+
+    return await modal.present();
+  }
+
+  async openPumpLogModal() {
+
+    const modal = await this.modalController.create({
+      component: PumpingLogModalComponent,
     });
 
     modal.onDidDismiss().then((result) => {

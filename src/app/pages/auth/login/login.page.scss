@@ -100,6 +100,90 @@
   }
 }
 
+.social-signin-section {
+  margin: 2rem 0;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e2e8f0;
+  }
+  
+  span {
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+    padding: 0 1rem;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    position: relative;
+  }
+}
+
+.social-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.social-button {
+  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height: 56px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  ion-icon {
+    font-size: 1.25rem;
+    margin-right: 0.5rem;
+  }
+}
+
+.google-button {
+  --background: #ffffff;
+  --color: #374151;
+  --border-color: #d1d5db;
+  
+  &:hover {
+    --background: #f9fafb;
+    --border-color: #9ca3af;
+  }
+  
+  ion-icon {
+    color: #ea4335;
+  }
+}
+
+.facebook-button {
+  --background: #1877f2;
+  --color: #ffffff;
+  --border-color: #1877f2;
+  
+  &:hover {
+    --background: #166fe5;
+    --border-color: #166fe5;
+  }
+  
+  ion-icon {
+    color: #ffffff;
+  }
+}
+
 .footer-section {
   text-align: center;
   margin-top: auto;

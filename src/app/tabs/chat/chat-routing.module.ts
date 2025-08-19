@@ -6,6 +6,10 @@ const routes: Routes = [
   {
     path: '',
     component: ChatPage
+  },
+  {
+    path: 'room/:roomId',
+    loadChildren: () => import('../../pages/chat-room/chat-room.module').then(m => m.ChatRoomPageModule)
   }
 ];
 

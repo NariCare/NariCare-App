@@ -24,11 +24,14 @@ export class RegisterPage implements OnInit {
     private toastController: ToastController
   ) {
     this.registerForm = this.formBuilder.group({
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      motherType: ['', [Validators.required]],
+      phoneNumber: ['', [Validators.required]],
+      whatsappNumber: ['', [Validators.required]],
+      dueDate: [''],
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      phoneNumber: [''],
-      password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
       tierType: ['basic', [Validators.required]],
       agreeToTerms: [false, [Validators.requiredTrue]]
@@ -121,6 +124,50 @@ export class RegisterPage implements OnInit {
 
   navigateToLogin() {
     this.router.navigate(['/auth/login']);
+  }
+
+  async signInWithGoogle() {
+    const loading = await this.loadingController.create({
+      message: 'Signing up with Google...',
+      translucent: true
+    });
+    await loading.present();
+
+    try {
+      await this.authService.signInWithGoogle();
+      await loading.dismiss();
+    } catch (error: any) {
+      await loading.dismiss();
+      const toast = await this.toastController.create({
+        message: error.message || 'Google sign-up failed. Please try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
+  }
+
+  async signInWithFacebook() {
+    const loading = await this.loadingController.create({
+      message: 'Signing up with Facebook...',
+      translucent: true
+    });
+    await loading.present();
+
+    try {
+      await this.authService.signInWithFacebook();
+      await loading.dismiss();
+    } catch (error: any) {
+      await loading.dismiss();
+      const toast = await this.toastController.create({
+        message: error.message || 'Facebook sign-up failed. Please try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
   }
 
   private markFormGroupTouched() {

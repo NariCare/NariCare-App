@@ -22,89 +22,171 @@
       
       <!-- Step 1: Baby Information -->
       <div class="form-step" *ngIf="currentStep === 1">
-        <h2 class="step-title">Tell us about your baby</h2>
+        <h2 class="step-title">Tell us about yourself</h2>
         <p class="step-description">This helps us provide personalized guidance for your journey</p>
         
+        <!-- Mother Type Selection -->
         <div class="form-group">
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-input
-              formControlName="babyName"
-              placeholder="Baby's name"
-              [class.error]="onboardingForm.get('babyName')?.invalid && onboardingForm.get('babyName')?.touched">
-            </ion-input>
-          </ion-item>
-          <div class="error-message" *ngIf="onboardingForm.get('babyName')?.invalid && onboardingForm.get('babyName')?.touched">
-            {{ getErrorMessage('babyName') }}
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="input-label">Gender</label>
-          <ion-radio-group formControlName="babyGender" class="gender-options">
+          <label class="input-label">Are you a...</label>
+          <ion-radio-group formControlName="motherType" class="mother-type-options">
             <ion-item lines="none" class="radio-item">
-              <ion-radio slot="start" value="male"></ion-radio>
-              <ion-label>Boy</ion-label>
+              <ion-radio slot="start" value="pregnant"></ion-radio>
+              <ion-label>
+                <h3>Pregnant Woman</h3>
+                <p>Expecting a baby</p>
+              </ion-label>
             </ion-item>
             <ion-item lines="none" class="radio-item">
-              <ion-radio slot="start" value="female"></ion-radio>
-              <ion-label>Girl</ion-label>
-            </ion-item>
-            <ion-item lines="none" class="radio-item">
-              <ion-radio slot="start" value="other"></ion-radio>
-              <ion-label>Prefer not to say</ion-label>
+              <ion-radio slot="start" value="new_mom"></ion-radio>
+              <ion-label>
+                <h3>New Mother</h3>
+                <p>Already have a baby</p>
+              </ion-label>
             </ion-item>
           </ion-radio-group>
         </div>
 
-        <div class="form-group">
+        <!-- Contact Information -->
+        <div class="form-group" *ngIf="!user?.phoneNumber">
           <ion-item lines="none" class="input-item">
-            <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-datetime-button datetime="birthDate" class="datetime-button">
-              <ion-label>Date of Birth</ion-label>
-            </ion-datetime-button>
+            <ion-icon name="call-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="phoneNumber"
+              type="tel"
+              placeholder="Mobile Number"
+              [class.error]="onboardingForm.get('phoneNumber')?.invalid && onboardingForm.get('phoneNumber')?.touched">
+            </ion-input>
           </ion-item>
-          <ion-modal [keepContentsMounted]="true">
-            <ng-template>
-              <ion-datetime 
-                id="birthDate" 
-                formControlName="dateOfBirth"
-                presentation="date"
-                max="2027-01-01"
-                min="2020-01-01">
-              </ion-datetime>
-            </ng-template>
-          </ion-modal>
+          <div class="error-message" *ngIf="onboardingForm.get('phoneNumber')?.invalid && onboardingForm.get('phoneNumber')?.touched">
+            {{ getErrorMessage('phoneNumber') }}
+          </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group half-width">
-            <ion-item lines="none" class="input-item">
-              <ion-input
-                formControlName="birthWeight"
-                type="number"
-                placeholder="Weight (kg)"
-                step="0.1"
-                [class.error]="onboardingForm.get('birthWeight')?.invalid && onboardingForm.get('birthWeight')?.touched">
-              </ion-input>
-            </ion-item>
-            <div class="error-message" *ngIf="onboardingForm.get('birthWeight')?.invalid && onboardingForm.get('birthWeight')?.touched">
-              {{ getErrorMessage('birthWeight') }}
-            </div>
+        <div class="form-group">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="logo-whatsapp" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              formControlName="whatsappNumber"
+              type="tel"
+              placeholder="WhatsApp Number"
+              [class.error]="onboardingForm.get('whatsappNumber')?.invalid && onboardingForm.get('whatsappNumber')?.touched">
+            </ion-input>
+          </ion-item>
+          <div class="error-message" *ngIf="onboardingForm.get('whatsappNumber')?.invalid && onboardingForm.get('whatsappNumber')?.touched">
+            {{ getErrorMessage('whatsappNumber') }}
           </div>
+        </div>
+
+        <!-- Conditional Fields Based on Mother Type -->
+        <div class="conditional-fields" *ngIf="onboardingForm.get('motherType')?.value">
           
-          <div class="form-group half-width">
+          <!-- Due Date for Pregnant Women -->
+          <div class="form-group" *ngIf="onboardingForm.get('motherType')?.value === 'pregnant'">
             <ion-item lines="none" class="input-item">
-              <ion-input
-                formControlName="birthHeight"
-                type="number"
-                placeholder="Height (cm)"
-                step="0.1"
-                [class.error]="onboardingForm.get('birthHeight')?.invalid && onboardingForm.get('birthHeight')?.touched">
-              </ion-input>
+              <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+              <ion-datetime-button datetime="dueDate" class="datetime-button">
+                <ion-label>Due Date</ion-label>
+              </ion-datetime-button>
             </ion-item>
-            <div class="error-message" *ngIf="onboardingForm.get('birthHeight')?.invalid && onboardingForm.get('birthHeight')?.touched">
-              {{ getErrorMessage('birthHeight') }}
+            <ion-modal [keepContentsMounted]="true">
+              <ng-template>
+                <ion-datetime 
+                  id="dueDate" 
+                  formControlName="dueDate"
+                  presentation="date"
+                  min="2025-01-01"
+                  max="2026-12-31">
+                </ion-datetime>
+              </ng-template>
+            </ion-modal>
+          </div>
+
+          <!-- Baby Information for New Mothers -->
+          <div class="baby-info-section" *ngIf="onboardingForm.get('motherType')?.value === 'new_mom'">
+            <h3 class="subsection-title">Tell us about your baby</h3>
+        
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
+                <ion-input
+                  formControlName="babyName"
+                  placeholder="Baby's name"
+                  [class.error]="onboardingForm.get('babyName')?.invalid && onboardingForm.get('babyName')?.touched">
+                </ion-input>
+              </ion-item>
+              <div class="error-message" *ngIf="onboardingForm.get('babyName')?.invalid && onboardingForm.get('babyName')?.touched">
+                {{ getErrorMessage('babyName') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="input-label">Gender</label>
+              <ion-radio-group formControlName="babyGender" class="gender-options">
+                <ion-item lines="none" class="radio-item">
+                  <ion-radio slot="start" value="male"></ion-radio>
+                  <ion-label>Boy</ion-label>
+                </ion-item>
+                <ion-item lines="none" class="radio-item">
+                  <ion-radio slot="start" value="female"></ion-radio>
+                  <ion-label>Girl</ion-label>
+                </ion-item>
+                <ion-item lines="none" class="radio-item">
+                  <ion-radio slot="start" value="other"></ion-radio>
+                  <ion-label>Prefer not to say</ion-label>
+                </ion-item>
+              </ion-radio-group>
+            </div>
+
+            <div class="form-group">
+              <ion-item lines="none" class="input-item">
+                <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+                <ion-datetime-button datetime="birthDate" class="datetime-button">
+                  <ion-label>Date of Birth</ion-label>
+                </ion-datetime-button>
+              </ion-item>
+              <ion-modal [keepContentsMounted]="true">
+                <ng-template>
+                  <ion-datetime 
+                    id="birthDate" 
+                    formControlName="dateOfBirth"
+                    presentation="date"
+                    max="2027-01-01"
+                    min="2020-01-01">
+                  </ion-datetime>
+                </ng-template>
+              </ion-modal>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group half-width">
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="birthWeight"
+                    type="number"
+                    placeholder="Weight (kg)"
+                    step="0.1"
+                    [class.error]="onboardingForm.get('birthWeight')?.invalid && onboardingForm.get('birthWeight')?.touched">
+                  </ion-input>
+                </ion-item>
+                <div class="error-message" *ngIf="onboardingForm.get('birthWeight')?.invalid && onboardingForm.get('birthWeight')?.touched">
+                  {{ getErrorMessage('birthWeight') }}
+                </div>
+              </div>
+              
+              <div class="form-group half-width">
+                <ion-item lines="none" class="input-item">
+                  <ion-input
+                    formControlName="birthHeight"
+                    type="number"
+                    placeholder="Height (cm)"
+                    step="0.1"
+                    [class.error]="onboardingForm.get('birthHeight')?.invalid && onboardingForm.get('birthHeight')?.touched">
+                  </ion-input>
+                </ion-item>
+                <div class="error-message" *ngIf="onboardingForm.get('birthHeight')?.invalid && onboardingForm.get('birthHeight')?.touched">
+                  {{ getErrorMessage('birthHeight') }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
