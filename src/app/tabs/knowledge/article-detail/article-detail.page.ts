@@ -49,13 +49,24 @@ export class ArticleDetailPage implements OnInit {
     this.route.params.subscribe(params => {
       this.articleId = params['id'];
       if (this.articleId) {
-        this.article$ = this.knowledgeService.getArticle(this.articleId).pipe(
-          tap(article => {
+        this.article$ = this.knowledgeService.getArticle(this.articleId);
+        
+        // Subscribe to article and process videos
+        this.article$.subscribe({
+          next: (article) => {
             if (article) {
               this.processArticleVideos(article);
+            } else {
+              // Emit undefined if article not found
+              this.processedArticle$.next(undefined);
             }
-          })
-        );
+          },
+          error: (error) => {
+            console.error('Error loading article:', error);
+            this.processedArticle$.next(undefined);
+          }
+        });
+        
         this.checkBookmarkStatus();
       }
     });
