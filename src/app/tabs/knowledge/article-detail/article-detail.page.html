@@ -21,7 +21,7 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="article-container" *ngIf="article$ | async as article">
+  <div class="article-container" *ngIf="processedArticle$ | async as article">
     
     <!-- Reading Controls -->
     <div class="reading-controls" *ngIf="isReading">
@@ -147,7 +147,7 @@
           <div *ngFor="let media of section.media" class="media-item">
             <div class="video-container">
               <iframe 
-                [src]="getVideoEmbedUrl(media.url)"
+                [src]="media.safeEmbedUrl"
                 frameborder="0"
                 allowfullscreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

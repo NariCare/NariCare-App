@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { KnowledgeBaseService } from '../../../services/knowledge-base.service';
 import { AuthService } from '../../../services/auth.service';
 import { Article } from '../../../models/knowledge-base.model';
@@ -16,6 +17,7 @@ import { VideoPlayerModalComponent } from '../../../components/video-player-moda
 })
 export class ArticleDetailPage implements OnInit {
   article$: Observable<Article | undefined>;
+  processedArticle$ = new BehaviorSubject<Article | undefined>(undefined);
   articleId: string = '';
   user: User | null = null;
   isBookmarked = false;
@@ -47,10 +49,50 @@ export class ArticleDetailPage implements OnInit {
     this.route.params.subscribe(params => {
       this.articleId = params['id'];
       if (this.articleId) {
-        this.article$ = this.knowledgeService.getArticle(this.articleId);
+        this.article$ = this.knowledgeService.getArticle(this.articleId).pipe(
+          tap(article => {
+            if (article) {
+              this.processArticleVideos(article);
+            }
+          })
+        );
         this.checkBookmarkStatus();
       }
     });
+  }
+
+  private processArticleVideos(article: Article): void {
+    if (article.content?.sections) {
+      article.content.sections.forEach(section => {
+        if (section.type === 'media' && section.media) {
+          section.media.forEach((media: any) => {
+            if (media.url && !media.safeEmbedUrl) {
+              media.safeEmbedUrl = this.createSafeVideoUrl(media.url);
+            }
+          });
+        }
+      });
+    }
+    this.processedArticle$.next(article);
+  }
+
+  private createSafeVideoUrl(url: string): SafeResourceUrl {
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      let videoId = '';
+      
+      if (url.includes('youtube.com/watch?v=')) {
+        videoId = url.split('v=')[1].split('&')[0];
+      } else if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1].split('?')[0];
+      } else if (url.includes('youtube.com/embed/')) {
+        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      }
+      
+      const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
+      return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+    }
+    
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   private initializeSpeechSynthesis() {
