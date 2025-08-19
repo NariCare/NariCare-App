@@ -26,6 +26,11 @@ const routes: Routes = [
     path: 'video-call/:meetingId',
     loadChildren: () => import('./pages/video-call/video-call.module').then(m => m.VideoCallPageModule),
     canActivate: [AuthGuard]
+  },
+  {
+    path: '**',
+    redirectTo: '/',
+    pathMatch: 'full'
   }
 ];
 
