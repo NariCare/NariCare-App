@@ -854,8 +854,45 @@ export class ApiService {
       console.warn('Rate limit exceeded:', error.error?.message);
     }
     
-    // Return user-friendly error message
-    const errorMessage = error.error?.message || error.message || 'An unexpected error occurred';
+    // Extract error message from API response
+    let errorMessage = 'An unexpected error occurred';
+    
+    console.log('Full error object:', error);
+    console.log('error.error:', error.error);
+    console.log('error.status:', error.status);
+    
+    if (error.error) {
+      // Check for API response structure - prioritize 'error' field first since that's what your API uses
+      if (error.error.error) {
+        // API error format: { success: false, error: "Error message" }
+        errorMessage = error.error.error;
+      } else if (error.error.message) {
+        // Alternative API error format: { success: false, message: "Error message" }
+        errorMessage = error.error.message;
+      } else if (typeof error.error === 'string') {
+        // Direct string error
+        errorMessage = error.error;
+      } else if (error.error.errors && Array.isArray(error.error.errors)) {
+        // Validation errors array: { errors: [{ message: "Field error" }] }
+        const firstError = error.error.errors[0];
+        errorMessage = firstError.message || firstError.msg || JSON.stringify(firstError);
+      } else if (error.message) {
+        // Fallback to HTTP error message
+        errorMessage = error.message;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    // Handle network errors - only override if we don't have a specific error message
+    if (error.status === 0 && errorMessage === 'An unexpected error occurred') {
+      errorMessage = 'Network error. Please check your internet connection.';
+    } else if (error.status === 404 && errorMessage === 'An unexpected error occurred') {
+      errorMessage = 'The requested resource was not found.';
+    }
+    
+    // Don't override 500 errors if we already extracted a specific error message
+    
     return throwError(() => new Error(errorMessage));
   };
 

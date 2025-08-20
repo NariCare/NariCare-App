@@ -558,16 +558,33 @@ export class BackendAuthService {
   }
 
   private getErrorMessage(error: any): string {
+    // First, try to extract the actual API error message
     if (error?.message) {
       return error.message;
     }
     
-    if (error?.error?.message) {
-      return error.error.message;
+    if (error?.error) {
+      // Check for API response structure - prioritize 'error' field first since that's what your API uses
+      if (error.error.error) {
+        // API error format: { success: false, error: "Error message" }
+        return error.error.error;
+      } else if (error.error.message) {
+        // Alternative API error format: { success: false, message: "Error message" }
+        return error.error.message;
+      } else if (typeof error.error === 'string') {
+        // Direct string error
+        return error.error;
+      } else if (error.error.errors && Array.isArray(error.error.errors)) {
+        // Validation errors array: { errors: [{ message: "Field error" }] }
+        const firstError = error.error.errors[0];
+        return firstError.message || firstError.msg || 'Validation error occurred';
+      }
     }
     
-    // Handle common HTTP error codes
+    // Handle common HTTP error codes as fallback - only use generic messages if no specific error was found
     switch (error?.status) {
+      case 0:
+        return 'Network error. Please check your internet connection.';
       case 400:
         return 'Invalid request. Please check your input.';
       case 401:
@@ -578,6 +595,8 @@ export class BackendAuthService {
         return 'Resource not found.';
       case 409:
         return 'Conflict. This resource already exists.';
+      case 422:
+        return 'Validation failed. Please check your input.';
       case 429:
         return 'Too many requests. Please try again later.';
       case 500:
