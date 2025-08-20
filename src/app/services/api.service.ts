@@ -122,7 +122,7 @@ export interface ConsultationRequest {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl = environment.production ? 'https://api.naricare.app/api' : 'http://localhost:3000/api';
+  private readonly baseUrl = environment.apiUrl || (environment.production ? 'https://api.naricare.app/api' : 'http://localhost:3000/api');
   private tokenSubject = new BehaviorSubject<string | null>(null);
   public token$ = this.tokenSubject.asObservable();
 
