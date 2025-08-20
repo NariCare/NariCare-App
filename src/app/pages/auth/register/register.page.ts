@@ -30,8 +30,6 @@ export class RegisterPage implements OnInit {
       whatsappNumber: [''], // Conditional WhatsApp number field
       motherType: [''], // Optional
       dueDate: [''], // Conditional - required for pregnant mothers
-      birthDate: [''], // Conditional - required for new mothers
-      babyGender: [''], // Conditional - required for new mothers
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
       tierType: ['basic', [Validators.required]],
@@ -44,8 +42,6 @@ export class RegisterPage implements OnInit {
     this.registerForm.get('motherType')?.valueChanges.subscribe(() => {
       // Clear conditional fields when mother type changes
       this.registerForm.get('dueDate')?.setValue('');
-      this.registerForm.get('birthDate')?.setValue('');
-      this.registerForm.get('babyGender')?.setValue('');
       
       // Trigger validation update
       this.registerForm.updateValueAndValidity();
@@ -86,8 +82,6 @@ export class RegisterPage implements OnInit {
   conditionalValidator(form: FormGroup) {
     const motherType = form.get('motherType')?.value;
     const dueDate = form.get('dueDate');
-    const birthDate = form.get('birthDate');
-    const babyGender = form.get('babyGender');
 
     // Helper function to clear conditional errors while preserving other errors
     const clearConditionalError = (control: any) => {
@@ -100,23 +94,12 @@ export class RegisterPage implements OnInit {
 
     // Clear existing conditional errors first
     clearConditionalError(dueDate);
-    clearConditionalError(birthDate);
-    clearConditionalError(babyGender);
 
     // Apply conditional validation
     if (motherType === 'pregnant') {
       if (!dueDate?.value) {
         const errors = dueDate?.errors || {};
         dueDate?.setErrors({ ...errors, conditionalRequired: true });
-      }
-    } else if (motherType === 'new_mom') {
-      if (!birthDate?.value) {
-        const errors = birthDate?.errors || {};
-        birthDate?.setErrors({ ...errors, conditionalRequired: true });
-      }
-      if (!babyGender?.value) {
-        const errors = babyGender?.errors || {};
-        babyGender?.setErrors({ ...errors, conditionalRequired: true });
       }
     }
 
@@ -154,13 +137,6 @@ export class RegisterPage implements OnInit {
         // Add conditional fields based on mother type
         if (formValue.motherType === 'pregnant' && formValue.dueDate) {
           registrationData.dueDate = this.formatDateForApi(formValue.dueDate);
-        } else if (formValue.motherType === 'new_mom') {
-          if (formValue.birthDate) {
-            registrationData.birthDate = this.formatDateForApi(formValue.birthDate);
-          }
-          if (formValue.babyGender) {
-            registrationData.babyGender = formValue.babyGender;
-          }
         }
 
         await this.backendAuthService.register(registrationData);
@@ -286,8 +262,6 @@ export class RegisterPage implements OnInit {
       phoneNumber: 'Phone number',
       motherType: 'Mother type',
       dueDate: 'Due date',
-      birthDate: 'Baby\'s birth date',
-      babyGender: 'Baby\'s gender',
       password: 'Password',
       confirmPassword: 'Confirm password',
       tierType: 'Program type',

@@ -121,39 +121,6 @@
           </div>
         </div>
 
-        <!-- Conditional fields for New Mothers -->
-        <div class="conditional-fields" *ngIf="registerForm.get('motherType')?.value === 'new_mom'">
-          <div class="form-group">
-            <ion-item lines="none" class="input-item">
-              <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-              <ion-datetime
-                formControlName="birthDate"
-                presentation="date"
-                placeholder="Baby's birth date"
-                [max]="getTodayDate()"
-                [class.error]="registerForm.get('birthDate')?.invalid && registerForm.get('birthDate')?.touched">
-                <div slot="title">Select Baby's Birth Date</div>
-              </ion-datetime>
-            </ion-item>
-            <div class="error-message" *ngIf="registerForm.get('birthDate')?.invalid && registerForm.get('birthDate')?.touched">
-              {{ getErrorMessage('birthDate') }}
-            </div>
-          </div>
-
-          <div class="form-group">
-            <ion-item lines="none" class="select-item">
-              <ion-icon name="body-outline" slot="start" class="input-icon"></ion-icon>
-              <ion-select formControlName="babyGender" placeholder="Baby's gender">
-                <ion-select-option value="male">Boy</ion-select-option>
-                <ion-select-option value="female">Girl</ion-select-option>
-                <ion-select-option value="other">Prefer not to say</ion-select-option>
-              </ion-select>
-            </ion-item>
-            <div class="error-message" *ngIf="registerForm.get('babyGender')?.invalid && registerForm.get('babyGender')?.touched">
-              {{ getErrorMessage('babyGender') }}
-            </div>
-          </div>
-        </div>
 
         <div class="form-group">
           <ion-item lines="none" class="input-item">
