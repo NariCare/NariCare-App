@@ -5,7 +5,7 @@ import { ModalController, ToastController, AlertController } from '@ionic/angula
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
-import { AuthService } from '../../services/auth.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer, DiaperChangeRecord } from '../../models/growth-tracking.model';
@@ -17,6 +17,8 @@ import { FeedLogModalComponent } from 'src/app/components/feed-log-modal/feed-lo
 import { DiaperLogModalComponent } from 'src/app/components/diaper-log-modal/diaper-log-modal.component';
 import { EmotionCheckinModalComponent } from 'src/app/components/emotion-checkin-modal/emotion-checkin-modal.component';
 import { PumpingLogModalComponent } from 'src/app/components/pumping-log-modal/pumping-log-modal.component';
+import { BabyCreationModalComponent } from 'src/app/components/baby-creation-modal/baby-creation-modal.component';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-growth',
@@ -81,13 +83,14 @@ export class GrowthPage implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private growthService: GrowthTrackingService,
-    private authService: AuthService,
+    private backendAuthService: BackendAuthService,
     private whoService: WHOGrowthChartService,
     private timelineService: BabyTimelineService,
     private modalController: ModalController,
     private toastController: ToastController,
     private alertController: AlertController,
-    private router: Router
+    private router: Router,
+    private apiService: ApiService
   ) {
     // Daily tracking form
     this.addRecordForm = this.formBuilder.group({
@@ -127,14 +130,11 @@ export class GrowthPage implements OnInit {
   }
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+    this.backendAuthService.currentUser$.subscribe(user => {
       this.user = user;
-      if (user && user.babies.length > 0) {
-        // Set first baby as default selected baby
-        this.selectedBaby = user.babies[0];
-        this.loadTrackingData(this.selectedBaby.id);
-        this.loadTimelineData(this.selectedBaby.dateOfBirth);
-        this.loadSummaryData(this.selectedBaby.id);
+      if (user) {
+        // Load babies from API to ensure we have the latest data
+        this.loadUserBabies();
       }
     });
     
@@ -166,6 +166,37 @@ export class GrowthPage implements OnInit {
 
   private loadTimelineData(birthDate: Date) {
     this.timelineData$ = this.timelineService.getTimelineForBaby(birthDate);
+  }
+
+  private async loadUserBabies() {
+    try {
+      const response = await this.apiService.getUserBabies().toPromise();
+      if (response?.success && response.data) {
+        // Update the user object with babies from API
+        if (this.user) {
+          this.user.babies = response.data.map((baby: any) => ({
+            id: baby.id,
+            name: baby.name,
+            dateOfBirth: new Date(baby.dateOfBirth || baby.date_of_birth),
+            gender: baby.gender,
+            birthWeight: baby.birthWeight || baby.birth_weight,
+            birthHeight: baby.birthHeight || baby.birth_height,
+            currentWeight: baby.currentWeight || baby.current_weight,
+            currentHeight: baby.currentHeight || baby.current_height
+          }));
+
+          // If we have babies and no selected baby, select the first one
+          if (this.user.babies.length > 0 && !this.selectedBaby) {
+            this.selectedBaby = this.user.babies[0];
+            this.loadTrackingData(this.selectedBaby.id);
+            this.loadTimelineData(this.selectedBaby.dateOfBirth);
+            this.loadSummaryData(this.selectedBaby.id);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load user babies:', error);
+    }
   }
 
   private async loadStarPerformers() {
@@ -1225,5 +1256,24 @@ export class GrowthPage implements OnInit {
       'feeding': 'Feeding',
     };
     return categoryLabels[category] || category;
+  }
+
+  async openAddBabyModal() {
+    const modal = await this.modalController.create({
+      component: BabyCreationModalComponent,
+      cssClass: 'baby-creation-modal'
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.created) {
+        // Baby was created successfully, reload babies from API
+        this.showToast('Baby added successfully! 👶', 'success');
+        
+        // Reload babies from API to get the latest data
+        this.loadUserBabies();
+      }
+    });
+
+    return await modal.present();
   }
 }

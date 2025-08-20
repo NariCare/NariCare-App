@@ -88,7 +88,14 @@
       <div class="empty-babies" *ngIf="!user || !user.babies || user.babies.length === 0">
         <ion-icon name="baby"></ion-icon>
         <h3>No babies added yet</h3>
-        <p>Add your baby's information to start tracking</p>
+        <p>Add your baby's information to start tracking growth and feeding</p>
+        <ion-button 
+          expand="block"
+          (click)="openAddBabyModal()"
+          class="add-first-baby-button">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Add Your First Baby
+        </ion-button>
       </div>
     </div>
 
@@ -191,6 +198,19 @@
         </ion-button>
       </div>
     </div>
+
+    <!-- Floating Add Baby Button -->
+    <ion-fab 
+      vertical="bottom" 
+      horizontal="end" 
+      slot="fixed"
+      *ngIf="selectedMainTab === 'my-babies'">
+      <ion-fab-button 
+        (click)="openAddBabyModal()"
+        class="add-baby-fab">
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
 
   </div>
 

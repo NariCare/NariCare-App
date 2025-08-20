@@ -84,12 +84,8 @@ export class AppComponent implements OnInit {
     
     // Only redirect from login page or root page
     if (currentUrl === '/' || currentUrl.includes('/auth/login')) {
-      // Navigate based on onboarding status
-      if (user.isOnboardingCompleted) {
-        this.router.navigate(['/tabs/dashboard'], { replaceUrl: true });
-      } else {
-        this.router.navigate(['/onboarding'], { replaceUrl: true });
-      }
+      // Navigate to dashboard (onboarding temporarily disabled)
+      this.router.navigate(['/tabs/dashboard'], { replaceUrl: true });
     }
   }
 }

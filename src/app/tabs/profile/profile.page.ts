@@ -6,6 +6,7 @@ import { ConsultationService } from '../../services/consultation.service';
 import { User } from '../../models/user.model';
 import { Consultation, Expert } from '../../models/consultation.model';
 import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
+import { BabyCreationModalComponent } from '../../components/baby-creation-modal/baby-creation-modal.component';
 
 @Component({
   selector: 'app-profile',
@@ -23,6 +24,7 @@ export class ProfilePage implements OnInit {
       items: [
         { label: 'Personal Information', icon: 'person-outline', action: 'editProfile' },
         { label: 'Baby Information', icon: 'baby-outline', action: 'editBaby' },
+        { label: 'Add New Baby', icon: 'add-circle-outline', action: 'addBaby' },
         { label: 'Notification Settings', icon: 'notifications-outline', action: 'notifications' }
       ]
     },
@@ -90,6 +92,9 @@ export class ProfilePage implements OnInit {
         break;
       case 'editBaby':
         this.editBaby();
+        break;
+      case 'addBaby':
+        this.addBaby();
         break;
       case 'notifications':
         this.openNotificationSettings();
@@ -164,6 +169,32 @@ export class ProfilePage implements OnInit {
 
   private editBaby() {
     console.log('Edit baby information');
+  }
+
+  async addBaby() {
+    const modal = await this.modalController.create({
+      component: BabyCreationModalComponent,
+      cssClass: 'baby-creation-modal'
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.created) {
+        // Baby was created successfully, user data is already refreshed in the modal
+        this.showSuccessToast(`Baby added successfully! 👶`);
+      }
+    });
+
+    return await modal.present();
+  }
+
+  private async showSuccessToast(message: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color: 'success',
+      position: 'top'
+    });
+    await toast.present();
   }
 
   private openNotificationSettings() {

@@ -1,0 +1,132 @@
+.baby-creation-content {
+  --padding-start: 0;
+  --padding-end: 0;
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+}
+
+.baby-creation-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 1.5rem;
+}
+
+.header-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.baby-icon {
+  font-size: 3rem;
+  color: #e91e63;
+  margin-bottom: 1rem;
+}
+
+.header-section h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.header-section p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.baby-form {
+  flex: 1;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+
+  &.half-width {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.measurements-section {
+  margin-top: 1.5rem;
+  
+  h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    padding-left: 0.5rem;
+  }
+}
+
+.input-item,
+.select-item {
+  --background: #ffffff;
+  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 48px;
+  margin-bottom: 0.5rem;
+
+  &.error {
+    --border-color: #ef4444;
+    --border-width: 1px;
+  }
+
+  ion-datetime {
+    --color: #374151;
+    --placeholder-color: #9ca3af;
+    width: 100%;
+  }
+}
+
+.input-icon {
+  color: #94a3b8;
+  margin-right: 12px;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-left: 16px;
+  margin-top: 4px;
+}
+
+.add-baby-button {
+  --background: #e91e63;
+  --background-hover: #d81b60;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+  --color: #ffffff;
+  margin-top: 2rem;
+  height: 48px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+
+  &:disabled {
+    --background: #e2e8f0;
+    --color: #94a3b8;
+    --box-shadow: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .baby-creation-container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .form-row {
+    gap: 1rem;
+  }
+}

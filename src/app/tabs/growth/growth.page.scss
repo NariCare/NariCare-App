@@ -547,6 +547,37 @@
   }
 }
 
+/* Floating Add Baby Button */
+.add-baby-fab {
+  --background: #e91e63;
+  --background-hover: #d81b60;
+  --color: #ffffff;
+  --box-shadow: 0 4px 16px rgba(233, 30, 99, 0.4);
+
+  &:hover {
+    --background: #d81b60;
+    --box-shadow: 0 6px 20px rgba(233, 30, 99, 0.5);
+    transform: scale(1.05);
+  }
+
+  ion-icon {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+}
+
+.add-first-baby-button {
+  --background: #e91e63;
+  --background-hover: #d81b60;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+  --color: #ffffff;
+  margin-top: 1.5rem;
+  height: 48px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
 .time-input {
   --background: #f8fafc;
   --border-radius: 12px;

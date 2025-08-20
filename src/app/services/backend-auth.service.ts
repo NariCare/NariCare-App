@@ -47,7 +47,11 @@ export class BackendAuthService {
     email: string;
     password: string;
     phoneNumber?: string;
+    whatsappNumber?: string;
     motherType?: 'pregnant' | 'new_mom';
+    dueDate?: string;
+    birthDate?: string;
+    babyGender?: 'male' | 'female' | 'other';
     tier?: 'basic' | 'one-month' | 'three-month';
   }): Promise<void> {
     try {
@@ -57,12 +61,8 @@ export class BackendAuthService {
         const user = this.transformUserData(response.data.user);
         this.currentUserSubject.next(user);
         
-        // Navigate based on onboarding status
-        if (user.isOnboardingCompleted) {
-          this.router.navigate(['/tabs/dashboard']);
-        } else {
-          this.router.navigate(['/onboarding']);
-        }
+        // Navigate to dashboard (onboarding temporarily disabled)
+        this.router.navigate(['/tabs/dashboard']);
       } else {
         throw new Error(response?.message || 'Registration failed');
       }
@@ -88,12 +88,8 @@ export class BackendAuthService {
         this.currentUserSubject.next(user);
         this.twoFactorRequiredSubject.next(false);
         
-        // Navigate based on onboarding status
-        if (user.isOnboardingCompleted) {
-          this.router.navigate(['/tabs/dashboard']);
-        } else {
-          this.router.navigate(['/onboarding']);
-        }
+        // Navigate to dashboard (onboarding temporarily disabled)
+        this.router.navigate(['/tabs/dashboard']);
       } else {
         throw new Error(response?.message || 'Login failed');
       }

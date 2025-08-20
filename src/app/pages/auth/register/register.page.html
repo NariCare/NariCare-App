@@ -7,21 +7,13 @@
         <h1 class="app-title">NariCare</h1>
       </div>
       <p class="welcome-text">Join our supportive community of mothers</p>
-      
-      <!-- Progress indicator -->
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div class="progress-fill" [style.width.%]="(currentStep / totalSteps) * 100"></div>
-        </div>
-        <p class="progress-text">Step {{ currentStep }} of {{ totalSteps }}</p>
-      </div>
     </div>
 
     <!-- Registration Form -->
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
       
-      <!-- Step 1: Personal Information -->
-      <div class="form-step" *ngIf="currentStep === 1">
+      <!-- Personal Information -->
+      <div class="form-step">
         <h2 class="step-title">Personal Information</h2>
         
         <div class="form-row">
@@ -78,6 +70,91 @@
           </ion-item>
         </div>
 
+        <!-- WhatsApp Number Section -->
+        <div class="whatsapp-section" *ngIf="registerForm.get('phoneNumber')?.value">
+          <div class="form-group">
+            <ion-item lines="none" class="checkbox-item">
+              <ion-checkbox formControlName="whatsappSameAsPhone" slot="start"></ion-checkbox>
+              <ion-label class="checkbox-label">
+                WhatsApp number is the same as phone number
+              </ion-label>
+            </ion-item>
+          </div>
+
+          <div class="form-group" *ngIf="!registerForm.get('whatsappSameAsPhone')?.value">
+            <ion-item lines="none" class="input-item">
+              <ion-icon name="logo-whatsapp" slot="start" class="input-icon whatsapp-icon"></ion-icon>
+              <ion-input
+                formControlName="whatsappNumber"
+                type="tel"
+                placeholder="WhatsApp number">
+              </ion-input>
+            </ion-item>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <ion-item lines="none" class="select-item">
+            <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-select formControlName="motherType" placeholder="I am a... (optional)">
+              <ion-select-option value="pregnant">Expecting Mother</ion-select-option>
+              <ion-select-option value="new_mom">New Mother</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </div>
+
+        <!-- Conditional fields for Pregnant Mothers -->
+        <div class="form-group" *ngIf="registerForm.get('motherType')?.value === 'pregnant'">
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-datetime
+              formControlName="dueDate"
+              presentation="date"
+              placeholder="Due date"
+              [min]="getTodayDate()"
+              [class.error]="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
+              <div slot="title">Select Due Date</div>
+            </ion-datetime>
+          </ion-item>
+          <div class="error-message" *ngIf="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
+            {{ getErrorMessage('dueDate') }}
+          </div>
+        </div>
+
+        <!-- Conditional fields for New Mothers -->
+        <div class="conditional-fields" *ngIf="registerForm.get('motherType')?.value === 'new_mom'">
+          <div class="form-group">
+            <ion-item lines="none" class="input-item">
+              <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+              <ion-datetime
+                formControlName="birthDate"
+                presentation="date"
+                placeholder="Baby's birth date"
+                [max]="getTodayDate()"
+                [class.error]="registerForm.get('birthDate')?.invalid && registerForm.get('birthDate')?.touched">
+                <div slot="title">Select Baby's Birth Date</div>
+              </ion-datetime>
+            </ion-item>
+            <div class="error-message" *ngIf="registerForm.get('birthDate')?.invalid && registerForm.get('birthDate')?.touched">
+              {{ getErrorMessage('birthDate') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <ion-item lines="none" class="select-item">
+              <ion-icon name="body-outline" slot="start" class="input-icon"></ion-icon>
+              <ion-select formControlName="babyGender" placeholder="Baby's gender">
+                <ion-select-option value="male">Boy</ion-select-option>
+                <ion-select-option value="female">Girl</ion-select-option>
+                <ion-select-option value="other">Prefer not to say</ion-select-option>
+              </ion-select>
+            </ion-item>
+            <div class="error-message" *ngIf="registerForm.get('babyGender')?.invalid && registerForm.get('babyGender')?.touched">
+              {{ getErrorMessage('babyGender') }}
+            </div>
+          </div>
+        </div>
+
         <div class="form-group">
           <ion-item lines="none" class="input-item">
             <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
@@ -114,55 +191,11 @@
           </div>
         </div>
 
-        <ion-button expand="block" (click)="nextStep()" class="next-button">
-          Continue
-        </ion-button>
-      </div>
-
-      <!-- Step 2: Program Selection -->
-      <div class="form-step" *ngIf="currentStep === 2">
-        <h2 class="step-title">Choose Your Program</h2>
-        
-        <div class="tier-selection">
-          <ion-radio-group formControlName="tierType">
-            <div class="tier-option">
-              <ion-item lines="none">
-                <ion-radio slot="start" value="basic"></ion-radio>
-                <ion-label>
-                  <h3>Basic (Free)</h3>
-                  <p>Access to knowledge base and community chat</p>
-                </ion-label>
-              </ion-item>
-            </div>
-            
-            <div class="tier-option">
-              <ion-item lines="none">
-                <ion-radio slot="start" value="one-month"></ion-radio>
-                <ion-label>
-                  <h3>1-Month Program</h3>
-                  <p>Everything in Basic + 2 expert consultations</p>
-                  <p class="price">$29.99/month</p>
-                </ion-label>
-              </ion-item>
-            </div>
-            
-            <div class="tier-option">
-              <ion-item lines="none">
-                <ion-radio slot="start" value="three-month"></ion-radio>
-                <ion-label>
-                  <h3>3-Month Program</h3>
-                  <p>Everything in 1-Month + 6 consultations + priority support</p>
-                  <p class="price">$79.99 (Save $10)</p>
-                </ion-label>
-              </ion-item>
-            </div>
-          </ion-radio-group>
-        </div>
-
-        <div class="form-group">
-          <ion-item lines="none">
+        <!-- Terms and Conditions -->
+        <div class="form-group terms-section">
+          <ion-item lines="none" class="checkbox-item">
             <ion-checkbox formControlName="agreeToTerms" slot="start"></ion-checkbox>
-            <ion-label class="terms-label">
+            <ion-label class="checkbox-label terms-label">
               I agree to the <a href="#" class="terms-link">Terms of Service</a> and 
               <a href="#" class="terms-link">Privacy Policy</a>
             </ion-label>
@@ -172,17 +205,15 @@
           </div>
         </div>
 
-        <div class="button-row">
-          <ion-button fill="outline" (click)="previousStep()" class="back-button">
-            Back
-          </ion-button>
-          <ion-button 
-            type="submit" 
-            [disabled]="!registerForm.valid"
-            class="submit-button">
-            Create Account
-          </ion-button>
-        </div>
+        <!-- Submit Button -->
+        <ion-button 
+          expand="block"
+          type="submit" 
+          [disabled]="!registerForm.valid"
+          class="register-button">
+          <ion-icon name="person-add-outline" slot="start"></ion-icon>
+          Create Account
+        </ion-button>
       </div>
     </form>
 

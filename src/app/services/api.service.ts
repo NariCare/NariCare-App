@@ -144,7 +144,11 @@ export class ApiService {
     email: string;
     password: string;
     phoneNumber?: string;
+    whatsappNumber?: string;
     motherType?: 'pregnant' | 'new_mom';
+    dueDate?: string;
+    birthDate?: string;
+    babyGender?: 'male' | 'female' | 'other';
     tier?: 'basic' | 'one-month' | 'three-month';
   }): Observable<ApiResponse<RegisterResponse>> {
     return this.http.post<ApiResponse<RegisterResponse>>(`${this.baseUrl}/auth/register`, userData)

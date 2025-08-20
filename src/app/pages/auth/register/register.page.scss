@@ -108,7 +108,24 @@
   }
 }
 
-.input-item {
+.conditional-fields {
+  border-left: 3px solid #e91e63;
+  padding-left: 1rem;
+  margin-left: 0.5rem;
+  margin-top: 0.5rem;
+  
+  .form-group {
+    margin-bottom: 1rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.input-item,
+.select-item,
+.checkbox-item {
   --background: #ffffff;
   --border-radius: 12px;
   --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -120,6 +137,12 @@
   &.error {
     --border-color: #ef4444;
     --border-width: 1px;
+  }
+
+  ion-datetime {
+    --color: #374151;
+    --placeholder-color: #9ca3af;
+    width: 100%;
   }
 }
 
@@ -245,6 +268,62 @@
   height: auto;
   margin: 0;
   vertical-align: baseline;
+}
+
+.whatsapp-section {
+  background: rgba(37, 211, 102, 0.05);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  border-left: 3px solid #25d366;
+
+  .checkbox-item {
+    --background: transparent;
+    --padding-start: 0;
+    --min-height: auto;
+    margin-bottom: 0.5rem;
+  }
+
+  .checkbox-label {
+    font-size: 0.9rem;
+    color: #2d3748;
+    margin-left: 0.75rem;
+  }
+
+  .whatsapp-icon {
+    color: #25d366;
+  }
+
+  .form-group {
+    margin-bottom: 0.75rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.register-button {
+  --background: #e91e63;
+  --background-hover: #d81b60;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+  --color: #ffffff;
+  margin-top: 1.5rem;
+  height: 48px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+
+  &:disabled {
+    --background: #e2e8f0;
+    --color: #94a3b8;
+    --box-shadow: none;
+  }
+}
+
+.terms-section {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .social-signin-section {
