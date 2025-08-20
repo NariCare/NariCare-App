@@ -70,7 +70,7 @@ export class LoginPage implements OnInit, OnDestroy {
 
   private redirectAuthenticatedUser(user: any) {
     // Navigate based on onboarding status
-    if (user.isOnboardingCompleted) {
+    if (true || user.isOnboardingCompleted) {
       this.router.navigate(['/tabs/dashboard'], { replaceUrl: true });
     } else {
       this.router.navigate(['/onboarding'], { replaceUrl: true });
