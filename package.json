@@ -8,11 +8,13 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
     "ionic:build": "ng build",
+    "ionic:build:prod": "ng build --configuration production",
     "ionic:serve": "ng serve"
   },
   "private": true,
