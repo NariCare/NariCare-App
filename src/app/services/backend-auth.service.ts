@@ -5,6 +5,12 @@ import { map, switchMap, catchError, tap } from 'rxjs/operators';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService, LoginResponse, RegisterResponse, TwoFactorResponse } from './api.service';
 import { User } from '../models/user.model';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import { FacebookLogin } from '@capacitor-community/facebook-login';
+import { Platform } from '@ionic/angular';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +27,9 @@ export class BackendAuthService {
   constructor(
     private apiService: ApiService,
     private router: Router,
-    private storage: Storage
+    private storage: Storage,
+    private afAuth: AngularFireAuth,
+    private platform: Platform
   ) {
     this.initializeAuth();
   }
@@ -39,6 +47,36 @@ export class BackendAuthService {
         this.apiService.logout().subscribe();
       }
     }
+  }
+
+  private async waitForFirebaseAuth(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Wait up to 10 seconds for Firebase Auth to be ready
+      const timeout = setTimeout(() => {
+        reject(new Error('Firebase Auth initialization timeout'));
+      }, 10000);
+
+      // Check if AngularFireAuth is ready
+      if (this.afAuth) {
+        // Subscribe to auth state to ensure it's initialized
+        const subscription = this.afAuth.authState.subscribe({
+          next: () => {
+            clearTimeout(timeout);
+            subscription.unsubscribe();
+            resolve();
+          },
+          error: (error) => {
+            clearTimeout(timeout);
+            subscription.unsubscribe();
+            console.warn('Firebase Auth initialization error:', error);
+            resolve(); // Still resolve to continue with the flow
+          }
+        });
+      } else {
+        clearTimeout(timeout);
+        reject(new Error('AngularFireAuth service not available'));
+      }
+    });
   }
 
   async register(userData: {
@@ -235,17 +273,212 @@ export class BackendAuthService {
     }
   }
 
-  // Social sign-in methods (these would integrate with Firebase Auth or similar)
+  // Social sign-in methods
   async signInWithGoogle(): Promise<void> {
-    // This would typically integrate with Google OAuth
-    // For now, we'll throw an error to indicate it needs implementation
-    throw new Error('Google sign-in requires OAuth integration. Please use email/password login.');
+    try {
+      if (this.platform.is('capacitor')) {
+        // For mobile app - use Capacitor Google Auth plugin
+        // TODO: Implement Capacitor Google Auth when available
+        throw new Error('Mobile Google sign-in not yet implemented. Please use web version.');
+      } else {
+        // Wait for Firebase Auth to be ready
+        await this.waitForFirebaseAuth();
+
+        // Check if AngularFireAuth is available
+        if (!this.afAuth) {
+          throw new Error('Firebase Auth is not available. Please check your Firebase configuration.');
+        }
+
+        // For web - use Firebase Auth directly through AngularFireAuth
+        if (!firebase.auth || !firebase.auth.GoogleAuthProvider) {
+          throw new Error('Firebase Google Auth provider not available');
+        }
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        
+        // Validate provider was created successfully
+        if (!provider) {
+          throw new Error('Failed to create Google Auth provider');
+        }
+        
+        // Configure provider with basic settings
+        provider.addScope('profile');
+        provider.addScope('email');
+        
+        // Set additional provider parameters to ensure compatibility
+        provider.setCustomParameters({
+          'prompt': 'select_account'
+        });
+        
+        console.log('Starting Google sign-in with provider:', provider);
+        console.log('Firebase Auth instance:', this.afAuth);
+        
+        // Try using Firebase Auth directly instead of AngularFireAuth
+        console.log('Attempting direct Firebase Auth call...');
+        
+        // Initialize Firebase app if not already initialized
+        if (!firebase.apps.length) {
+          console.log('Firebase app not initialized, initializing now...');
+          try {
+            firebase.initializeApp(environment.firebase);
+            console.log('Firebase app initialized successfully');
+          } catch (error) {
+            console.error('Failed to initialize Firebase app:', error);
+            throw new Error('Failed to initialize Firebase app');
+          }
+        }
+        
+        // Get the underlying Firebase Auth instance
+        const auth = firebase.auth();
+        
+        console.log('Direct Firebase Auth instance:', auth);
+        console.log('Firebase apps:', firebase.apps);
+        console.log('Provider for direct call:', provider);
+        
+        // Verify auth instance is ready
+        if (!auth) {
+          throw new Error('Firebase Auth instance not available');
+        }
+        
+        let result;
+        try {
+          result = await auth.signInWithPopup(provider);
+        } catch (directAuthError) {
+          console.log('Direct Firebase Auth failed, trying AngularFireAuth:', directAuthError);
+          
+          // Fallback to AngularFireAuth if direct auth fails
+          if (this.afAuth && typeof this.afAuth.signInWithPopup === 'function') {
+            console.log('Using AngularFireAuth as fallback...');
+            result = await this.afAuth.signInWithPopup(provider);
+          } else {
+            throw directAuthError;
+          }
+        }
+        
+        console.log('Google sign-in result:', result);
+        
+        if (result && result.user) {
+          await this.handleSocialAuthResult(result, 'google');
+        } else {
+          throw new Error('Google authentication failed - no user returned');
+        }
+      }
+    } catch (error: any) {
+      console.error('Google sign-in error:', error);
+      
+      // Provide more specific error messages for Firebase errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Sign-in was cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        throw new Error('Popup was blocked by browser. Please allow popups and try again.');
+      } else if (error.code === 'auth/argument-error') {
+        throw new Error('Firebase configuration error. Please contact support.');
+      } else if (error.code && error.code.startsWith('auth/')) {
+        throw new Error(`Authentication error: ${error.message}`);
+      }
+      
+      throw new Error(this.getErrorMessage(error));
+    }
   }
 
   async signInWithFacebook(): Promise<void> {
-    // This would typically integrate with Facebook OAuth
-    // For now, we'll throw an error to indicate it needs implementation
-    throw new Error('Facebook sign-in requires OAuth integration. Please use email/password login.');
+    try {      
+      if (this.platform.is('capacitor')) {
+        // For mobile app - use Capacitor Facebook Login plugin
+        const FACEBOOK_PERMISSIONS = ['email', 'public_profile'];
+        
+        const result = await FacebookLogin.login({ permissions: FACEBOOK_PERMISSIONS });
+        
+        if (result.accessToken) {
+          // Get user profile from Facebook
+          const response = await fetch(`https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${result.accessToken.token}`);
+          const profile = await response.json();
+          
+          await this.handleFacebookResult({
+            id: profile.id,
+            name: profile.name,
+            email: profile.email,
+            picture: profile.picture?.data?.url,
+            accessToken: result.accessToken.token
+          });
+        } else {
+          throw new Error('Facebook authentication was cancelled');
+        }
+      } else {
+        // For web - use Firebase Auth directly through AngularFireAuth
+        const provider = new firebase.auth.FacebookAuthProvider();
+        provider.addScope('email');
+        
+        const firebaseResult = await this.afAuth.signInWithPopup(provider);
+        if (firebaseResult.user) {
+          await this.handleSocialAuthResult(firebaseResult, 'facebook');
+        } else {
+          throw new Error('Facebook authentication failed');
+        }
+      }
+    } catch (error: any) {
+      console.error('Facebook sign-in error:', error);
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  private async handleSocialAuthResult(result: firebase.auth.UserCredential, provider: 'google' | 'facebook'): Promise<void> {
+    try {
+      // Get Firebase ID token
+      const idToken = await result.user!.getIdToken();
+      
+      // For Google via Firebase, we only have idToken, not accessToken
+      // But backend API expects both fields, so we'll send idToken as both
+      const socialAuthData = {
+        provider,
+        accessToken: idToken, // For Google, this is actually the idToken
+        idToken: idToken      // Preferred for security
+      };
+      
+      console.log('Sending social auth data to backend:', socialAuthData);
+      
+      await this.authenticateWithBackend(socialAuthData);
+    } catch (error: any) {
+      console.error('Social auth backend error:', error);
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+  
+  private async handleFacebookResult(facebookProfile: any): Promise<void> {
+    try {
+      // For Facebook, we have the actual accessToken
+      const socialAuthData = {
+        provider: 'facebook',
+        accessToken: facebookProfile.accessToken,
+        idToken: facebookProfile.accessToken // For Facebook, accessToken serves as both
+      };
+      
+      console.log('Sending Facebook auth data to backend:', socialAuthData);
+      
+      await this.authenticateWithBackend(socialAuthData);
+    } catch (error: any) {
+      console.error('Facebook auth backend error:', error);
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  private async authenticateWithBackend(socialAuthData: any): Promise<void> {
+    try {
+      // Call backend API endpoint for social authentication
+      const response = await this.apiService.socialAuth(socialAuthData).toPromise();
+      
+      if (response?.success && response.data) {
+        const user = this.transformUserData(response.data.user);
+        this.currentUserSubject.next(user);
+        
+        // Navigate to dashboard (onboarding temporarily disabled)
+        this.router.navigate(['/tabs/dashboard']);
+      } else {
+        throw new Error(response?.message || 'Social authentication failed');
+      }
+    } catch (error: any) {
+      throw new Error(this.getErrorMessage(error));
+    }
   }
 
   // Helper method to transform API user data to frontend User model

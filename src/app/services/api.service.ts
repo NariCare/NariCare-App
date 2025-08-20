@@ -197,6 +197,22 @@ export class ApiService {
       .pipe(catchError(this.handleError));
   }
 
+  socialAuth(socialAuthData: {
+    provider: 'google' | 'facebook';
+    accessToken: string;
+    idToken: string; // Preferred for security
+  }): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.baseUrl}/auth/social`, socialAuthData)
+      .pipe(
+        tap(response => {
+          if (response.success && response.data?.token) {
+            this.setToken(response.data.token);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   disable2FA(otp: string): Observable<ApiResponse<TwoFactorResponse>> {
     return this.http.post<ApiResponse<TwoFactorResponse>>(`${this.baseUrl}/auth/2fa/disable`, { otp }, {
       headers: this.getAuthHeaders()
