@@ -10,7 +10,7 @@ export const environment = {
     measurementId: "G-PYV60K3B2D"
   },
   // Production API URL - update this with your actual production API URL
-  apiUrl: 'https://api.naricare.app/api',
+  apiUrl: 'https://beta-api.naricare.com/api',
   
   // Encrypted OpenAI API Key - decrypt using EncryptionService
   encryptedOpenaiApiKey: "PQpfGjUCEwZRRB9XHzA5NBYYJQ9NcSgXbBcHE2RxEC8CGyF2DgISfEdXciZSADoNLCgwDhU1E2xABnJCZWQMCzYtIFgQIAdiAl4mFSYwMAwDDiwScXcXZzJEQW5jIz4BHiwIBhRcWFF8PT9UFDcROy0WTAd7chABak5MTgcMOgMADCckS1tZAhcAIUoLBAA/LFMwZxNuaRRFbGc2FCM/GRkqLX8IRXQ="

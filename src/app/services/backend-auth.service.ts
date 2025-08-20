@@ -382,17 +382,26 @@ export class BackendAuthService {
   }
 
   async signInWithFacebook(): Promise<void> {
-    try {      
+    try {
+      console.log('Facebook sign-in started');
+      console.log('Platform is capacitor:', this.platform.is('capacitor'));
+      
       if (this.platform.is('capacitor')) {
         // For mobile app - use Capacitor Facebook Login plugin
         const FACEBOOK_PERMISSIONS = ['email', 'public_profile'];
         
+        console.log('Starting Facebook login with Capacitor plugin...');
+        
         const result = await FacebookLogin.login({ permissions: FACEBOOK_PERMISSIONS });
+        
+        console.log('Facebook login result:', result);
         
         if (result.accessToken) {
           // Get user profile from Facebook
           const response = await fetch(`https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${result.accessToken.token}`);
           const profile = await response.json();
+          
+          console.log('Facebook profile data:', profile);
           
           await this.handleFacebookResult({
             id: profile.id,
@@ -405,21 +414,34 @@ export class BackendAuthService {
           throw new Error('Facebook authentication was cancelled');
         }
       } else {
-        // For web - use Firebase Auth directly through AngularFireAuth
-        const provider = new firebase.auth.FacebookAuthProvider();
-        provider.addScope('email');
+        // For web - skip Firebase Auth completely and use direct approach
+        console.log('Facebook web login - bypassing Firebase Auth...');
         
-        const firebaseResult = await this.afAuth.signInWithPopup(provider);
-        if (firebaseResult.user) {
-          await this.handleSocialAuthResult(firebaseResult, 'facebook');
-        } else {
-          throw new Error('Facebook authentication failed');
-        }
+        // For now, show a user-friendly message for web users
+        throw new Error('Facebook sign-in is currently available on mobile only. Please use Google sign-in or download our mobile app.');
       }
     } catch (error: any) {
-      console.error('Facebook sign-in error:', error);
+      console.error('Facebook sign-in error details:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      
+      // Provide more specific error messages for Facebook
+      if (error.code === 'auth/argument-error') {
+        throw new Error('Facebook authentication error. Please try Google sign-in instead.');
+      } else if (error.message?.includes('cancelled')) {
+        throw new Error('Facebook sign-in was cancelled.');
+      }
+      
       throw new Error(this.getErrorMessage(error));
     }
+  }
+
+  private async facebookWebLogin(): Promise<void> {
+    // Facebook SDK for web would be implemented here
+    // For now, we're focusing on mobile implementation
+    throw new Error('Facebook web login not implemented. Please use the mobile app.');
   }
 
   private async handleSocialAuthResult(result: firebase.auth.UserCredential, provider: 'google' | 'facebook'): Promise<void> {
