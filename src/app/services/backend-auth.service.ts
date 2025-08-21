@@ -96,7 +96,8 @@ export class BackendAuthService {
       const response = await this.apiService.register(userData).toPromise();
       
       if (response?.success && response.data) {
-        const user = this.transformUserData(response.data.user);
+        // API returns user data directly in response.data, not response.data.user
+        const user = this.transformUserData(response.data);
         this.currentUserSubject.next(user);
         
         // Navigate to dashboard (onboarding temporarily disabled)
@@ -506,10 +507,10 @@ export class BackendAuthService {
   // Helper method to transform API user data to frontend User model
   private transformUserData(apiUser: any): User {
     return {
-      uid: apiUser.id || apiUser.uid,
-      email: apiUser.email,
-      firstName: apiUser.firstName || apiUser.first_name,
-      lastName: apiUser.lastName || apiUser.last_name,
+      uid: apiUser.userId || apiUser.id || apiUser.uid || '',
+      email: apiUser.email || '',
+      firstName: apiUser.firstName || apiUser.first_name || '',
+      lastName: apiUser.lastName || apiUser.last_name || '',
       phoneNumber: apiUser.phoneNumber || apiUser.phone_number,
       whatsappNumber: apiUser.whatsappNumber || apiUser.whatsapp_number,
       motherType: apiUser.motherType || apiUser.mother_type,
@@ -521,9 +522,9 @@ export class BackendAuthService {
         startDate: apiUser.tier?.startDate ? new Date(apiUser.tier.startDate) : new Date(),
         endDate: apiUser.tier?.endDate ? new Date(apiUser.tier.endDate) : undefined,
         consultationsRemaining: apiUser.tier?.consultationsRemaining || apiUser.consultations_remaining || 0,
-        features: apiUser.tier?.features || this.getTierFeatures(apiUser.tier?.type || 'basic')
+        features: apiUser.tier?.features || this.getTierFeatures(apiUser.tier?.type || apiUser.tier_type || 'basic')
       },
-      createdAt: new Date(apiUser.createdAt || apiUser.created_at),
+      createdAt: new Date(apiUser.createdAt || apiUser.created_at || Date.now()),
       isOnboardingCompleted: apiUser.isOnboardingCompleted ?? apiUser.is_onboarding_completed ?? false,
       notificationPreferences: {
         articleUpdates: apiUser.notificationPreferences?.articleUpdates ?? apiUser.article_updates ?? true,
@@ -532,16 +533,17 @@ export class BackendAuthService {
         growthReminders: apiUser.notificationPreferences?.growthReminders ?? apiUser.growth_reminders ?? true,
         expertMessages: apiUser.notificationPreferences?.expertMessages ?? apiUser.expert_messages ?? true
       },
-      babies: (apiUser.babies || []).map((baby: any) => ({
-        id: baby.id,
-        name: baby.name,
-        dateOfBirth: new Date(baby.dateOfBirth || baby.date_of_birth),
-        gender: baby.gender,
-        birthWeight: baby.birthWeight || baby.birth_weight,
-        birthHeight: baby.birthHeight || baby.birth_height,
-        currentWeight: baby.currentWeight || baby.current_weight,
-        currentHeight: baby.currentHeight || baby.current_height
-      })),
+      babies: Array.isArray(apiUser.babies) ? 
+        apiUser.babies.filter(baby => baby && baby.id).map((baby: any) => ({
+          id: baby.id,
+          name: baby.name || '',
+          dateOfBirth: new Date(baby.dateOfBirth || baby.date_of_birth || Date.now()),
+          gender: baby.gender || 'other',
+          birthWeight: baby.birthWeight || baby.birth_weight || 0,
+          birthHeight: baby.birthHeight || baby.birth_height || 0,
+          currentWeight: baby.currentWeight || baby.current_weight || 0,
+          currentHeight: baby.currentHeight || baby.current_height || 0
+        })) : [],
       socialProvider: apiUser.socialProvider || apiUser.social_provider
     };
   }
