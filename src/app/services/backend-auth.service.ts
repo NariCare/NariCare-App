@@ -23,6 +23,8 @@ export class BackendAuthService {
   public twoFactorRequired$ = this.twoFactorRequiredSubject.asObservable();
   
   private pendingEmail: string = '';
+  private initializationComplete = new BehaviorSubject<boolean>(false);
+  public initialized$ = this.initializationComplete.asObservable();
 
   constructor(
     private apiService: ApiService,
@@ -35,23 +37,28 @@ export class BackendAuthService {
   }
 
   private async initializeAuth() {
-    // Check if user is already authenticated synchronously first
-    const token = localStorage.getItem('naricare_token');
-    if (token && this.apiService.isAuthenticated()) {
-      try {
-        const response = await this.apiService.getUserProfile().toPromise();
-        if (response?.success && response.data) {
-          const user = this.transformUserData(response.data);
-          this.currentUserSubject.next(user);
-          
-          // Don't auto-navigate here, let app.component handle it
-          console.log('User loaded on initialization:', user.email);
+    try {
+      // Check if user is already authenticated synchronously first
+      const token = localStorage.getItem('naricare_token');
+      if (token && this.apiService.isAuthenticated()) {
+        try {
+          const response = await this.apiService.getUserProfile().toPromise();
+          if (response?.success && response.data) {
+            const user = this.transformUserData(response.data);
+            this.currentUserSubject.next(user);
+            
+            // Don't auto-navigate here, let app.component handle it
+            console.log('User loaded on initialization:', user.email);
+          }
+        } catch (error) {
+          console.warn('Failed to load user profile on init:', error);
+          this.apiService.logout().subscribe();
+          this.currentUserSubject.next(null);
         }
-      } catch (error) {
-        console.warn('Failed to load user profile on init:', error);
-        this.apiService.logout().subscribe();
-        this.currentUserSubject.next(null);
       }
+    } finally {
+      // Always mark initialization as complete
+      this.initializationComplete.next(true);
     }
   }
 
