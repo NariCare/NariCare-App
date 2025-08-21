@@ -2,6 +2,8 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController } from '@ionic/angular';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
+import { BackendGrowthService } from '../../services/backend-growth.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { AuthService } from '../../services/auth.service';
 import { GrowthRecord, FeedType, PainLevel } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
@@ -74,8 +76,8 @@ export class FeedLogModalComponent implements OnInit {
     { value: 4, emoji: '😖', label: 'Severe' }
   ];
 
-  ebmPresets = [30, 60, 90, 120];
-  formulaPresets = [30, 60, 90, 120, 160];
+  ebmPresets = [30, 60, 90, 120, 150];
+  formulaPresets = [30, 60, 90, 120, 150, 200];
 
   predefinedNotes: PredefinedNote[] = [
     { id: '4', text: 'Sleeps at breast', indicator: 'red' },
@@ -95,7 +97,9 @@ export class FeedLogModalComponent implements OnInit {
     private modalController: ModalController,
     private toastController: ToastController,
     private growthService: GrowthTrackingService,
-    private authService: AuthService
+    private backendGrowthService: BackendGrowthService,
+    private authService: AuthService,
+    private backendAuthService: BackendAuthService
   ) {
     this.feedForm = this.formBuilder.group({
       selectedBaby: ['', [Validators.required]],
@@ -104,20 +108,23 @@ export class FeedLogModalComponent implements OnInit {
       startTime: [this.getCurrentTime()],
       breastSide: [''],
       duration: [15, [Validators.min(1), Validators.max(120)]],
-      painLevel: [null],
+      painLevel: [null, [Validators.min(0), Validators.max(4)]],
       // Expressed milk fields
-      ebmQuantity: [0, [Validators.min(0), Validators.max(300)]],
+      ebmQuantity: [0, [Validators.min(1), Validators.max(500)]],
       // Formula fields
-      formulaQuantity: [0, [Validators.min(0), Validators.max(300)]],
+      formulaQuantity: [0, [Validators.min(1), Validators.max(500)]],
       // Notes
       notes: ['']
     });
   }
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+    // Try backend auth service first, fallback to legacy auth service
+    const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
+    
+    authService.currentUser$.subscribe(user => {
       this.user = user;
-      if (user && user.babies.length > 0) {
+      if (user && user.babies && user.babies.length > 0) {
         // Auto-select baby if passed as input or only one exists
         if (this.selectedBaby) {
           this.feedForm.patchValue({ selectedBaby: this.selectedBaby.id });
@@ -181,11 +188,11 @@ export class FeedLogModalComponent implements OnInit {
     }
 
     if (feedTypes.includes('expressed')) {
-      this.feedForm.get('ebmQuantity')?.setValidators([Validators.required, Validators.min(1), Validators.max(300)]);
+      this.feedForm.get('ebmQuantity')?.setValidators([Validators.required, Validators.min(1), Validators.max(500)]);
     }
 
     if (feedTypes.includes('formula')) {
-      this.feedForm.get('formulaQuantity')?.setValidators([Validators.required, Validators.min(1), Validators.max(300)]);
+      this.feedForm.get('formulaQuantity')?.setValidators([Validators.required, Validators.min(1), Validators.max(500)]);
     }
 
     // Update form validation
@@ -321,7 +328,14 @@ export class FeedLogModalComponent implements OnInit {
           enteredViaVoice: false
         };
 
-        await this.growthService.addGrowthRecord(record);
+        // Try backend service first, fallback to local storage
+        const isBackendUser = this.backendAuthService.getCurrentUser();
+        
+        if (isBackendUser) {
+          await this.backendGrowthService.addFeedRecord(record);
+        } else {
+          await this.growthService.addGrowthRecord(record);
+        }
         
         const toast = await this.toastController.create({
           message: 'Feed log saved successfully!',
@@ -333,9 +347,16 @@ export class FeedLogModalComponent implements OnInit {
 
         await this.modalController.dismiss({ saved: true });
 
-      } catch (error) {
+      } catch (error: any) {
+        console.error('Error saving feed log:', error);
+        
+        let errorMessage = 'Failed to save feed log. Please try again.';
+        if (error?.message) {
+          errorMessage = error.message;
+        }
+        
         const toast = await this.toastController.create({
-          message: 'Failed to save feed log. Please try again.',
+          message: errorMessage,
           duration: 3000,
           color: 'danger',
           position: 'top'

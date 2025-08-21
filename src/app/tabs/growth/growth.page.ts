@@ -5,6 +5,7 @@ import { ModalController, ToastController, AlertController } from '@ionic/angula
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
+import { BackendGrowthService } from '../../services/backend-growth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
@@ -83,6 +84,7 @@ export class GrowthPage implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private growthService: GrowthTrackingService,
+    private backendGrowthService: BackendGrowthService,
     private backendAuthService: BackendAuthService,
     private whoService: WHOGrowthChartService,
     private timelineService: BabyTimelineService,
@@ -158,10 +160,21 @@ export class GrowthPage implements OnInit {
   }
 
   private loadTrackingData(babyId: string) {
-    this.growthRecords$ = this.growthService.getGrowthRecords(babyId);
-    this.weightRecords$ = this.growthService.getWeightRecords(babyId);
-    this.stoolRecords$ = this.growthService.getStoolRecords(babyId);
-    this.recentRecords$ = this.growthService.getRecentRecords(babyId, 3);
+    // Use backend service if user is authenticated with backend, otherwise use local service
+    const isBackendUser = this.backendAuthService.getCurrentUser();
+    
+    if (isBackendUser) {
+      this.growthRecords$ = this.backendGrowthService.getFeedRecords(babyId);
+      this.weightRecords$ = this.backendGrowthService.getWeightRecords(babyId);
+      this.stoolRecords$ = this.backendGrowthService.getStoolRecords(babyId);
+      // For recent records, we'll use the same feed records observable for now
+      this.recentRecords$ = this.backendGrowthService.getFeedRecords(babyId);
+    } else {
+      this.growthRecords$ = this.growthService.getGrowthRecords(babyId);
+      this.weightRecords$ = this.growthService.getWeightRecords(babyId);
+      this.stoolRecords$ = this.growthService.getStoolRecords(babyId);
+      this.recentRecords$ = this.growthService.getRecentRecords(babyId, 3);
+    }
   }
 
   private loadTimelineData(birthDate: Date) {

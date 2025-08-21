@@ -314,17 +314,16 @@ export class ApiService {
   // ============================================================================
 
   createFeedRecord(feedData: FeedRecordRequest): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/tracker/growth-records`, feedData, {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/tracker/feed`, feedData, {
       headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
   getFeedRecords(babyId: string, limit: number = 20): Observable<ApiResponse<any[]>> {
     const params = new HttpParams()
-      .set('babyId', babyId)
       .set('limit', limit.toString());
 
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/growth-records`, {
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/recent/${babyId}`, {
       headers: this.getAuthHeaders(),
       params
     }).pipe(catchError(this.handleError));
