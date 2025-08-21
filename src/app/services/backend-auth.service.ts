@@ -35,8 +35,9 @@ export class BackendAuthService {
   }
 
   private async initializeAuth() {
-    // Check if user is already authenticated
-    if (this.apiService.isAuthenticated()) {
+    // Check if user is already authenticated synchronously first
+    const token = localStorage.getItem('naricare_token');
+    if (token && this.apiService.isAuthenticated()) {
       try {
         const response = await this.apiService.getUserProfile().toPromise();
         if (response?.success && response.data) {

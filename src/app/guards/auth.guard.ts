@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, take, delay, switchMap } from 'rxjs/operators';
 import { BackendAuthService } from '../services/backend-auth.service';
 
 @Injectable({
@@ -15,14 +15,34 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   canActivate(): Observable<boolean> {
+    // Check localStorage first for immediate response
+    const token = localStorage.getItem('naricare_token');
+    
+    if (!token) {
+      this.router.navigate(['/auth/login']);
+      return of(false);
+    }
+
+    // If token exists, check auth service state
     return this.backendAuthService.isAuthenticated().pipe(
       take(1),
-      map(isAuthenticated => {
-        if (!isAuthenticated) {
-          this.router.navigate(['/auth/login']);
-          return false;
+      switchMap(isAuthenticated => {
+        if (isAuthenticated) {
+          return of(true);
         }
-        return true;
+        
+        // Wait a moment for service to initialize
+        return this.backendAuthService.isAuthenticated().pipe(
+          delay(100),
+          take(1),
+          map(isAuth => {
+            if (!isAuth) {
+              this.router.navigate(['/auth/login']);
+              return false;
+            }
+            return true;
+          })
+        );
       })
     );
   }

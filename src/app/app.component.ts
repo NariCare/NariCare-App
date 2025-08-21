@@ -52,28 +52,37 @@ export class AppComponent implements OnInit {
 
   private async checkAuthAndRedirect() {
     try {
-      // Check if JWT token exists immediately
-      if (this.backendAuthService.getCurrentUser()) {
-        const currentUser = this.backendAuthService.getCurrentUser();
-        this.navigateBasedOnUser(currentUser!);
-        return;
-      }
-
-      // Wait a moment for BackendAuthService to initialize
-      setTimeout(() => {
-        const currentUser = this.backendAuthService.getCurrentUser();
-        
-        // If we have a current user, redirect appropriately
-        if (currentUser) {
-          this.navigateBasedOnUser(currentUser);
-        } else {
-          // No user found, redirect to login
-          const currentUrl = this.router.url;
-          if (currentUrl === '/' || currentUrl.includes('/tabs/')) {
-            this.router.navigate(['/auth/login'], { replaceUrl: true });
+      // Check localStorage directly for immediate token verification
+      const hasToken = localStorage.getItem('naricare_token');
+      
+      if (hasToken) {
+        // Wait for BackendAuthService to initialize and validate the token
+        const checkAuth = async () => {
+          const currentUser = this.backendAuthService.getCurrentUser();
+          if (currentUser) {
+            this.navigateBasedOnUser(currentUser);
+          } else {
+            // Wait a bit longer for initialization
+            setTimeout(() => {
+              const user = this.backendAuthService.getCurrentUser();
+              if (user) {
+                this.navigateBasedOnUser(user);
+              } else {
+                // Token exists but user not loaded, redirect to login
+                this.router.navigate(['/auth/login'], { replaceUrl: true });
+              }
+            }, 500);
           }
+        };
+        
+        await checkAuth();
+      } else {
+        // No token found, redirect to login immediately
+        const currentUrl = this.router.url;
+        if (currentUrl === '/' || currentUrl.includes('/tabs/')) {
+          this.router.navigate(['/auth/login'], { replaceUrl: true });
         }
-      }, 100);
+      }
 
       // Subscribe to auth state changes for future auth status updates
       this.backendAuthService.currentUser$.subscribe(user => {
@@ -84,6 +93,8 @@ export class AppComponent implements OnInit {
       });
     } catch (error) {
       console.log('Auth check error:', error);
+      // On error, redirect to login
+      this.router.navigate(['/auth/login'], { replaceUrl: true });
     }
   }
 
