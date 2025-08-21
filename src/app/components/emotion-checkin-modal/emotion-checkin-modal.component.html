@@ -1,7 +1,10 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>💕 Emotion Check-In</ion-title>
+    <ion-title>{{ isInSettingsMode() ? '⚙️ Check-in Settings' : '💕 Emotion Check-In' }}</ion-title>
     <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="goToSettings()" *ngIf="!isInSettingsMode()">
+        <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
+      </ion-button>
       <ion-button fill="clear" (click)="closeModal()">
         <ion-icon name="close" slot="icon-only"></ion-icon>
       </ion-button>
@@ -13,17 +16,22 @@
   <div class="emotion-checkin-container">
     
     <!-- Progress indicator -->
-    <div class="progress-container">
+    <div class="progress-container" *ngIf="!isInSettingsMode()">
       <div class="progress-bar">
         <div class="progress-fill" [style.width.%]="getProgressPercentage()"></div>
       </div>
-      <p class="progress-text">Step {{ currentStep }} of {{ totalSteps }}</p>
+      <p class="progress-text">Step {{ getCurrentStepNumber() }} of {{ getEnabledStepsCount() }}</p>
+    </div>
+    
+    <!-- Settings indicator -->
+    <div class="settings-indicator" *ngIf="isInSettingsMode()">
+      <p class="settings-text">Customize your check-in experience</p>
     </div>
 
     <form [formGroup]="emotionForm" class="emotion-form">
       
       <!-- Step 1: Emotional Struggles -->
-      <div class="form-step" *ngIf="currentStep === 1">
+      <div class="form-step" *ngIf="shouldShowStep(1)">
         <h2 class="step-title">💙 How are you feeling today?</h2>
         <p class="step-description">Select any struggles you're experiencing. It's okay to feel this way - you're not alone.</p>
         
@@ -56,7 +64,7 @@
       </div>
 
       <!-- Step 2: Positive Moments -->
-      <div class="form-step" *ngIf="currentStep === 2">
+      <div class="form-step" *ngIf="shouldShowStep(2)">
         <h2 class="step-title">✨ What went well today?</h2>
         <p class="step-description">Celebrate the positive moments, no matter how small. You're doing amazing!</p>
         
@@ -91,7 +99,7 @@
       </div>
 
       <!-- Step 3: Concerning Thoughts -->
-      <div class="form-step" *ngIf="currentStep === 3">
+      <div class="form-step" *ngIf="shouldShowStep(3)">
         <h2 class="step-title">🤗 Checking in on difficult thoughts</h2>
         <p class="step-description">These thoughts can be part of the postpartum experience. If any apply, please know that help is available.</p>
         
@@ -131,7 +139,7 @@
       </div>
 
       <!-- Step 4: Journaling & Notes -->
-      <div class="form-step" *ngIf="currentStep === 4">
+      <div class="form-step" *ngIf="shouldShowStep(4)">
         <h2 class="step-title">📝 Reflect & Journal</h2>
         <p class="step-description">Take a moment to reflect on your day. Writing can be therapeutic and help process your feelings.</p>
         
@@ -195,6 +203,96 @@
             class="save-button">
             <ion-icon name="heart" slot="start"></ion-icon>
             Save Check-in
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Settings Step -->
+      <div class="form-step" *ngIf="isInSettingsMode()">
+        <h2 class="step-title">⚙️ Customize Your Check-in</h2>
+        <p class="step-description">Enable or disable steps to personalize your emotional check-in experience.</p>
+        
+        <div class="settings-section" *ngIf="preferencesLoaded">
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-emoji">💙</span>
+              <div class="setting-text">
+                <strong>Emotional Struggles</strong>
+                <p>Share how you're feeling and any struggles you're experiencing</p>
+              </div>
+            </div>
+            <ion-toggle 
+              [checked]="stepPreferences.step1_struggles"
+              (ionChange)="stepPreferences.step1_struggles = $event.detail.checked"
+              color="primary">
+            </ion-toggle>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-emoji">✨</span>
+              <div class="setting-text">
+                <strong>Positive Moments</strong>
+                <p>Reflect on the good moments and positive experiences</p>
+              </div>
+            </div>
+            <ion-toggle 
+              [checked]="stepPreferences.step2_positive"
+              (ionChange)="stepPreferences.step2_positive = $event.detail.checked"
+              color="primary">
+            </ion-toggle>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-emoji">🚨</span>
+              <div class="setting-text">
+                <strong>Concerning Thoughts</strong>
+                <p>Share any concerning thoughts (important for your safety)</p>
+              </div>
+            </div>
+            <ion-toggle 
+              [checked]="stepPreferences.step3_concerning"
+              (ionChange)="stepPreferences.step3_concerning = $event.detail.checked"
+              color="primary">
+            </ion-toggle>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-emoji">📝</span>
+              <div class="setting-text">
+                <strong>Personal Reflection</strong>
+                <p>Journal your thoughts, goals, and what you're grateful for</p>
+              </div>
+            </div>
+            <ion-toggle 
+              [checked]="stepPreferences.step4_reflection"
+              (ionChange)="stepPreferences.step4_reflection = $event.detail.checked"
+              color="primary">
+            </ion-toggle>
+          </div>
+        </div>
+        
+        <!-- Loading indicator while preferences are being loaded -->
+        <div class="loading-preferences" *ngIf="!preferencesLoaded">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Loading settings...</p>
+        </div>
+        
+        <ion-note class="settings-note">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          At least one step must remain enabled.
+        </ion-note>
+
+        <div class="button-row">
+          <ion-button fill="outline" (click)="exitSettings()" class="back-button">
+            <ion-icon name="arrow-back" slot="start"></ion-icon>
+            Back to Check-in
+          </ion-button>
+          <ion-button (click)="saveSettings()" color="primary" class="save-button">
+            <ion-icon name="checkmark" slot="start"></ion-icon>
+            Save & Continue
           </ion-button>
         </div>
       </div>

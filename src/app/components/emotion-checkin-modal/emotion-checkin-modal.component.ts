@@ -1,6 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
+import { Storage } from '@ionic/storage-angular';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
 import { 
@@ -31,6 +32,17 @@ export class EmotionCheckinModalComponent implements OnInit {
   
   // Show crisis alert
   showCrisisAlert = false;
+  
+  // Settings
+  isInSettings = false;
+  previousStepBeforeSettings = 1; // Store where to return after settings
+  preferencesLoaded = false; // Track if preferences have been loaded
+  stepPreferences = {
+    step1_struggles: true,
+    step2_positive: true, 
+    step3_concerning: true,
+    step4_reflection: true
+  };
 
   // Predefined options
   emotionalStruggles: EmotionalStruggle[] = [
@@ -74,7 +86,9 @@ export class EmotionCheckinModalComponent implements OnInit {
     private toastController: ToastController,
     private alertController: AlertController,
     private growthService: GrowthTrackingService,
-    private authService: AuthService
+    private authService: AuthService,
+    private storage: Storage,
+    private cdr: ChangeDetectorRef
   ) {
     this.emotionForm = this.formBuilder.group({
       gratefulFor: [''],
@@ -84,10 +98,128 @@ export class EmotionCheckinModalComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.user = user;
     });
+    
+    // Initialize storage and load preferences
+    await this.initializeStorage();
+    await this.loadStepPreferences();
+    this.updateTotalSteps();
+    this.initializeToFirstEnabledStep();
+  }
+  
+  private async initializeStorage() {
+    await this.storage.create();
+  }
+  
+  private async loadStepPreferences() {
+    try {
+      const savedPreferences = await this.storage.get('emotion_checkin_preferences');
+      if (savedPreferences) {
+        this.stepPreferences = { ...this.stepPreferences, ...savedPreferences };
+      }
+      console.log('Step preferences loaded:', this.stepPreferences);
+      this.preferencesLoaded = true;
+      this.cdr.detectChanges(); // Force change detection after loading preferences
+    } catch (error) {
+      console.error('Error loading step preferences:', error);
+      this.preferencesLoaded = true; // Still mark as loaded even if there was an error
+    }
+  }
+  
+  private async saveStepPreferences() {
+    try {
+      await this.storage.set('emotion_checkin_preferences', this.stepPreferences);
+      
+      const toast = await this.toastController.create({
+        message: 'Settings saved successfully!',
+        duration: 2000,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+    } catch (error) {
+      console.error('Error saving step preferences:', error);
+      
+      const toast = await this.toastController.create({
+        message: 'Failed to save settings. Please try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
+  }
+  
+  goToSettings() {
+    this.previousStepBeforeSettings = this.currentStep;
+    this.isInSettings = true;
+  }
+  
+  exitSettings() {
+    this.isInSettings = false;
+    this.currentStep = this.previousStepBeforeSettings;
+  }
+  
+  isInSettingsMode(): boolean {
+    return this.isInSettings;
+  }
+  
+  async saveSettings() {
+    // Ensure at least one step is enabled
+    const enabledSteps = Object.values(this.stepPreferences).filter(enabled => enabled).length;
+    
+    if (enabledSteps === 0) {
+      const toast = await this.toastController.create({
+        message: 'At least one step must remain enabled.',
+        duration: 3000,
+        color: 'warning',
+        position: 'top'
+      });
+      await toast.present();
+      return;
+    }
+    
+    await this.saveStepPreferences();
+    this.updateTotalSteps();
+    this.adjustCurrentStepIfNeeded();
+    
+    // Return to the first enabled step after saving
+    this.initializeToFirstEnabledStep();
+    this.isInSettings = false;
+  }
+  
+  private updateTotalSteps() {
+    const enabledSteps = Object.values(this.stepPreferences).filter(enabled => enabled).length;
+    this.totalSteps = Math.max(1, enabledSteps); // Ensure at least 1 step
+  }
+  
+  private adjustCurrentStepIfNeeded() {
+    // If current step is disabled, move to next enabled step
+    const stepKeys = ['step1_struggles', 'step2_positive', 'step3_concerning', 'step4_reflection'];
+    let targetStep = this.currentStep;
+    
+    for (let i = this.currentStep - 1; i < stepKeys.length; i++) {
+      if (this.stepPreferences[stepKeys[i] as keyof typeof this.stepPreferences]) {
+        targetStep = i + 1;
+        break;
+      }
+    }
+    
+    this.currentStep = targetStep;
+  }
+  
+  private initializeToFirstEnabledStep() {
+    const stepKeys = ['step1_struggles', 'step2_positive', 'step3_concerning', 'step4_reflection'];
+    
+    for (let i = 0; i < stepKeys.length; i++) {
+      if (this.stepPreferences[stepKeys[i] as keyof typeof this.stepPreferences]) {
+        this.currentStep = i + 1;
+        break;
+      }
+    }
   }
 
   async closeModal() {
@@ -119,7 +251,7 @@ export class EmotionCheckinModalComponent implements OnInit {
 
   nextStep() {
     if (this.validateCurrentStep()) {
-      this.currentStep++;
+      this.currentStep = this.getNextEnabledStep(this.currentStep);
       
       // Check for crisis alert when moving past concerning thoughts step
       if (this.currentStep === 4 && this.selectedConcerningThoughts.length > 0) {
@@ -131,14 +263,73 @@ export class EmotionCheckinModalComponent implements OnInit {
 
   previousStep() {
     if (this.currentStep > 1) {
-      this.currentStep--;
+      this.currentStep = this.getPreviousEnabledStep(this.currentStep);
     }
+  }
+  
+  private getNextEnabledStep(currentStep: number): number {
+    const stepKeys = ['step1_struggles', 'step2_positive', 'step3_concerning', 'step4_reflection'];
+    
+    for (let i = currentStep; i < stepKeys.length; i++) {
+      if (this.stepPreferences[stepKeys[i] as keyof typeof this.stepPreferences]) {
+        return i + 1;
+      }
+    }
+    
+    // If no next enabled step found, return current step (shouldn't happen in normal flow)
+    return currentStep;
+  }
+  
+  private getPreviousEnabledStep(currentStep: number): number {
+    const stepKeys = ['step1_struggles', 'step2_positive', 'step3_concerning', 'step4_reflection'];
+    
+    for (let i = currentStep - 2; i >= 0; i--) {
+      if (this.stepPreferences[stepKeys[i] as keyof typeof this.stepPreferences]) {
+        return i + 1;
+      }
+    }
+    
+    // If no previous enabled step found, return 1
+    return 1;
   }
 
   private validateCurrentStep(): boolean {
     // All steps are optional, so always return true
     // Users can proceed even without selecting anything
     return true;
+  }
+  
+  // Helper methods for template
+  shouldShowStep(stepNumber: number): boolean {
+    if (this.isInSettings) return false; // Don't show regular steps in settings mode
+    
+    const stepKeys = ['step1_struggles', 'step2_positive', 'step3_concerning', 'step4_reflection'];
+    const stepKey = stepKeys[stepNumber - 1] as keyof typeof this.stepPreferences;
+    return this.currentStep === stepNumber && this.stepPreferences[stepKey];
+  }
+  
+  getEnabledStepsCount(): number {
+    if (this.isInSettings) return 1; // Settings is just 1 "step"
+    return Object.values(this.stepPreferences).filter(enabled => enabled).length;
+  }
+  
+  getCurrentStepNumber(): number {
+    if (this.isInSettings) return 1; // Settings is always step 1 when shown
+    
+    // Calculate the actual step number based on enabled steps
+    const stepKeys = ['step1_struggles', 'step2_positive', 'step3_concerning', 'step4_reflection'];
+    let enabledStepCount = 0;
+    
+    for (let i = 0; i < stepKeys.length; i++) {
+      if (this.stepPreferences[stepKeys[i] as keyof typeof this.stepPreferences]) {
+        enabledStepCount++;
+        if (i + 1 === this.currentStep) {
+          return enabledStepCount;
+        }
+      }
+    }
+    
+    return enabledStepCount;
   }
 
   // Selection methods for struggles
@@ -274,7 +465,9 @@ export class EmotionCheckinModalComponent implements OnInit {
   }
 
   getProgressPercentage(): number {
-    return (this.currentStep / this.totalSteps) * 100;
+    const currentStepNumber = this.getCurrentStepNumber();
+    const totalEnabledSteps = this.getEnabledStepsCount();
+    return totalEnabledSteps > 0 ? (currentStepNumber / totalEnabledSteps) * 100 : 0;
   }
 
   getCurrentTime(): string {
