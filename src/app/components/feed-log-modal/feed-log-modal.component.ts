@@ -75,6 +75,7 @@ export class FeedLogModalComponent implements OnInit {
 
   ebmPresets = [30, 60, 90, 120, 150];
   formulaPresets = [30, 60, 90, 120, 150, 200];
+  durationPresets = [5, 10, 15, 20, 30, 45, 60];
 
   predefinedNotes: PredefinedNote[] = [
     { id: '4', text: 'Sleeps at breast', indicator: 'red' },
@@ -272,6 +273,10 @@ export class FeedLogModalComponent implements OnInit {
     this.feedForm.patchValue({ formulaQuantity: quantity });
   }
 
+  setDuration(duration: number) {
+    this.feedForm.patchValue({ duration: duration });
+  }
+
   // Form submission
   async saveFeedLog() {
     if (this.feedForm.valid && this.user && this.selectedBaby) {
@@ -335,6 +340,27 @@ export class FeedLogModalComponent implements OnInit {
         await toast.present();
       }
     }
+  }
+
+  shouldShowBabySelection(): boolean {
+    // Hide baby selection if:
+    // 1. No user or no babies
+    // 2. Only one baby (auto-selected)
+    // 3. Baby already pre-selected via input
+    if (!this.user || !this.user.babies || this.user.babies.length === 0) {
+      return false;
+    }
+    
+    if (this.user.babies.length === 1) {
+      return false;
+    }
+    
+    // If a baby was passed as input (@Input selectedBaby), don't show selection
+    if (this.selectedBaby) {
+      return false;
+    }
+    
+    return true;
   }
 
   canSave(): boolean {

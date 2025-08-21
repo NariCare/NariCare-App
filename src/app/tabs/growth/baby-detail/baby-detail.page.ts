@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
+import { BackendAuthService } from '../../../services/backend-auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
 import { WHOGrowthChartService } from '../../../services/who-growth-chart.service';
 import { WeightChartModalComponent } from '../../../components/weight-chart-modal/weight-chart-modal.component';
@@ -89,6 +90,7 @@ export class BabyDetailPage implements OnInit {
     private router: Router,
     private formBuilder: FormBuilder,
     private authService: AuthService,
+    private backendAuthService: BackendAuthService,
     private growthService: GrowthTrackingService,
     private toastController: ToastController,
     private alertController: AlertController,
@@ -137,10 +139,37 @@ export class BabyDetailPage implements OnInit {
       }
     });
     
-    this.authService.currentUser$.subscribe(user => {
+    // Try backend auth service first, fallback to legacy auth service
+    const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
+    
+    authService.currentUser$.subscribe(user => {
+      console.log('Baby Detail Page - User loaded:', user);
+      console.log('Baby Detail Page - Looking for baby ID:', this.babyId);
+      
       this.user = user;
       if (user && this.babyId) {
-        this.baby = user.babies.find(b => b.id === this.babyId) || null;
+        if (user.babies && Array.isArray(user.babies)) {
+          console.log('Baby Detail Page - Available babies:', user.babies.map(b => ({ id: b.id, name: b.name })));
+          this.baby = user.babies.find(b => b.id === this.babyId) || null;
+          
+          if (this.baby) {
+            console.log('Baby Detail Page - Found baby:', this.baby);
+          } else {
+            console.warn(`Baby with ID ${this.babyId} not found in user's babies list`);
+            this.showToast('Baby not found. Returning to growth page.', 'warning');
+            setTimeout(() => {
+              this.router.navigate(['/tabs/growth']);
+            }, 2000);
+          }
+        } else {
+          console.warn('Baby Detail Page - User has no babies array or it\'s not an array');
+          this.showToast('No babies found. Please add a baby first.', 'warning');
+          setTimeout(() => {
+            this.router.navigate(['/tabs/growth']);
+          }, 2000);
+        }
+      } else {
+        console.warn('Baby Detail Page - No user or baby ID');
       }
     });
     
@@ -391,28 +420,36 @@ export class BabyDetailPage implements OnInit {
 
   // Helper methods
   calculateBabyAge(): string {
-    if (!this.baby) return '';
+    if (!this.baby || !this.baby.dateOfBirth) {
+      console.warn('calculateBabyAge: No baby or dateOfBirth available');
+      return 'Age unknown';
+    }
     
-    const birthDate = new Date(this.baby.dateOfBirth);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const diffWeeks = Math.floor(diffDays / 7);
-    const remainingDays = diffDays % 7;
-    
-    if (diffDays < 7) {
-      return `${diffDays} day${diffDays !== 1 ? 's' : ''} old`;
-    } else if (diffWeeks < 4) {
-      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} ${remainingDays > 0 ? `and ${remainingDays} day${remainingDays !== 1 ? 's' : ''}` : ''} old`;
-    } else if (diffWeeks < 52) {
-      const months = Math.floor(diffWeeks / 4);
-      const remainingWeeks = diffWeeks % 4;
-      return `${months} month${months !== 1 ? 's' : ''} ${remainingWeeks > 0 ? `and ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
-    } else {
-      const years = Math.floor(diffWeeks / 52);
-      const remainingWeeks = diffWeeks % 52;
-      const months = Math.floor(remainingWeeks / 4);
-      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
+    try {
+      const birthDate = new Date(this.baby.dateOfBirth);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - birthDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const diffWeeks = Math.floor(diffDays / 7);
+      const remainingDays = diffDays % 7;
+      
+      if (diffDays < 7) {
+        return `${diffDays} day${diffDays !== 1 ? 's' : ''} old`;
+      } else if (diffWeeks < 4) {
+        return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} ${remainingDays > 0 ? `and ${remainingDays} day${remainingDays !== 1 ? 's' : ''}` : ''} old`;
+      } else if (diffWeeks < 52) {
+        const months = Math.floor(diffWeeks / 4);
+        const remainingWeeks = diffWeeks % 4;
+        return `${months} month${months !== 1 ? 's' : ''} ${remainingWeeks > 0 ? `and ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
+      } else {
+        const years = Math.floor(diffWeeks / 52);
+        const remainingWeeks = diffWeeks % 52;
+        const months = Math.floor(remainingWeeks / 4);
+        return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
+      }
+    } catch (error) {
+      console.error('Error calculating baby age:', error);
+      return 'Age calculation error';
     }
   }
 
@@ -425,22 +462,38 @@ export class BabyDetailPage implements OnInit {
   }
 
   formatBirthDate(): string {
-    if (!this.baby) return '';
-    return new Date(this.baby.dateOfBirth).toLocaleDateString('en-US', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+    if (!this.baby || !this.baby.dateOfBirth) {
+      console.warn('formatBirthDate: No baby or dateOfBirth available');
+      return 'Birth date unknown';
+    }
+    try {
+      return new Date(this.baby.dateOfBirth).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting birth date:', error);
+      return 'Invalid date';
+    }
   }
 
   getCurrentWeight(): string {
-    if (!this.baby) return '--';
-    return `${this.baby.currentWeight || this.baby.birthWeight}kg`;
+    if (!this.baby) {
+      console.warn('getCurrentWeight: No baby available');
+      return '--';
+    }
+    const weight = this.baby.currentWeight || this.baby.birthWeight;
+    return weight ? `${weight}kg` : '--';
   }
 
   getCurrentHeight(): string {
-    if (!this.baby) return '--';
-    return `${this.baby.currentHeight || this.baby.birthHeight}cm`;
+    if (!this.baby) {
+      console.warn('getCurrentHeight: No baby available');
+      return '--';
+    }
+    const height = this.baby.currentHeight || this.baby.birthHeight;
+    return height ? `${height}cm` : '--';
   }
 
   getRecordTime(record: GrowthRecord): string {

@@ -13,8 +13,22 @@
   <div class="feed-log-container">
     <form [formGroup]="feedForm" class="feed-form single-form">
       
-      <!-- Baby Selection (only if multiple babies) -->
-      <div class="form-section baby-selection" *ngIf="user && user.babies && user.babies.length > 1">
+      <!-- Selected Baby Info (when baby is pre-selected) -->
+      <div class="form-section selected-baby-info" *ngIf="selectedBaby && !shouldShowBabySelection()">
+        <div class="selected-baby-display">
+          <div class="baby-avatar">
+            <ion-icon name="baby"></ion-icon>
+          </div>
+          <div class="baby-info">
+            <h3>{{ selectedBaby.name }}</h3>
+            <p>{{ calculateBabyAge(selectedBaby) }}</p>
+          </div>
+          <ion-icon name="checkmark-circle" class="selected-icon"></ion-icon>
+        </div>
+      </div>
+      
+      <!-- Baby Selection (only if multiple babies and no baby pre-selected) -->
+      <div class="form-section baby-selection" *ngIf="shouldShowBabySelection()">
         <h2 class="section-title">👶 Select Baby</h2>
         <p class="section-description">Which baby are you logging this feed for?</p>
         
@@ -99,15 +113,29 @@
 
           <div class="form-group">
             <label class="field-label">⏳ Duration (minutes)</label>
-            <ion-item lines="none" class="input-item">
-              <ion-input
+            <div class="quantity-container">
+              <div class="quantity-display">{{ feedForm.get('duration')?.value || 0 }} min</div>
+              <ion-range
                 formControlName="duration"
-                type="number"
                 min="1"
                 max="120"
-                placeholder="15">
-              </ion-input>
-            </ion-item>
+                step="1"
+                color="primary"
+                class="quantity-slider">
+                <ion-label slot="start">1min</ion-label>
+                <ion-label slot="end">120min</ion-label>
+              </ion-range>
+              <div class="preset-buttons">
+                <ion-button 
+                  *ngFor="let preset of durationPresets"
+                  fill="outline" 
+                  size="small"
+                  (click)="setDuration(preset)"
+                  class="preset-button">
+                  {{ preset }}min
+                </ion-button>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">

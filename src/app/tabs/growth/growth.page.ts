@@ -1218,8 +1218,8 @@ export class GrowthPage implements OnInit {
     const modal = await this.modalController.create({
       component: FeedLogModalComponent,
       componentProps: {
-        prefilledData: { babyId: this.selectedBaby.id },
-        isFastFeed: isFastFeed
+        // prefilledData: { babyId: this.selectedBaby.id },
+        // isFastFeed: isFastFeed
       }
     });
 
