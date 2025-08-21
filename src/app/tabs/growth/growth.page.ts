@@ -155,8 +155,16 @@ export class GrowthPage implements OnInit {
   }
 
   private async loadSummaryData(babyId: string) {
-    this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
-    this.dailySummary = await this.growthService.getDailySummary(babyId);
+    // Use backend service if user is authenticated with backend, otherwise use local service
+    const isBackendUser = this.backendAuthService.getCurrentUser();
+    
+    if (isBackendUser) {
+      this.lastTrack = await this.backendGrowthService.getLastFeedingRecord(babyId);
+      this.dailySummary = await this.backendGrowthService.getDailySummary(babyId);
+    } else {
+      this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
+      this.dailySummary = await this.growthService.getDailySummary(babyId);
+    }
   }
 
   private loadTrackingData(babyId: string) {

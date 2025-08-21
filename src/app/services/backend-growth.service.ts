@@ -297,6 +297,124 @@ export class BackendGrowthService {
   }
 
   /**
+   * Get last feeding record for a baby
+   */
+  async getLastFeedingRecord(babyId: string): Promise<any> {
+    try {
+      const feedRecords = await this.getFeedRecords(babyId).toPromise();
+      
+      if (!feedRecords || feedRecords.length === 0) {
+        return null;
+      }
+
+      // Filter for direct feeding records and get the most recent one
+      const directFeeds = feedRecords.filter(record => 
+        record.feedTypes && record.feedTypes.includes('direct') && record.directFeedDetails
+      );
+
+      if (directFeeds.length === 0) {
+        return null;
+      }
+
+      // Sort by date and get the most recent
+      const lastRecord = directFeeds.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      )[0];
+
+      return {
+        time: lastRecord.directFeedDetails?.startTime || '--',
+        date: lastRecord.date,
+        breastSide: lastRecord.directFeedDetails?.breastSide || '--',
+        duration: lastRecord.directFeedDetails?.duration || 0,
+        painLevel: lastRecord.directFeedDetails?.painLevel || 0
+      };
+    } catch (error) {
+      console.error('Error getting last feeding record:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get daily summary for a baby (last 24 hours)
+   */
+  async getDailySummary(babyId: string): Promise<any> {
+    try {
+      const feedRecords = await this.getFeedRecords(babyId).toPromise();
+      
+      if (!feedRecords || feedRecords.length === 0) {
+        return {
+          totalDirectFeeds: 0,
+          totalExpressedFeeds: 0,
+          totalFormulaFeeds: 0,
+          totalExpressedMl: 0,
+          totalFormulaMl: 0,
+          avgPainLevel: 0,
+          recordsCount: 0
+        };
+      }
+
+      // Filter records from last 24 hours
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      
+      const dailyRecords = feedRecords.filter(record => {
+        const recordDate = new Date(record.date);
+        return recordDate >= yesterday;
+      });
+
+      // Calculate totals
+      const totalDirectFeeds = dailyRecords.filter(record => 
+        record.feedTypes?.includes('direct')
+      ).length;
+
+      const totalExpressedFeeds = dailyRecords.filter(record => 
+        record.feedTypes?.includes('expressed')
+      ).length;
+
+      const totalFormulaFeeds = dailyRecords.filter(record => 
+        record.feedTypes?.includes('formula')
+      ).length;
+
+      const totalExpressedMl = dailyRecords
+        .filter(record => record.feedTypes?.includes('expressed'))
+        .reduce((sum, record) => sum + (record.expressedMilkDetails?.quantity || 0), 0);
+
+      const totalFormulaMl = dailyRecords
+        .filter(record => record.feedTypes?.includes('formula'))
+        .reduce((sum, record) => sum + (record.formulaDetails?.quantity || 0), 0);
+
+      // Calculate average pain level
+      const painLevels = dailyRecords
+        .map(record => record.directFeedDetails?.painLevel)
+        .filter(level => level !== undefined && level !== null) as number[];
+      
+      const avgPainLevel = painLevels.length > 0 ? 
+        Math.round(painLevels.reduce((sum, level) => sum + level, 0) / painLevels.length) : 0;
+
+      return {
+        totalDirectFeeds,
+        totalExpressedFeeds,
+        totalFormulaFeeds,
+        totalExpressedMl,
+        totalFormulaMl,
+        avgPainLevel,
+        recordsCount: dailyRecords.length
+      };
+    } catch (error) {
+      console.error('Error getting daily summary:', error);
+      return {
+        totalDirectFeeds: 0,
+        totalExpressedFeeds: 0,
+        totalFormulaFeeds: 0,
+        totalExpressedMl: 0,
+        totalFormulaMl: 0,
+        avgPainLevel: 0,
+        recordsCount: 0
+      };
+    }
+  }
+
+  /**
    * Extract error message from API response
    */
   private getErrorMessage(error: any): string {
