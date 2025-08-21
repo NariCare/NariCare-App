@@ -36,6 +36,7 @@ export class FeedLogModalComponent implements OnInit {
   selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = [];
   selectedBreastSide: 'left' | 'right' | 'both' | null = null;
   selectedPainLevel: number | null = null;
+  selectedPredefinedNotes: string[] = []; // Track selected predefined notes
 
   // Options
   feedTypeOptions: FeedTypeOption[] = [
@@ -399,15 +400,56 @@ export class FeedLogModalComponent implements OnInit {
   }
 
   appendPredefinedNote(note: PredefinedNote) {
+    const isSelected = this.selectedPredefinedNotes.includes(note.id);
+    
+    if (isSelected) {
+      // Remove the note
+      this.selectedPredefinedNotes = this.selectedPredefinedNotes.filter(id => id !== note.id);
+      this.removeNoteFromText(note.text);
+    } else {
+      // Add the note
+      this.selectedPredefinedNotes.push(note.id);
+      this.addNoteToText(note.text);
+    }
+  }
+
+  private addNoteToText(noteText: string) {
     const currentNotes = this.feedForm.get('notes')?.value || '';
     let newNotes = '';
     
     if (currentNotes.trim()) {
-      newNotes = currentNotes + '\n- ' + note.text;
+      newNotes = currentNotes + '\n- ' + noteText;
     } else {
-      newNotes = note.text;
+      newNotes = noteText;
     }
     
     this.feedForm.patchValue({ notes: newNotes });
+  }
+
+  private removeNoteFromText(noteText: string) {
+    const currentNotes = this.feedForm.get('notes')?.value || '';
+    
+    // Remove the note text from the notes
+    const noteVariations = [
+      noteText,
+      '- ' + noteText,
+      '\n- ' + noteText,
+      '\n' + noteText
+    ];
+    
+    let updatedNotes = currentNotes;
+    
+    for (const variation of noteVariations) {
+      updatedNotes = updatedNotes.replace(variation, '');
+    }
+    
+    // Clean up any extra line breaks
+    updatedNotes = updatedNotes.replace(/\n\n+/g, '\n').trim();
+    
+    this.feedForm.patchValue({ notes: updatedNotes });
+  }
+
+  isPredefinedNoteSelected(note: PredefinedNote): boolean {
+    return this.selectedPredefinedNotes.includes(note.id);
   }
 }

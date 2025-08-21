@@ -50,181 +50,186 @@
         </div>
       </div>
 
-      <!-- Feed Type Selection -->
-      <div class="form-section feed-type-selection">
-        <h2 class="section-title">🍼 Feed Type</h2>
-        <p class="section-description">What type of feeding occurred? You can select multiple options.</p>
+      <!-- Main Feed Log Card -->
+      <div class="form-section main-feed-card">
         
-        <div class="feed-type-grid">
-          <div 
-            *ngFor="let feedType of feedTypeOptions"
-            class="feed-type-option"
-            [class.selected]="isFeedTypeSelected(feedType.value)"
-            (click)="toggleFeedType(feedType.value)">
-            <div class="feed-type-icon">
-              <ion-icon [name]="feedType.icon"></ion-icon>
+        <!-- Feed Type Selection -->
+        <div class="section-group">
+          <h2 class="section-title">🍼 Feed Type</h2>
+          <p class="section-description">What type of feeding occurred? You can select multiple options.</p>
+          
+          <div class="feed-type-grid">
+            <div 
+              *ngFor="let feedType of feedTypeOptions"
+              class="feed-type-option"
+              [class.selected]="isFeedTypeSelected(feedType.value)"
+              (click)="toggleFeedType(feedType.value)">
+              <div class="feed-type-icon">
+                <ion-icon [name]="feedType.icon"></ion-icon>
+              </div>
+              <div class="feed-type-content">
+                <h4>{{ feedType.label }}</h4>
+                <p>{{ feedType.description }}</p>
+              </div>
+              <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isFeedTypeSelected(feedType.value)"></ion-icon>
             </div>
-            <div class="feed-type-content">
-              <h4>{{ feedType.label }}</h4>
-              <p>{{ feedType.description }}</p>
-            </div>
-            <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isFeedTypeSelected(feedType.value)"></ion-icon>
           </div>
         </div>
-      </div>
 
-      <!-- Feed Details Section -->
-      <div class="form-section feed-details" *ngIf="selectedFeedTypes.length > 0">
-        <h2 class="section-title">📝 Feed Details</h2>
-        <p class="section-description">Provide details for each selected feed type</p>
-        
-        <!-- Direct Feeding Section -->
-        <div class="conditional-section direct-feeding" *ngIf="isFeedTypeSelected('direct')">
-          <div class="section-header">
-            <ion-icon name="body"></ion-icon>
-            <h3>Breastfeeding</h3>
-          </div>
+        <!-- Feed Details Section -->
+        <div class="section-group" *ngIf="selectedFeedTypes.length > 0">
+          <h2 class="section-title">📝 Feed Details</h2>
+          <p class="section-description">Provide details for each selected feed type</p>
           
-          <div class="form-group">
-            <label class="field-label">🕒 Start Time</label>
-            <ion-item lines="none" class="input-item time-input">
-              <ion-input
-                formControlName="startTime"
-                type="time">
-              </ion-input>
-            </ion-item>
-          </div>
+          <!-- Direct Feeding Section -->
+          <div class="conditional-section direct-feeding" *ngIf="isFeedTypeSelected('direct')">
+            <div class="section-header">
+              <ion-icon name="body"></ion-icon>
+              <h3>Breastfeeding</h3>
+            </div>
+            
+            <div class="form-group">
+              <label class="field-label">🕒 Start Time</label>
+              <ion-item lines="none" class="input-item time-input">
+                <ion-input
+                  formControlName="startTime"
+                  type="time">
+                </ion-input>
+              </ion-item>
+            </div>
 
-          <div class="form-group">
-            <label class="field-label">➡️ Breast Side</label>
-            <div class="selection-grid breast-side-grid">
-              <div 
-                *ngFor="let side of breastSideOptions"
-                class="selection-option"
-                [class.selected]="selectedBreastSide === side.value"
-                (click)="selectBreastSide(side.value)">
-                <div class="option-icon">
-                  <ion-icon [name]="side.icon"></ion-icon>
+            <div class="form-group">
+              <label class="field-label">➡️ Breast Side</label>
+              <div class="selection-grid breast-side-grid">
+                <div 
+                  *ngFor="let side of breastSideOptions"
+                  class="selection-option"
+                  [class.selected]="selectedBreastSide === side.value"
+                  (click)="selectBreastSide(side.value)">
+                  <div class="option-icon">
+                    <ion-icon [name]="side.icon"></ion-icon>
+                  </div>
+                  <span class="option-label">{{ side.label }}</span>
                 </div>
-                <span class="option-label">{{ side.label }}</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="field-label">⏳ Duration (minutes)</label>
+              <div class="quantity-container">
+                <div class="quantity-display">{{ feedForm.get('duration')?.value || 0 }} min</div>
+                <ion-range
+                  formControlName="duration"
+                  min="1"
+                  max="120"
+                  step="1"
+                  color="primary"
+                  class="quantity-slider">
+                  <ion-label slot="start">1min</ion-label>
+                  <ion-label slot="end">120min</ion-label>
+                </ion-range>
+                <div class="preset-buttons">
+                  <ion-button 
+                    *ngFor="let preset of durationPresets"
+                    fill="outline" 
+                    size="small"
+                    (click)="setDuration(preset)"
+                    class="preset-button">
+                    {{ preset }}min
+                  </ion-button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="field-label">😖 Pain while feeding? (optional)</label>
+              <div class="selection-grid pain-level-grid">
+                <div 
+                  *ngFor="let pain of painLevelOptions"
+                  class="selection-option pain-option"
+                  [class.selected]="selectedPainLevel === pain.value"
+                  (click)="selectPainLevel(pain.value)">
+                  <div class="pain-emoji">{{ pain.emoji }}</div>
+                  <span class="option-label">{{ pain.label }}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="field-label">⏳ Duration (minutes)</label>
-            <div class="quantity-container">
-              <div class="quantity-display">{{ feedForm.get('duration')?.value || 0 }} min</div>
-              <ion-range
-                formControlName="duration"
-                min="1"
-                max="120"
-                step="1"
-                color="primary"
-                class="quantity-slider">
-                <ion-label slot="start">1min</ion-label>
-                <ion-label slot="end">120min</ion-label>
-              </ion-range>
-              <div class="preset-buttons">
-                <ion-button 
-                  *ngFor="let preset of durationPresets"
-                  fill="outline" 
-                  size="small"
-                  (click)="setDuration(preset)"
-                  class="preset-button">
-                  {{ preset }}min
-                </ion-button>
+          <!-- Expressed Milk Section -->
+          <div class="conditional-section expressed-milk" *ngIf="isFeedTypeSelected('expressed')">
+            <div class="section-header">
+              <ion-icon name="water"></ion-icon>
+              <h3>Expressed Milk</h3>
+            </div>
+            
+            <div class="form-group">
+              <label class="field-label">🍼 EBM Quantity Given</label>
+              <div class="quantity-container">
+                <div class="quantity-display">{{ feedForm.get('ebmQuantity')?.value || 0 }}ml</div>
+                <ion-range
+                  formControlName="ebmQuantity"
+                  min="0"
+                  max="300"
+                  step="5"
+                  color="primary"
+                  class="quantity-slider">
+                  <ion-label slot="start">0ml</ion-label>
+                  <ion-label slot="end">300ml</ion-label>
+                </ion-range>
+                <div class="preset-buttons">
+                  <ion-button 
+                    *ngFor="let preset of ebmPresets"
+                    fill="outline" 
+                    size="small"
+                    (click)="setEbmQuantity(preset)"
+                    class="preset-button">
+                    {{ preset }}ml
+                  </ion-button>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="field-label">😖 Pain while feeding? (optional)</label>
-            <div class="selection-grid pain-level-grid">
-              <div 
-                *ngFor="let pain of painLevelOptions"
-                class="selection-option pain-option"
-                [class.selected]="selectedPainLevel === pain.value"
-                (click)="selectPainLevel(pain.value)">
-                <div class="pain-emoji">{{ pain.emoji }}</div>
-                <span class="option-label">{{ pain.label }}</span>
+          <!-- Formula Section -->
+          <div class="conditional-section formula" *ngIf="isFeedTypeSelected('formula')">
+            <div class="section-header">
+              <ion-icon name="nutrition"></ion-icon>
+              <h3>Formula</h3>
+            </div>
+            
+            <div class="form-group">
+              <label class="field-label">🍼 Formula Quantity Given</label>
+              <div class="quantity-container">
+                <div class="quantity-display">{{ feedForm.get('formulaQuantity')?.value || 0 }}ml</div>
+                <ion-range
+                  formControlName="formulaQuantity"
+                  min="0"
+                  max="300"
+                  step="5"
+                  color="warning"
+                  class="quantity-slider">
+                  <ion-label slot="start">0ml</ion-label>
+                  <ion-label slot="end">300ml</ion-label>
+                </ion-range>
+                <div class="preset-buttons">
+                  <ion-button 
+                    *ngFor="let preset of formulaPresets"
+                    fill="outline" 
+                    size="small"
+                    (click)="setFormulaQuantity(preset)"
+                    class="preset-button">
+                    {{ preset }}ml
+                  </ion-button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Expressed Milk Section -->
-        <div class="conditional-section expressed-milk" *ngIf="isFeedTypeSelected('expressed')">
-          <div class="section-header">
-            <ion-icon name="water"></ion-icon>
-            <h3>Expressed Milk</h3>
-          </div>
-          
-          <div class="form-group">
-            <label class="field-label">🍼 EBM Quantity Given</label>
-            <div class="quantity-container">
-              <div class="quantity-display">{{ feedForm.get('ebmQuantity')?.value || 0 }}ml</div>
-              <ion-range
-                formControlName="ebmQuantity"
-                min="0"
-                max="300"
-                step="5"
-                color="primary"
-                class="quantity-slider">
-                <ion-label slot="start">0ml</ion-label>
-                <ion-label slot="end">300ml</ion-label>
-              </ion-range>
-              <div class="preset-buttons">
-                <ion-button 
-                  *ngFor="let preset of ebmPresets"
-                  fill="outline" 
-                  size="small"
-                  (click)="setEbmQuantity(preset)"
-                  class="preset-button">
-                  {{ preset }}ml
-                </ion-button>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <!-- Formula Section -->
-        <div class="conditional-section formula" *ngIf="isFeedTypeSelected('formula')">
-          <div class="section-header">
-            <ion-icon name="nutrition"></ion-icon>
-            <h3>Formula</h3>
-          </div>
-          
-          <div class="form-group">
-            <label class="field-label">🍼 Formula Quantity Given</label>
-            <div class="quantity-container">
-              <div class="quantity-display">{{ feedForm.get('formulaQuantity')?.value || 0 }}ml</div>
-              <ion-range
-                formControlName="formulaQuantity"
-                min="0"
-                max="300"
-                step="5"
-                color="warning"
-                class="quantity-slider">
-                <ion-label slot="start">0ml</ion-label>
-                <ion-label slot="end">300ml</ion-label>
-              </ion-range>
-              <div class="preset-buttons">
-                <ion-button 
-                  *ngFor="let preset of formulaPresets"
-                  fill="outline" 
-                  size="small"
-                  (click)="setFormulaQuantity(preset)"
-                  class="preset-button">
-                  {{ preset }}ml
-                </ion-button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Notes Section -->
+      <!-- Notes Section - Separate Card -->
       <div class="form-section notes-section">
         <h2 class="section-title">📝 Notes</h2>
         <p class="section-description">Add any additional notes about this feeding session (optional)</p>
@@ -248,8 +253,10 @@
               *ngFor="let note of predefinedNotes"
               [class.note-red]="note.indicator === 'red'"
               [class.note-yellow]="note.indicator === 'yellow'"
+              [class.selected]="isPredefinedNoteSelected(note)"
               (click)="appendPredefinedNote(note)"
               class="predefined-note-chip">
+              <ion-icon name="checkmark-circle" class="note-selected-icon" *ngIf="isPredefinedNoteSelected(note)"></ion-icon>
               {{ note.text }}
             </ion-chip>
           </div>
@@ -263,8 +270,8 @@
           (click)="saveFeedLog()" 
           [disabled]="!canSave()"
           class="save-button">
-          <ion-icon name="save" slot="start"></ion-icon>
-          Save Feed Log
+          <!-- <ion-icon name="save" slot="start"></ion-icon> -->
+          Log Feed
         </ion-button>
       </div>
     </form>
