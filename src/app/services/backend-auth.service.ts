@@ -40,11 +40,16 @@ export class BackendAuthService {
       try {
         const response = await this.apiService.getUserProfile().toPromise();
         if (response?.success && response.data) {
-          this.currentUserSubject.next(this.transformUserData(response.data));
+          const user = this.transformUserData(response.data);
+          this.currentUserSubject.next(user);
+          
+          // Don't auto-navigate here, let app.component handle it
+          console.log('User loaded on initialization:', user.email);
         }
       } catch (error) {
         console.warn('Failed to load user profile on init:', error);
         this.apiService.logout().subscribe();
+        this.currentUserSubject.next(null);
       }
     }
   }

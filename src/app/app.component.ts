@@ -52,6 +52,13 @@ export class AppComponent implements OnInit {
 
   private async checkAuthAndRedirect() {
     try {
+      // Check if JWT token exists immediately
+      if (this.backendAuthService.getCurrentUser()) {
+        const currentUser = this.backendAuthService.getCurrentUser();
+        this.navigateBasedOnUser(currentUser!);
+        return;
+      }
+
       // Wait a moment for BackendAuthService to initialize
       setTimeout(() => {
         const currentUser = this.backendAuthService.getCurrentUser();
@@ -59,6 +66,12 @@ export class AppComponent implements OnInit {
         // If we have a current user, redirect appropriately
         if (currentUser) {
           this.navigateBasedOnUser(currentUser);
+        } else {
+          // No user found, redirect to login
+          const currentUrl = this.router.url;
+          if (currentUrl === '/' || currentUrl.includes('/tabs/')) {
+            this.router.navigate(['/auth/login'], { replaceUrl: true });
+          }
         }
       }, 100);
 
