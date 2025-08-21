@@ -33,9 +33,6 @@ export class FeedLogModalComponent implements OnInit {
 
   feedForm: FormGroup;
   user: User | null = null;
-  currentStep = 1;
-  totalSteps = 5;
-  // selectedBaby: Baby | null = null;
   selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = [];
   selectedBreastSide: 'left' | 'right' | 'both' | null = null;
   selectedPainLevel: number | null = null;
@@ -128,11 +125,9 @@ export class FeedLogModalComponent implements OnInit {
         // Auto-select baby if passed as input or only one exists
         if (this.selectedBaby) {
           this.feedForm.patchValue({ selectedBaby: this.selectedBaby.id });
-          this.currentStep = 2; // Skip baby selection step
         } else if (user.babies.length === 1) {
           this.selectedBaby = user.babies[0];
           this.feedForm.patchValue({ selectedBaby: user.babies[0].id });
-          this.currentStep = 2; // Skip baby selection step
         }
       }
     });
@@ -206,32 +201,8 @@ export class FeedLogModalComponent implements OnInit {
     await this.modalController.dismiss();
   }
 
-  nextStep() {
-    if (this.validateCurrentStep()) {
-      this.currentStep++;
-    }
-  }
-
-  previousStep() {
-    if (this.currentStep > 1) {
-      this.currentStep--;
-    }
-  }
-
-  public validateCurrentStep(): boolean {
-    switch (this.currentStep) {
-      case 1:
-        return !!this.selectedBaby;
-      case 2:
-        return this.selectedFeedTypes.length > 0;
-      case 3:
-        return this.validateConditionalSections();
-      case 4:
-        return true; // Notes are optional
-      default:
-        return false;
-    }
-  }
+  // Removed step-based navigation methods
+  // Form validation is now handled by canSave() method
 
   validateConditionalSections(): boolean {
     let isValid = true;
@@ -367,11 +338,18 @@ export class FeedLogModalComponent implements OnInit {
   }
 
   canSave(): boolean {
-    return this.feedForm.valid && this.selectedFeedTypes.length > 0 && this.validateConditionalSections();
-  }
-
-  getProgressPercentage(): number {
-    return (this.currentStep / this.totalSteps) * 100;
+    // Check if baby is selected (required)
+    if (!this.selectedBaby) {
+      return false;
+    }
+    
+    // Check if at least one feed type is selected
+    if (this.selectedFeedTypes.length === 0) {
+      return false;
+    }
+    
+    // Validate conditional sections based on selected feed types
+    return this.validateConditionalSections();
   }
 
   calculateBabyAge(baby: Baby): string {
