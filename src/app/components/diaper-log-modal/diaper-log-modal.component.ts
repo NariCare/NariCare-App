@@ -6,6 +6,12 @@ import { BackendGrowthService } from '../../services/backend-growth.service';
 import { AuthService } from '../../services/auth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { ChangeTypeOptions, DiaperChangeRecord, WetnessOptions } from '../../models/growth-tracking.model';
+
+interface PredefinedNote {
+  id: string;
+  text: string;
+  indicator: 'red' | 'yellow';
+}
 import { DiaperChangeRequest } from '../../services/api.service';
 import { User, Baby } from '../../models/user.model';
 
@@ -19,11 +25,10 @@ export class DiaperLogModalComponent implements OnInit {
 
   diaperForm: FormGroup;
   user: User | null = null;
-  currentStep = 1;
-  totalSteps = 5;
   selectedBabyLocal: Baby | null = null;
   selectedChangeType: 'pee' | 'poop' | 'both' | null = null;
   selectedWetness: 'light' | 'medium' | 'heavy' | null = null;
+  selectedPredefinedNotes: string[] = []; // Track selected predefined notes
 
   changeTypeOptions: ChangeTypeOptions[] = [
     { value: 'pee', label: 'Pee', icon: '💦', description: 'Wet diaper only' },
@@ -35,6 +40,19 @@ export class DiaperLogModalComponent implements OnInit {
     { value: 'light', label: 'Light', description: '1 pee - barely wet' },
     { value: 'medium', label: 'Medium', description: '2 pees - moderately wet' },
     { value: 'heavy', label: 'Heavy', description: '3+ pees - soaked' }
+  ];
+
+  predefinedNotes: PredefinedNote[] = [
+    { id: '1', text: 'Diaper rash noticed', indicator: 'yellow' },
+    { id: '2', text: 'Very smelly', indicator: 'red' },
+    { id: '3', text: 'Leaked through diaper', indicator: 'yellow' },
+    { id: '4', text: 'Different consistency', indicator: 'yellow' },
+    { id: '5', text: 'Fussy during change', indicator: 'red' },
+    { id: '6', text: 'Quick easy change', indicator: 'red' },
+    { id: '7', text: 'Blowout mess', indicator: 'yellow' },
+    { id: '8', text: 'Extra cleaning needed', indicator: 'yellow' },
+    { id: '9', text: 'Baby seemed uncomfortable', indicator: 'red' },
+    { id: '10', text: 'Changed outfit too', indicator: 'yellow' }
   ];
 
   constructor(
@@ -65,61 +83,20 @@ export class DiaperLogModalComponent implements OnInit {
         if (this.selectedBaby) {
           this.selectedBabyLocal = this.selectedBaby;
           this.diaperForm.patchValue({ selectedBaby: this.selectedBaby.id });
-          this.currentStep = 2; // Skip baby selection step
         } else if (user.babies.length === 1) {
           this.selectedBabyLocal = user.babies[0];
           this.diaperForm.patchValue({ selectedBaby: user.babies[0].id });
-          this.currentStep = 2; // Skip baby selection step
         }
       }
     });
 
-    // Update total steps based on whether baby selection is needed
-    this.updateTotalSteps();
   }
 
-  private updateTotalSteps() {
-    if (this.user && this.user.babies.length <= 1) {
-      this.totalSteps = 4; // Skip baby selection step
-    } else {
-      this.totalSteps = 5; // Include baby selection step
-    }
-  }
 
   async closeModal() {
     await this.modalController.dismiss();
   }
 
-  nextStep() {
-    if (this.validateCurrentStep()) {
-      this.currentStep++;
-    }
-  }
-
-  previousStep() {
-    if (this.currentStep > 1) {
-      this.currentStep--;
-    }
-  }
-
-  private validateCurrentStep(): boolean {
-    switch (this.currentStep) {
-      case 1:
-        return !!this.selectedBabyLocal;
-      case 2:
-        return !!this.selectedChangeType;
-      case 3:
-        // Wetness is only required if change type is 'pee' or 'both'
-        if (this.selectedChangeType === 'pee' || this.selectedChangeType === 'both') {
-          return !!this.selectedWetness;
-        }
-        return true; // Skip wetness for 'poop' only
-      case 4:
-        return true; // Notes are optional
-      default:
-        return false;
-    }
-  }
 
   // Baby selection
   selectBaby(baby: Baby) {
@@ -150,12 +127,6 @@ export class DiaperLogModalComponent implements OnInit {
     return this.selectedChangeType === 'pee' || this.selectedChangeType === 'both';
   }
 
-  // Skip wetness step if not needed
-  skipWetnessStep() {
-    if (!this.shouldShowWetnessStep()) {
-      this.currentStep++; // Skip to notes step
-    }
-  }
 
   // Form submission
   async saveDiaperLog() {
@@ -230,9 +201,81 @@ export class DiaperLogModalComponent implements OnInit {
            (this.shouldShowWetnessStep() ? !!this.selectedWetness : true);
   }
 
-  getProgressPercentage(): number {
-    return (this.currentStep / this.totalSteps) * 100;
+  shouldShowBabySelection(): boolean {
+    // Hide baby selection if:
+    // 1. No user or no babies
+    // 2. Only one baby (auto-selected)
+    // 3. Baby already pre-selected via input
+    if (!this.user || !this.user.babies || this.user.babies.length === 0) {
+      return false;
+    }
+    
+    if (this.user.babies.length === 1) {
+      return false;
+    }
+    
+    // If a baby was passed as input (@Input selectedBaby), don't show selection
+    if (this.selectedBaby) {
+      return false;
+    }
+    
+    return true;
   }
+
+  isPredefinedNoteSelected(note: PredefinedNote): boolean {
+    return this.selectedPredefinedNotes.includes(note.id);
+  }
+
+  appendPredefinedNote(note: PredefinedNote) {
+    const isSelected = this.selectedPredefinedNotes.includes(note.id);
+    
+    if (isSelected) {
+      // Remove the note
+      this.selectedPredefinedNotes = this.selectedPredefinedNotes.filter(id => id !== note.id);
+      this.removeNoteFromText(note.text);
+    } else {
+      // Add the note
+      this.selectedPredefinedNotes.push(note.id);
+      this.addNoteToText(note.text);
+    }
+  }
+
+  private addNoteToText(noteText: string) {
+    const currentNotes = this.diaperForm.get('notes')?.value || '';
+    let newNotes = '';
+    
+    if (currentNotes.trim()) {
+      newNotes = currentNotes + '\n- ' + noteText;
+    } else {
+      newNotes = noteText;
+    }
+    
+    this.diaperForm.patchValue({ notes: newNotes });
+  }
+
+  private removeNoteFromText(noteText: string) {
+    const currentNotes = this.diaperForm.get('notes')?.value || '';
+    
+    // Remove the note text from the notes
+    const noteVariations = [
+      noteText,
+      '- ' + noteText,
+      '\n- ' + noteText,
+      '\n' + noteText
+    ];
+    
+    let updatedNotes = currentNotes;
+    
+    for (const variation of noteVariations) {
+      updatedNotes = updatedNotes.replace(variation, '');
+    }
+    
+    // Clean up extra newlines
+    updatedNotes = updatedNotes.replace(/\n\n+/g, '\n').trim();
+    
+    this.diaperForm.patchValue({ notes: updatedNotes });
+  }
+
 
   calculateBabyAge(baby: Baby): string {
     const birthDate = new Date(baby.dateOfBirth);
@@ -259,27 +302,6 @@ export class DiaperLogModalComponent implements OnInit {
     return now.toTimeString().slice(0, 5);
   }
 
-  getUserBabiesLength(): number {
-    return this.user && this.user.babies ? this.user.babies.length : 0;
-  }
-
-  getFlexValue(): string {
-    return this.getUserBabiesLength() > 1 ? '2' : '1';
-  }
-
-  getNotesStepCondition(): boolean {
-    return (this.currentStep === 3 && !this.shouldShowWetnessStep()) || 
-           (this.currentStep === 4 && this.shouldShowWetnessStep());
-  }
-
-  getReviewStepCondition(): boolean {
-    return (this.currentStep === 4 && !this.shouldShowWetnessStep()) || 
-           (this.currentStep === 5 && this.shouldShowWetnessStep());
-  }
-
-  canSaveCheck(): boolean {
-    return this.canSave();
-  }
 
   getChangeTypeIcon(): string {
     const changeType = this.changeTypeOptions.find(opt => opt.value === this.selectedChangeType);
