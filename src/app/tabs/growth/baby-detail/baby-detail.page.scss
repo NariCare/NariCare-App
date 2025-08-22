@@ -840,6 +840,135 @@
     }
   }
 
+  // Feed Record Styling
+  .record-item.feed-record {
+    .feed-types-indicator {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .feed-type-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      ion-icon {
+        font-size: 0.8rem;
+      }
+
+      &.feed-type-direct {
+        background: rgba(233, 30, 99, 0.1);
+        color: #e91e63;
+        border: 1px solid rgba(233, 30, 99, 0.3);
+      }
+
+      &.feed-type-expressed {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+      }
+
+      &.feed-type-formula {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+    }
+
+    .duration-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+
+      ion-icon {
+        font-size: 0.9rem;
+        color: #10b981;
+      }
+
+      span {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+      }
+    }
+
+    .record-notes {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+
+      .notes-emoji {
+        font-size: 1rem;
+      }
+
+      .notes-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+      }
+    }
+  }
+
+  // Diaper Change Record Styling
+  .record-item.diaper-record {
+    .diaper-type-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .type-emoji {
+        font-size: 1.2rem;
+      }
+
+      .type-label {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+      }
+    }
+
+    .wetness-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+
+      ion-icon {
+        font-size: 0.9rem;
+        color: #3b82f6;
+      }
+
+      .wetness-level {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+      }
+    }
+
+    .record-notes {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .notes-emoji {
+        font-size: 1rem;
+      }
+
+      .notes-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+      }
+    }
+  }
 
   @media (min-width: 768px) {
     .current-stats {

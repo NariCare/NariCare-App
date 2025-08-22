@@ -86,10 +86,43 @@ export interface PumpingRecordRequest {
 
 export interface DiaperChangeRequest {
   babyId: string;
-  time: string;
-  type: 'pee' | 'poop' | 'both';
-  wetness?: 'light' | 'medium' | 'heavy';
+  recordDate?: string; // Optional, defaults to today
+  recordTime?: string; // Optional, defaults to current time
+  changeType: 'pee' | 'poop' | 'both';
+  wetnessLevel?: 'light' | 'medium' | 'heavy';
   notes?: string;
+  enteredViaVoice?: boolean;
+}
+
+export interface DiaperChangeRecord {
+  id: string;
+  baby_id: string;
+  recorded_by: string;
+  record_date: string;
+  record_time: string;
+  change_type: 'pee' | 'poop' | 'both';
+  wetness_level?: 'light' | 'medium' | 'heavy';
+  notes?: string;
+  entered_via_voice: boolean;
+  created_at: string;
+  updated_at: string;
+  baby_name: string;
+  first_name: string;
+  last_name: string;
+}
+
+export interface DiaperChangeStats {
+  total_changes: number;
+  pee_only_changes: number;
+  poop_only_changes: number;
+  both_changes: number;
+  light_wetness: number;
+  medium_wetness: number;
+  heavy_wetness: number;
+  period: {
+    startDate: string;
+    endDate: string;
+  };
 }
 
 // Emotion Check-in Interface
@@ -374,16 +407,74 @@ export class ApiService {
     }).pipe(catchError(this.handleError));
   }
 
-  createDiaperChangeRecord(diaperData: DiaperChangeRequest): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/tracker/diaper-changes`, diaperData, {
+  // ============================================================================
+  // DIAPER CHANGE ENDPOINTS
+  // ============================================================================
+
+  createDiaperChange(diaperData: DiaperChangeRequest): Observable<ApiResponse<DiaperChangeRecord>> {
+    return this.http.post<ApiResponse<DiaperChangeRecord>>(`${this.baseUrl}/diaper-changes`, diaperData, {
       headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
-  getDiaperChangeRecords(babyId: string): Observable<ApiResponse<any[]>> {
-    const params = new HttpParams().set('babyId', babyId);
+  getDiaperChanges(babyId: string, options?: {
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+    changeType?: string;
+    sortBy?: string;
+    sortOrder?: 'ASC' | 'DESC';
+  }): Observable<ApiResponse<DiaperChangeRecord[]>> {
+    let params = new HttpParams();
+    
+    if (options?.page) params = params.set('page', options.page.toString());
+    if (options?.limit) params = params.set('limit', options.limit.toString());
+    if (options?.startDate) params = params.set('startDate', options.startDate);
+    if (options?.endDate) params = params.set('endDate', options.endDate);
+    if (options?.changeType) params = params.set('changeType', options.changeType);
+    if (options?.sortBy) params = params.set('sortBy', options.sortBy);
+    if (options?.sortOrder) params = params.set('sortOrder', options.sortOrder);
 
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/diaper-changes`, {
+    return this.http.get<ApiResponse<DiaperChangeRecord[]>>(`${this.baseUrl}/diaper-changes/baby/${babyId}`, {
+      headers: this.getAuthHeaders(),
+      params
+    }).pipe(catchError(this.handleError));
+  }
+
+  getDiaperChange(id: string): Observable<ApiResponse<DiaperChangeRecord>> {
+    return this.http.get<ApiResponse<DiaperChangeRecord>>(`${this.baseUrl}/diaper-changes/${id}`, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  updateDiaperChange(id: string, diaperData: Partial<DiaperChangeRequest>): Observable<ApiResponse<DiaperChangeRecord>> {
+    return this.http.put<ApiResponse<DiaperChangeRecord>>(`${this.baseUrl}/diaper-changes/${id}`, diaperData, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  deleteDiaperChange(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/diaper-changes/${id}`, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  getDiaperChangeStats(babyId: string, startDate?: string, endDate?: string): Observable<ApiResponse<DiaperChangeStats>> {
+    let params = new HttpParams();
+    if (startDate) params = params.set('startDate', startDate);
+    if (endDate) params = params.set('endDate', endDate);
+
+    return this.http.get<ApiResponse<DiaperChangeStats>>(`${this.baseUrl}/diaper-changes/baby/${babyId}/stats`, {
+      headers: this.getAuthHeaders(),
+      params
+    }).pipe(catchError(this.handleError));
+  }
+
+  getRecentDiaperChanges(babyId: string, limit: number = 5): Observable<ApiResponse<DiaperChangeRecord[]>> {
+    const params = new HttpParams().set('limit', limit.toString());
+
+    return this.http.get<ApiResponse<DiaperChangeRecord[]>>(`${this.baseUrl}/diaper-changes/baby/${babyId}/recent`, {
       headers: this.getAuthHeaders(),
       params
     }).pipe(catchError(this.handleError));

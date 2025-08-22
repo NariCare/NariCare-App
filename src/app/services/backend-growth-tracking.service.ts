@@ -293,13 +293,15 @@ export class BackendGrowthTrackingService {
     try {
       const diaperData: DiaperChangeRequest = {
         babyId: record.babyId,
-        time: record.time,
-        type: record.type,
-        wetness: record.wetness,
-        notes: record.notes
+        recordDate: record.date ? new Date(record.date).toISOString().split('T')[0] : undefined,
+        recordTime: record.time,
+        changeType: record.type,
+        wetnessLevel: record.wetness,
+        notes: record.notes,
+        enteredViaVoice: record.enteredViaVoice
       };
 
-      const response = await this.apiService.createDiaperChangeRecord(diaperData).toPromise();
+      const response = await this.apiService.createDiaperChange(diaperData).toPromise();
       
       if (response?.success) {
         // Refresh local cache
@@ -314,7 +316,7 @@ export class BackendGrowthTrackingService {
 
   getDiaperChangeRecords(babyId: string): Observable<DiaperChangeRecord[]> {
     // Load from API and update local cache
-    this.apiService.getDiaperChangeRecords(babyId).subscribe({
+    this.apiService.getDiaperChanges(babyId).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           const records = response.data.map(this.transformDiaperChangeRecord);
@@ -480,7 +482,7 @@ export class BackendGrowthTrackingService {
   }
 
   private refreshDiaperChangeRecords(babyId: string): void {
-    this.apiService.getDiaperChangeRecords(babyId).subscribe({
+    this.apiService.getDiaperChanges(babyId).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           const records = response.data.map(this.transformDiaperChangeRecord);

@@ -40,8 +40,8 @@
         <ion-segment-button value="feed-tracks">
           <ion-label>Feed Tracks</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="stool-tracks">
-          <ion-label>Stool Tracks</ion-label>
+        <ion-segment-button value="diaper-change">
+          <ion-label>Diaper Change</ion-label>
         </ion-segment-button>
       </ion-segment>
     </div>
@@ -127,19 +127,38 @@
             <div class="record-time">{{ getRecordTime(record) }}</div>
             <div class="record-date">{{ getRecordDate(record) }}</div>
             <div class="record-details">
-              <div class="breast-side-indicator">
-                <ion-icon name="ellipse" *ngIf="record.directFeedDetails?.breastSide === 'both'"></ion-icon>
-                <ion-icon name="radio-button-on" *ngIf="record.directFeedDetails?.breastSide !== 'both'"></ion-icon>
-                <span>{{ record.directFeedDetails?.breastSide | titlecase }}</span>
+              <!-- Feed Types Indicator -->
+              <div class="feed-types-indicator">
+                <span *ngFor="let feedType of getFeedTypes(record)" class="feed-type-badge" [class]="'feed-type-' + feedType">
+                  <ion-icon name="body" *ngIf="feedType === 'direct'"></ion-icon>
+                  <ion-icon name="water" *ngIf="feedType === 'expressed'"></ion-icon>
+                  <ion-icon name="nutrition" *ngIf="feedType === 'formula'"></ion-icon>
+                  {{ feedType === 'direct' ? 'Direct' : feedType === 'expressed' ? 'EBM' : 'Formula' }}
+                </span>
               </div>
-              <div class="pain-indicator" *ngIf="record.directFeedDetails?.painLevel !== undefined">
-                <span class="pain-level">{{ record.directFeedDetails?.painLevel }}</span>
+              
+              <!-- Breast Side Indicator (only for direct feeds) -->
+              <div class="breast-side-indicator" *ngIf="getFeedTypes(record).includes('direct') && getBreastSide(record)">
+                <ion-icon name="ellipse" *ngIf="getBreastSide(record) === 'both'"></ion-icon>
+                <ion-icon name="radio-button-on" *ngIf="getBreastSide(record) !== 'both'"></ion-icon>
+                <span>{{ getBreastSide(record) | titlecase }}</span>
+              </div>
+              
+              <!-- Duration Indicator -->
+              <div class="duration-indicator" *ngIf="getFeedDuration(record)">
+                <ion-icon name="time"></ion-icon>
+                <span>{{ getFeedDuration(record) }}min</span>
+              </div>
+              
+              <!-- Pain Level Indicator -->
+              <div class="pain-indicator" *ngIf="getFeedPainLevel(record) !== null">
+                <span class="pain-level">{{ getFeedPainLevel(record) }}</span>
                 <span class="pain-label">Pain</span>
               </div>
             </div>
-            <div class="record-mood" *ngIf="record.notes">
-              <span class="mood-emoji">📝</span>
-              <span class="mood-label">Notes</span>
+            <div class="record-notes" *ngIf="record.notes">
+              <span class="notes-emoji">📝</span>
+              <span class="notes-label">Notes</span>
             </div>
           </div>
         </div>
@@ -154,7 +173,42 @@
       </div>
     </div>
 
-    <!-- Stool Tracks Tab -->
+    <!-- Diaper Change Tab -->
+    <div class="tab-content" *ngIf="selectedSubTab === 'diaper-change'">
+      <div class="records-section">
+        <h3 class="section-title">Recent Diaper Changes</h3>
+        <div class="records-list" *ngIf="diaperChangeRecords$ | async as diaperRecords; else noDiaperRecords">
+          <div *ngFor="let record of diaperRecords | slice:0:10" class="record-item diaper-record">
+            <div class="record-time">{{ getDiaperChangeTime(record) }}</div>
+            <div class="record-date">{{ getDiaperChangeDate(record) }}</div>
+            <div class="record-details">
+              <div class="diaper-type-indicator">
+                <span class="type-emoji">{{ getChangeTypeEmoji(record.change_type || record.type || record.changeType) }}</span>
+                <span class="type-label">{{ getDiaperChangeType(record) }}</span>
+              </div>
+              <div class="wetness-indicator" *ngIf="record.wetness_level || record.wetness || record.wetnessLevel">
+                <ion-icon name="water"></ion-icon>
+                <span class="wetness-level">{{ (record.wetness_level || record.wetness || record.wetnessLevel) | titlecase }}</span>
+              </div>
+            </div>
+            <div class="record-notes" *ngIf="record.notes">
+              <span class="notes-emoji">📝</span>
+              <span class="notes-label">Notes</span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noDiaperRecords>
+          <div class="empty-records">
+            <ion-icon name="medical"></ion-icon>
+            <h4>No diaper changes yet</h4>
+            <p>Start tracking by clicking the edit button above</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Keep original Stool Tracks Tab for backward compatibility -->
     <div class="tab-content" *ngIf="selectedSubTab === 'stool-tracks'">
       <div class="records-section">
         <h3 class="section-title">Recent Stool Records</h3>

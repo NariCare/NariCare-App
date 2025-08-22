@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
-import { ApiService, FeedRecordRequest, WeightRecordRequest, StoolRecordRequest, PumpingRecordRequest, DiaperChangeRequest } from './api.service';
+import { ApiService, FeedRecordRequest, WeightRecordRequest, StoolRecordRequest, PumpingRecordRequest, DiaperChangeRequest, DiaperChangeRecord, DiaperChangeStats } from './api.service';
 import { GrowthRecord } from '../models/growth-tracking.model';
 
 @Injectable({
@@ -112,7 +112,7 @@ export class BackendGrowthService {
    */
   async addDiaperChangeRecord(record: DiaperChangeRequest): Promise<any> {
     try {
-      const response = await this.apiService.createDiaperChangeRecord(record).toPromise();
+      const response = await this.apiService.createDiaperChange(record).toPromise();
       
       if (response?.success) {
         return response.data;
@@ -200,12 +200,110 @@ export class BackendGrowthService {
 
   /**
    * Get diaper change records for a specific baby from backend
-   * Note: This method is not yet implemented in the API service
    */
-  getDiaperChangeRecords(babyId: string): Observable<any[]> {
-    // TODO: Implement when backend endpoint is available
-    console.warn('Diaper change records API not yet implemented');
-    return of([]);
+  getDiaperChangeRecords(babyId: string, page?: number, limit?: number): Observable<DiaperChangeRecord[]> {
+    return this.apiService.getDiaperChanges(babyId, { page, limit }).pipe(
+      map((response: any) => {
+        if (response?.success && response.data) {
+          return response.data;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error fetching diaper change records:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Get a specific diaper change record by ID
+   */
+  getDiaperChangeRecord(recordId: string): Observable<DiaperChangeRecord | null> {
+    return this.apiService.getDiaperChange(recordId).pipe(
+      map((response: any) => {
+        if (response?.success && response.data) {
+          return response.data;
+        }
+        return null;
+      }),
+      catchError(error => {
+        console.error('Error fetching diaper change record:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Update a diaper change record
+   */
+  async updateDiaperChangeRecord(recordId: string, record: Partial<DiaperChangeRequest>): Promise<DiaperChangeRecord> {
+    try {
+      const response = await this.apiService.updateDiaperChange(recordId, record).toPromise();
+      
+      if (response?.success) {
+        return response.data;
+      } else {
+        throw new Error(response?.message || 'Failed to update diaper change record');
+      }
+    } catch (error: any) {
+      console.error('Error updating diaper change record:', error);
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  /**
+   * Delete a diaper change record
+   */
+  async deleteDiaperChangeRecord(recordId: string): Promise<boolean> {
+    try {
+      const response = await this.apiService.deleteDiaperChange(recordId).toPromise();
+      
+      if (response?.success) {
+        return true;
+      } else {
+        throw new Error(response?.message || 'Failed to delete diaper change record');
+      }
+    } catch (error: any) {
+      console.error('Error deleting diaper change record:', error);
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  /**
+   * Get diaper change statistics for a specific baby
+   */
+  getDiaperChangeStats(babyId: string, startDate?: string, endDate?: string): Observable<DiaperChangeStats | null> {
+    return this.apiService.getDiaperChangeStats(babyId, startDate, endDate).pipe(
+      map((response: any) => {
+        if (response?.success && response.data) {
+          return response.data;
+        }
+        return null;
+      }),
+      catchError(error => {
+        console.error('Error fetching diaper change stats:', error);
+        return of(null);
+      })
+    );
+  }
+
+  /**
+   * Get recent diaper changes for a specific baby
+   */
+  getRecentDiaperChanges(babyId: string, limit?: number): Observable<DiaperChangeRecord[]> {
+    return this.apiService.getRecentDiaperChanges(babyId, limit).pipe(
+      map((response: any) => {
+        if (response?.success && response.data) {
+          return response.data;
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error fetching recent diaper changes:', error);
+        return of([]);
+      })
+    );
   }
 
   /**

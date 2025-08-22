@@ -6,13 +6,16 @@ import { Observable } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
+import { BackendGrowthService } from '../../../services/backend-growth.service';
 import { WHOGrowthChartService } from '../../../services/who-growth-chart.service';
 import { WeightChartModalComponent } from '../../../components/weight-chart-modal/weight-chart-modal.component';
 import { FeedLogModalComponent } from '../../../components/feed-log-modal/feed-log-modal.component';
+import { DiaperLogModalComponent } from '../../../components/diaper-log-modal/diaper-log-modal.component';
 import { 
   GrowthRecord, 
   WeightRecord, 
   StoolRecord,
+  DiaperChangeRecord,
   BreastSide,
   SupplementType,
   LipstickShape,
@@ -33,17 +36,19 @@ export class BabyDetailPage implements OnInit {
   user: User | null = null;
   baby: Baby | null = null;
   babyId: string = '';
-  selectedSubTab: 'weight-size' | 'feed-tracks' | 'stool-tracks' = 'weight-size';
+  selectedSubTab: 'weight-size' | 'feed-tracks' | 'diaper-change' | 'stool-tracks' = 'weight-size';
   
   // Data observables
-  growthRecords$: Observable<GrowthRecord[]> | null = null;
+  growthRecords$: Observable<any[]> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
   stoolRecords$: Observable<StoolRecord[]> | null = null;
+  diaperChangeRecords$: Observable<any[]> | null = null;
   
   // Modal controls
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
+  showAddDiaperModal = false;
   showAddPumpingModal = false;
   
   // Forms
@@ -92,6 +97,7 @@ export class BabyDetailPage implements OnInit {
     private authService: AuthService,
     private backendAuthService: BackendAuthService,
     private growthService: GrowthTrackingService,
+    private backendGrowthService: BackendGrowthService,
     private toastController: ToastController,
     private alertController: AlertController,
     private modalController: ModalController
@@ -185,9 +191,22 @@ export class BabyDetailPage implements OnInit {
 
   private loadBabyData() {
     if (this.babyId) {
-      this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId);
-      this.weightRecords$ = this.growthService.getWeightRecords(this.babyId);
-      this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
+      // Check if user is using backend services
+      const isBackendUser = this.backendAuthService.getCurrentUser();
+      
+      if (isBackendUser) {
+        // Use backend services for all data
+        this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId);
+        this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId);
+        this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId);
+        this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId);
+      } else {
+        // Fallback to local services
+        this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId);
+        this.weightRecords$ = this.growthService.getWeightRecords(this.babyId);
+        this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
+        this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId);
+      }
     }
   }
 
@@ -211,6 +230,9 @@ export class BabyDetailPage implements OnInit {
       case 'stool-tracks':
         this.openAddStoolModal();
         break;
+      case 'diaper-change':
+        this.openAddDiaperModal();
+        break;
     }
   }
 
@@ -227,6 +249,10 @@ export class BabyDetailPage implements OnInit {
     this.showAddStoolModal = true;
   }
 
+  openAddDiaperModal() {
+    this.openDiaperLogModal();
+  }
+
   closeAddRecordModal() {
     this.showAddRecordModal = false;
     this.resetRecordForm();
@@ -240,6 +266,10 @@ export class BabyDetailPage implements OnInit {
   closeAddStoolModal() {
     this.showAddStoolModal = false;
     this.resetStoolForm();
+  }
+
+  closeAddDiaperModal() {
+    this.showAddDiaperModal = false;
   }
 
   openAddPumpingModal() {
@@ -418,6 +448,23 @@ export class BabyDetailPage implements OnInit {
     return await modal.present();
   }
 
+  async openDiaperLogModal() {
+    const modal = await this.modalController.create({
+      component: DiaperLogModalComponent,
+      componentProps: {
+        selectedBaby: this.baby
+      }
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.saved) {
+        this.loadBabyData();
+      }
+    });
+
+    return await modal.present();
+  }
+
   // Helper methods
   calculateBabyAge(): string {
     if (!this.baby || !this.baby.dateOfBirth) {
@@ -496,12 +543,23 @@ export class BabyDetailPage implements OnInit {
     return height ? `${height}cm` : '--';
   }
 
-  getRecordTime(record: GrowthRecord): string {
-    return record.directFeedDetails?.startTime || '--';
+  getRecordTime(record: any): string {
+    // Handle transformed API data and local data
+    const startTime = record.directFeedDetails?.startTime || record.direct_start_time;
+    if (!startTime) return '--';
+    
+    // If time is in HH:MM:SS format, convert to HH:MM
+    if (typeof startTime === 'string' && startTime.includes(':')) {
+      return startTime.slice(0, 5); // Takes HH:MM from HH:MM:SS
+    }
+    
+    return startTime;
   }
 
-  getRecordDate(record: GrowthRecord): string {
-    return this.formatDate(record.date);
+  getRecordDate(record: any): string {
+    // Handle both transformed API data and local data
+    const date = record.date || record.record_date;
+    return date ? this.formatDate(new Date(date)) : '--';
   }
 
   getStoolTime(record: StoolRecord): string {
@@ -512,13 +570,126 @@ export class BabyDetailPage implements OnInit {
     return this.formatDate(record.date);
   }
 
-  getChangeTypeEmoji(type: 'pee' | 'poop' | 'both'): string {
+  getDiaperChangeTime(record: any): string {
+    // Handle both API format (record_time) and local format (time)
+    const time = record.record_time || record.time;
+    if (!time) return '--';
+    
+    // If time is in HH:MM:SS format, convert to HH:MM
+    if (typeof time === 'string' && time.includes(':')) {
+      return time.slice(0, 5); // Takes HH:MM from HH:MM:SS
+    }
+    
+    return time;
+  }
+
+  getDiaperChangeDate(record: any): string {
+    // Handle both API format (record_date) and local format (date)
+    const date = record.record_date || record.date;
+    return date ? this.formatDate(new Date(date)) : '--';
+  }
+
+  getDiaperChangeType(record: any): string {
+    // Handle both API format (change_type) and local format (type)
+    const type = record.change_type || record.type || record.changeType;
+    switch (type) {
+      case 'pee': return 'Wet';
+      case 'poop': return 'Dirty';
+      case 'both': return 'Wet & Dirty';
+      default: return '--';
+    }
+  }
+
+  getChangeTypeEmoji(type: any): string {
     switch (type) {
       case 'pee': return '💦';
       case 'poop': return '💩';
       case 'both': return '💦💩';
       default: return '💧';
     }
+  }
+
+  getDiaperChangeRecordedBy(record: any): string {
+    // For API records, combine first_name and last_name
+    if (record.first_name || record.last_name) {
+      return `${record.first_name || ''} ${record.last_name || ''}`.trim();
+    }
+    
+    // For local records, use recordedBy if available
+    return record.recordedBy || 'Unknown';
+  }
+
+  getFeedRecordedBy(record: any): string {
+    // For API records, combine firstName and lastName
+    if (record.firstName || record.lastName) {
+      return `${record.firstName || ''} ${record.lastName || ''}`.trim();
+    }
+    
+    // For local records, use recordedBy if available
+    return record.recordedBy || 'Unknown';
+  }
+
+  getFeedTypes(record: any): string[] {
+    // Handle transformed API data
+    if (record.feedTypes && Array.isArray(record.feedTypes)) {
+      return record.feedTypes;
+    }
+    
+    // Handle raw API data or local data
+    const types: string[] = [];
+    if (record.direct_start_time || record.directFeedDetails?.startTime) {
+      types.push('direct');
+    }
+    if (record.expressed_quantity || record.expressedMilkDetails?.quantity) {
+      types.push('expressed');
+    }
+    if (record.formula_quantity || record.formulaDetails?.quantity) {
+      types.push('formula');
+    }
+    
+    return types;
+  }
+
+  getFeedDuration(record: any): number | null {
+    // Handle transformed API data
+    if (record.directFeedDetails?.duration) {
+      return record.directFeedDetails.duration;
+    }
+    
+    // Handle raw API data
+    if (record.direct_duration) {
+      return record.direct_duration;
+    }
+    
+    return null;
+  }
+
+  getFeedPainLevel(record: any): number | null {
+    // Handle transformed API data
+    if (record.directFeedDetails?.painLevel !== undefined) {
+      return record.directFeedDetails.painLevel;
+    }
+    
+    // Handle raw API data
+    if (record.direct_pain_level !== undefined) {
+      return record.direct_pain_level;
+    }
+    
+    return null;
+  }
+
+  getBreastSide(record: any): string | null {
+    // Handle transformed API data
+    if (record.directFeedDetails?.breastSide) {
+      return record.directFeedDetails.breastSide;
+    }
+    
+    // Handle raw API data
+    if (record.direct_breast_side) {
+      return record.direct_breast_side;
+    }
+    
+    return null;
   }
 
   // Voice input methods

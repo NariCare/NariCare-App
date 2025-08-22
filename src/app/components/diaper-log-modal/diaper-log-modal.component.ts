@@ -2,8 +2,11 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController } from '@ionic/angular';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
+import { BackendGrowthService } from '../../services/backend-growth.service';
 import { AuthService } from '../../services/auth.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { ChangeTypeOptions, DiaperChangeRecord, WetnessOptions } from '../../models/growth-tracking.model';
+import { DiaperChangeRequest } from '../../services/api.service';
 import { User, Baby } from '../../models/user.model';
 
 @Component({
@@ -39,7 +42,9 @@ export class DiaperLogModalComponent implements OnInit {
     private modalController: ModalController,
     private toastController: ToastController,
     private growthService: GrowthTrackingService,
-    private authService: AuthService
+    private backendGrowthService: BackendGrowthService,
+    private authService: AuthService,
+    private backendAuthService: BackendAuthService
   ) {
     this.diaperForm = this.formBuilder.group({
       selectedBaby: ['', [Validators.required]],
@@ -50,9 +55,12 @@ export class DiaperLogModalComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+    // Try backend auth service first, fallback to legacy auth service
+    const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
+    
+    authService.currentUser$.subscribe(user => {
       this.user = user;
-      if (user && user.babies.length > 0) {
+      if (user && user.babies && user.babies.length > 0) {
         // Auto-select baby if passed as input or only one exists
         if (this.selectedBaby) {
           this.selectedBabyLocal = this.selectedBaby;
@@ -155,18 +163,36 @@ export class DiaperLogModalComponent implements OnInit {
       try {
         const formValue = this.diaperForm.value;
         
-        const record: Omit<DiaperChangeRecord, 'id' | 'createdAt'> = {
+        // Transform to backend API format
+        const record: DiaperChangeRequest = {
           babyId: this.selectedBabyLocal.id,
-          recordedBy: this.user.uid,
-          date: new Date(),
-          time: new Date().toTimeString().slice(0, 5),
-          type: this.selectedChangeType,
-          wetness: this.selectedWetness || undefined,
-          notes: formValue.notes,
+          recordDate: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+          recordTime: new Date().toTimeString().slice(0, 5), // HH:MM format
+          changeType: this.selectedChangeType,
+          wetnessLevel: this.selectedWetness || undefined,
+          notes: formValue.notes || undefined,
           enteredViaVoice: false
         };
 
-        await this.growthService.addDiaperChangeRecord(record);
+        // Try backend service first, fallback to local storage
+        const isBackendUser = this.backendAuthService.getCurrentUser();
+        
+        if (isBackendUser) {
+          await this.backendGrowthService.addDiaperChangeRecord(record);
+        } else {
+          // Convert back to legacy format for local storage
+          const legacyRecord: Omit<DiaperChangeRecord, 'id' | 'createdAt'> = {
+            babyId: this.selectedBabyLocal.id,
+            recordedBy: this.user.uid,
+            date: new Date(),
+            time: new Date().toTimeString().slice(0, 5),
+            type: this.selectedChangeType,
+            wetness: this.selectedWetness || undefined,
+            notes: formValue.notes,
+            enteredViaVoice: false
+          };
+          await this.growthService.addDiaperChangeRecord(legacyRecord);
+        }
         
         const toast = await this.toastController.create({
           message: 'Diaper change logged successfully!',
@@ -178,9 +204,16 @@ export class DiaperLogModalComponent implements OnInit {
 
         await this.modalController.dismiss({ saved: true });
 
-      } catch (error) {
+      } catch (error: any) {
+        console.error('Error saving diaper log:', error);
+        
+        let errorMessage = 'Failed to save diaper log. Please try again.';
+        if (error?.message) {
+          errorMessage = error.message;
+        }
+        
         const toast = await this.toastController.create({
-          message: 'Failed to save diaper log. Please try again.',
+          message: errorMessage,
           duration: 3000,
           color: 'danger',
           position: 'top'
