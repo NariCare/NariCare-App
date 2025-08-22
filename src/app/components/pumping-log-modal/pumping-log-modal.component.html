@@ -64,12 +64,10 @@
           <ion-range
             formControlName="totalOutput"
             min="0"
-            min="0"
             max="500"
             step="5"
-            color="secondary">
-            step="5"
             color="secondary"
+            (ionChange)="onOutputChange($event)"
             class="quantity-slider">
             <ion-label slot="start">0ml</ion-label>
             <ion-label slot="end">500ml</ion-label>
@@ -105,15 +103,30 @@
         <div class="manual-duration" *ngIf="!isTimerMode">
           <div class="form-group">
             <label class="field-label">Duration (minutes)</label>
-            <ion-item lines="none" class="input-item">
-              <ion-input
+            <div class="quantity-container">
+              <div class="quantity-display">{{ pumpingForm.get('duration')?.value || 0 }}</div>
+              <ion-range
                 formControlName="duration"
-                type="number"
                 min="0"
-                max="120"
-                placeholder="Optional">
-              </ion-input>
-            </ion-item>
+                max="60"
+                step="1"
+                color="secondary"
+                (ionChange)="onDurationChange($event)"
+                class="quantity-slider">
+                <ion-label slot="start">0min</ion-label>
+                <ion-label slot="end">60min</ion-label>
+              </ion-range>
+              <div class="preset-buttons">
+                <ion-button 
+                  *ngFor="let preset of durationPresets"
+                  fill="outline" 
+                  size="small"
+                  (click)="setDuration(preset)"
+                  class="preset-button">
+                  {{ preset }}min
+                </ion-button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -152,6 +165,7 @@
       <div class="form-section">
         <h4>📝 Notes (Optional)</h4>
         <div class="form-group">
+          <label class="field-label">Your Notes</label>
           <ion-item lines="none" class="input-item notes-input">
             <ion-textarea
               formControlName="notes"
@@ -161,6 +175,22 @@
             </ion-textarea>
           </ion-item>
         </div>
+
+        <!-- Quick Notes Section -->
+        <div class="quick-notes-section">
+          <div class="predefined-notes-grid">
+            <ion-chip 
+              *ngFor="let note of predefinedNotes"
+              [class.note-red]="note.indicator === 'red'"
+              [class.note-yellow]="note.indicator === 'yellow'"
+              [class.selected]="isPredefinedNoteSelected(note)"
+              (click)="appendPredefinedNote(note)"
+              class="predefined-note-chip">
+              <ion-icon name="checkmark-circle" class="note-selected-icon" *ngIf="isPredefinedNoteSelected(note)"></ion-icon>
+              {{ note.text }}
+            </ion-chip>
+          </div>
+        </div>
       </div>
 
     </form>
@@ -168,14 +198,14 @@
   </div>
 
   <!-- Sticky Save Button -->
-  <div class="sticky-save-footer">
+  <div class="save-section">
     <ion-button 
       expand="block"
       (click)="savePumpingLog()" 
       [disabled]="!canSave()"
       class="save-button">
-      <ion-icon name="save" slot="start"></ion-icon>
-      Save Pumping Log
+      <!-- <ion-icon name="save" slot="start"></ion-icon> -->
+      Save
     </ion-button>
   </div>
 </ion-content>

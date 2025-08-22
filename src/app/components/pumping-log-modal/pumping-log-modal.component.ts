@@ -6,6 +6,12 @@ import { AuthService } from '../../services/auth.service';
 import { PumpingRecord, PumpingSide } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
 
+interface PredefinedNote {
+  id: string;
+  text: string;
+  indicator: 'red' | 'yellow';
+}
+
 @Component({
   selector: 'app-pumping-log-modal',
   templateUrl: './pumping-log-modal.component.html',
@@ -21,10 +27,25 @@ export class PumpingLogModalComponent implements OnInit {
   timerStartTime: Date | null = null;
   timerInterval: any;
   elapsedTime = 0;
+  selectedPredefinedNotes: string[] = []; // Track selected predefined notes
 
   // Options
   pumpingSideOptions: PumpingSide[] = [];
   outputPresets = [30, 60, 90, 120];
+  durationPresets = [5, 10, 15, 20, 30, 45];
+
+  predefinedNotes: PredefinedNote[] = [
+    { id: '1', text: 'Low milk supply today', indicator: 'yellow' },
+    { id: '2', text: 'Pump flanges uncomfortable', indicator: 'red' },
+    { id: '3', text: 'Great pumping session', indicator: 'yellow' },
+    { id: '4', text: 'Stress affecting output', indicator: 'red' },
+    { id: '5', text: 'Early morning pump', indicator: 'yellow' },
+    { id: '6', text: 'Pump parts need cleaning', indicator: 'red' },
+    { id: '7', text: 'Feeling engorged', indicator: 'yellow' },
+    { id: '8', text: 'Power pump session', indicator: 'yellow' },
+    { id: '9', text: 'Rushed pumping session', indicator: 'red' },
+    { id: '10', text: 'Pumped at work', indicator: 'yellow' }
+  ];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -75,6 +96,70 @@ export class PumpingLogModalComponent implements OnInit {
 
   onOutputChange(event: any) {
     this.pumpingForm.patchValue({ totalOutput: event.detail.value });
+  }
+
+  // Duration presets
+  setDuration(duration: number) {
+    this.pumpingForm.patchValue({ duration: duration });
+  }
+
+  onDurationChange(event: any) {
+    this.pumpingForm.patchValue({ duration: event.detail.value });
+  }
+
+  // Predefined notes
+  isPredefinedNoteSelected(note: PredefinedNote): boolean {
+    return this.selectedPredefinedNotes.includes(note.id);
+  }
+
+  appendPredefinedNote(note: PredefinedNote) {
+    const isSelected = this.selectedPredefinedNotes.includes(note.id);
+    
+    if (isSelected) {
+      // Remove the note
+      this.selectedPredefinedNotes = this.selectedPredefinedNotes.filter(id => id !== note.id);
+      this.removeNoteFromText(note.text);
+    } else {
+      // Add the note
+      this.selectedPredefinedNotes.push(note.id);
+      this.addNoteToText(note.text);
+    }
+  }
+
+  private addNoteToText(noteText: string) {
+    const currentNotes = this.pumpingForm.get('notes')?.value || '';
+    let newNotes = '';
+    
+    if (currentNotes.trim()) {
+      newNotes = currentNotes + '\n- ' + noteText;
+    } else {
+      newNotes = noteText;
+    }
+    
+    this.pumpingForm.patchValue({ notes: newNotes });
+  }
+
+  private removeNoteFromText(noteText: string) {
+    const currentNotes = this.pumpingForm.get('notes')?.value || '';
+    
+    // Remove the note text from the notes
+    const noteVariations = [
+      noteText,
+      '- ' + noteText,
+      '\n- ' + noteText,
+      '\n' + noteText
+    ];
+    
+    let updatedNotes = currentNotes;
+    
+    for (const variation of noteVariations) {
+      updatedNotes = updatedNotes.replace(variation, '');
+    }
+    
+    // Clean up extra newlines
+    updatedNotes = updatedNotes.replace(/\n\n+/g, '\n').trim();
+    
+    this.pumpingForm.patchValue({ notes: updatedNotes });
   }
 
   // Timer functionality
