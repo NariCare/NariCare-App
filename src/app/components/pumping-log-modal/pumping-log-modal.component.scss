@@ -1,6 +1,12 @@
 .pumping-log-container {
   padding: 1rem;
-  // padding-bottom: 100px; // Space for sticky footer
+}
+
+/* Single Form Layout */
+.pumping-form.single-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .baby-info-header {
@@ -48,15 +54,53 @@
   background: #ffffff;
   border-radius: 16px;
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
 
-  h4 {
-    margin: 0 0 1rem 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #2d3748;
+  &.main-pumping-card {
+    background: #ffffff;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+  }
+
+  &.notes-section {
+    background: linear-gradient(135deg, #f8fafc, #ffffff);
+  }
+
+  &.save-section {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+}
+
+.section-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.section-description {
+  margin: 0 0 1.5rem 0;
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.section-group {
+  margin-bottom: 2.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Add subtle separator between section groups */
+  &:not(:last-child) {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 2rem;
   }
 }
 
