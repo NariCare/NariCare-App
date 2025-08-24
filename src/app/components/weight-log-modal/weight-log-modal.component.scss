@@ -1,0 +1,381 @@
+/* Weight Log Modal Styles - Based on Feed Modal Pattern */
+
+/* Weight Modal Container - Same as Feed Modal */
+.feed-log-container {
+  padding: 1rem;
+
+  .feed-form.single-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+
+/* Weight Modal Form Sections - Same styling as Feed Modal */
+.form-section {
+  &.selected-baby-info {
+    background: linear-gradient(135deg, #f0f9ff, #ffffff);
+    border: 2px solid #bae6fd;
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+  }
+
+  &.baby-selection {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f1f5f9;
+  }
+
+  &.notes-section {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f1f5f9;
+  }
+
+  &.save-section {
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    padding: 2rem 1.5rem;
+    text-align: center;
+
+    .save-button {
+      --background: #e91e63;
+      --background-hover: #d81b60;
+      --border-radius: 12px;
+      --box-shadow: 0 4px 16px rgba(233, 30, 99, 0.3);
+      --color: #ffffff;
+      height: 56px;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.025em;
+
+      &:disabled {
+        --background: #e2e8f0;
+        --color: #94a3b8;
+        --box-shadow: none;
+      }
+    }
+  }
+
+  /* Weight-specific sections use pump modal colors (teal) */
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+}
+
+/* Section titles matching feed modal */
+.section-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2d3748;
+  text-align: left;
+}
+
+.section-description {
+  margin: 0 0 1.5rem 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Baby Selection Grid - Same as Feed Modal */
+.baby-selection-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.baby-option {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.selected {
+    border-color: #26a69a;
+    /* Teal for weight modal */
+    background: linear-gradient(135deg, rgba(38, 166, 154, 0.1), #ffffff);
+    box-shadow: 0 4px 16px rgba(38, 166, 154, 0.15);
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.selected-baby-display {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.baby-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #26a69a, #4db6ac);
+  /* Teal for weight */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: #ffffff;
+  }
+}
+
+.baby-info {
+  flex: 1;
+
+  h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+}
+
+.selected-icon {
+  color: #26a69a;
+  /* Teal for weight */
+  font-size: 1.5rem;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 1.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+/* Input Items - Same as Feed Modal */
+.input-item {
+  --background: #f8fafc;
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 52px;
+  margin-bottom: 0.5rem;
+
+  &.notes-input {
+    --min-height: auto;
+
+    ion-textarea {
+      --color: #2d3748;
+      --placeholder-color: #94a3b8;
+    }
+  }
+
+  /* Weight input specific styling */
+  &.weight-input {
+    text-align: center;
+    --background: #ffffff;
+    border: 2px solid #e2e8f0;
+    transition: all 0.3s ease;
+
+    &:focus-within {
+      border-color: #26a69a;
+      box-shadow: 0 4px 12px rgba(38, 166, 154, 0.2);
+    }
+
+    &.error {
+      border-color: #ef4444;
+    }
+
+    ion-input {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #26a69a;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+
+      &::placeholder {
+        font-size: 1.2rem;
+        color: #94a3b8;
+        font-weight: 400;
+      }
+    }
+  }
+}
+
+/* Error Messages */
+.error-message {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* DateTime Group - Pump Modal Style */
+.datetime-group {
+  display: flex;
+  gap: 1rem;
+
+  .form-group {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+/* Predefined Notes - Same as Feed Modal */
+.quick-notes-section {
+  margin-bottom: 2rem;
+}
+
+.predefined-notes-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.predefined-note-chip {
+  --background: #ffffff;
+  --color: #64748b;
+  --border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &.selected {
+    --background: #26a69a;
+    /* Teal for weight */
+    --color: #ffffff;
+    border-color: #004d40;
+    box-shadow: 0 2px 8px rgba(38, 166, 154, 0.3);
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  &.note-red.selected {
+    --background: #dc2626;
+    --color: #ffffff;
+    border-color: #b91c1c;
+  }
+
+  &.note-yellow.selected {
+    --background: #f59e0b;
+    --color: #ffffff;
+    border-color: #d97706;
+  }
+}
+
+.note-selected-icon {
+  font-size: 1rem;
+  color: currentColor;
+  flex-shrink: 0;
+}
+
+/* Primary Button - Teal Theme for Weight */
+.primary-button {
+  --background: #26a69a;
+  --background-hover: #00695c;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(38, 166, 154, 0.3);
+  --color: #ffffff;
+  height: 52px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+
+  &:disabled {
+    --background: #e2e8f0;
+    --color: #94a3b8;
+    --box-shadow: none;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .baby-selection-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .input-item.weight-input ion-input {
+    font-size: 2.5rem;
+    /* Larger on mobile for easier input */
+
+    &::placeholder {
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+  }
+
+  .predefined-notes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) {
+  .feed-log-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .baby-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .predefined-notes-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Large number input optimization */
+ion-input[type="number"] {
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  &[type="number"] {
+    -moz-appearance: textfield;
+  }
+}

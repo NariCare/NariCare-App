@@ -1,0 +1,171 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Weight Log</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="closeModal()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="feed-log-container">
+    <form [formGroup]="weightForm" class="feed-form single-form">
+      
+      <!-- Selected Baby Info (when baby is pre-selected) -->
+      <div class="form-section selected-baby-info" *ngIf="getSelectedWeightBaby() && !shouldShowBabySelectionForWeight()">
+        <div class="selected-baby-display">
+          <div class="baby-avatar">
+            <ion-icon name="baby"></ion-icon>
+          </div>
+          <div class="baby-info">
+            <h3>{{ getSelectedWeightBaby()?.name }}</h3>
+            <p>{{ calculateBabyAge(getSelectedWeightBaby()!) }}</p>
+          </div>
+          <ion-icon name="checkmark-circle" class="selected-icon"></ion-icon>
+        </div>
+      </div>
+      
+      <!-- Baby Selection (only if multiple babies and no baby pre-selected) -->
+      <div class="form-section baby-selection" *ngIf="shouldShowBabySelectionForWeight()">
+        <h2 class="section-title">👶 Select Baby</h2>
+        <p class="section-description">Which baby are you logging this weight for?</p>
+        
+        <div class="baby-selection-grid">
+          <div 
+            *ngFor="let baby of user?.babies"
+            class="baby-option"
+            [class.selected]="getSelectedWeightBaby()?.id === baby.id"
+            (click)="selectWeightBaby(baby)">
+            <div class="baby-avatar">
+              <ion-icon name="baby"></ion-icon>
+            </div>
+            <div class="baby-info">
+              <h3>{{ baby.name }}</h3>
+              <p>{{ calculateBabyAge(baby) }}</p>
+            </div>
+            <ion-icon name="checkmark-circle" class="selected-icon" *ngIf="getSelectedWeightBaby()?.id === baby.id"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date & Time Section -->
+      <div class="form-section">
+        <h2 class="section-title">📅 Date & Time</h2>
+        <p class="section-description">When was this weight recorded?</p>
+        
+        <div class="datetime-group">
+          <div class="form-group">
+            <label class="field-label">Date</label>
+            <ion-item lines="none" class="input-item">
+              <ion-datetime-button datetime="weightDate">
+                <ion-icon name="calendar-outline" slot="start"></ion-icon>
+              </ion-datetime-button>
+            </ion-item>
+            <ion-modal [keepContentsMounted]="true">
+              <ng-template>
+                <ion-datetime 
+                  id="weightDate" 
+                  formControlName="date"
+                  presentation="date"
+                  max="2025-12-31"
+                  min="2020-01-01">
+                </ion-datetime>
+              </ng-template>
+            </ion-modal>
+          </div>
+          
+          <div class="form-group">
+            <label class="field-label">Time</label>
+            <ion-item lines="none" class="input-item">
+              <ion-datetime-button datetime="weightTime">
+                <ion-icon name="time-outline" slot="start"></ion-icon>
+              </ion-datetime-button>
+            </ion-item>
+            <ion-modal [keepContentsMounted]="true">
+              <ng-template>
+                <ion-datetime 
+                  id="weightTime" 
+                  formControlName="time"
+                  presentation="time"
+                  [minuteValues]="[0,5,10,15,20,25,30,35,40,45,50,55]">
+                </ion-datetime>
+              </ng-template>
+            </ion-modal>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weight Section -->
+      <div class="form-section">
+        <h2 class="section-title">⚖️ Weight</h2>
+        <p class="section-description">Enter the baby's weight in kilograms (up to 3 decimal places)</p>
+        
+        <div class="form-group">
+          <label class="field-label">Weight (kg) *</label>
+          <ion-item lines="none" class="input-item weight-input" [class.error]="weightForm.get('weight')?.invalid && weightForm.get('weight')?.touched">
+            <ion-input
+              formControlName="weight"
+              type="number"
+              step="0.001"
+              min="0.001"
+              max="50"
+              placeholder="e.g., 4.250"
+              inputmode="decimal">
+            </ion-input>
+          </ion-item>
+          <div class="error-message" *ngIf="weightForm.get('weight')?.invalid && weightForm.get('weight')?.touched">
+            Please enter a valid weight (0.001 - 50 kg)
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes Section -->
+      <div class="form-section notes-section">
+        <h2 class="section-title">📝 Notes</h2>
+        <p class="section-description">Add any additional notes about this weight measurement (optional)</p>
+
+        <div class="form-group">
+          <label class="field-label">Your Notes</label>
+          <ion-item lines="none" class="input-item notes-input">
+            <ion-textarea
+              formControlName="notes"
+              placeholder="Write any additional details about the weight measurement..."
+              rows="3"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+        </div>
+        
+        <!-- Quick Notes Section -->
+        <div class="quick-notes-section">
+          <div class="predefined-notes-grid">
+            <ion-chip 
+              *ngFor="let note of weightPredefinedNotes"
+              [class.note-yellow]="note.indicator === 'yellow'"
+              [class.note-red]="note.indicator === 'red'"
+              [class.selected]="isPredefinedWeightNoteSelected(note)"
+              (click)="appendPredefinedWeightNote(note)"
+              class="predefined-note-chip">
+              <ion-icon name="checkmark-circle" class="note-selected-icon" *ngIf="isPredefinedWeightNoteSelected(note)"></ion-icon>
+              {{ note.text }}
+            </ion-chip>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Button Section -->
+      <div class="form-section save-section">
+        <ion-button 
+          expand="block" 
+          (click)="saveWeightRecord()"
+          [disabled]="!canSave()"
+          class="save-button">
+          Save Weight Record
+        </ion-button>
+      </div>
+
+    </form>
+  </div>
+</ion-content>
