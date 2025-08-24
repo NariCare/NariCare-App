@@ -66,6 +66,10 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   public initializeChart() {
     console.log('Initializing chart...');
     console.log('Chart container available:', !!this.chartContainer?.nativeElement);
+    console.log('Weight records:', this.weightRecords);
+    console.log('Baby gender:', this.babyGender);
+    console.log('Baby birth date:', this.babyBirthDate);
+    
     this.isLoading = true;
     this.chartError = '';
 
@@ -76,6 +80,14 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
         elementId: this.chartContainer?.nativeElement?.id
       });
       this.chartError = 'Chart container element not found. Please try refreshing the page.';
+      this.isLoading = false;
+      return;
+    }
+
+    // Check if Highcharts is available
+    if (typeof Highcharts === 'undefined') {
+      console.error('Highcharts is not available');
+      this.chartError = 'Chart library not loaded. Please refresh the page.';
       this.isLoading = false;
       return;
     }
@@ -93,9 +105,26 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     console.log('Creating weight chart...');
     
     try {
+      // Validate data first
+      if (!this.babyBirthDate || !this.babyGender) {
+        throw new Error('Missing baby birth date or gender');
+      }
+
       const babyGrowthPoints = this.convertToGrowthPoints();
       const that = this;
       console.log('Baby growth points:', babyGrowthPoints);
+      
+      // Validate WHO service
+      if (!this.whoService) {
+        throw new Error('WHO Growth Chart Service not available');
+      }
+
+      const chartData = this.whoService.getWeightChart(this.babyGender);
+      console.log('WHO chart data:', chartData);
+
+      if (!chartData || !chartData.data || chartData.data.length === 0) {
+        throw new Error('WHO chart data is not available');
+      }
       
       // Create basic chart configuration
       const chartOptions: Highcharts.Options = {
@@ -228,15 +257,17 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
         colors: ['#fecaca', '#fed7aa', '#fde68a', '#d9f99d', '#10b981', '#7dd3fc', '#a78bfa', '#f9a8d4', '#fca5a5']
       };
 
-      // Add CDC percentile curves
+      // Add WHO percentile curves
       const percentiles = [10, 25, 50, 75, 90]; // Simplified to key percentiles
-      const chartData = this.whoService.getWeightChart(this.babyGender);
       
       percentiles.forEach(percentile => {
+        const seriesData = chartData.data.map(point => [point.ageInWeeks, (point as any)[`p${percentile}`]]);
+        console.log(`Percentile ${percentile} data:`, seriesData.slice(0, 3)); // Log first 3 points
+        
         const series: Highcharts.SeriesLineOptions = {
           name: this.getMotherFriendlyPercentileName(percentile),
           type: 'line',
-          data: chartData.data.map(point => [point.ageInWeeks, (point as any)[`p${percentile}`]]),
+          data: seriesData,
           color: this.getMotherFriendlyColor(percentile),
           lineWidth: percentile === 50 ? 3 : 2,
           dashStyle: percentile === 50 ? 'Solid' : 'ShortDash',
@@ -276,6 +307,14 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
       }
 
       console.log('Creating Highcharts chart with options:', chartOptions);
+      console.log('Chart container element:', this.chartContainer.nativeElement);
+      
+      // Ensure container has proper dimensions
+      if (this.chartContainer.nativeElement.offsetWidth === 0) {
+        console.log('Container has no width, setting default dimensions');
+        this.chartContainer.nativeElement.style.width = '100%';
+        this.chartContainer.nativeElement.style.height = '400px';
+      }
       
       this.chart = Highcharts.chart(this.chartContainer.nativeElement, chartOptions);
       
@@ -285,9 +324,88 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
       
     } catch (error) {
       console.error('Error creating chart:', error);
-      this.chartError = 'Failed to create chart: ' + (error as Error).message;
-      this.isLoading = false;
+      console.log('Attempting to create simplified fallback chart...');
+      try {
+        this.createSimplifiedChart();
+      } catch (fallbackError) {
+        console.error('Fallback chart also failed:', fallbackError);
+        this.chartError = 'Failed to create chart: ' + (error as Error).message;
+        this.isLoading = false;
+      }
     }
+  }
+
+  private createSimplifiedChart() {
+    console.log('Creating simplified chart as fallback...');
+    
+    const babyGrowthPoints = this.convertToGrowthPoints();
+    
+    // Create a very basic chart with just the essentials
+    const simpleOptions: Highcharts.Options = {
+      chart: {
+        type: 'line',
+        height: 400,
+        backgroundColor: '#fef7f7'
+      },
+      title: {
+        text: `${this.babyGender === 'male' ? 'Boy' : 'Girl'}'s Weight Growth`
+      },
+      xAxis: {
+        title: { text: 'Age (weeks)' },
+        min: 0,
+        max: 52
+      },
+      yAxis: {
+        title: { text: 'Weight (kg)' },
+        min: 0,
+        max: 15
+      },
+      series: [],
+      credits: { enabled: false }
+    };
+
+    // Add just the median line and baby's data
+    try {
+      const chartData = this.whoService.getWeightChart(this.babyGender);
+      if (chartData && chartData.data) {
+        // Add 50th percentile line
+        const medianSeries: Highcharts.SeriesLineOptions = {
+          name: 'Average babies (50th percentile)',
+          type: 'line',
+          data: chartData.data.map(point => [point.ageInWeeks, point.p50]),
+          color: '#10b981',
+          lineWidth: 2,
+          marker: { enabled: false }
+        };
+        simpleOptions.series!.push(medianSeries);
+      }
+
+      // Add baby's weight data if available
+      if (babyGrowthPoints.length > 0) {
+        const babySeries: Highcharts.SeriesScatterOptions = {
+          name: 'Your Baby',
+          type: 'scatter',
+          data: babyGrowthPoints.map(point => [point.ageInWeeks, point.value]),
+          color: '#e91e63',
+          marker: {
+            radius: 6,
+            fillColor: '#e91e63',
+            lineColor: '#ffffff',
+            lineWidth: 2
+          }
+        };
+        simpleOptions.series!.push(babySeries);
+      }
+    } catch (seriesError) {
+      console.warn('Could not add data series, showing empty chart:', seriesError);
+    }
+
+    console.log('Creating simplified Highcharts chart...');
+    this.chart = Highcharts.chart(this.chartContainer.nativeElement, simpleOptions);
+    console.log('Simplified chart created successfully');
+    
+    this.updatePercentileInfo(babyGrowthPoints);
+    this.isLoading = false;
   }
 
   private getMotherFriendlyPercentileName(percentile: number): string {
@@ -385,18 +503,45 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     }
 
     console.log('Converting', this.weightRecords.length, 'weight records to growth points');
+    console.log('Baby birth date:', this.babyBirthDate);
+    console.log('Sample weight record:', this.weightRecords[0]);
     
-    return this.weightRecords.map(record => {
-      const ageInWeeks = this.whoService.calculateAgeInWeeks(this.babyBirthDate, record.date);
-      const percentile = this.whoService.calculatePercentile(ageInWeeks, record.weight, this.babyGender);
+    try {
+      // Normalize all records first
+      const normalizedRecords = this.weightRecords
+        .map(record => this.normalizeWeightRecord(record))
+        .filter(record => record !== null) as { date: Date; weight: number }[];
+
+      console.log('Valid normalized records:', normalizedRecords.length, 'out of', this.weightRecords.length);
+
+      const growthPoints = normalizedRecords.map(record => {
+        const birthDate = new Date(this.babyBirthDate);
+        
+        console.log('Processing normalized record:', {
+          recordDate: record.date.toISOString(),
+          birthDate: birthDate.toISOString(),
+          weight: record.weight
+        });
+
+        const ageInWeeks = this.whoService.calculateAgeInWeeks(birthDate, record.date);
+        const percentile = this.whoService.calculatePercentile(ageInWeeks, record.weight, this.babyGender);
+        
+        return {
+          ageInWeeks,
+          value: record.weight,
+          percentile,
+          date: record.date
+        };
+      });
+
+      const sortedPoints = growthPoints.sort((a, b) => a.ageInWeeks - b.ageInWeeks);
+      console.log('Converted growth points:', sortedPoints);
       
-      return {
-        ageInWeeks,
-        value: record.weight,
-        percentile,
-        date: record.date
-      };
-    }).sort((a, b) => a.ageInWeeks - b.ageInWeeks);
+      return sortedPoints;
+    } catch (error) {
+      console.error('Error converting weight records to growth points:', error);
+      return [];
+    }
   }
 
   private updatePercentileInfo(growthPoints: BabyGrowthPoint[]) {
@@ -528,5 +673,34 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     
     const weeklyGain = weightGain / weeksDiff;
     return `${(weeklyGain * 1000).toFixed(0)}g/week`;
+  }
+
+  /**
+   * Normalize weight record format to handle both API and local formats
+   */
+  private normalizeWeightRecord(record: any): { date: Date; weight: number } | null {
+    try {
+      // Handle date field - API uses 'record_date', local uses 'date'
+      const dateValue = record.record_date || record.date;
+      if (!dateValue) {
+        console.warn('No date found in record:', record);
+        return null;
+      }
+      
+      // Handle weight field - API uses string, local uses number
+      const weightValue = typeof record.weight === 'string' ? parseFloat(record.weight) : record.weight;
+      if (!weightValue || isNaN(weightValue) || weightValue <= 0) {
+        console.warn('Invalid weight in record:', record);
+        return null;
+      }
+
+      return {
+        date: new Date(dateValue),
+        weight: weightValue
+      };
+    } catch (error) {
+      console.warn('Error normalizing weight record:', record, error);
+      return null;
+    }
   }
 }

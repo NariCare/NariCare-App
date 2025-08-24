@@ -155,7 +155,7 @@ export interface ConsultationRequest {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl = environment.apiUrl || (environment.production ? 'https://api.naricare.app/api' : 'http://localhost:3000/api');
+  private readonly baseUrl = environment.apiUrl || (environment.production ? 'https://beta-api.naricare.com/api' : 'http://localhost:3000/api');
   private tokenSubject = new BehaviorSubject<string | null>(null);
   public token$ = this.tokenSubject.asObservable();
 
@@ -363,17 +363,14 @@ export class ApiService {
   }
 
   createWeightRecord(weightData: WeightRecordRequest): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/tracker/weight-records`, weightData, {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/tracker/weight`, weightData, {
       headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
   getWeightRecords(babyId: string): Observable<ApiResponse<any[]>> {
-    const params = new HttpParams().set('babyId', babyId);
-
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/weight-records`, {
-      headers: this.getAuthHeaders(),
-      params
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/weight/${babyId}`, {
+      headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 

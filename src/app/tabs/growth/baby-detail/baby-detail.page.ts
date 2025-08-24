@@ -396,21 +396,44 @@ export class BabyDetailPage implements OnInit {
   }
 
   async openWeightChartModal() {
-    if (!this.baby || !this.weightRecords$) return;
+    if (!this.baby) {
+      this.showToast('Baby data not available', 'warning');
+      return;
+    }
 
-    this.weightRecords$.subscribe(async (weightRecords) => {
-      const modal = await this.modalController.create({
-        component: WeightChartModalComponent,
-        componentProps: {
-          weightRecords: weightRecords,
-          babyGender: this.baby!.gender,
-          babyBirthDate: this.baby!.dateOfBirth,
-          babyName: this.baby!.name
-        },
-        cssClass: 'weight-chart-modal'
+    // If weightRecords$ is null, try to load the data first
+    if (!this.weightRecords$) {
+      this.loadBabyData();
+      if (!this.weightRecords$) {
+        this.showToast('Unable to load weight data', 'warning');
+        return;
+      }
+    }
+
+    try {
+      // Get the current weight records
+      const subscription = this.weightRecords$.subscribe(async (weightRecords) => {
+        console.log('Opening weight chart modal with records:', weightRecords);
+        
+        const modal = await this.modalController.create({
+          component: WeightChartModalComponent,
+          componentProps: {
+            weightRecords: weightRecords || [],
+            babyGender: this.baby!.gender,
+            babyBirthDate: this.baby!.dateOfBirth,
+            babyName: this.baby!.name
+          },
+          cssClass: 'weight-chart-modal'
+        });
+        await modal.present();
+        
+        // Unsubscribe after opening the modal
+        subscription.unsubscribe();
       });
-      await modal.present();
-    }).unsubscribe();
+    } catch (error) {
+      console.error('Error opening weight chart modal:', error);
+      this.showToast('Error loading weight chart', 'danger');
+    }
   }
 
   async openFeedLogModal() {
