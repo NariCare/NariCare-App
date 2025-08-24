@@ -575,6 +575,398 @@
   }
 }
 
+/* Mother's Journey Styles */
+.mothers-journey-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(233, 30, 99, 0.1), rgba(240, 98, 146, 0.05));
+  border-radius: 16px;
+  border: 1px solid rgba(233, 30, 99, 0.1);
+}
+
+.journey-title {
+  h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+}
+
+.mothers-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  .stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.75rem auto;
+
+      ion-icon {
+        font-size: 1.2rem;
+        color: #ffffff;
+      }
+    }
+
+    &.breastfeeding-stat .stat-icon {
+      background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+    }
+
+    &.pumping-stat .stat-icon {
+      background: linear-gradient(135deg, #26a69a, #4db6ac);
+    }
+
+    &.emotion-stat .stat-icon {
+      background: linear-gradient(135deg, #e91e63, #f06292);
+    }
+
+    .stat-content {
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+        display: block;
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+.journey-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.journey-section {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+
+    .section-title-icon {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      ion-icon {
+        font-size: 1.2rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        color: #ffffff;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3748;
+      }
+    }
+
+    .section-summary {
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+  }
+
+  &.breastfeeding-section .section-title-icon ion-icon {
+    background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+  }
+
+  &.pumping-section .section-title-icon ion-icon {
+    background: linear-gradient(135deg, #26a69a, #4db6ac);
+  }
+
+  &.emotion-section .section-title-icon ion-icon {
+    background: linear-gradient(135deg, #e91e63, #f06292);
+  }
+}
+
+.last-activity-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e2e8f0;
+
+  .activity-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .activity-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      ion-icon {
+        font-size: 1.2rem;
+        color: #ffffff;
+      }
+
+      &.breastfeeding {
+        background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+      }
+
+      &.pumping {
+        background: linear-gradient(135deg, #26a69a, #4db6ac);
+      }
+
+      &.emotion {
+        background: linear-gradient(135deg, #e91e63, #f06292);
+      }
+    }
+
+    .activity-details {
+      flex: 1;
+
+      .activity-title {
+        display: block;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+      }
+
+      .activity-time {
+        font-size: 0.8rem;
+        color: #64748b;
+      }
+    }
+
+    .activity-metric {
+      text-align: right;
+
+      .metric-value {
+        display: block;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2d3748;
+        line-height: 1;
+      }
+
+      .metric-label {
+        font-size: 0.7rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+}
+
+.recent-activities {
+  .activities-title {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2d3748;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .activities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .activity-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #f1f5f9;
+      transform: translateY(-1px);
+    }
+
+    .activity-time-badge {
+      background: #2d3748;
+      color: #ffffff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      min-width: 48px;
+      text-align: center;
+    }
+
+    .activity-info {
+      flex: 1;
+      margin-left: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      .activity-details {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: #2d3748;
+        font-weight: 500;
+
+        ion-icon {
+          font-size: 0.9rem;
+          color: #a8dadc;
+        }
+      }
+
+      .pain-indicator {
+        font-size: 0.8rem;
+        color: #64748b;
+
+        .pain-level {
+          font-weight: 600;
+        }
+      }
+
+      .output-info {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+        color: #64748b;
+
+        ion-icon {
+          color: #3b82f6;
+        }
+      }
+
+      .emotion-indicator {
+        font-size: 0.8rem;
+        color: #64748b;
+
+        .struggle-count {
+          font-weight: 500;
+          color: #e91e63;
+        }
+      }
+    }
+
+    .activity-date {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    &.emotion-item {
+      border-left: 3px solid #e91e63;
+
+      .activity-details ion-icon {
+        color: #e91e63;
+      }
+    }
+  }
+}
+
+.empty-activities {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #64748b;
+
+  ion-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #cbd5e1;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+.wellness-tips {
+  background: linear-gradient(135deg, rgba(233, 30, 99, 0.05), rgba(240, 98, 146, 0.02));
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid rgba(233, 30, 99, 0.1);
+
+  .tips-title {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .tip-emoji {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .tip-text {
+      font-size: 0.85rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
+  }
+}
+
 .empty-records {
   text-align: center;
   padding: 2rem 1rem;
@@ -1191,5 +1583,59 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+  }
+
+  /* Mother's Journey responsive styles */
+  .mothers-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+
+    .stat-card {
+      padding: 1.5rem;
+
+      .stat-icon {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 1rem;
+
+        ion-icon {
+          font-size: 1.4rem;
+        }
+      }
+
+      .stat-content .stat-value {
+        font-size: 1.8rem;
+      }
+    }
+  }
+
+  .journey-sections {
+    gap: 2rem;
+  }
+
+  .journey-section {
+    padding: 2rem;
+
+    .last-activity-card {
+      padding: 1.5rem;
+    }
+
+    .recent-activities .activities-list {
+      gap: 1rem;
+
+      .activity-item {
+        padding: 1rem;
+      }
+    }
+  }
+
+  .wellness-tips {
+    padding: 1.5rem;
+
+    .tips-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
   }
 }

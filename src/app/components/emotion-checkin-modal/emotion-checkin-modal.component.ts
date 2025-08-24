@@ -4,6 +4,8 @@ import { ModalController, ToastController, AlertController } from '@ionic/angula
 import { Storage } from '@ionic/storage-angular';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
+import { BackendEmotionService, CreateEmotionCheckinRequest } from '../../services/backend-emotion.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { 
   EmotionCheckinRecord, 
   EmotionalStruggle, 
@@ -87,6 +89,8 @@ export class EmotionCheckinModalComponent implements OnInit {
     private alertController: AlertController,
     private growthService: GrowthTrackingService,
     private authService: AuthService,
+    private backendEmotionService: BackendEmotionService,
+    private backendAuthService: BackendAuthService,
     private storage: Storage,
     private cdr: ChangeDetectorRef
   ) {
@@ -99,8 +103,16 @@ export class EmotionCheckinModalComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
-      this.user = user;
+    // Subscribe to backend auth first, fallback to Firebase auth
+    this.backendAuthService.currentUser$.subscribe(backendUser => {
+      if (backendUser) {
+        this.user = backendUser;
+      } else {
+        // Fallback to Firebase auth for local users
+        this.authService.currentUser$.subscribe(user => {
+          this.user = user;
+        });
+      }
     });
     
     // Initialize storage and load preferences
@@ -415,27 +427,90 @@ export class EmotionCheckinModalComponent implements OnInit {
     await alert.present();
   }
 
+  private async showCrisisSupportFromAPI(crisisIntervention: any) {
+    const buttons: any[] = [];
+
+    // Add buttons for each resource provided by the API
+    crisisIntervention.resources.forEach((resource: any) => {
+      if (resource.type === 'hotline' && resource.phone) {
+        buttons.push({
+          text: `📞 ${resource.name}`,
+          handler: () => {
+            window.open(`tel:${resource.phone}`, '_system');
+          }
+        });
+      } else if (resource.website) {
+        buttons.push({
+          text: `🌐 ${resource.name}`,
+          handler: () => {
+            window.open(resource.website, '_blank');
+          }
+        });
+      }
+    });
+
+    // Add continue button
+    buttons.push({
+      text: 'Continue Check-in',
+      role: 'cancel'
+    });
+
+    const alert = await this.alertController.create({
+      header: '🤗 We\'re Here for You',
+      message: crisisIntervention.message,
+      buttons: buttons,
+      cssClass: 'crisis-alert'
+    });
+    await alert.present();
+  }
+
   // Form submission
   async saveEmotionCheckin() {
     if (this.user) {
       try {
         const formValue = this.emotionForm.value;
         
-        const record: Omit<EmotionCheckinRecord, 'id' | 'createdAt'> = {
-          userId: this.user.uid,
-          date: new Date(),
-          time: new Date().toTimeString().slice(0, 5),
-          selectedStruggles: this.selectedStruggles,
-          selectedPositiveMoments: this.selectedPositiveMoments,
-          selectedConcerningThoughts: this.selectedConcerningThoughts,
-          gratefulFor: formValue.gratefulFor,
-          proudOfToday: formValue.proudOfToday,
-          tomorrowGoal: formValue.tomorrowGoal,
-          additionalNotes: formValue.additionalNotes,
-          enteredViaVoice: false
-        };
+        // Try backend API first, fallback to local storage
+        const backendUser = this.backendAuthService.getCurrentUser();
+        const isBackendAuth = !!backendUser;
+        
+        if (isBackendAuth) {
+          // Use backend API - convert objects to ID arrays, pass null for empty fields
+          const requestData: CreateEmotionCheckinRequest = {
+            selectedStruggles: this.selectedStruggles.length > 0 ? this.selectedStruggles.map(s => s.id) : [],
+            selectedPositiveMoments: this.selectedPositiveMoments.length > 0 ? this.selectedPositiveMoments.map(p => p.id) : [],
+            selectedConcerningThoughts: this.selectedConcerningThoughts.length > 0 ? this.selectedConcerningThoughts.map(c => c.id) : [],
+            gratefulFor: formValue.gratefulFor && formValue.gratefulFor.trim() ? formValue.gratefulFor.trim() : null,
+            proudOfToday: formValue.proudOfToday && formValue.proudOfToday.trim() ? formValue.proudOfToday.trim() : null,
+            tomorrowGoal: formValue.tomorrowGoal && formValue.tomorrowGoal.trim() ? formValue.tomorrowGoal.trim() : null,
+            additionalNotes: formValue.additionalNotes && formValue.additionalNotes.trim() ? formValue.additionalNotes.trim() : null
+          };
 
-        await this.growthService.addEmotionCheckinRecord(record);
+          const result = await this.backendEmotionService.createEmotionCheckin(requestData).toPromise();
+          
+          // Handle crisis intervention if triggered
+          if (result.crisisIntervention?.triggered) {
+            this.showCrisisAlert = true;
+            await this.showCrisisSupportFromAPI(result.crisisIntervention);
+          }
+        } else {
+          // Use local storage (legacy)
+          const record: Omit<EmotionCheckinRecord, 'id' | 'createdAt'> = {
+            userId: this.user.uid,
+            date: new Date(),
+            time: new Date().toTimeString().slice(0, 5),
+            selectedStruggles: this.selectedStruggles,
+            selectedPositiveMoments: this.selectedPositiveMoments,
+            selectedConcerningThoughts: this.selectedConcerningThoughts,
+            gratefulFor: formValue.gratefulFor,
+            proudOfToday: formValue.proudOfToday,
+            tomorrowGoal: formValue.tomorrowGoal,
+            additionalNotes: formValue.additionalNotes,
+            enteredViaVoice: false
+          };
+
+          await this.growthService.addEmotionCheckinRecord(record);
+        }
         
         const toast = await this.toastController.create({
           message: 'Emotion check-in saved successfully! Thank you for taking care of yourself. 💕',
@@ -448,6 +523,7 @@ export class EmotionCheckinModalComponent implements OnInit {
         await this.modalController.dismiss({ saved: true });
 
       } catch (error) {
+        console.error('Error saving emotion check-in:', error);
         const toast = await this.toastController.create({
           message: 'Failed to save emotion check-in. Please try again.',
           duration: 3000,

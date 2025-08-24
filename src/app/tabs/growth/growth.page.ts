@@ -3,12 +3,13 @@ import { ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { BackendGrowthService } from '../../services/backend-growth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { BackendPumpingService } from '../../services/backend-pumping.service';
+import { BackendEmotionService } from '../../services/backend-emotion.service';
 import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer, DiaperChangeRecord } from '../../models/growth-tracking.model';
@@ -39,8 +40,11 @@ export class GrowthPage implements OnInit {
   diaperChangeRecords$: Observable<DiaperChangeRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   pumpingRecords$: Observable<any[]> | null = null;
+  pumpingRecords: any[] = [];
+  emotionRecords$: Observable<any[]> | null = null;
+  emotionRecords: any[] = [];
   timelineData$: Observable<BabyTimelineData> | null = null;
-  selectedMainTab: 'my-babies' | 'breastfeeding-history' | 'pumping-history' = 'my-babies';
+  selectedMainTab: 'my-babies' | 'mothers-journey' = 'my-babies';
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
@@ -90,6 +94,7 @@ export class GrowthPage implements OnInit {
     private backendGrowthService: BackendGrowthService,
     private backendAuthService: BackendAuthService,
     private backendPumpingService: BackendPumpingService,
+    private backendEmotionService: BackendEmotionService,
     private whoService: WHOGrowthChartService,
     private timelineService: BabyTimelineService,
     private modalController: ModalController,
@@ -143,6 +148,8 @@ export class GrowthPage implements OnInit {
         this.loadUserBabies();
         // Load pumping data (baby-independent)
         this.loadPumpingData();
+        // Load emotion check-in data
+        this.loadEmotionData();
       }
     });
     
@@ -238,17 +245,59 @@ export class GrowthPage implements OnInit {
       const firstBaby = this.user?.babies?.[0];
       if (firstBaby?.id) {
         this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(firstBaby.id).pipe(
-          map(response => response.records)
+          map(response => {
+            const records = response.records || [];
+            this.pumpingRecords = records; // Store records for synchronous access
+            return records;
+          })
         );
+        // Subscribe to update local records
+        this.pumpingRecords$.subscribe();
       } else {
         // If no baby available, show empty list
         console.log('No babies available. Pumping data will load after baby information is added.');
+        this.pumpingRecords = [];
         this.pumpingRecords$ = new Observable(subscriber => subscriber.next([]));
       }
     } else {
       // Use local service - fallback to 'baby-123' for local storage compatibility
       const babyId = this.user?.babies?.[0]?.id || 'baby-123';
-      this.pumpingRecords$ = this.growthService.getPumpingRecords(babyId);
+      this.pumpingRecords$ = this.growthService.getPumpingRecords(babyId).pipe(
+        map(records => {
+          this.pumpingRecords = records || [];
+          return records;
+        })
+      );
+      // Subscribe to update local records
+      this.pumpingRecords$.subscribe();
+    }
+  }
+
+  private loadEmotionData() {
+    // Check if user is using backend services
+    const isBackendUser = this.backendAuthService.getCurrentUser();
+    
+    if (isBackendUser) {
+      // Use backend emotion service
+      this.emotionRecords$ = this.backendEmotionService.getEmotionCheckins().pipe(
+        map((response: any) => {
+          const records = response.checkins || [];
+          this.emotionRecords = records; // Store records for synchronous access
+          return records;
+        }),
+        catchError(error => {
+          console.error('Error loading emotion data:', error);
+          this.emotionRecords = []; // Clear on error
+          return of([]);
+        })
+      );
+      
+      // Subscribe to update local records
+      this.emotionRecords$.subscribe();
+    } else {
+      // For local users, return empty array (no local emotion storage implemented)
+      this.emotionRecords = [];
+      this.emotionRecords$ = of([]);
     }
   }
 
@@ -430,6 +479,8 @@ export class GrowthPage implements OnInit {
     modal.onDidDismiss().then((result) => {
       if (result.data?.saved) {
         this.showToast('Emotion check-in saved. Thank you for taking care of yourself! 💕', 'success');
+        // Reload emotion data to reflect new check-in
+        this.loadEmotionData();
       }
     });
 
@@ -1244,7 +1295,7 @@ export class GrowthPage implements OnInit {
   // Pumping helper methods
   getLastPumpTime(): string {
     // Get the most recent pumping record
-    const records = this.pumpingRecords$?.source?.['value'] || [];
+    const records = this.pumpingRecords || [];
     if (records.length === 0) return '--';
     
     const lastPump = records[0];
@@ -1253,7 +1304,7 @@ export class GrowthPage implements OnInit {
   }
 
   getLastPumpSide(): string {
-    const records = this.pumpingRecords$?.source?.['value'] || [];
+    const records = this.pumpingRecords || [];
     if (records.length === 0) return '--';
     
     const lastPump = records[0];
@@ -1261,7 +1312,7 @@ export class GrowthPage implements OnInit {
   }
 
   getLastPumpOutput(): number {
-    const records = this.pumpingRecords$?.source?.['value'] || [];
+    const records = this.pumpingRecords || [];
     if (records.length === 0) return 0;
     
     const lastPump = records[0];
@@ -1271,7 +1322,7 @@ export class GrowthPage implements OnInit {
   getPumpDailySessions(): number {
     // Calculate today's sessions from pumping records
     const today = new Date().toDateString();
-    const records = this.pumpingRecords$?.source?.['value'] || [];
+    const records = this.pumpingRecords || [];
     
     const todayRecords = records.filter((record: any) => {
       const recordDate = record.record_date || record.date;
@@ -1284,7 +1335,7 @@ export class GrowthPage implements OnInit {
   getPumpDailyOutput(): number {
     // Calculate today's total output from pumping records
     const today = new Date().toDateString();
-    const records = this.pumpingRecords$?.source?.['value'] || [];
+    const records = this.pumpingRecords || [];
     
     const todayRecords = records.filter((record: any) => {
       const recordDate = record.record_date || record.date;
@@ -1323,6 +1374,86 @@ export class GrowthPage implements OnInit {
 
   getPumpingDuration(record: any): number {
     return record.duration_minutes || record.duration || 0;
+  }
+
+  getEmotionCheckinsCount(): number {
+    // Calculate current week's emotion check-ins
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
+    weekStart.setHours(0, 0, 0, 0);
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6); // End of current week (Saturday)
+    weekEnd.setHours(23, 59, 59, 999);
+    
+    // Get records from local property
+    const records = this.emotionRecords || [];
+    
+    const thisWeekRecords = records.filter((record: any) => {
+      const checkinDate = new Date(record.checkin_date || record.date);
+      return checkinDate >= weekStart && checkinDate <= weekEnd;
+    });
+    
+    return thisWeekRecords.length;
+  }
+
+  getLastEmotionCheckinDate(): string {
+    const records = this.emotionRecords || [];
+    if (records.length === 0) return 'No check-ins yet';
+    
+    // Sort by date descending to get latest
+    const sortedRecords = records.sort((a: any, b: any) => {
+      const dateA = new Date(a.checkin_date || a.date);
+      const dateB = new Date(b.checkin_date || b.date);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    const lastRecord = sortedRecords[0];
+    const lastDate = new Date(lastRecord.checkin_date || lastRecord.date);
+    
+    // Format date relative to today
+    const today = new Date();
+    const diffTime = today.getTime() - lastDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return this.formatDate(lastDate);
+  }
+
+  getRecentEmotionCheckins(): any[] {
+    const records = this.emotionRecords || [];
+    
+    // Sort by date descending and take latest 3
+    return records
+      .sort((a: any, b: any) => {
+        const dateA = new Date(a.checkin_date || a.date);
+        const dateB = new Date(b.checkin_date || b.date);
+        return dateB.getTime() - dateA.getTime();
+      })
+      .slice(0, 3);
+  }
+
+  getEmotionCheckinMood(record: any): string {
+    // Try to get overall mood or return default
+    return record.overall_mood || record.overallMood || 'Neutral';
+  }
+
+  getEmotionCheckinDate(record: any): string {
+    const date = record.checkin_date || record.date;
+    return date ? this.formatDate(new Date(date)) : '--';
+  }
+
+  getEmotionCheckinTime(record: any): string {
+    const date = new Date(record.checkin_date || record.date);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
   }
 
   async openFeedLogModal(isFastFeed: boolean = false) {
