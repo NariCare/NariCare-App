@@ -13,6 +13,7 @@ import { WHOGrowthChartService } from '../../../services/who-growth-chart.servic
 import { WeightChartModalComponent } from '../../../components/weight-chart-modal/weight-chart-modal.component';
 import { FeedLogModalComponent } from '../../../components/feed-log-modal/feed-log-modal.component';
 import { DiaperLogModalComponent } from '../../../components/diaper-log-modal/diaper-log-modal.component';
+import { WeightLogModalComponent } from '../../../components/weight-log-modal/weight-log-modal.component';
 import { 
   GrowthRecord, 
   WeightRecord, 
@@ -56,7 +57,6 @@ export class BabyDetailPage implements OnInit {
   
   // Forms
   addRecordForm: FormGroup;
-  addWeightForm: FormGroup;
   addStoolForm: FormGroup;
   
   // Selection states
@@ -81,16 +81,12 @@ export class BabyDetailPage implements OnInit {
   // Voice input
   isRecording = false;
   isProcessingVoice = false;
-  isRecordingWeight = false;
   isRecordingStool = false;
-  isProcessingVoiceWeight = false;
   isProcessingVoiceStool = false;
   recognition: any;
   voiceTranscript = '';
-  voiceTranscriptWeight = '';
   voiceTranscriptStool = '';
   extractedData: any = {};
-  extractedDataWeight: any = {};
   extractedDataStool: any = {};
 
   constructor(
@@ -123,12 +119,6 @@ export class BabyDetailPage implements OnInit {
       moodDescription: ['']
     });
     
-    this.addWeightForm = this.formBuilder.group({
-      date: [new Date().toISOString(), [Validators.required]],
-      weight: ['', [Validators.required, Validators.min(0.5), Validators.max(50)]],
-      height: [''],
-      notes: ['']
-    });
     
     this.addStoolForm = this.formBuilder.group({
       date: [new Date().toISOString(), [Validators.required]],
@@ -252,8 +242,21 @@ export class BabyDetailPage implements OnInit {
     this.openFeedLogModal();
   }
 
-  openAddWeightModal() {
-    this.showAddWeightModal = true;
+  async openAddWeightModal() {
+    const modal = await this.modalController.create({
+      component: WeightLogModalComponent,
+      componentProps: {
+        selectedBaby: this.baby
+      }
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.saved) {
+        this.loadBabyData();
+      }
+    });
+
+    return await modal.present();
   }
 
   openAddStoolModal() {
@@ -271,7 +274,6 @@ export class BabyDetailPage implements OnInit {
 
   closeAddWeightModal() {
     this.showAddWeightModal = false;
-    this.resetWeightForm();
   }
 
   closeAddStoolModal() {
@@ -306,12 +308,6 @@ export class BabyDetailPage implements OnInit {
     });
   }
 
-  private resetWeightForm() {
-    this.clearVoiceInputWeight();
-    this.addWeightForm.reset({
-      date: new Date().toISOString()
-    });
-  }
 
   private resetStoolForm() {
     this.selectedStoolColor = null;
@@ -370,28 +366,6 @@ export class BabyDetailPage implements OnInit {
     }
   }
 
-  async saveWeightRecord() {
-    if (this.addWeightForm.valid && this.user && this.baby) {
-      try {
-        const formValue = this.addWeightForm.value;
-        const record: Omit<WeightRecord, 'id' | 'createdAt'> = {
-          babyId: this.baby.id,
-          recordedBy: this.user.uid,
-          date: new Date(formValue.date),
-          weight: parseFloat(formValue.weight),
-          height: formValue.height ? parseFloat(formValue.height) : undefined,
-          notes: formValue.notes,
-          enteredViaVoice: !!this.voiceTranscriptWeight
-        };
-
-        await this.growthService.addWeightRecord(record);
-        this.showToast('Weight record saved successfully!', 'success');
-        this.closeAddWeightModal();
-      } catch (error) {
-        this.showToast('Failed to save weight record. Please try again.', 'danger');
-      }
-    }
-  }
 
   async saveStoolRecord() {
     if (this.addStoolForm.valid && this.user && this.baby && 
@@ -751,8 +725,6 @@ export class BabyDetailPage implements OnInit {
       this.recognition.onstart = () => {
         if (this.isProcessingVoice) {
           this.isRecording = true;
-        } else if (this.isProcessingVoiceWeight) {
-          this.isRecordingWeight = true;
         } else if (this.isProcessingVoiceStool) {
           this.isRecordingStool = true;
         }
@@ -770,27 +742,22 @@ export class BabyDetailPage implements OnInit {
           if (this.isProcessingVoice) {
             this.voiceTranscript = finalTranscript.trim();
             this.processSmartVoiceInput(finalTranscript.trim());
-          } else if (this.isProcessingVoiceWeight) {
-            this.processSmartVoiceInputWeight(finalTranscript.trim());
           } else if (this.isProcessingVoiceStool) {
             this.processSmartVoiceInputStool(finalTranscript.trim());
           }
         }
         this.isRecording = false;
-        this.isRecordingWeight = false;
         this.isRecordingStool = false;
       };
       
       this.recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         this.isRecording = false;
-        this.isRecordingWeight = false;
         this.isRecordingStool = false;
       };
       
       this.recognition.onend = () => {
         this.isRecording = false;
-        this.isRecordingWeight = false;
         this.isRecordingStool = false;
       };
     }
@@ -808,18 +775,6 @@ export class BabyDetailPage implements OnInit {
     this.recognition.start();
   }
 
-  startSmartVoiceInputWeight() {
-    if (!this.recognition) {
-      this.showToast('Speech recognition not supported in this browser', 'warning');
-      return;
-    }
-
-    this.voiceTranscriptWeight = '';
-    this.extractedDataWeight = {};
-    this.isProcessingVoiceWeight = true;
-    this.isRecordingWeight = true;
-    this.recognition.start();
-  }
 
   startSmartVoiceInputStool() {
     if (!this.recognition) {
@@ -856,29 +811,6 @@ export class BabyDetailPage implements OnInit {
     }
   }
 
-  private async processSmartVoiceInputWeight(transcript: string) {
-    this.isProcessingVoiceWeight = true;
-    this.isRecordingWeight = false;
-    
-    try {
-      const extracted = this.extractWeightDataFromSpeech(transcript);
-      this.extractedDataWeight = extracted;
-      this.voiceTranscriptWeight = transcript;
-      this.autoFillWeightFormFields(extracted);
-      
-      const extractedFields = Object.keys(extracted).filter(key => extracted[key] !== null && extracted[key] !== undefined);
-      if (extractedFields.length > 0) {
-        this.showToast(`Auto-filled ${extractedFields.length} field(s) from voice input`, 'success');
-      } else {
-        this.showToast('Voice recorded. Please review and fill remaining fields manually.', 'warning');
-      }
-    } catch (error) {
-      console.error('Error processing weight voice input:', error);
-      this.showToast('Voice input processed. Please review and fill fields manually.', 'warning');
-    } finally {
-      this.isProcessingVoiceWeight = false;
-    }
-  }
 
   private async processSmartVoiceInputStool(transcript: string) {
     this.isProcessingVoiceStool = true;
@@ -948,46 +880,6 @@ export class BabyDetailPage implements OnInit {
     return extracted;
   }
 
-  private extractWeightDataFromSpeech(transcript: string): any {
-    const text = transcript.toLowerCase().trim();
-    const extracted: any = {};
-    
-    // Extract weight
-    const weightPatterns = [
-      /(?:weighs?|weight|is).*?(\d+(?:\.\d+)?).*?(?:kg|kilograms?|kilos?)/i,
-      /(\d+(?:\.\d+)?).*?(?:kg|kilograms?|kilos?)/i
-    ];
-    
-    for (const pattern of weightPatterns) {
-      const match = text.match(pattern);
-      if (match && match[1]) {
-        const weight = parseFloat(match[1]);
-        if (weight >= 0.5 && weight <= 50) {
-          extracted.weight = weight;
-          break;
-        }
-      }
-    }
-    
-    // Extract height
-    const heightPatterns = [
-      /(?:height|length|tall|long).*?(\d+(?:\.\d+)?).*?(?:cm|centimeters?)/i,
-      /(\d+(?:\.\d+)?).*?(?:cm|centimeters?).*?(?:tall|long|height|length)/i
-    ];
-    
-    for (const pattern of heightPatterns) {
-      const match = text.match(pattern);
-      if (match && match[1]) {
-        const height = parseFloat(match[1]);
-        if (height >= 20 && height <= 150) {
-          extracted.height = height;
-          break;
-        }
-      }
-    }
-    
-    return extracted;
-  }
 
   private extractStoolDataFromSpeech(transcript: string): any {
     const text = transcript.toLowerCase().trim();
@@ -1051,21 +943,6 @@ export class BabyDetailPage implements OnInit {
     }
   }
 
-  private autoFillWeightFormFields(extractedData: any) {
-    const formUpdates: any = {};
-    
-    if (extractedData.weight !== undefined) {
-      formUpdates.weight = extractedData.weight;
-    }
-    
-    if (extractedData.height !== undefined) {
-      formUpdates.height = extractedData.height;
-    }
-    
-    if (Object.keys(formUpdates).length > 0) {
-      this.addWeightForm.patchValue(formUpdates);
-    }
-  }
 
   private autoFillStoolFormFields(extractedData: any) {
     if (extractedData.color) {
@@ -1082,10 +959,6 @@ export class BabyDetailPage implements OnInit {
     this.extractedData = {};
   }
 
-  clearVoiceInputWeight() {
-    this.voiceTranscriptWeight = '';
-    this.extractedDataWeight = {};
-  }
 
   clearVoiceInputStool() {
     this.voiceTranscriptStool = '';
@@ -1104,17 +977,6 @@ export class BabyDetailPage implements OnInit {
     return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
   }
 
-  getVoiceInputSummaryWeight(): string {
-    const extractedFields = Object.keys(this.extractedDataWeight).filter(key => 
-      this.extractedDataWeight[key] !== null && this.extractedDataWeight[key] !== undefined
-    );
-    
-    if (extractedFields.length === 0) {
-      return 'No data extracted from voice input';
-    }
-    
-    return `Auto-filled ${extractedFields.length} field(s): ${extractedFields.join(', ')}`;
-  }
 
   getVoiceInputSummaryStool(): string {
     const extractedFields = Object.keys(this.extractedDataStool).filter(key => 
@@ -1143,7 +1005,7 @@ export class BabyDetailPage implements OnInit {
   }
 
   getErrorMessage(field: string): string {
-    const control = this.addRecordForm.get(field) || this.addWeightForm.get(field) || this.addStoolForm.get(field);
+    const control = this.addRecordForm.get(field) || this.addStoolForm.get(field);
     if (control?.hasError('required')) {
       return 'This field is required';
     }

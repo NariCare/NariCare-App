@@ -391,7 +391,7 @@ export class GrowthPage implements OnInit {
     const modal = await this.modalController.create({
       component: WeightLogModalComponent,
       componentProps: {
-        selectedBaby: this.selectedBaby
+        // selectedBaby: this.selectedBaby
       }
     });
 

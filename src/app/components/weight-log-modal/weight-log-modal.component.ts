@@ -5,6 +5,7 @@ import { BackendGrowthService } from '../../services/backend-growth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { AuthService } from '../../services/auth.service';
 import { WeightRecord } from '../../models/growth-tracking.model';
+import { WeightRecordRequest } from '../../services/api.service';
 import { User, Baby } from '../../models/user.model';
 
 interface PredefinedWeightNote {
@@ -261,22 +262,20 @@ export class WeightLogModalComponent implements OnInit {
         const dateTimeString = `${formValue.date}T${formValue.time}:00`;
         const recordDate = new Date(dateTimeString);
         
-        const record: Omit<WeightRecord, 'id' | 'createdAt' | 'updatedAt'> = {
+        const record: WeightRecordRequest = {
           babyId: selectedBaby.id,
-          recordedBy: this.user.uid,
-          date: recordDate,
           weight: parseFloat(formValue.weight),
           notes: formValue.notes || '',
         };
 
-        // Try backend service first, fallback to local storage
+        // Use backend service for authenticated users
         const isBackendUser = this.backendAuthService.getCurrentUser();
         
         if (isBackendUser) {
-          await this.backendGrowthService.addWeightRecord(record);
+          const response = await this.backendGrowthService.addWeightRecord(record);
+          console.log('Weight record saved successfully:', response);
         } else {
-          // For local storage, we'd need to add this method to the growth service
-          console.log('Local storage weight records not yet implemented');
+          throw new Error('Backend authentication required to save weight records');
         }
         
         const toast = await this.toastController.create({
