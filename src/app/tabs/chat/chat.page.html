@@ -27,6 +27,19 @@
         <div class="groups-header">
           <h2>Mom-to-Mom Support Groups</h2>
           <p>Connect with other mothers in topic-based chat rooms</p>
+          
+          <!-- Create Group Button (Expert/Admin only) -->
+          <div class="create-group-section" *ngIf="canCreateGroups()">
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="primary"
+              (click)="openCreateGroupModal()"
+              class="create-group-button">
+              <ion-icon name="add-circle" slot="start"></ion-icon>
+              Create New Group
+            </ion-button>
+          </div>
         </div>
 
         <!-- General Groups Section -->

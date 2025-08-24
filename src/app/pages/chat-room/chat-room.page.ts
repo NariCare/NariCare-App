@@ -1,10 +1,13 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
-import { Observable } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { ChatService } from '../../services/chat.service';
+import { WebSocketChatService } from '../../services/websocket-chat.service';
 import { AuthService } from '../../services/auth.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { ChatRoom, ChatMessage, ChatAttachment } from '../../models/chat.model';
+import { ChatMessage as SocketChatMessage, TypingUser } from '../../services/socket.service';
 import { User } from '../../models/user.model';
 import { VideoPlayerModalComponent } from '../../components/video-player-modal/video-player-modal.component';
 
@@ -13,7 +16,7 @@ import { VideoPlayerModalComponent } from '../../components/video-player-modal/v
   templateUrl: './chat-room.page.html',
   styleUrls: ['./chat-room.page.scss'],
 })
-export class ChatRoomPage implements OnInit, AfterViewChecked {
+export class ChatRoomPage implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('groupMessagesContainer', { static: false }) groupMessagesContainer!: ElementRef;
   
   selectedRoom: ChatRoom | null = null;
@@ -21,36 +24,135 @@ export class ChatRoomPage implements OnInit, AfterViewChecked {
   groupMessageText = '';
   roomId: string = '';
   messages$: Observable<ChatMessage[]> | null = null;
+  
+  // WebSocket chat properties
+  private destroy$ = new Subject<void>();
+  socketMessages: SocketChatMessage[] = [];
+  isConnected = false;
+  onlineUsers = 0;
+  typingUsers: TypingUser[] = [];
+  connectionError: string | null = null;
+  isTyping = false;
+  typingTimeout: any = null;
+  
+  // Scroll management
+  private shouldAutoScroll = true;
+  private lastMessageCount = 0;
+  private isUserScrolling = false;
+  private scrollTimeout: any = null;
+  
+  // Chat state observable
+  chatState$ = this.webSocketChatService.chatState$;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private chatService: ChatService,
+    private webSocketChatService: WebSocketChatService,
     private authService: AuthService,
+    private backendAuthService: BackendAuthService,
     private alertController: AlertController,
     private modalController: ModalController
   ) {}
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+    // Subscribe to auth state - prefer backend auth if available
+    const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
+    
+    authService.currentUser$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(async user => {
       this.currentUser = user;
+      
+      // Initialize WebSocket chat when user becomes available and we have roomId
+      if (user && this.roomId) {
+        await this.initializeWebSocketChat();
+      }
     });
 
     // Get room ID from route parameters
-    this.route.params.subscribe(params => {
+    this.route.params.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(async params => {
       this.roomId = params['roomId'];
-      if (this.roomId) {
-        this.loadChatRoom();
+      
+      // Initialize WebSocket chat if we have both user and roomId
+      if (this.roomId && this.currentUser) {
+        await this.initializeWebSocketChat();
+      }
+    });
+
+    // Subscribe to chat state changes
+    this.chatState$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(chatState => {
+      const previousMessageCount = this.socketMessages.length;
+      
+      this.isConnected = chatState.isConnected;
+      this.socketMessages = chatState.messages;
+      this.onlineUsers = chatState.onlineUsers;
+      this.typingUsers = chatState.typingUsers;
+      this.connectionError = chatState.error;
+      
+      // Auto-scroll only if there are new messages and user is at bottom
+      if (chatState.messages.length > previousMessageCount && this.shouldAutoScroll) {
+        setTimeout(() => this.scrollToBottomGroup(), 100);
       }
     });
   }
 
   ngAfterViewChecked() {
-    // Auto-scroll to bottom when new messages arrive
-    this.scrollToBottomGroup();
+    // Only auto-scroll when there are new messages and user is at bottom
+    const currentMessageCount = this.socketMessages.length;
+    
+    if (currentMessageCount > this.lastMessageCount && this.shouldAutoScroll && !this.isUserScrolling) {
+      this.scrollToBottomGroup();
+    }
+    
+    this.lastMessageCount = currentMessageCount;
   }
 
-  private loadChatRoom() {
+  /**
+   * Initialize WebSocket chat for the current room
+   */
+  private async initializeWebSocketChat(): Promise<void> {
+    try {
+      // Check if user is authenticated first
+      if (!this.currentUser) {
+        console.warn('User not authenticated, using fallback chat');
+        this.loadChatRoomFallback();
+        return;
+      }
+
+      // Ensure we're connected to WebSocket
+      if (!this.webSocketChatService.isConnected) {
+        const connected = await this.webSocketChatService.connect();
+        if (!connected) {
+          console.warn('Failed to connect to WebSocket, using fallback');
+          this.loadChatRoomFallback();
+          return;
+        }
+      }
+
+      // Join the WebSocket room
+      const joined = await this.webSocketChatService.joinRoom(this.roomId);
+      if (!joined) {
+        console.warn('Failed to join WebSocket room, using fallback');
+        this.loadChatRoomFallback();
+        return;
+      }
+
+      console.log('Successfully initialized WebSocket chat for room:', this.roomId);
+    } catch (error) {
+      console.error('Error initializing WebSocket chat:', error);
+      this.loadChatRoomFallback();
+    }
+  }
+
+  /**
+   * Fallback to legacy chat service when WebSocket fails
+   */
+  private loadChatRoomFallback(): void {
     this.chatService.getChatRoom(this.roomId).subscribe(room => {
       if (room) {
         this.selectedRoom = room;
@@ -68,20 +170,52 @@ export class ChatRoomPage implements OnInit, AfterViewChecked {
   }
 
   async sendGroupMessage() {
-    if (this.groupMessageText.trim() && this.selectedRoom && this.currentUser) {
-      const message: Omit<ChatMessage, 'id'> = {
-        roomId: this.selectedRoom.id,
-        senderId: this.currentUser.uid,
-        senderName: `${this.currentUser.firstName} ${this.currentUser.lastName}`,
-        senderRole: 'user',
-        message: this.groupMessageText.trim(),
-        timestamp: new Date(),
-        isEdited: false
-      };
+    if (!this.groupMessageText.trim()) {
+      return;
+    }
+
+    const messageText = this.groupMessageText.trim();
+    this.groupMessageText = '';
+
+    try {
+      // Stop typing indicator
+      this.stopTypingIndicator();
+
+      // Choose ONE method to send message to avoid duplication
+      // Priority: WebSocket > REST API
       
-      await this.chatService.sendMessage(this.selectedRoom.id, message);
-      this.groupMessageText = '';
-      this.scrollToBottomGroup();
+      if (this.isConnected && this.webSocketChatService.currentRoom === this.roomId) {
+        // Send via WebSocket only - it will handle real-time updates
+        console.log('Sending message via WebSocket');
+        const success = await this.webSocketChatService.sendMessage(messageText);
+        if (success) {
+          this.scrollToBottomGroup();
+          return;
+        } else {
+          console.warn('WebSocket send failed, falling back to REST API');
+        }
+      }
+
+      // Fallback to REST API only if WebSocket is not available or failed
+      if (this.selectedRoom && this.currentUser) {
+        console.log('Sending message via REST API');
+        const message: Omit<ChatMessage, 'id'> = {
+          roomId: this.selectedRoom.id,
+          senderId: this.currentUser.uid,
+          senderName: `${this.currentUser.firstName} ${this.currentUser.lastName}`,
+          senderRole: 'user',
+          message: messageText,
+          timestamp: new Date(),
+          isEdited: false
+        };
+        
+        await this.chatService.sendMessage(this.selectedRoom.id, message);
+        this.scrollToBottomGroup();
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Restore message text on error
+      this.groupMessageText = messageText;
     }
   }
 
@@ -91,6 +225,54 @@ export class ChatRoomPage implements OnInit, AfterViewChecked {
       if (this.groupMessageText.trim()) {
         this.sendGroupMessage();
       }
+    } else {
+      // Start typing indicator for other keys
+      this.startTypingIndicator();
+    }
+  }
+
+  /**
+   * Handle input events for typing indicators
+   */
+  onMessageInput() {
+    this.startTypingIndicator();
+  }
+
+  /**
+   * Start typing indicator
+   */
+  private startTypingIndicator(): void {
+    if (!this.isConnected || !this.roomId) return;
+
+    // Start typing if not already typing
+    if (!this.isTyping) {
+      this.isTyping = true;
+      this.webSocketChatService.startTyping();
+    }
+
+    // Reset typing timeout
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    // Auto-stop typing after 3 seconds of inactivity
+    this.typingTimeout = setTimeout(() => {
+      this.stopTypingIndicator();
+    }, 3000);
+  }
+
+  /**
+   * Stop typing indicator
+   */
+  private stopTypingIndicator(): void {
+    if (this.isTyping) {
+      this.isTyping = false;
+      this.webSocketChatService.stopTyping();
+    }
+
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+      this.typingTimeout = null;
     }
   }
 
@@ -230,9 +412,43 @@ export class ChatRoomPage implements OnInit, AfterViewChecked {
   private scrollToBottomGroup() {
     setTimeout(() => {
       if (this.groupMessagesContainer) {
-        this.groupMessagesContainer.nativeElement.scrollTop = this.groupMessagesContainer.nativeElement.scrollHeight;
+        const element = this.groupMessagesContainer.nativeElement;
+        element.scrollTop = element.scrollHeight;
+        this.shouldAutoScroll = true; // Reset after manual scroll to bottom
       }
-    }, 300);
+    }, 100); // Reduced timeout for better responsiveness
+  }
+
+  /**
+   * Check if user is near the bottom of the chat
+   */
+  private isUserAtBottom(): boolean {
+    if (!this.groupMessagesContainer) return true;
+    
+    const element = this.groupMessagesContainer.nativeElement;
+    const threshold = 100; // pixels from bottom
+    return element.scrollHeight - element.clientHeight <= element.scrollTop + threshold;
+  }
+
+  /**
+   * Handle scroll events to detect user scrolling
+   */
+  onScrollChat(event: any) {
+    // Mark that user is actively scrolling
+    this.isUserScrolling = true;
+    
+    // Clear existing timeout
+    if (this.scrollTimeout) {
+      clearTimeout(this.scrollTimeout);
+    }
+    
+    // Check if user is at bottom
+    this.shouldAutoScroll = this.isUserAtBottom();
+    
+    // Reset scrolling flag after user stops scrolling
+    this.scrollTimeout = setTimeout(() => {
+      this.isUserScrolling = false;
+    }, 150);
   }
 
   getMessageTime(timestamp: Date): string {
@@ -241,5 +457,95 @@ export class ChatRoomPage implements OnInit, AfterViewChecked {
 
   backToGroupList() {
     this.router.navigate(['/tabs/chat']);
+  }
+
+  /**
+   * Lifecycle hook - cleanup
+   */
+  ngOnDestroy(): void {
+    // Stop typing indicator
+    this.stopTypingIndicator();
+
+    // Clear scroll timeout
+    if (this.scrollTimeout) {
+      clearTimeout(this.scrollTimeout);
+    }
+
+    // Leave WebSocket room
+    this.webSocketChatService.leaveCurrentRoom();
+
+    // Complete subjects
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Retry WebSocket connection
+   */
+  async retryConnection(): Promise<void> {
+    try {
+      const success = await this.webSocketChatService.refreshConnection();
+      if (success && this.roomId) {
+        await this.webSocketChatService.joinRoom(this.roomId);
+      }
+    } catch (error) {
+      console.error('Failed to retry connection:', error);
+    }
+  }
+
+  /**
+   * Get typing users display text
+   */
+  getTypingUsersText(): string {
+    if (this.typingUsers.length === 0) return '';
+    
+    if (this.typingUsers.length === 1) {
+      return `${this.typingUsers[0].userName} is typing...`;
+    } else if (this.typingUsers.length === 2) {
+      return `${this.typingUsers[0].userName} and ${this.typingUsers[1].userName} are typing...`;
+    } else {
+      return `${this.typingUsers.length} people are typing...`;
+    }
+  }
+
+  /**
+   * Format message timestamp
+   */
+  getSocketMessageTime(timestamp: string): string {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  /**
+   * Check if message is from current user
+   */
+  isOwnMessage(message: SocketChatMessage): boolean {
+    return message.senderId === this.currentUser?.uid;
+  }
+
+  /**
+   * Get connection status text
+   */
+  getConnectionStatusText(): string {
+    if (this.isConnected) {
+      return `Connected • ${this.onlineUsers} online`;
+    } else if (this.connectionError) {
+      return `Connection error: ${this.connectionError}`;
+    } else {
+      return 'Connecting...';
+    }
+  }
+
+  /**
+   * Get connection status color
+   */
+  getConnectionStatusColor(): string {
+    return this.isConnected ? 'success' : 'danger';
+  }
+
+  /**
+   * TrackBy function for message list performance
+   */
+  trackByMessageId(index: number, message: SocketChatMessage): string {
+    return message.id;
   }
 }

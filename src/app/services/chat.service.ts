@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, BehaviorSubject } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { ChatRoom, ChatMessage, ChatAttachment } from '../models/chat.model';
 import { Storage } from '@ionic/storage-angular';
+import { ApiService, SendMessageRequest, CreateRoomRequest } from './api.service';
+import { BackendAuthService } from './backend-auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -200,7 +203,11 @@ export class ChatService {
     ]
   };
 
-  constructor(private storage: Storage) {
+  constructor(
+    private storage: Storage,
+    private apiService: ApiService,
+    private backendAuthService: BackendAuthService
+  ) {
     this.initStorage();
   }
 
@@ -208,14 +215,37 @@ export class ChatService {
     await this.storage.create();
   }
   getChatRooms(): Observable<ChatRoom[]> {
+    // Check if user is authenticated and use backend API
+    const currentUser = this.backendAuthService.getCurrentUser();
+    if (currentUser && this.apiService.isAuthenticated()) {
+      return this.apiService.getChatRooms().pipe(
+        map(response => {
+          if (response.success && response.data) {
+            return response.data.map(room => this.transformApiRoom(room))
+              .sort((a, b) => (b.lastMessageTimestamp?.getTime() || 0) - (a.lastMessageTimestamp?.getTime() || 0));
+          }
+          return [];
+        }),
+        catchError(error => {
+          console.warn('Failed to load chat rooms from API, using fallback:', error);
+          return of(this.mockChatRooms.sort((a, b) => 
+            (b.lastMessageTimestamp?.getTime() || 0) - (a.lastMessageTimestamp?.getTime() || 0)
+          ));
+        })
+      );
+    }
+
+    // Fallback to mock data if not authenticated
     return of(this.mockChatRooms.sort((a, b) => 
       (b.lastMessageTimestamp?.getTime() || 0) - (a.lastMessageTimestamp?.getTime() || 0)
     ));
   }
 
   getGeneralChatRooms(): Observable<ChatRoom[]> {
-    const generalRooms = this.mockChatRooms.filter(room => room.type === 'general');
-    return of(generalRooms);
+    // Use getChatRooms and filter for general rooms
+    return this.getChatRooms().pipe(
+      map(rooms => rooms.filter(room => room.type === 'general'))
+    );
   }
 
   getUserChatRooms(userId: string): Observable<ChatRoom[]> {
@@ -226,6 +256,25 @@ export class ChatService {
   }
 
   getChatRoom(roomId: string): Observable<ChatRoom | undefined> {
+    // Check if user is authenticated and use backend API
+    const currentUser = this.backendAuthService.getCurrentUser();
+    if (currentUser && this.apiService.isAuthenticated()) {
+      return this.apiService.getChatRoom(roomId).pipe(
+        map(response => {
+          if (response.success && response.data) {
+            return this.transformApiRoom(response.data);
+          }
+          return undefined;
+        }),
+        catchError(error => {
+          console.warn('Failed to load chat room from API, using fallback:', error);
+          const room = this.mockChatRooms.find(r => r.id === roomId);
+          return of(room);
+        })
+      );
+    }
+
+    // Fallback to mock data if not authenticated
     const room = this.mockChatRooms.find(r => r.id === roomId);
     return of(room);
   }
@@ -233,14 +282,79 @@ export class ChatService {
   getMessages(roomId: string): Observable<ChatMessage[]> {
     // Get or create a BehaviorSubject for this room
     if (!this.messageSubjects.has(roomId)) {
-      const initialMessages = this.mockMessages[roomId] || [];
-      this.messageSubjects.set(roomId, new BehaviorSubject<ChatMessage[]>(initialMessages));
+      this.messageSubjects.set(roomId, new BehaviorSubject<ChatMessage[]>([]));
+      
+      // Load initial messages from API if authenticated
+      const currentUser = this.backendAuthService.getCurrentUser();
+      if (currentUser && this.apiService.isAuthenticated()) {
+        this.loadMessagesFromApi(roomId);
+      } else {
+        // Use mock data as fallback
+        const initialMessages = this.mockMessages[roomId] || [];
+        this.messageSubjects.get(roomId)!.next(initialMessages);
+      }
     }
     
     return this.messageSubjects.get(roomId)!.asObservable();
   }
 
+  /**
+   * Load messages from API and update the BehaviorSubject
+   */
+  private loadMessagesFromApi(roomId: string): void {
+    this.apiService.getMessages(roomId, 50).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data.map(msg => this.transformApiMessage(msg));
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.warn('Failed to load messages from API, using fallback:', error);
+        return of(this.mockMessages[roomId] || []);
+      })
+    ).subscribe(messages => {
+      if (this.messageSubjects.has(roomId)) {
+        this.messageSubjects.get(roomId)!.next(messages);
+      }
+    });
+  }
+
   async sendMessage(roomId: string, message: Omit<ChatMessage, 'id'>): Promise<void> {
+    // Check if user is authenticated and use backend API
+    const currentUser = this.backendAuthService.getCurrentUser();
+    if (currentUser && this.apiService.isAuthenticated()) {
+      try {
+        const messageData: SendMessageRequest = {
+          message: message.message,
+          attachments: message.attachments || []
+        };
+        
+        const response = await this.apiService.sendMessage(roomId, messageData).toPromise();
+        
+        if (response?.success && response.data) {
+          // Message sent successfully via API
+          // Don't add to local messages here - let WebSocket or page reload handle it
+          // to avoid duplication with real-time updates
+          console.log('Message sent successfully via API');
+        } else {
+          throw new Error('Failed to send message via API');
+        }
+      } catch (error) {
+        console.error('Failed to send message via API, using fallback:', error);
+        // Fallback to local message handling
+        this.sendMessageFallback(roomId, message);
+      }
+    } else {
+      // Use fallback for unauthenticated users
+      this.sendMessageFallback(roomId, message);
+    }
+  }
+
+  /**
+   * Fallback method for sending messages locally
+   */
+  private sendMessageFallback(roomId: string, message: Omit<ChatMessage, 'id'>): void {
     const id = this.generateId();
     const newMessage: ChatMessage = {
       ...message,
@@ -248,28 +362,90 @@ export class ChatService {
       timestamp: new Date()
     };
     
-    // Get or create message subject for this room
-    if (!this.messageSubjects.has(roomId)) {
-      this.messageSubjects.set(roomId, new BehaviorSubject<ChatMessage[]>([]));
-    }
+    this.addMessageToSubject(roomId, newMessage);
     
-    const currentMessages = this.messageSubjects.get(roomId)!.value;
-    const updatedMessages = [...currentMessages, newMessage];
-    
-    // Update the BehaviorSubject to emit new messages
-    this.messageSubjects.get(roomId)!.next(updatedMessages);
-    
-    // Update room's last message info
+    // Update room's last message info (for mock data)
     const room = this.mockChatRooms.find(r => r.id === roomId);
     if (room) {
       room.lastMessage = newMessage;
       room.lastMessageTimestamp = newMessage.timestamp;
     }
     
-    console.log('Message sent to room:', roomId, newMessage);
+    console.log('Message sent to room (fallback):', roomId, newMessage);
+  }
+
+  /**
+   * Add message to the room's message subject (with deduplication)
+   */
+  private addMessageToSubject(roomId: string, newMessage: ChatMessage): void {
+    // Get or create message subject for this room
+    if (!this.messageSubjects.has(roomId)) {
+      this.messageSubjects.set(roomId, new BehaviorSubject<ChatMessage[]>([]));
+    }
+    
+    const currentMessages = this.messageSubjects.get(roomId)!.value;
+    
+    // Deduplicate: Check if message already exists
+    const isDuplicate = currentMessages.some(existing => 
+      existing.id === newMessage.id || 
+      (existing.message === newMessage.message && 
+       existing.senderId === newMessage.senderId && 
+       existing.roomId === newMessage.roomId &&
+       Math.abs(existing.timestamp.getTime() - newMessage.timestamp.getTime()) < 5000)
+    );
+    
+    if (!isDuplicate) {
+      const updatedMessages = [...currentMessages, newMessage];
+      this.messageSubjects.get(roomId)!.next(updatedMessages);
+    } else {
+      console.log('Duplicate message ignored in ChatService:', newMessage.id);
+    }
   }
 
   async joinRoom(roomId: string, userId: string): Promise<void> {
+    // Check if user is authenticated and use backend API
+    const currentUser = this.backendAuthService.getCurrentUser();
+    const isAuthenticated = this.apiService.isAuthenticated();
+    const token = this.apiService.getToken();
+    
+    console.log('Join room debug:', {
+      hasCurrentUser: !!currentUser,
+      isAuthenticated,
+      hasToken: !!token,
+      tokenLength: token?.length,
+      userId: currentUser?.uid
+    });
+    
+    if (currentUser && isAuthenticated && token) {
+      try {
+        const response = await this.apiService.joinChatRoom(roomId).toPromise();
+        
+        if (response?.success) {
+          console.log('User joined room via API:', roomId, userId);
+          return Promise.resolve();
+        } else {
+          throw new Error(response?.message || 'Failed to join room via API');
+        }
+      } catch (error) {
+        console.error('Failed to join room via API, using fallback:', error);
+        // Fallback to local handling
+        return this.joinRoomFallback(roomId, userId);
+      }
+    } else {
+      console.warn('Using fallback for room join - authentication issue:', {
+        hasCurrentUser: !!currentUser,
+        isAuthenticated,
+        hasToken: !!token
+      });
+      // Use fallback for unauthenticated users
+      return this.joinRoomFallback(roomId, userId);
+    }
+  }
+
+  /**
+   * Fallback method for joining rooms locally
+   */
+  private joinRoomFallback(roomId: string, userId: string): Promise<void> {
     // Check if room has space
     const room = this.mockChatRooms.find(r => r.id === roomId);
     if (room && room.participants.length >= room.maxParticipants) {
@@ -281,21 +457,91 @@ export class ChatService {
       room.participants.push(userId);
     }
     
-    console.log('User joined room:', roomId, userId);
+    console.log('User joined room (fallback):', roomId, userId);
     return Promise.resolve();
   }
 
   async leaveRoom(roomId: string, userId: string): Promise<void> {
+    // Check if user is authenticated and use backend API
+    const currentUser = this.backendAuthService.getCurrentUser();
+    if (currentUser && this.apiService.isAuthenticated()) {
+      try {
+        const response = await this.apiService.leaveChatRoom(roomId).toPromise();
+        
+        if (response?.success) {
+          console.log('User left room via API:', roomId, userId);
+          return Promise.resolve();
+        } else {
+          throw new Error(response?.message || 'Failed to leave room via API');
+        }
+      } catch (error) {
+        console.error('Failed to leave room via API, using fallback:', error);
+        // Fallback to local handling
+        return this.leaveRoomFallback(roomId, userId);
+      }
+    } else {
+      // Use fallback for unauthenticated users
+      return this.leaveRoomFallback(roomId, userId);
+    }
+  }
+
+  /**
+   * Fallback method for leaving rooms locally
+   */
+  private leaveRoomFallback(roomId: string, userId: string): Promise<void> {
     const room = this.mockChatRooms.find(r => r.id === roomId);
     if (room) {
       room.participants = room.participants.filter(id => id !== userId);
     }
     
-    console.log('User left room:', roomId, userId);
+    console.log('User left room (fallback):', roomId, userId);
     return Promise.resolve();
   }
 
-  async createRoom(room: Omit<ChatRoom, 'id'>): Promise<void> {
+  async createRoom(room: Omit<ChatRoom, 'id'>): Promise<ChatRoom | null> {
+    // Check if user is authenticated and use backend API
+    const currentUser = this.backendAuthService.getCurrentUser();
+    if (currentUser && this.apiService.isAuthenticated()) {
+      try {
+        const roomData: CreateRoomRequest = {
+          name: room.name,
+          description: room.description,
+          roomType: room.type, // Use the type from the room (general/consultation)
+          topic: room.topic,
+          isPrivate: room.isPrivate,
+          maxParticipants: room.maxParticipants,
+          participants: room.participants
+        };
+        
+        const response = await this.apiService.createChatRoom(roomData).toPromise();
+        
+        if (response?.success && response.data) {
+          // Convert API response to ChatRoom and return
+          const createdRoom = this.transformApiRoom(response.data);
+          console.log('Room created via API:', createdRoom);
+          
+          // Refresh room list to show the new room
+          this.getChatRooms().subscribe(); // This will update the room subjects
+          
+          return createdRoom;
+        } else {
+          throw new Error(response?.message || 'Failed to create room via API');
+        }
+      } catch (error) {
+        console.error('Failed to create room via API, using fallback:', error);
+        // Fallback to local handling
+        return this.createRoomFallback(room);
+      }
+    } else {
+      // Use fallback for unauthenticated users
+      return this.createRoomFallback(room);
+    }
+  }
+
+  /**
+   * Fallback method for creating rooms locally
+   */
+  private createRoomFallback(room: Omit<ChatRoom, 'id'>): ChatRoom {
     const id = this.generateId();
     const newRoom: ChatRoom = {
       ...room,
@@ -303,8 +549,8 @@ export class ChatService {
     };
     
     this.mockChatRooms.push(newRoom);
-    console.log('Room created:', newRoom);
-    return Promise.resolve();
+    console.log('Room created (fallback):', newRoom);
+    return newRoom;
   }
 
   async addModerator(roomId: string, expertId: string): Promise<void> {
@@ -319,5 +565,53 @@ export class ChatService {
 
   private generateId(): string {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
+
+  /**
+   * Transform API room data to frontend ChatRoom model
+   */
+  private transformApiRoom(apiRoom: any): ChatRoom {
+    return {
+      id: apiRoom.id || apiRoom.room_id,
+      name: apiRoom.name,
+      description: apiRoom.description,
+      type: apiRoom.type || 'general',
+      topic: apiRoom.topic,
+      isPrivate: apiRoom.is_private || false,
+      participants: apiRoom.participants || [],
+      moderators: apiRoom.moderators || [],
+      maxParticipants: apiRoom.max_participants || 20,
+      createdAt: apiRoom.created_at ? new Date(apiRoom.created_at) : new Date(),
+      lastMessage: apiRoom.last_message ? {
+        id: apiRoom.last_message.id,
+        roomId: apiRoom.id,
+        senderId: apiRoom.last_message.sender_id,
+        senderName: apiRoom.last_message.sender_name,
+        senderRole: apiRoom.last_message.sender_role || 'user',
+        message: apiRoom.last_message.message,
+        timestamp: new Date(apiRoom.last_message.created_at),
+        isEdited: false
+      } : undefined,
+      lastMessageTimestamp: apiRoom.last_message_timestamp ? 
+        new Date(apiRoom.last_message_timestamp) : 
+        (apiRoom.last_message ? new Date(apiRoom.last_message.created_at) : new Date())
+    };
+  }
+
+  /**
+   * Transform API message data to frontend ChatMessage model
+   */
+  private transformApiMessage(apiMessage: any): ChatMessage {
+    return {
+      id: apiMessage.id,
+      roomId: apiMessage.room_id,
+      senderId: apiMessage.sender_id,
+      senderName: apiMessage.sender_name,
+      senderRole: apiMessage.sender_role || 'user',
+      message: apiMessage.message,
+      timestamp: new Date(apiMessage.created_at),
+      isEdited: apiMessage.is_edited || false,
+      attachments: apiMessage.attachments || []
+    };
   }
 }

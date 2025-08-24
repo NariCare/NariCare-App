@@ -15,6 +15,7 @@ import { DiaperLogModalComponent } from '../components/diaper-log-modal/diaper-l
 import { EmotionCheckinModalComponent } from '../components/emotion-checkin-modal/emotion-checkin-modal.component';
 import { BabyCreationModalComponent } from '../components/baby-creation-modal/baby-creation-modal.component';
 import { WeightLogModalComponent } from '../components/weight-log-modal/weight-log-modal.component';
+import { CreateGroupModalComponent } from '../components/create-group-modal/create-group-modal.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { WeightLogModalComponent } from '../components/weight-log-modal/weight-l
     DiaperLogModalComponent,
     EmotionCheckinModalComponent,
     BabyCreationModalComponent,
-    WeightLogModalComponent
+    WeightLogModalComponent,
+    CreateGroupModalComponent
   ],
   imports: [
     CommonModule,
@@ -51,7 +53,8 @@ import { WeightLogModalComponent } from '../components/weight-log-modal/weight-l
     DiaperLogModalComponent,
     EmotionCheckinModalComponent,
     BabyCreationModalComponent,
-    WeightLogModalComponent
+    WeightLogModalComponent,
+    CreateGroupModalComponent
   ]
 })
 export class SharedModule { }

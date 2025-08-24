@@ -142,6 +142,26 @@ export interface SendMessageRequest {
   attachments?: any[];
 }
 
+export interface CreateRoomRequest {
+  name: string;
+  description: string;
+  roomType: 'general' | 'consultation';
+  topic?: string;
+  isPrivate: boolean;
+  maxParticipants: number;
+  participants?: string[]; // User IDs to add as initial participants
+}
+
+export interface SearchUsersResponse {
+  users: any[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 // Consultation Interface
 export interface ConsultationRequest {
   expertId: string;
@@ -299,6 +319,16 @@ export class ApiService {
   updateNotificationPreferences(preferences: any): Observable<ApiResponse<any>> {
     return this.http.put<ApiResponse<any>>(`${this.baseUrl}/users/notifications`, preferences, {
       headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  searchUsers(query?: string, limit: number = 20): Observable<ApiResponse<SearchUsersResponse>> {
+    let params = new HttpParams().set('limit', limit.toString());
+    if (query) params = params.set('q', query);
+
+    return this.http.get<ApiResponse<SearchUsersResponse>>(`${this.baseUrl}/users/search`, {
+      headers: this.getAuthHeaders(),
+      params
     }).pipe(catchError(this.handleError));
   }
 
@@ -616,9 +646,26 @@ export class ApiService {
   }
 
   joinChatRoom(roomId: string): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/chat/rooms/${roomId}/join`, {}, {
-      headers: this.getAuthHeaders()
-    }).pipe(catchError(this.handleError));
+    const headers = this.getAuthHeaders();
+    const url = `${this.baseUrl}/chat/rooms/${roomId}/join`;
+    
+    console.log('Joining chat room:', {
+      roomId,
+      url,
+      headers: headers.keys().map(key => ({ key, value: headers.get(key) })),
+      hasAuthHeader: headers.has('Authorization'),
+      authValue: headers.get('Authorization')?.substring(0, 20) + '...'
+    });
+    
+    return this.http.post<ApiResponse<any>>(url, {}, {
+      headers
+    }).pipe(
+      tap(response => console.log('Join room response:', response)),
+      catchError(error => {
+        console.error('Join room error:', error);
+        return this.handleError(error);
+      })
+    );
   }
 
   leaveChatRoom(roomId: string): Observable<ApiResponse<any>> {
@@ -640,6 +687,12 @@ export class ApiService {
     return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/chat/rooms/${roomId}/messages`, {
       headers: this.getAuthHeaders(),
       params
+    }).pipe(catchError(this.handleError));
+  }
+
+  createChatRoom(roomData: CreateRoomRequest): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/chat/rooms`, roomData, {
+      headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
@@ -875,6 +928,11 @@ export class ApiService {
 
   private getAuthHeaders(): HttpHeaders {
     const token = this.tokenSubject.value;
+    console.log('Auth headers debug:', {
+      hasToken: !!token,
+      tokenLength: token?.length,
+      tokenPrefix: token?.substring(0, 10) + '...'
+    });
     return new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : ''

@@ -1,0 +1,263 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Create New Group</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="groupForm" (ngSubmit)="createGroup()">
+    
+    <!-- Group Basic Information -->
+    <div class="section">
+      <h3 class="section-title">Group Information</h3>
+      
+      <!-- Group Name -->
+      <ion-item>
+        <ion-label position="stacked">Group Name <span class="required">*</span></ion-label>
+        <ion-input
+          formControlName="name"
+          placeholder="Enter group name"
+          maxlength="50"
+          clear-input="true">
+        </ion-input>
+      </ion-item>
+      <ion-note color="danger" *ngIf="groupForm.get('name')?.invalid && groupForm.get('name')?.touched">
+        Group name must be between 3-50 characters
+      </ion-note>
+
+      <!-- Description -->
+      <ion-item>
+        <ion-label position="stacked">Description <span class="required">*</span></ion-label>
+        <ion-textarea
+          formControlName="description"
+          placeholder="Describe the purpose of this group"
+          rows="3"
+          maxlength="200"
+          auto-grow="true">
+        </ion-textarea>
+      </ion-item>
+      <ion-note color="danger" *ngIf="groupForm.get('description')?.invalid && groupForm.get('description')?.touched">
+        Description must be between 10-200 characters
+      </ion-note>
+
+      <!-- Group Type -->
+      <ion-item>
+        <ion-label position="stacked">Group Type <span class="required">*</span></ion-label>
+        <ion-select formControlName="type" placeholder="Select type">
+          <ion-select-option *ngFor="let type of groupTypes" [value]="type.value">
+            {{ type.label }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!-- Topic -->
+      <ion-item>
+        <ion-label position="stacked">Topic <span class="required">*</span></ion-label>
+        <ion-select formControlName="topic" placeholder="Select topic">
+          <ion-select-option *ngFor="let topic of topics" [value]="topic">
+            {{ topic | titlecase }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <!-- Privacy Settings -->
+      <ion-item>
+        <ion-checkbox formControlName="isPrivate"></ion-checkbox>
+        <ion-label class="ion-margin-start">Private Group</ion-label>
+      </ion-item>
+      <ion-note color="medium" class="privacy-note">
+        Private groups are invite-only and won't appear in public listings
+      </ion-note>
+
+      <!-- Max Participants -->
+      <ion-item>
+        <ion-label position="stacked">Maximum Participants <span class="required">*</span></ion-label>
+        <ion-input
+          formControlName="maxParticipants"
+          type="number"
+          min="5"
+          max="100"
+          placeholder="20">
+        </ion-input>
+      </ion-item>
+      <ion-note color="danger" *ngIf="groupForm.get('maxParticipants')?.invalid && groupForm.get('maxParticipants')?.touched">
+        Must be between 5-100 participants
+      </ion-note>
+    </div>
+
+    <!-- User Selection -->
+    <div class="section">
+      <h3 class="section-title">Add Members</h3>
+      
+      <!-- Search Users -->
+      <ion-searchbar
+        [(ngModel)]="searchQuery"
+        (ionInput)="onSearchChange($event)"
+        placeholder="Search users by name"
+        show-clear-button="focus"
+        debounce="300">
+      </ion-searchbar>
+
+      <!-- Selected Users Display -->
+      <div class="selected-users" *ngIf="selectedUsers.length > 0">
+        <h4>Selected Members ({{ selectedUsers.length }})</h4>
+        <div class="user-chips">
+          <ion-chip 
+            *ngFor="let user of selectedUsers" 
+            color="medium"
+            (click)="removeSelectedUser(user)">
+            <ion-avatar slot="start">
+              <div class="user-avatar">{{ user.name.charAt(0) }}</div>
+            </ion-avatar>
+            <ion-label>{{ user.name }}</ion-label>
+            <ion-icon name="close-circle" slot="end"></ion-icon>
+          </ion-chip>
+        </div>
+      </div>
+
+      <!-- Available Users List -->
+      <div class="users-list" *ngIf="!isSearching; else searching">
+        <ion-item 
+          *ngFor="let user of availableUsers" 
+          class="user-item"
+          [class.selected]="isUserSelected(user.id)">
+          
+          <ion-avatar slot="start">
+            <div class="user-avatar">{{ user.name.charAt(0) }}</div>
+          </ion-avatar>
+          
+          <ion-label>
+            <h3>{{ user.name }}</h3>
+            <p>{{ user.role | titlecase }}</p>
+          </ion-label>
+
+          <ion-chip 
+            slot="end" 
+            [color]="user.role === 'expert' ? 'primary' : user.role === 'admin' ? 'danger' : 'medium'"
+            size="small">
+            {{ user.role | titlecase }}
+          </ion-chip>
+
+          <!-- Add/Remove User Button -->
+          <ion-button 
+            fill="clear" 
+            slot="end"
+            (click)="toggleUserSelection(user)"
+            [color]="isUserSelected(user.id) ? 'danger' : 'primary'">
+            <ion-icon 
+              [name]="isUserSelected(user.id) ? 'remove-circle' : 'add-circle'" 
+              slot="icon-only">
+            </ion-icon>
+          </ion-button>
+
+        </ion-item>
+
+        <ion-item *ngIf="availableUsers.length === 0">
+          <ion-label class="ion-text-center">
+            <p>No users found</p>
+          </ion-label>
+        </ion-item>
+      </div>
+
+      <ng-template #searching>
+        <div class="loading-container">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Searching users...</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Group Summary -->
+    <div class="section" *ngIf="groupForm.valid">
+      <h3 class="section-title">Group Summary</h3>
+      
+      <ion-item lines="none">
+        <ion-label>
+          <h3>{{ groupForm.get('name')?.value }}</h3>
+          <p>{{ groupForm.get('description')?.value }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <ion-item lines="none">
+              <ion-label>
+                <h4>Type</h4>
+                <p>{{ getGroupTypeLabel(groupForm.get('type')?.value) }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-col>
+          <ion-col size="6">
+            <ion-item lines="none">
+              <ion-label>
+                <h4>Topic</h4>
+                <p>{{ groupForm.get('topic')?.value | titlecase }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="6">
+            <ion-item lines="none">
+              <ion-label>
+                <h4>Privacy</h4>
+                <p>{{ groupForm.get('isPrivate')?.value ? 'Private' : 'Public' }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-col>
+          <ion-col size="6">
+            <ion-item lines="none">
+              <ion-label>
+                <h4>Max Members</h4>
+                <p>{{ groupForm.get('maxParticipants')?.value }}</p>
+              </ion-label>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-item lines="none" *ngIf="selectedUsers.length > 0">
+        <ion-label>
+          <h4>Initial Members ({{ selectedUsers.length }})</h4>
+          <p>{{ getSelectedUsersNames() }}</p>
+        </ion-label>
+      </ion-item>
+    </div>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <!-- Form Validation Status -->
+    <div class="validation-status" [class.form-valid]="groupForm.valid" [class.form-invalid]="groupForm.invalid">
+      <ion-icon [name]="groupForm.valid ? 'checkmark-circle' : 'alert-circle'"></ion-icon>
+      <span>{{ getFormValidationMessage() }}</span>
+    </div>
+    
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="dismiss()">
+        <ion-icon name="close" slot="start"></ion-icon>
+        Cancel
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button 
+        fill="solid"
+        color="primary"
+        (click)="createGroup()"
+        [disabled]="!isFormReadyForSubmission()"
+        class="create-button">
+        <ion-spinner name="crescent" *ngIf="isCreatingGroup"></ion-spinner>
+        <ion-icon name="add-circle" slot="start" *ngIf="!isCreatingGroup"></ion-icon>
+        <span *ngIf="!isCreatingGroup">Create Group</span>
+        <span *ngIf="isCreatingGroup">Creating Group...</span>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

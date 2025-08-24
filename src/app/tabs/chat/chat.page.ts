@@ -6,8 +6,11 @@ import { Observable } from 'rxjs';
 import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { ChatRoom, ChatMessage, ChatAttachment } from '../../models/chat.model';
+import { User } from '../../models/user.model';
 import { VideoPlayerModalComponent } from '../../components/video-player-modal/video-player-modal.component';
+import { CreateGroupModalComponent } from '../../components/create-group-modal/create-group-modal.component';
 
 @Component({
   selector: 'app-chat',
@@ -21,7 +24,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   chatbotMessages$: Observable<ChatbotMessage[]>;
   voiceMode$: Observable<VoiceMode>;
   messageText = '';
-  currentUser: any;
+  currentUser: User | null = null;
   isRecording = false;
   recognition: any;
   autoSpeakEnabled = false;
@@ -38,6 +41,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     private chatbotService: ChatbotService,
     private chatService: ChatService,
     private authService: AuthService,
+    private backendAuthService: BackendAuthService,
     private router: Router,
     private alertController: AlertController,
     private modalController: ModalController
@@ -49,7 +53,10 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+    // Subscribe to both auth services - prefer backend auth if available
+    const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
+    
+    authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       
       // Initialize chatbot if user is available and AI tab is selected
@@ -501,5 +508,44 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   ngOnDestroy() {
     // Clean up speech synthesis when component is destroyed
     this.chatbotService.stopSpeaking();
+  }
+
+  /**
+   * Check if current user can create groups (expert or admin only)
+   */
+  canCreateGroups(): boolean {
+    return this.currentUser?.role === 'expert' || this.currentUser?.role === 'admin';
+  }
+
+  /**
+   * Open create group modal
+   */
+  async openCreateGroupModal() {
+    if (!this.canCreateGroups()) {
+      const alert = await this.alertController.create({
+        header: 'Access Denied',
+        message: 'Only experts and administrators can create groups.',
+        buttons: ['OK']
+      });
+      await alert.present();
+      return;
+    }
+
+    const modal = await this.modalController.create({
+      component: CreateGroupModalComponent,
+      cssClass: 'create-group-modal'
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.created && result.data?.room) {
+        // Refresh the chat rooms list
+        this.chatRooms$ = this.chatService.getChatRooms();
+        
+        // Optionally navigate to the newly created room
+        this.router.navigate(['/tabs/chat/room', result.data.room.id]);
+      }
+    });
+
+    return await modal.present();
   }
 }

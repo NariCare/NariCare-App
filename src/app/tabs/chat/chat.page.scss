@@ -47,6 +47,23 @@
   }
 }
 
+.create-group-section {
+  margin: 1rem 0;
+  padding: 0 1rem;
+
+  .create-group-button {
+    --border-radius: 8px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    margin: 0;
+    font-weight: 600;
+    
+    ion-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
 /* AI Chat Attachment Styles */
 .message-attachments {
   margin-top: 0.75rem;
