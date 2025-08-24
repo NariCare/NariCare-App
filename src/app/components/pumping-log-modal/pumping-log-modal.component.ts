@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController } from '@ionic/angular';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
+import { BackendPumpingService, CreatePumpingRecordRequest } from '../../services/backend-pumping.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { PumpingRecord, PumpingSide } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
 
@@ -52,7 +54,9 @@ export class PumpingLogModalComponent implements OnInit {
     private modalController: ModalController,
     private toastController: ToastController,
     private growthService: GrowthTrackingService,
-    private authService: AuthService
+    private authService: AuthService,
+    private backendPumpingService: BackendPumpingService,
+    private backendAuthService: BackendAuthService
   ) {
     this.pumpingForm = this.formBuilder.group({
       time: [this.getCurrentTime(), [Validators.required]],
@@ -66,8 +70,16 @@ export class PumpingLogModalComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
-      this.user = user;
+    // Subscribe to backend auth first, fallback to Firebase auth
+    this.backendAuthService.currentUser$.subscribe(backendUser => {
+      if (backendUser) {
+        this.user = backendUser;
+      } else {
+        // Fallback to Firebase auth for local users
+        this.authService.currentUser$.subscribe(user => {
+          this.user = user;
+        });
+      }
     });
 
     this.pumpingSideOptions = this.growthService.pumpingSideOptions;
@@ -213,21 +225,51 @@ export class PumpingLogModalComponent implements OnInit {
       try {
         const formValue = this.pumpingForm.value;
         
-        const record: Omit<PumpingRecord, 'id' | 'createdAt'> = {
-          babyId: this.user.babies[0]?.id || 'default-baby',
-          recordedBy: this.user.uid,
-          date: new Date(),
-          time: formValue.time,
-          pumpingSide: this.selectedPumpingSide,
-          totalOutput: formValue.totalOutput,
-          duration: formValue.duration || undefined,
-          startTime: formValue.startTime || undefined,
-          endTime: formValue.endTime || undefined,
-          notes: formValue.notes,
-          enteredViaVoice: false
-        };
+        // Try backend API first, fallback to local storage
+        const backendUser = this.backendAuthService.getCurrentUser();
+        const isBackendAuth = !!backendUser;
+        
+        if (isBackendAuth) {
+          // Use backend API - require at least one baby from API
+          const firstBaby = this.user.babies?.[0];
+          if (!firstBaby?.id) {
+            throw new Error('Please add your baby information first before logging pumping sessions.');
+          }
+          
+          // Calculate startTime and endTime based on recordTime and duration
+          const timeCalculation = this.calculateStartEndTime(formValue.time, formValue.duration);
+          
+          const requestData: CreatePumpingRecordRequest = {
+            babyId: firstBaby.id,
+            recordTime: formValue.time,
+            pumpingSide: this.selectedPumpingSide,
+            totalOutput: formValue.totalOutput,
+            durationMinutes: formValue.duration || undefined,
+            startTime: timeCalculation.startTime,
+            endTime: timeCalculation.endTime,
+            notes: formValue.notes || undefined,
+            enteredViaVoice: false
+          };
 
-        await this.growthService.addPumpingRecord(record);
+          await this.backendPumpingService.createPumpingRecord(requestData).toPromise();
+        } else {
+          // Use local storage (legacy) - use baby-123 fallback for local storage compatibility
+          const record: Omit<PumpingRecord, 'id' | 'createdAt'> = {
+            babyId: this.user.babies[0]?.id || 'baby-123',
+            recordedBy: this.user.uid,
+            date: new Date(),
+            time: formValue.time,
+            pumpingSide: this.selectedPumpingSide,
+            totalOutput: formValue.totalOutput,
+            duration: formValue.duration || undefined,
+            startTime: formValue.startTime || undefined,
+            endTime: formValue.endTime || undefined,
+            notes: formValue.notes,
+            enteredViaVoice: false
+          };
+
+          await this.growthService.addPumpingRecord(record);
+        }
         
         const toast = await this.toastController.create({
           message: 'Pumping log saved successfully!',
@@ -240,6 +282,7 @@ export class PumpingLogModalComponent implements OnInit {
         await this.modalController.dismiss({ saved: true });
 
       } catch (error) {
+        console.error('Error saving pumping log:', error);
         const toast = await this.toastController.create({
           message: 'Failed to save pumping log. Please try again.',
           duration: 3000,
@@ -252,8 +295,48 @@ export class PumpingLogModalComponent implements OnInit {
   }
 
   canSave(): boolean {
-    return this.pumpingForm.valid && 
-           !!this.selectedPumpingSide && 
-           this.pumpingForm.get('totalOutput')?.value > 0;
+    const basicValidation = this.pumpingForm.valid && 
+                           !!this.selectedPumpingSide && 
+                           this.pumpingForm.get('totalOutput')?.value > 0;
+    
+    // For backend users, also check if babies are available
+    const isBackendAuth = !!this.backendAuthService.getCurrentUser();
+    if (isBackendAuth) {
+      return basicValidation && this.user?.babies?.length > 0;
+    }
+    
+    return basicValidation;
+  }
+
+  private calculateStartEndTime(recordTime: string, durationMinutes: number): { startTime: string; endTime: string } {
+    if (!recordTime) {
+      return { startTime: '', endTime: '' };
+    }
+
+    // Parse the record time (format: "HH:MM")
+    const [hours, minutes] = recordTime.split(':').map(Number);
+    
+    // Create start time (same as record time)
+    const startTime = recordTime;
+    
+    // Calculate end time by adding duration
+    let endHours = hours;
+    let endMinutes = minutes + (durationMinutes || 0);
+    
+    // Handle minute overflow
+    if (endMinutes >= 60) {
+      endHours += Math.floor(endMinutes / 60);
+      endMinutes = endMinutes % 60;
+    }
+    
+    // Handle hour overflow (24-hour format)
+    if (endHours >= 24) {
+      endHours = endHours % 24;
+    }
+    
+    // Format end time as "HH:MM"
+    const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+    
+    return { startTime, endTime };
   }
 }

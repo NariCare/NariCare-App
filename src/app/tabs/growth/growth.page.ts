@@ -4,9 +4,11 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { BackendGrowthService } from '../../services/backend-growth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { BackendPumpingService } from '../../services/backend-pumping.service';
 import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { GrowthRecord, WeightRecord, StoolRecord, BreastSide, SupplementType, LipstickShape, MotherMood, StoolColor, StoolTexture, StoolSize, StarPerformer, DiaperChangeRecord } from '../../models/growth-tracking.model';
@@ -36,8 +38,9 @@ export class GrowthPage implements OnInit {
   stoolRecords$: Observable<StoolRecord[]> | null = null;
   diaperChangeRecords$: Observable<DiaperChangeRecord[]> | null = null;
   recentRecords$: Observable<GrowthRecord[]> | null = null;
+  pumpingRecords$: Observable<any[]> | null = null;
   timelineData$: Observable<BabyTimelineData> | null = null;
-  selectedMainTab: 'my-babies' | 'breastfeeding-history' = 'my-babies';
+  selectedMainTab: 'my-babies' | 'breastfeeding-history' | 'pumping-history' = 'my-babies';
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
@@ -86,6 +89,7 @@ export class GrowthPage implements OnInit {
     private growthService: GrowthTrackingService,
     private backendGrowthService: BackendGrowthService,
     private backendAuthService: BackendAuthService,
+    private backendPumpingService: BackendPumpingService,
     private whoService: WHOGrowthChartService,
     private timelineService: BabyTimelineService,
     private modalController: ModalController,
@@ -137,6 +141,8 @@ export class GrowthPage implements OnInit {
       if (user) {
         // Load babies from API to ensure we have the latest data
         this.loadUserBabies();
+        // Load pumping data (baby-independent)
+        this.loadPumpingData();
       }
     });
     
@@ -213,10 +219,36 @@ export class GrowthPage implements OnInit {
             this.loadTimelineData(this.selectedBaby.dateOfBirth);
             this.loadSummaryData(this.selectedBaby.id);
           }
+          
+          // Reload pumping data now that we have valid baby IDs
+          this.loadPumpingData();
         }
       }
     } catch (error) {
       console.warn('Failed to load user babies:', error);
+    }
+  }
+
+  private loadPumpingData() {
+    // Check if user is using backend services
+    const isBackendUser = this.backendAuthService.getCurrentUser();
+    
+    if (isBackendUser) {
+      // Use backend service - require at least one baby from API
+      const firstBaby = this.user?.babies?.[0];
+      if (firstBaby?.id) {
+        this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(firstBaby.id).pipe(
+          map(response => response.records)
+        );
+      } else {
+        // If no baby available, show empty list
+        console.log('No babies available. Pumping data will load after baby information is added.');
+        this.pumpingRecords$ = new Observable(subscriber => subscriber.next([]));
+      }
+    } else {
+      // Use local service - fallback to 'baby-123' for local storage compatibility
+      const babyId = this.user?.babies?.[0]?.id || 'baby-123';
+      this.pumpingRecords$ = this.growthService.getPumpingRecords(babyId);
     }
   }
 
@@ -1207,6 +1239,90 @@ export class GrowthPage implements OnInit {
 
   getDailySummaryPain(): number {
     return this.dailySummary?.avgPainLevel || 0;
+  }
+
+  // Pumping helper methods
+  getLastPumpTime(): string {
+    // Get the most recent pumping record
+    const records = this.pumpingRecords$?.source?.['value'] || [];
+    if (records.length === 0) return '--';
+    
+    const lastPump = records[0];
+    const time = lastPump.record_time || lastPump.time;
+    return time ? time.slice(0, 5) : '--';
+  }
+
+  getLastPumpSide(): string {
+    const records = this.pumpingRecords$?.source?.['value'] || [];
+    if (records.length === 0) return '--';
+    
+    const lastPump = records[0];
+    return lastPump.pumping_side || lastPump.pumpingSide || '--';
+  }
+
+  getLastPumpOutput(): number {
+    const records = this.pumpingRecords$?.source?.['value'] || [];
+    if (records.length === 0) return 0;
+    
+    const lastPump = records[0];
+    return lastPump.total_output || lastPump.totalOutput || 0;
+  }
+
+  getPumpDailySessions(): number {
+    // Calculate today's sessions from pumping records
+    const today = new Date().toDateString();
+    const records = this.pumpingRecords$?.source?.['value'] || [];
+    
+    const todayRecords = records.filter((record: any) => {
+      const recordDate = record.record_date || record.date;
+      return recordDate && new Date(recordDate).toDateString() === today;
+    });
+    
+    return todayRecords.length;
+  }
+
+  getPumpDailyOutput(): number {
+    // Calculate today's total output from pumping records
+    const today = new Date().toDateString();
+    const records = this.pumpingRecords$?.source?.['value'] || [];
+    
+    const todayRecords = records.filter((record: any) => {
+      const recordDate = record.record_date || record.date;
+      return recordDate && new Date(recordDate).toDateString() === today;
+    });
+    
+    return todayRecords.reduce((total: number, record: any) => {
+      return total + (record.total_output || record.totalOutput || 0);
+    }, 0);
+  }
+
+  // Pumping record display helpers (reused from baby-detail page)
+  getPumpingTime(record: any): string {
+    const time = record.record_time || record.time;
+    if (!time) return '--';
+    
+    if (typeof time === 'string' && time.includes(':')) {
+      return time.slice(0, 5);
+    }
+    
+    return time;
+  }
+
+  getPumpingDate(record: any): string {
+    const date = record.record_date || record.date;
+    return date ? this.formatDate(new Date(date)) : '--';
+  }
+
+  getPumpingSide(record: any): string {
+    return record.pumping_side || record.pumpingSide || '--';
+  }
+
+  getPumpingOutput(record: any): number {
+    return record.total_output || record.totalOutput || 0;
+  }
+
+  getPumpingDuration(record: any): number {
+    return record.duration_minutes || record.duration || 0;
   }
 
   async openFeedLogModal(isFastFeed: boolean = false) {

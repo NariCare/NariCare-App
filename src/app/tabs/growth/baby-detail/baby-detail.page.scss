@@ -441,6 +441,66 @@
     }
   }
 
+  // Pumping record styling
+  .pumping-record {
+    border-left: 4px solid #26a69a;
+    
+    .record-details {
+      .pumping-side-indicator {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+
+        ion-icon {
+          font-size: 0.9rem;
+          color: #26a69a;
+          margin-right: 0.5rem;
+        }
+
+        span {
+          font-size: 0.8rem;
+          color: #26a69a;
+          font-weight: 500;
+        }
+      }
+
+      .output-indicator {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.25rem;
+
+        ion-icon {
+          font-size: 0.9rem;
+          color: #3b82f6;
+          margin-right: 0.5rem;
+        }
+
+        span {
+          font-size: 0.8rem;
+          color: #64748b;
+          font-weight: 500;
+        }
+      }
+
+      .duration-indicator {
+        display: flex;
+        align-items: center;
+
+        ion-icon {
+          font-size: 0.9rem;
+          color: #f59e0b;
+          margin-right: 0.5rem;
+        }
+
+        span {
+          font-size: 0.8rem;
+          color: #64748b;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
   .empty-records {
     text-align: center;
     padding: 3rem 1rem;

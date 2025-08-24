@@ -62,6 +62,9 @@
         <ion-segment-button value="breastfeeding-history">
           <ion-label>Breastfeeding history</ion-label>
         </ion-segment-button>
+        <ion-segment-button value="pumping-history">
+          <ion-label>Pumping history</ion-label>
+        </ion-segment-button>
       </ion-segment>
     </div>
 
@@ -182,6 +185,88 @@
             <ion-icon name="calendar"></ion-icon>
             <h4>No recent records</h4>
             <p>Start tracking by using the buttons above</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Pumping History Tab Content -->
+    <div class="tab-content" *ngIf="selectedMainTab === 'pumping-history'">
+      
+      <!-- Pumping Summary Cards -->
+      <div class="summary-cards">
+        <div class="summary-card last-pump">
+          <div class="summary-header">
+            <h4>LAST PUMP</h4>
+          </div>
+          <div class="summary-content">
+            <div class="pump-time">
+              <div class="pump-side-icon">
+                <ion-icon name="ellipse" *ngIf="getLastPumpSide() === 'both'"></ion-icon>
+                <ion-icon name="radio-button-on" *ngIf="getLastPumpSide() !== 'both'"></ion-icon>
+              </div>
+              <span class="time-display">{{ getLastPumpTime() }}</span>
+            </div>
+            <div class="pump-details">
+              <span class="pump-side">{{ getLastPumpSide() | titlecase }}</span>
+              <span class="pump-output">{{ getLastPumpOutput() }}ml</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-card pump-24h">
+          <div class="summary-header">
+            <h4>LAST 24H</h4>
+          </div>
+          <div class="summary-content">
+            <div class="summary-stats">
+              <div class="stat-item">
+                <span class="stat-value">{{ getPumpDailySessions() }}</span>
+                <span class="stat-label">Sessions</span>
+              </div>
+              <div class="stat-divider">-</div>
+              <div class="stat-item">
+                <span class="stat-value">{{ getPumpDailyOutput() }}</span>
+                <span class="stat-label">ml</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Pumping Records List -->
+      <div class="recent-records-section">
+        <h3 class="section-title">Recent Pumping Sessions</h3>
+        <div class="records-list" *ngIf="pumpingRecords$ | async as pumpingRecords; else noPumpingRecords">
+          <div *ngFor="let record of pumpingRecords | slice:0:8" class="record-item pumping-record-item">
+            <div class="record-time">{{ getPumpingTime(record) }}</div>
+            <div class="record-date">{{ getPumpingDate(record) }}</div>
+            <div class="record-details">
+              <div class="pumping-side-indicator">
+                <ion-icon name="ellipse" *ngIf="getPumpingSide(record) === 'both'"></ion-icon>
+                <ion-icon name="radio-button-on" *ngIf="getPumpingSide(record) !== 'both'"></ion-icon>
+                <span>{{ getPumpingSide(record) | titlecase }}</span>
+              </div>
+              <div class="output-indicator">
+                <ion-icon name="water"></ion-icon>
+                <span>{{ getPumpingOutput(record) }}ml</span>
+              </div>
+              <div class="duration-indicator" *ngIf="getPumpingDuration(record)">
+                <ion-icon name="time"></ion-icon>
+                <span>{{ getPumpingDuration(record) }}min</span>
+              </div>
+            </div>
+            <div class="record-notes" *ngIf="record.notes">
+              <span class="notes-emoji">📝</span>
+            </div>
+          </div>
+        </div>
+        
+        <ng-template #noPumpingRecords>
+          <div class="empty-records">
+            <ion-icon name="medical"></ion-icon>
+            <h4>No pumping sessions yet</h4>
+            <p>Start tracking by using the Pump button above</p>
           </div>
         </ng-template>
       </div>

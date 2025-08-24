@@ -3,10 +3,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
 import { BackendGrowthService } from '../../../services/backend-growth.service';
+import { BackendPumpingService } from '../../../services/backend-pumping.service';
 import { WHOGrowthChartService } from '../../../services/who-growth-chart.service';
 import { WeightChartModalComponent } from '../../../components/weight-chart-modal/weight-chart-modal.component';
 import { FeedLogModalComponent } from '../../../components/feed-log-modal/feed-log-modal.component';
@@ -36,20 +38,21 @@ export class BabyDetailPage implements OnInit {
   user: User | null = null;
   baby: Baby | null = null;
   babyId: string = '';
-  selectedSubTab: 'weight-size' | 'feed-tracks' | 'diaper-change' | 'stool-tracks' = 'weight-size';
+  selectedSubTab: 'weight-size' | 'feed-tracks' | 'diaper-change' | 'pumping-tracks' | 'stool-tracks' = 'weight-size';
   
   // Data observables
   growthRecords$: Observable<any[]> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
   stoolRecords$: Observable<StoolRecord[]> | null = null;
   diaperChangeRecords$: Observable<any[]> | null = null;
+  pumpingRecords$: Observable<any[]> | null = null;
   
   // Modal controls
   showAddRecordModal = false;
   showAddWeightModal = false;
   showAddStoolModal = false;
-  showAddDiaperModal = false;
   showAddPumpingModal = false;
+  showAddDiaperModal = false;
   
   // Forms
   addRecordForm: FormGroup;
@@ -98,6 +101,7 @@ export class BabyDetailPage implements OnInit {
     private backendAuthService: BackendAuthService,
     private growthService: GrowthTrackingService,
     private backendGrowthService: BackendGrowthService,
+    private backendPumpingService: BackendPumpingService,
     private toastController: ToastController,
     private alertController: AlertController,
     private modalController: ModalController
@@ -200,12 +204,16 @@ export class BabyDetailPage implements OnInit {
         this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId);
         this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId);
         this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId);
+        this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(this.babyId).pipe(
+          map(response => response.records)
+        );
       } else {
         // Fallback to local services
         this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId);
         this.weightRecords$ = this.growthService.getWeightRecords(this.babyId);
         this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
         this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId);
+        this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId);
       }
     }
   }
@@ -233,6 +241,9 @@ export class BabyDetailPage implements OnInit {
       case 'diaper-change':
         this.openAddDiaperModal();
         break;
+      // case 'pumping-tracks':
+      //   this.openAddPumpingModal();
+      //   break;
     }
   }
 
@@ -690,6 +701,41 @@ export class BabyDetailPage implements OnInit {
     }
     
     return null;
+  }
+
+  // Pumping helper methods
+  getPumpingTime(record: any): string {
+    // Handle both API format (record_time) and local format (time)
+    const time = record.record_time || record.time;
+    if (!time) return '--';
+    
+    // If time is in HH:MM:SS format, convert to HH:MM
+    if (typeof time === 'string' && time.includes(':')) {
+      return time.slice(0, 5); // Takes HH:MM from HH:MM:SS
+    }
+    
+    return time;
+  }
+
+  getPumpingDate(record: any): string {
+    // Handle both API format (record_date) and local format (date)
+    const date = record.record_date || record.date;
+    return date ? this.formatDate(new Date(date)) : '--';
+  }
+
+  getPumpingSide(record: any): string {
+    // Handle both API format (pumping_side) and local format (pumpingSide)
+    return record.pumping_side || record.pumpingSide || '--';
+  }
+
+  getPumpingOutput(record: any): number {
+    // Handle both API format (total_output) and local format (totalOutput)
+    return record.total_output || record.totalOutput || 0;
+  }
+
+  getPumpingDuration(record: any): number {
+    // Handle both API format (duration_minutes) and local format (duration)
+    return record.duration_minutes || record.duration || 0;
   }
 
   // Voice input methods

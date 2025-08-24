@@ -43,6 +43,9 @@
         <ion-segment-button value="diaper-change">
           <ion-label>Diaper Change</ion-label>
         </ion-segment-button>
+        <!-- <ion-segment-button value="pumping-tracks">
+          <ion-label>Pumping</ion-label>
+        </ion-segment-button> -->
       </ion-segment>
     </div>
 
@@ -207,6 +210,48 @@
         </ng-template>
       </div>
     </div>
+
+    <!-- Pumping Tracks Tab - Hidden for now (baby-independent feature moved to main growth page) -->
+    <!-- <div class="tab-content" *ngIf="selectedSubTab === 'pumping-tracks'">
+      <div class="records-section">
+        <h3 class="section-title">Recent Pumping Sessions</h3>
+        <div class="records-list" *ngIf="pumpingRecords$ | async as pumpingRecords; else noPumpingRecords">
+          <div *ngFor="let record of pumpingRecords | slice:0:10" class="record-item pumping-record">
+            <div class="record-time">{{ getPumpingTime(record) }}</div>
+            <div class="record-date">{{ getPumpingDate(record) }}</div>
+            <div class="record-details">
+              <div class="pumping-side-indicator">
+                <ion-icon name="ellipse" *ngIf="getPumpingSide(record) === 'both'"></ion-icon>
+                <ion-icon name="radio-button-on" *ngIf="getPumpingSide(record) !== 'both'"></ion-icon>
+                <span>{{ getPumpingSide(record) | titlecase }} Side</span>
+              </div>
+              
+              <div class="output-indicator" *ngIf="getPumpingOutput(record)">
+                <ion-icon name="water"></ion-icon>
+                <span>{{ getPumpingOutput(record) }}ml</span>
+              </div>
+              
+              <div class="duration-indicator" *ngIf="getPumpingDuration(record)">
+                <ion-icon name="time"></ion-icon>
+                <span>{{ getPumpingDuration(record) }}min</span>
+              </div>
+            </div>
+            <div class="record-notes" *ngIf="record.notes">
+              <span class="notes-emoji">📝</span>
+              <span class="notes-label">Notes</span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noPumpingRecords>
+          <div class="empty-records">
+            <ion-icon name="nutrition"></ion-icon>
+            <h4>No pumping sessions yet</h4>
+            <p>Start tracking by clicking the edit button above</p>
+          </div>
+        </ng-template>
+      </div>
+    </div> -->
 
     <!-- Keep original Stool Tracks Tab for backward compatibility -->
     <div class="tab-content" *ngIf="selectedSubTab === 'stool-tracks'">
