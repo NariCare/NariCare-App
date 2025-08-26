@@ -21,14 +21,22 @@
     <div class="section">
       <h2 class="section-title">Quick Actions</h2>
       <div class="quick-actions-grid">
-        <div *ngFor="let action of quickActions" class="action-card" [class]="'action-card-' + action.color"
-          (click)="handleQuickAction(action.action)">
+        <div *ngFor="let action of quickActions; let i = index" 
+             class="action-card" 
+             [class]="'action-card-' + action.color"
+             [class.priority-action]="action.priority"
+             [class.onboarding-action]="action.action === 'openOnboarding'"
+             (click)="handleQuickAction(action.action)">
           <div class="action-icon">
             <ion-icon [name]="action.icon"></ion-icon>
           </div>
           <div class="action-content">
             <h3>{{ action.title }}</h3>
             <p>{{ action.description }}</p>
+            <div *ngIf="action.action === 'openOnboarding'" class="onboarding-badge">
+              <ion-icon name="star" slot="start"></ion-icon>
+              Required for Expert Consultation
+            </div>
           </div>
           <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
         </div>
@@ -71,29 +79,183 @@
       </div>
     </div>
 
-    <!-- Upcoming Reminders -->
+    <!-- Upcoming Consultations -->
     <div class="section" *ngIf="upcomingConsultations.length > 0">
       <h2 class="section-title">Upcoming Consultations</h2>
       <div class="consultations-list">
-        <div *ngFor="let consultation of upcomingConsultations" class="consultation-card">
-          <div class="consultation-icon">
-            <ion-icon name="videocam"></ion-icon>
+        <div *ngFor="let consultation of upcomingConsultations" class="consultation-card" 
+             [class.upcoming]="consultation.status === 'scheduled'">
+          
+          <div class="consultation-status-badge" [attr.data-status]="consultation.status">
+            {{ consultation.status | titlecase }}
           </div>
-          <div class="consultation-info">
-            <h4>{{ consultation.topic | titlecase }}</h4>
-            <p class="expert-name">with {{ getExpertName(consultation.expertId) }}</p>
-            <p class="consultation-time">{{ consultation.scheduledAt | date:'MMM d, y - h:mm a' }}</p>
+          
+          <div class="consultation-content">
+            <div class="consultation-header">
+              <div class="consultation-icon">
+                <ion-icon name="videocam"></ion-icon>
+              </div>
+              <div class="consultation-info">
+                <h4>{{ consultation.topic | titlecase }}</h4>
+                <p class="expert-name">with {{ getExpertName(consultation.expertId || consultation.expert_id) }}</p>
+              </div>
+            </div>
+            
+            <div class="consultation-details">
+              <div class="detail-item">
+                <ion-icon name="calendar" class="detail-icon"></ion-icon>
+                <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'MMM d, y' }}</span>
+              </div>
+              <div class="detail-item">
+                <ion-icon name="time" class="detail-icon"></ion-icon>
+                <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'h:mm a' }}</span>
+              </div>
+              <div class="detail-item" *ngIf="consultation.notes">
+                <ion-icon name="document-text" class="detail-icon"></ion-icon>
+                <span class="notes">{{ consultation.notes }}</span>
+              </div>
+            </div>
+            
+            <div class="consultation-actions">
+              <ion-button 
+                fill="outline" 
+                size="small"
+                (click)="editConsultation(consultation)"
+                class="edit-button">
+                <ion-icon name="create" slot="start"></ion-icon>
+                Edit
+              </ion-button>
+              <ion-button 
+                fill="solid" 
+                size="small"
+                (click)="joinConsultation(consultation)"
+                [disabled]="!isConsultationReady(consultation)"
+                class="join-button">
+                <ion-icon name="videocam" slot="start"></ion-icon>
+                {{ isConsultationReady(consultation) ? 'Join Call' : 'Not Ready' }}
+              </ion-button>
+            </div>
           </div>
-          <ion-button 
-            fill="outline" 
-            size="small"
-            (click)="joinConsultation(consultation)"
-            [disabled]="!isConsultationReady(consultation)"
-            class="join-button">
-            <ion-icon name="videocam" slot="start"></ion-icon>
-            {{ isConsultationReady(consultation) ? 'Join Call' : 'Not Ready' }}
-          </ion-button>
         </div>
+      </div>
+    </div>
+
+    <!-- Recent Consultations Section -->
+    <div class="section" *ngIf="nonUpcomingConsultations.length > 0">
+      <div class="section-header">
+        <h2 class="section-title">My Consultations</h2>
+        <ion-button fill="clear" size="small" (click)="retryLoadConsultations()" *ngIf="consultationsError">
+          <ion-icon name="refresh" slot="start"></ion-icon>
+          Retry
+        </ion-button>
+      </div>
+      
+      <!-- Loading state -->
+      <div *ngIf="consultationsLoading" class="loading-container">
+        <ion-spinner name="circles"></ion-spinner>
+        <p>Loading consultations...</p>
+      </div>
+
+      <!-- Error state -->
+      <div *ngIf="consultationsError && !consultationsLoading" class="error-container">
+        <ion-icon name="warning-outline" class="error-icon"></ion-icon>
+        <p class="error-message">{{ consultationsError }}</p>
+        <ion-button fill="outline" size="small" (click)="retryLoadConsultations()">
+          <ion-icon name="refresh" slot="start"></ion-icon>
+          Retry
+        </ion-button>
+      </div>
+
+      <!-- Consultations list -->
+      <div *ngIf="!consultationsLoading && !consultationsError" class="consultations-list">
+        <div *ngFor="let consultation of nonUpcomingConsultations" class="consultation-card" 
+             [class.upcoming]="consultation.status === 'scheduled'" 
+             [class.completed]="consultation.status === 'completed'"
+             [class.cancelled]="consultation.status === 'cancelled'">
+          
+          <div class="consultation-status-badge" [attr.data-status]="consultation.status">
+            {{ consultation.status | titlecase }}
+          </div>
+          
+          <div class="consultation-content">
+            <div class="consultation-header">
+              <div class="consultation-icon">
+                <ion-icon name="videocam"></ion-icon>
+              </div>
+              <div class="consultation-info">
+                <h4>{{ consultation.topic | titlecase }}</h4>
+                <p class="expert-name">with {{ getExpertName(consultation.expertId || consultation.expert_id) }}</p>
+              </div>
+            </div>
+            
+            <div class="consultation-details">
+              <div class="detail-item">
+                <ion-icon name="calendar" class="detail-icon"></ion-icon>
+                <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'MMM d, y' }}</span>
+              </div>
+              <div class="detail-item">
+                <ion-icon name="time" class="detail-icon"></ion-icon>
+                <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'h:mm a' }}</span>
+              </div>
+              <div class="detail-item" *ngIf="consultation.notes">
+                <ion-icon name="document-text" class="detail-icon"></ion-icon>
+                <span class="notes">{{ consultation.notes }}</span>
+              </div>
+            </div>
+            
+            <div class="consultation-actions">
+              <ion-button 
+                *ngIf="consultation.status === 'scheduled'"
+                fill="outline" 
+                size="small"
+                (click)="editConsultation(consultation)"
+                class="edit-button">
+                <ion-icon name="create" slot="start"></ion-icon>
+                Edit
+              </ion-button>
+              <ion-button 
+                *ngIf="consultation.status === 'scheduled'"
+                fill="solid" 
+                size="small"
+                (click)="joinConsultation(consultation)"
+                [disabled]="!isConsultationReady(consultation)"
+                class="join-button">
+                <ion-icon name="videocam" slot="start"></ion-icon>
+                {{ isConsultationReady(consultation) ? 'Join Call' : 'Not Ready' }}
+              </ion-button>
+              
+              <ion-button 
+                *ngIf="consultation.status === 'completed' && consultation.user_rating"
+                fill="outline" 
+                size="small"
+                disabled
+                class="rating-button">
+                <ion-icon name="star" slot="start"></ion-icon>
+                Rated {{ consultation.user_rating }}/5
+              </ion-button>
+              
+              <ion-button 
+                *ngIf="consultation.status === 'cancelled'"
+                fill="outline" 
+                size="small"
+                disabled
+                class="cancelled-button">
+                <ion-icon name="close-circle" slot="start"></ion-icon>
+                Cancelled
+              </ion-button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Show more button if there are many consultations -->
+        <ion-button 
+          *ngIf="nonUpcomingConsultations.length >= 5"
+          expand="block" 
+          fill="outline" 
+          (click)="viewAllConsultations()"
+          class="view-all-button">
+          View All Consultations
+        </ion-button>
       </div>
     </div>
 
@@ -112,7 +274,7 @@
               <span>• 30-minute video call</span>
               <span>• Certified IBCLC experts</span>
               <span>• Personalized guidance</span>
-            <!-- </ion-icon> -->
+            </div>
           </div>
         </div>
         <ion-button 

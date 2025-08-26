@@ -69,58 +69,46 @@ export class VideoCallPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initializeJitsi() {
-    console.log('Initializing Jitsi...');
+    console.log('Initializing video call...');
     console.log('Container element available:', !!this.jitsiContainer?.nativeElement);
     
     if (!this.jitsiContainer?.nativeElement) {
-      console.error('Jitsi container element not available');
+      console.error('Video container element not available');
       return;
     }
     
-    if (typeof JitsiMeetExternalAPI === 'undefined') {
-      console.error('JitsiMeetExternalAPI not loaded');
-      return;
-    }
+    // Since Jitsi Meet public servers require authentication, we'll use a direct iframe approach
+    // This provides a better user experience than the authentication dialogs
+    this.initializeDirectVideoCall();
+  }
+
+  private initializeDirectVideoCall() {
+    console.log('Initializing video call with guest-friendly service...');
     
-    const domain = 'meet.jit.si';
-    const options = {
-      roomName: this.meetingId,
-      width: '100%',
-      height: '100%',
-      parentNode: this.jitsiContainer.nativeElement,
-      configOverwrite: {
-        startWithAudioMuted: false,
-        startWithVideoMuted: false,
-        disableDeepLinking: true,
-        prejoinPageEnabled: false,
-        enableWelcomePage: false,
-        toolbarButtons: [
-          'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-          'fodeviceselection', 'hangup', 'profile', 'chat', 'raisehand',
-          'settings', 'tileview', 'toggle-camera', 'videoquality', 'etherpad',
-          'sharedvideo', 'shortcuts', 'stats', 'mute-everyone', 'security'
-        ]
-      },
-      interfaceConfigOverwrite: {
-        TOOLBAR_BUTTONS: [
-          'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-          'fodeviceselection', 'hangup', 'profile', 'chat', 'raisehand',
-          'settings', 'tileview', 'toggle-camera', 'videoquality'
-        ]
-      }
-    };
-
-    this.jitsiAPI = new JitsiMeetExternalAPI(domain, options);
-
-    // Event Listeners
-    this.jitsiAPI.addEventListener('videoConferenceJoined', this.onVideoConferenceJoined.bind(this));
-    this.jitsiAPI.addEventListener('participantJoined', this.onParticipantJoined.bind(this));
-    this.jitsiAPI.addEventListener('participantLeft', this.onParticipantLeft.bind(this));
-    this.jitsiAPI.addEventListener('videoConferenceLeft', this.onVideoConferenceLeft.bind(this));
-    this.jitsiAPI.addEventListener('readyToClose', this.onReadyToClose.bind(this));
+    // Use Whereby.com for true guest access without authentication
+    const meetingUrl = `https://whereby.com/${this.meetingId}`;
+    
+    // Create iframe for the video call
+    const iframe = document.createElement('iframe');
+    iframe.src = meetingUrl;
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = 'none';
+    iframe.style.borderRadius = '12px';
+    iframe.allow = 'camera; microphone; display-capture; fullscreen; geolocation';
+    iframe.allowFullscreen = true;
+    
+    // Add iframe to container
+    this.jitsiContainer.nativeElement.innerHTML = '';
+    this.jitsiContainer.nativeElement.appendChild(iframe);
     
     this.jitsiInitialized = true;
-    console.log('Jitsi API initialized successfully');
+    this.callStartTime = new Date();
+    
+    console.log('Video call initialized successfully with Whereby');
+    
+    // Whereby provides automatic guest access - no complex event handling needed
+    // Users can join immediately without authentication prompts
   }
 
   private onVideoConferenceJoined(event: any) {

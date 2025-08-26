@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -162,13 +162,138 @@ export interface SearchUsersResponse {
   };
 }
 
-// Consultation Interface
+// Consultation Interfaces
 export interface ConsultationRequest {
   expertId: string;
   scheduledAt: string;
-  duration: number;
   topic: string;
   notes?: string;
+  durationType?: 'scheduled';
+}
+
+export interface ConsultationResponse {
+  id: string;
+  user_id: string;
+  expert_id: string;
+  consultation_type: 'scheduled' | 'on-demand';
+  status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+  scheduled_at: string;
+  actual_start_time?: string;
+  actual_end_time?: string;
+  topic: string;
+  notes?: string;
+  meeting_link?: string;
+  expert_notes?: string;
+  user_rating?: number;
+  user_feedback?: string;
+  follow_up_required: boolean;
+  created_at: string;
+  updated_at: string;
+  // User information
+  user_first_name?: string;
+  user_last_name?: string;
+  user_email?: string;
+  // Expert information
+  expert_first_name?: string;
+  expert_last_name?: string;
+  expert_email?: string;
+  expert_credentials?: string;
+  expert_rating?: number;
+  expert_user_id?: string;
+}
+
+export interface ConsultationUpdateRequest {
+  scheduledAt?: string;
+  topic?: string;
+  notes?: string;
+  userRating?: number;
+  userFeedback?: string;
+}
+
+export interface ConsultationStatsResponse {
+  overview: {
+    total_consultations: number;
+    completed_consultations: number;
+    cancelled_consultations: number;
+    scheduled_consultations: number;
+    average_rating: number;
+    avg_duration_minutes: number;
+  };
+  topTopics: Array<{
+    topic: string;
+    count: number;
+  }>;
+  expertPerformance?: {
+    avg_rating: number;
+    positive_ratings: number;
+    negative_ratings: number;
+  };
+  period: {
+    startDate: string;
+    endDate: string;
+  };
+}
+
+// Additional consultation interfaces from backend documentation
+export interface ExpertResponse {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  credentials?: string;
+  specialties: string[];
+  bio?: string;
+  profile_image?: string;
+  years_of_experience?: number;
+  rating: number;
+  total_consultations: number;
+  pricing_per_session?: number;
+  available_from?: string;
+  available_to?: string;
+  timezone?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AvailabilitySlot {
+  id: string;
+  expert_id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  is_available: boolean;
+  is_booked: boolean;
+  consultation_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateConsultationRequest {
+  expertId: string;
+  scheduledAt: string;
+  topic: string;
+  notes?: string;
+  consultation_type?: 'scheduled' | 'on-demand';
+  meeting_link?: string;
+}
+
+export interface UpdateConsultationRequest {
+  scheduled_at?: string;
+  topic?: string;
+  notes?: string;
+  status?: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+  expert_notes?: string;
+  user_rating?: number;
+  user_feedback?: string;
+  follow_up_required?: boolean;
+  actual_start_time?: string;
+  actual_end_time?: string;
+}
+
+export interface RescheduleConsultationRequest {
+  new_scheduled_at: string;
+  reason?: string;
 }
 
 @Injectable({
@@ -704,29 +829,31 @@ export class ApiService {
     specialty?: string;
     limit?: number;
     available?: boolean;
-  }): Observable<ApiResponse<any[]>> {
+  }): Observable<ApiResponse<ExpertResponse[]>> {
     let params = new HttpParams();
     
     if (options?.specialty) params = params.set('specialty', options.specialty);
     if (options?.limit) params = params.set('limit', options.limit.toString());
     if (options?.available !== undefined) params = params.set('available', options.available.toString());
 
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/experts`, {
+    console.log('Getting experts from /experts endpoint');
+
+    return this.http.get<ApiResponse<ExpertResponse[]>>(`${this.baseUrl}/experts`, {
       headers: this.getAuthHeaders(),
       params
     }).pipe(catchError(this.handleError));
   }
 
-  getExpertById(expertId: string): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/experts/${expertId}`, {
+  getExpertById(expertId: string): Observable<ApiResponse<ExpertResponse>> {
+    return this.http.get<ApiResponse<ExpertResponse>>(`${this.baseUrl}/experts/${expertId}`, {
       headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
-  getExpertAvailability(expertId: string, date: string): Observable<ApiResponse<any>> {
+  getExpertAvailability(expertId: string, date: string): Observable<ApiResponse<AvailabilitySlot[]>> {
     const params = new HttpParams().set('date', date);
 
-    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/experts/${expertId}/availability`, {
+    return this.http.get<ApiResponse<AvailabilitySlot[]>>(`${this.baseUrl}/experts/${expertId}/availability`, {
       headers: this.getAuthHeaders(),
       params
     }).pipe(catchError(this.handleError));
@@ -736,37 +863,62 @@ export class ApiService {
   // CONSULTATION ENDPOINTS
   // ============================================================================
 
-  bookConsultation(consultationData: ConsultationRequest): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/consultations`, consultationData, {
-      headers: this.getAuthHeaders()
-    }).pipe(catchError(this.handleError));
-  }
-
-  getUserConsultations(status?: 'scheduled' | 'completed' | 'cancelled'): Observable<ApiResponse<any[]>> {
+  // Consultation management
+  getUserConsultations(status?: 'scheduled' | 'completed' | 'cancelled', upcoming?: boolean, page?: number, limit?: number): Observable<ApiResponse<ConsultationResponse[]>> {
     let params = new HttpParams();
+    
     if (status) params = params.set('status', status);
+    if (upcoming !== undefined) params = params.set('upcoming', upcoming.toString());
+    if (page) params = params.set('page', page.toString());
+    if (limit) params = params.set('limit', limit.toString());
 
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/consultations`, {
+    console.log('Getting user consultations from /consultations/my-consultations endpoint');
+    
+    return this.http.get<ApiResponse<ConsultationResponse[]>>(`${this.baseUrl}/consultations/my-consultations`, {
       headers: this.getAuthHeaders(),
       params
     }).pipe(catchError(this.handleError));
   }
 
-  getConsultationById(consultationId: string): Observable<ApiResponse<any>> {
-    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/consultations/${consultationId}`, {
+  getConsultationById(consultationId: string): Observable<ApiResponse<ConsultationResponse>> {
+    return this.http.get<ApiResponse<ConsultationResponse>>(`${this.baseUrl}/consultations/${consultationId}`, {
       headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
-  updateConsultation(consultationId: string, updates: any): Observable<ApiResponse<any>> {
-    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/consultations/${consultationId}`, updates, {
+  createConsultation(consultation: CreateConsultationRequest): Observable<ApiResponse<ConsultationResponse>> {
+    console.log('Creating consultation with request:', consultation);
+    
+    return this.http.post<ApiResponse<ConsultationResponse>>(`${this.baseUrl}/consultations`, consultation, {
       headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
-  cancelConsultation(consultationId: string): Observable<ApiResponse<any>> {
-    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/consultations/${consultationId}`, {
+  updateConsultation(consultationId: string, updates: UpdateConsultationRequest): Observable<ApiResponse<ConsultationResponse>> {
+    return this.http.put<ApiResponse<ConsultationResponse>>(`${this.baseUrl}/consultations/${consultationId}`, updates, {
       headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  cancelConsultation(consultationId: string): Observable<ApiResponse<{ message: string }>> {
+    return this.http.delete<ApiResponse<{ message: string }>>(`${this.baseUrl}/consultations/${consultationId}`, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  rescheduleConsultation(consultationId: string, reschedule: RescheduleConsultationRequest): Observable<ApiResponse<ConsultationResponse>> {
+    return this.http.put<ApiResponse<ConsultationResponse>>(`${this.baseUrl}/consultations/${consultationId}/reschedule`, reschedule, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  getConsultationStats(period?: '7d' | '30d' | '90d'): Observable<ApiResponse<ConsultationStatsResponse>> {
+    let params = new HttpParams();
+    if (period) params = params.set('period', period);
+
+    return this.http.get<ApiResponse<ConsultationStatsResponse>>(`${this.baseUrl}/consultations/stats`, {
+      headers: this.getAuthHeaders(),
+      params
     }).pipe(catchError(this.handleError));
   }
 

@@ -192,27 +192,117 @@
   font-size: 0.85rem;
 }
 
+// Loading, error, and empty states
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  
+  .error-icon {
+    font-size: 2.5rem;
+    color: #dc3545;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .consultations-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .consultation-card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  &.upcoming {
+    border-left: 4px solid #10b981;
+  }
+
+  &.completed {
+    border-left: 4px solid #3b82f6;
+  }
+
+  &.cancelled {
+    border-left: 4px solid #ef4444;
+    opacity: 0.8;
+  }
+}
+
+.consultation-status-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  
+  &[data-status="scheduled"] {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  
+  &[data-status="completed"] {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  
+  &[data-status="cancelled"] {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  
+  &[data-status="in-progress"] {
+    background: #fef3c7;
+    color: #d97706;
+  }
+}
+
+.consultation-content {
+  padding: 1.5rem;
+  padding-right: 5rem; // Make space for status badge
+}
+
+.consultation-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
 }
 
 .consultation-icon {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #42a5f5, #64b5f6);
+  background: linear-gradient(135deg, #e91e63, #f06292);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -230,40 +320,105 @@
 
   h4 {
     margin: 0 0 0.25rem 0;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #2d3748;
+    line-height: 1.3;
   }
 
   .expert-name {
     margin: 0;
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+}
+
+.consultation-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  
+  .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-size: 0.85rem;
     color: #64748b;
+    
+    .detail-icon {
+      font-size: 1rem;
+      color: #9ca3af;
+    }
+    
+    .notes {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
+}
 
-  .consultation-time {
-    margin: 0;
+.consultation-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  
+  .edit-button {
+    --border-color: #666;
+    --color: #666;
+    --border-radius: 8px;
+    height: 32px;
     font-size: 0.8rem;
-    color: #94a3b8;
+    
+    &:hover {
+      --color: #333;
+      --border-color: #333;
+    }
+  }
+  
+  .join-button {
+    --background: #e91e63;
+    --background-hover: #d81b60;
+    --border-radius: 8px;
+    --color: #ffffff;
+    height: 32px;
+    font-size: 0.8rem;
+    
+    &:disabled {
+      --background: #e2e8f0;
+      --color: #94a3b8;
+    }
+  }
+  
+  .rating-button, .cancelled-button {
+    --border-radius: 8px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+  
+  .rating-button {
+    --color: #f59e0b;
+    --border-color: #f59e0b;
+  }
+  
+  .cancelled-button {
+    --color: #ef4444;
+    --border-color: #ef4444;
   }
 }
 
-.join-button {
-  --border-radius: 8px;
-  --border-color: #42a5f5;
-  --color: #42a5f5;
-  height: 36px;
-  font-size: 0.85rem;
-
-  &:not([disabled]):hover {
-    --background: rgba(66, 165, 245, 0.1);
-  }
-
-  &[disabled] {
-    --color: #cbd5e1;
-    --border-color: #e2e8f0;
-  }
+.view-all-button {
+  --border-radius: 12px;
+  --color: #64748b;
+  --border-color: #cbd5e1;
+  margin-top: 0.5rem;
+  height: 44px;
 }
+
+// Old consultation styles removed - using new design
 
 .consultation-booking-card {
   background: linear-gradient(135deg, #fef7f7, #ffffff);
@@ -324,6 +479,7 @@
       font-weight: 500;
     }
   }
+  
 }
 
 .book-consultation-button {
@@ -647,4 +803,54 @@
       flex: 1;
     }
   }
+}
+
+// Special styling for onboarding action
+.action-card-warning .action-icon {
+  background: linear-gradient(135deg, #ff9800, #ffb74d);
+}
+
+.onboarding-action {
+  border: 2px solid #ff9800;
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(135deg, #ff9800, #ffb74d);
+  }
+
+  .action-content h3 {
+    color: #ff9800;
+    font-weight: 700;
+  }
+
+  .onboarding-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #ff9800;
+    font-weight: 600;
+
+    ion-icon {
+      font-size: 0.875rem;
+    }
+  }
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(255, 152, 0, 0.3);
+    transform: translateY(-3px);
+  }
+}
+
+.priority-action {
+  order: -1; // Show first in grid
 }

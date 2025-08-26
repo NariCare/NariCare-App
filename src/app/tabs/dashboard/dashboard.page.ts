@@ -1,11 +1,12 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ChatbotService } from '../../services/chatbot.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { ConsultationService } from '../../services/consultation.service';
+import { OnboardingService } from '../../services/onboarding.service';
 import { BabyTimelineItem, BabyTimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { Consultation, Expert } from '../../models/consultation.model';
@@ -25,35 +26,49 @@ export class DashboardPage implements OnInit, AfterViewInit {
   timelineData$: Observable<BabyTimelineData> | null = null;
   currentTimelineData: BabyTimelineData | null = null;
   upcomingConsultations: Consultation[] = [];
+  allConsultations: Consultation[] = [];
+  nonUpcomingConsultations: Consultation[] = [];
   experts: Expert[] = [];
-  quickActions = [
+  showOnboardingAction = false;
+  
+  // Error handling properties
+  consultationsError: string | null = null;
+  consultationsLoading = false;
+  expertsError: string | null = null;
+  expertsLoading = false;
+
+  baseQuickActions = [
     {
       title: 'Ask AI Assistant',
       description: 'Get instant help with breastfeeding questions',
       icon: 'chatbot',
       action: 'openChatbot',
-      color: 'primary'
+      color: 'primary',
+      priority: false
     },
     {
       title: 'Track Growth',
       description: 'Log your baby\'s latest measurements',
       icon: 'trending-up',
       action: 'trackGrowth',
-      color: 'success'
+      color: 'success',
+      priority: false
     },
     {
       title: 'Browse Articles',
       description: 'Explore our knowledge base',
       icon: 'library',
       action: 'browseKnowledge',
-      color: 'tertiary'
+      color: 'tertiary',
+      priority: false
     },
     {
       title: 'Join Chat',
       description: 'Connect with other mothers',
       icon: 'chatbubbles',
       action: 'joinChat',
-      color: 'secondary'
+      color: 'secondary',
+      priority: false
     }
   ];
 
@@ -64,7 +79,10 @@ export class DashboardPage implements OnInit, AfterViewInit {
     private chatbotService: ChatbotService,
     private timelineService: BabyTimelineService,
     private modalController: ModalController,
-    private consultationService: ConsultationService
+    private consultationService: ConsultationService,
+    private onboardingService: OnboardingService,
+    private toastController: ToastController,
+    private alertController: AlertController
   ) {}
 
   ngOnInit() {
@@ -74,9 +92,14 @@ export class DashboardPage implements OnInit, AfterViewInit {
         this.loadTimelineData(user.babies[0].dateOfBirth);
         this.loadUpcomingConsultations();
       }
+      // Onboarding check temporarily disabled for API testing
     });
     
     this.loadExperts();
+  }
+
+  get quickActions() {
+    return this.baseQuickActions;
   }
 
   ngAfterViewInit() {
@@ -95,19 +118,71 @@ export class DashboardPage implements OnInit, AfterViewInit {
 
   private loadUpcomingConsultations() {
     if (this.user) {
-      this.consultationService.getUserConsultations(this.user.uid).subscribe(consultations => {
-        // Filter for upcoming consultations only
-        const now = new Date();
-        this.upcomingConsultations = consultations.filter(consultation => 
-          consultation.scheduledAt > now && consultation.status === 'scheduled'
-        );
+      this.consultationsLoading = true;
+      this.consultationsError = null;
+      
+      this.consultationService.getUserConsultations(this.user.uid).subscribe({
+        next: (consultations) => {
+          this.consultationsLoading = false;
+          console.log('Loaded consultations:', consultations);
+          
+          // Store all consultations
+          this.allConsultations = consultations;
+          
+          // Filter for upcoming consultations only
+          const now = new Date();
+          this.upcomingConsultations = consultations.filter(consultation => {
+            const consultationDate = consultation.scheduledAt 
+              ? consultation.scheduledAt 
+              : new Date(consultation.scheduled_at);
+            console.log('Checking consultation:', { 
+              topic: consultation.topic, 
+              consultationDate, 
+              now, 
+              status: consultation.status,
+              isUpcoming: consultationDate > now && consultation.status === 'scheduled'
+            });
+            return consultationDate > now && consultation.status === 'scheduled';
+          });
+          
+          // Filter out upcoming consultations from "My Consultations" section to avoid duplicates
+          this.nonUpcomingConsultations = consultations.filter(consultation => {
+            const consultationDate = consultation.scheduledAt 
+              ? consultation.scheduledAt 
+              : new Date(consultation.scheduled_at);
+            // Show completed, cancelled, or past scheduled consultations
+            return !(consultationDate > now && consultation.status === 'scheduled');
+          });
+          
+          console.log('Filtered upcoming consultations:', this.upcomingConsultations);
+          console.log('Filtered non-upcoming consultations:', this.nonUpcomingConsultations);
+        },
+        error: (error) => {
+          this.consultationsLoading = false;
+          this.consultationsError = 'Unable to load consultations. Please try again.';
+          this.upcomingConsultations = [];
+          this.nonUpcomingConsultations = [];
+          console.error('Error loading consultations:', error);
+        }
       });
     }
   }
 
   private loadExperts() {
-    this.consultationService.getExperts().subscribe(experts => {
-      this.experts = experts;
+    this.expertsLoading = true;
+    this.expertsError = null;
+    
+    this.consultationService.getExperts().subscribe({
+      next: (experts) => {
+        this.expertsLoading = false;
+        this.experts = experts;
+      },
+      error: (error) => {
+        this.expertsLoading = false;
+        this.expertsError = 'Unable to load experts.';
+        this.experts = [];
+        console.error('Error loading experts:', error);
+      }
     });
   }
 
@@ -163,20 +238,74 @@ export class DashboardPage implements OnInit, AfterViewInit {
       if (result.data?.booked) {
         // Refresh consultations list
         this.loadUpcomingConsultations();
+        // Show success message
+        this.showSuccessToast('Consultation booked successfully!');
       }
     });
 
     return await modal.present();
   }
 
+  async editConsultation(consultation: Consultation) {
+    const modal = await this.modalController.create({
+      component: ConsultationBookingModalComponent,
+      componentProps: {
+        consultation: consultation
+      },
+      cssClass: 'consultation-booking-modal'
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.updated) {
+        // Refresh consultations list
+        this.loadUpcomingConsultations();
+        // Show success message
+        this.showSuccessToast('Consultation updated successfully!');
+      }
+    });
+
+    return await modal.present();
+  }
+
+  retryLoadConsultations() {
+    this.loadUpcomingConsultations();
+  }
+
+  retryLoadExperts() {
+    this.loadExperts();
+  }
+
+  viewAllConsultations() {
+    // Navigate to dedicated consultations page (to be implemented)
+    // this.router.navigate(['/consultations']);
+    console.log('Navigate to all consultations page - to be implemented');
+  }
+
+  private async showSuccessToast(message: string) {
+    const toast = await this.toastController.create({
+      message: message,
+      duration: 3000,
+      color: 'success',
+      position: 'top'
+    });
+    await toast.present();
+  }
+
   getExpertName(expertId: string): string {
     const expert = this.experts.find(e => e.id === expertId);
-    return expert?.name || 'Expert';
+    if (!expert) return 'Expert';
+    
+    if (expert.name) {
+      return expert.name; // Legacy field
+    }
+    return `${expert.first_name || ''} ${expert.last_name || ''}`.trim() || 'Expert';
   }
 
   isConsultationReady(consultation: Consultation): boolean {
     const now = new Date();
-    const consultationTime = new Date(consultation.scheduledAt);
+    const consultationTime = consultation.scheduledAt 
+      ? new Date(consultation.scheduledAt)
+      : new Date(consultation.scheduled_at);
     const timeDiff = consultationTime.getTime() - now.getTime();
     const minutesDiff = timeDiff / (1000 * 60);
     
@@ -184,12 +313,38 @@ export class DashboardPage implements OnInit, AfterViewInit {
     return minutesDiff <= 15 && minutesDiff >= -30;
   }
 
-  joinConsultation(consultation: Consultation) {
-    if (consultation.meetingLink) {
-      // Extract the room name from the Jitsi meeting link
-      const roomName = consultation.meetingLink.split('/').pop();
-      // Navigate to the new video call page
-      this.router.navigate(['/video-call', roomName]);
+  async joinConsultation(consultation: Consultation) {
+    const meetingLink = consultation.meeting_link || consultation.meetingLink;
+    if (meetingLink) {
+      // Show options for joining the consultation
+      const alert = await this.alertController.create({
+        header: 'Join Consultation',
+        message: 'Choose how to join your video consultation with our guest-friendly video platform.',
+        buttons: [
+          {
+            text: 'Open in Browser',
+            cssClass: 'primary-button',
+            handler: () => {
+              // Open directly in browser - works great with Whereby
+              window.open(meetingLink, '_blank');
+            }
+          },
+          {
+            text: 'Use In-App Call',
+            handler: () => {
+              // Extract the room name from the meeting link
+              const roomName = meetingLink.split('/').pop()?.split('#')[0];
+              // Navigate to the video call page
+              this.router.navigate(['/video-call', roomName]);
+            }
+          },
+          {
+            text: 'Cancel',
+            role: 'cancel'
+          }
+        ]
+      });
+      await alert.present();
     }
   }
 

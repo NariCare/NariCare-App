@@ -2,6 +2,52 @@
   padding: 1rem;
 }
 
+// Error and loading states
+.loading-container, .error-container, .empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-container {
+  .error-icon {
+    font-size: 3rem;
+    color: #dc3545;
+    margin-bottom: 1rem;
+  }
+  
+  .error-message {
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+}
+
+.empty-container {
+  .empty-icon {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+  
+  .empty-message {
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+}
+
+.loading-container {
+  ion-spinner {
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: #6c757d;
+  }
+}
+
 .progress-container {
   margin-bottom: 2rem;
   text-align: center;

@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Book Expert Consultation</ion-title>
+    <ion-title>{{ isEditMode ? 'Edit Consultation' : 'Book Expert Consultation' }}</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="closeModal()">
         <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -27,7 +27,34 @@
         <h2 class="step-title">Choose Your Expert</h2>
         <p class="step-description">Select a lactation consultant who specializes in your needs</p>
         
-        <div class="experts-list">
+        <!-- Loading state -->
+        <div *ngIf="expertsLoading" class="loading-container">
+          <ion-spinner name="circles"></ion-spinner>
+          <p>Loading experts...</p>
+        </div>
+
+        <!-- Error state -->
+        <div *ngIf="expertsError && !expertsLoading" class="error-container">
+          <ion-icon name="warning-outline" class="error-icon"></ion-icon>
+          <p class="error-message">{{ expertsError }}</p>
+          <ion-button fill="outline" size="small" (click)="retryLoadExperts()">
+            <ion-icon name="refresh" slot="start"></ion-icon>
+            Retry
+          </ion-button>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="!expertsLoading && !expertsError && !hasExperts" class="empty-container">
+          <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+          <p class="empty-message">No experts available at the moment.</p>
+          <ion-button fill="outline" size="small" (click)="retryLoadExperts()">
+            <ion-icon name="refresh" slot="start"></ion-icon>
+            Refresh
+          </ion-button>
+        </div>
+
+        <!-- Experts list -->
+        <div *ngIf="!expertsLoading && !expertsError && hasExperts" class="experts-list">
           <div 
             *ngFor="let expert of experts$ | async"
             class="expert-card"
@@ -35,13 +62,13 @@
             (click)="selectExpert(expert)">
             
             <div class="expert-avatar">
-              <img [src]="expert.profileImage" [alt]="expert.name" *ngIf="expert.profileImage">
-              <ion-icon name="person" *ngIf="!expert.profileImage"></ion-icon>
+              <img [src]="getExpertImage(expert)" [alt]="getExpertName(expert)" *ngIf="getExpertImage(expert)">
+              <ion-icon name="person" *ngIf="!getExpertImage(expert)"></ion-icon>
             </div>
             
             <div class="expert-info">
-              <h3>{{ expert.name }}</h3>
-              <p class="credentials">{{ expert.credentials }}</p>
+              <h3>{{ getExpertName(expert) }}</h3>
+              <p class="credentials">{{ getExpertCredentials(expert) }}</p>
               
               <div class="rating">
                 <ion-icon 
@@ -65,7 +92,7 @@
               
               <div class="consultation-count">
                 <ion-icon name="people"></ion-icon>
-                <span>{{ expert.totalConsultations }} consultations completed</span>
+                <span>{{ getExpertConsultations(expert) }} consultations completed</span>
               </div>
             </div>
             
@@ -89,12 +116,12 @@
         
         <div class="selected-expert-summary" *ngIf="selectedExpert">
           <div class="expert-summary-avatar">
-            <img [src]="selectedExpert.profileImage" [alt]="selectedExpert.name" *ngIf="selectedExpert.profileImage">
-            <ion-icon name="person" *ngIf="!selectedExpert.profileImage"></ion-icon>
+            <img [src]="getExpertImage(selectedExpert)" [alt]="getExpertName(selectedExpert)" *ngIf="getExpertImage(selectedExpert)">
+            <ion-icon name="person" *ngIf="!getExpertImage(selectedExpert)"></ion-icon>
           </div>
           <div class="expert-summary-info">
-            <h4>{{ selectedExpert.name }}</h4>
-            <p>{{ selectedExpert.credentials }}</p>
+            <h4>{{ getExpertName(selectedExpert) }}</h4>
+            <p>{{ getExpertCredentials(selectedExpert) }}</p>
           </div>
         </div>
 
@@ -163,7 +190,7 @@
             <h4>Consultation Summary</h4>
           </div>
           <div class="summary-details">
-            <p><strong>Expert:</strong> {{ selectedExpert.name }}</p>
+            <p><strong>Expert:</strong> {{ getExpertName(selectedExpert) }}</p>
             <p><strong>Date:</strong> {{ bookingForm.get('scheduledDate')?.value | date:'fullDate' }}</p>
             <p><strong>Time:</strong> {{ bookingForm.get('scheduledTime')?.value }}</p>
             <p><strong>Duration:</strong> 30 minutes</p>
@@ -232,7 +259,7 @@
             [disabled]="!bookingForm.valid"
             class="book-button">
             <ion-icon name="calendar" slot="start"></ion-icon>
-            Book Consultation
+            {{ isEditMode ? 'Update Consultation' : 'Book Consultation' }}
           </ion-button>
         </div>
       </div>
