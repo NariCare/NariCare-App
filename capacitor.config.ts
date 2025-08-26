@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 3000,
       launchAutoHide: true,
-      backgroundColor: "#e91e63",
+      backgroundColor: "#8383ed",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
       showSpinner: false,
@@ -25,7 +25,7 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: "light",
-      backgroundColor: "#e91e63"
+      backgroundColor: "#8383ed"
     },
     Keyboard: {
       resize: "body",
@@ -37,7 +37,7 @@ const config: CapacitorConfig = {
     },
     LocalNotifications: {
       smallIcon: "ic_stat_icon_config_sample",
-      iconColor: "#e91e63",
+      iconColor: "#8383ed",
       sound: "beep.wav"
     }
   }

@@ -10,8 +10,8 @@
 </ion-header>
 
 <ion-content>
-  <div class="pumping-log-container">
-    <form [formGroup]="pumpingForm" class="pumping-form single-form">
+  <div class="feed-log-container">
+    <form [formGroup]="pumpingForm" class="feed-form single-form">
       
       <!-- Main Pumping Card -->
       <div class="form-section main-pumping-card">
@@ -22,6 +22,7 @@
           <p class="section-description">What time did you start pumping?</p>
           
           <div class="form-group">
+            <label class="field-label">🕒 Start Time</label>
             <ion-item lines="none" class="input-item time-input">
               <ion-input
                 formControlName="time"

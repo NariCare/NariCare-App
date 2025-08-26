@@ -1,56 +1,54 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Breastfeeding Progress</ion-title>
+    <ion-title>Trackers</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <div class="content-container">
     
-    <!-- Top Action Buttons -->
-    <div class="action-buttons-grid">
-      <!-- <div class="action-button fast-feed" (click)="onFastFeed()">
-        <div class="action-icon">
-          <ion-icon name="time"></ion-icon>
+    <!-- Tracker Cards Grid -->
+    <div class="tracker-cards-container">
+      <!-- Top Row - 2x2 Grid -->
+      <div class="tracker-cards-grid">
+        <div class="tracker-card feed-card" (click)="onFeed()">
+          <div class="tracker-icon">
+            <img src="assets/Feed.svg" alt="Feed" class="tracker-svg-icon">
+          </div>
+          <span class="tracker-label">Feed</span>
         </div>
-        <span class="action-label">Fast feed</span>
-      </div> -->
-      
-      <div class="action-button feed" (click)="onFeed()">
-        <div class="action-icon">
-          <ion-icon name="body"></ion-icon>
+
+        <div class="tracker-card diaper-card" (click)="openDiaperLogModal()">
+          <div class="tracker-icon">
+            <img src="assets/Diaper change.svg" alt="Diaper change" class="tracker-svg-icon">
+          </div>
+          <span class="tracker-label">Diaper change</span>
         </div>
-        <span class="action-label">Feed</span>
+        
+        <div class="tracker-card weight-card" (click)="onWeightSize()">
+          <div class="tracker-icon">
+            <img src="assets/Weight.svg" alt="Weight" class="tracker-svg-icon">
+          </div>
+          <span class="tracker-label">Weight</span>
+        </div>
+
+        <div class="tracker-card pump-card" (click)="openPumpLogModal()">
+          <div class="tracker-icon">
+            <img src="assets/Pump.svg" alt="Pump" class="tracker-svg-icon">
+          </div>
+          <span class="tracker-label">Pump</span>
+        </div>
       </div>
 
-      <div class="action-button poo" (click)="openDiaperLogModal()">
-        <div class="action-icon">
-          <ion-icon name="swap-horizontal"></ion-icon>
+      <!-- Full-width Emotional Check-in Card -->
+      <div class="tracker-card emotional-card" (click)="onEmotionCheckin()">
+        <div class="emotional-content">
+          <div class="tracker-icon">
+            <img src="assets/Emotional check-in.svg" alt="Emotional check-in" class="tracker-svg-icon">
+          </div>
+          <span class="tracker-label">Emotional check-in</span>
         </div>
-        <span class="action-label">Diaper Change</span>
       </div>
-      
-      <div class="action-button weight-size" (click)="onWeightSize()">
-        <div class="action-icon">
-          <ion-icon name="scale"></ion-icon>
-        </div>
-        <span class="action-label">Weight</span>
-      </div>
-
-      <div class="action-button pump" (click)="openPumpLogModal()">
-        <div class="action-icon">
-          <ion-icon name="medical"></ion-icon>
-        </div>
-        <span class="action-label">Pump</span>
-      </div>
-
-      <div class="action-button emotion-checkin" (click)="onEmotionCheckin()">
-        <div class="action-icon">
-          <ion-icon name="heart"></ion-icon>
-        </div>
-        <span class="action-label">Emotion Check-In</span>
-      </div>
-
     </div>
 
     <!-- Main Tab Selector -->
@@ -74,7 +72,7 @@
           [class.selected]="selectedBaby?.id === baby.id"
           (click)="selectBaby(baby)">
           <div class="baby-avatar">
-            <ion-icon name="happy"></ion-icon>
+            <ion-icon name="heart"></ion-icon>
           </div>
           <div class="baby-info">
             <h3>{{ baby.name }}</h3>
@@ -96,6 +94,15 @@
           <ion-icon name="add-outline" slot="start"></ion-icon>
           Add Your First Baby
         </ion-button> -->
+      </div>
+
+      <!-- Floating Add Baby Button - Inside My Babies Tab -->
+      <div class="fab-wrapper">
+        <ion-fab-button 
+          (click)="openAddBabyModal()"
+          class="add-baby-fab">
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
       </div>
     </div>
 
@@ -343,19 +350,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Floating Add Baby Button -->
-    <ion-fab 
-      vertical="bottom" 
-      horizontal="end" 
-      slot="fixed"
-      *ngIf="selectedMainTab === 'my-babies'">
-      <ion-fab-button 
-        (click)="openAddBabyModal()"
-        class="add-baby-fab">
-        <ion-icon name="add"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
 
   </div>
 

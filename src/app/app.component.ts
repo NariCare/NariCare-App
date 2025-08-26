@@ -42,7 +42,7 @@ export class AppComponent implements OnInit {
         const { SplashScreen } = await import('@capacitor/splash-screen');
         
         await StatusBar.setStyle({ style: Style.Light });
-        await StatusBar.setBackgroundColor({ color: '#e91e63' });
+        await StatusBar.setBackgroundColor({ color: '#8383ed' });
         await SplashScreen.hide();
       } catch (error) {
         console.log('Capacitor plugins not available:', error);

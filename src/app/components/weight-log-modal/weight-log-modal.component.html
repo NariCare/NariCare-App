@@ -50,76 +50,81 @@
         </div>
       </div>
 
-      <!-- Date & Time Section -->
-      <div class="form-section">
-        <h2 class="section-title">📅 Date & Time</h2>
-        <p class="section-description">When was this weight recorded?</p>
+      <!-- Main Weight Log Card -->
+      <div class="form-section main-weight-card">
         
-        <div class="datetime-group">
-          <div class="form-group">
-            <label class="field-label">Date</label>
-            <ion-item lines="none" class="input-item">
-              <ion-datetime-button datetime="weightDate">
-                <ion-icon name="calendar-outline" slot="start"></ion-icon>
-              </ion-datetime-button>
-            </ion-item>
-            <ion-modal [keepContentsMounted]="true">
-              <ng-template>
-                <ion-datetime 
-                  id="weightDate" 
-                  formControlName="date"
-                  presentation="date"
-                  max="2025-12-31"
-                  min="2020-01-01">
-                </ion-datetime>
-              </ng-template>
-            </ion-modal>
+        <!-- Date & Time Section -->
+        <div class="section-group">
+          <h2 class="section-title">📅 Date & Time</h2>
+          <p class="section-description">When was this weight recorded?</p>
+          
+          <div class="datetime-group">
+            <div class="form-group">
+              <label class="field-label">📅 Date</label>
+              <ion-item lines="none" class="input-item">
+                <ion-datetime-button datetime="weightDate">
+                  <ion-icon name="calendar-outline" slot="start"></ion-icon>
+                </ion-datetime-button>
+              </ion-item>
+              <ion-modal [keepContentsMounted]="true">
+                <ng-template>
+                  <ion-datetime 
+                    id="weightDate" 
+                    formControlName="date"
+                    presentation="date"
+                    max="2025-12-31"
+                    min="2020-01-01">
+                  </ion-datetime>
+                </ng-template>
+              </ion-modal>
+            </div>
+            
+            <div class="form-group">
+              <label class="field-label">🕒 Time</label>
+              <ion-item lines="none" class="input-item">
+                <ion-datetime-button datetime="weightTime">
+                  <ion-icon name="time-outline" slot="start"></ion-icon>
+                </ion-datetime-button>
+              </ion-item>
+              <ion-modal [keepContentsMounted]="true">
+                <ng-template>
+                  <ion-datetime 
+                    id="weightTime" 
+                    formControlName="time"
+                    presentation="time"
+                    [minuteValues]="[0,5,10,15,20,25,30,35,40,45,50,55]">
+                  </ion-datetime>
+                </ng-template>
+              </ion-modal>
+            </div>
           </div>
+        </div>
+
+        <!-- Weight Section -->
+        <div class="section-group">
+          <h2 class="section-title">⚖️ Weight</h2>
+          <p class="section-description">Enter the baby's weight in kilograms (up to 3 decimal places)</p>
           
           <div class="form-group">
-            <label class="field-label">Time</label>
-            <ion-item lines="none" class="input-item">
-              <ion-datetime-button datetime="weightTime">
-                <ion-icon name="time-outline" slot="start"></ion-icon>
-              </ion-datetime-button>
+            <label class="field-label">Weight (kg) *</label>
+            <ion-item lines="none" class="input-item weight-input" [class.error]="weightForm.get('weight')?.invalid && weightForm.get('weight')?.touched">
+              <ion-input
+                formControlName="weight"
+                type="number"
+                step="0.001"
+                min="0.001"
+                max="50"
+                placeholder="e.g., 4.250"
+                inputmode="decimal">
+              </ion-input>
             </ion-item>
-            <ion-modal [keepContentsMounted]="true">
-              <ng-template>
-                <ion-datetime 
-                  id="weightTime" 
-                  formControlName="time"
-                  presentation="time"
-                  [minuteValues]="[0,5,10,15,20,25,30,35,40,45,50,55]">
-                </ion-datetime>
-              </ng-template>
-            </ion-modal>
+            <div class="error-message" *ngIf="weightForm.get('weight')?.invalid && weightForm.get('weight')?.touched">
+              Please enter a valid weight (0.001 - 50 kg)
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Weight Section -->
-      <div class="form-section">
-        <h2 class="section-title">⚖️ Weight</h2>
-        <p class="section-description">Enter the baby's weight in kilograms (up to 3 decimal places)</p>
-        
-        <div class="form-group">
-          <label class="field-label">Weight (kg) *</label>
-          <ion-item lines="none" class="input-item weight-input" [class.error]="weightForm.get('weight')?.invalid && weightForm.get('weight')?.touched">
-            <ion-input
-              formControlName="weight"
-              type="number"
-              step="0.001"
-              min="0.001"
-              max="50"
-              placeholder="e.g., 4.250"
-              inputmode="decimal">
-            </ion-input>
-          </ion-item>
-          <div class="error-message" *ngIf="weightForm.get('weight')?.invalid && weightForm.get('weight')?.touched">
-            Please enter a valid weight (0.001 - 50 kg)
-          </div>
         </div>
-      </div>
 
       <!-- Notes Section -->
       <div class="form-section notes-section">

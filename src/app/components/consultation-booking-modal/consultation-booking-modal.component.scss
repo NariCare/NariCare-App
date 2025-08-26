@@ -63,7 +63,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #e91e63, #f06292);
+  background: linear-gradient(90deg, #8383ed, #8383ed);
   transition: width 0.3s ease;
 }
 
@@ -117,21 +117,18 @@
   padding: 1.5rem;
   display: flex;
   align-items: flex-start;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
 
   &.selected {
-    border-color: #e91e63;
+    border-color: #8383ed;
     background: linear-gradient(135deg, #fef7f7, #ffffff);
-    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.15);
   }
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -139,7 +136,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -233,7 +230,7 @@
   position: absolute;
   top: 1rem;
   right: 1rem;
-  color: #e91e63;
+  color: #8383ed;
   font-size: 1.5rem;
 }
 
@@ -251,7 +248,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -385,7 +382,7 @@
 
   ion-icon {
     font-size: 1.5rem;
-    color: #e91e63;
+    color: #8383ed;
     flex-shrink: 0;
   }
 
@@ -410,10 +407,9 @@
 
 .next-button,
 .book-button {
-  --background: #e91e63;
+  --background: #8383ed;
   --background-hover: #d81b60;
   --border-radius: 12px;
-  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
   --color: #ffffff;
   height: 52px;
   font-weight: 600;
@@ -422,7 +418,6 @@
   &:disabled {
     --background: #e2e8f0;
     --color: #94a3b8;
-    --box-shadow: none;
   }
 }
 

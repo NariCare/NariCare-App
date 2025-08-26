@@ -10,8 +10,8 @@
 </ion-header>
 
 <ion-content>
-  <div class="diaper-log-container">
-    <form [formGroup]="diaperForm" class="diaper-form single-form">
+  <div class="feed-log-container">
+    <form [formGroup]="diaperForm" class="feed-form single-form">
       
       <!-- Selected Baby Info (when baby is pre-selected) -->
       <div class="form-section selected-baby-info" *ngIf="selectedBabyLocal && !shouldShowBabySelection()">
@@ -58,18 +58,18 @@
           <h2 class="section-title">💩 Change Type</h2>
           <p class="section-description">What type of diaper change was it?</p>
           
-          <div class="change-type-grid horizontal">
+          <div class="feed-type-grid">
             <div 
               *ngFor="let changeType of changeTypeOptions"
-              class="change-type-option compact"
+              class="feed-type-option"
               [class.selected]="selectedChangeType === changeType.value"
               (click)="selectChangeType(changeType.value)">
-              <div class="change-type-icon">
+              <div class="feed-type-icon">
                 <span class="emoji-icon">{{ changeType.icon }}</span>
               </div>
-              <div class="change-type-content">
+              <div class="feed-type-content">
                 <h4>{{ changeType.label }}</h4>
-                <p>{{ changeType.description }}</p>
+                <!-- <p>{{ changeType.description }}</p> -->
               </div>
               <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="selectedChangeType === changeType.value"></ion-icon>
             </div>
@@ -81,20 +81,16 @@
           <h2 class="section-title">💦 Wetness Level</h2>
           <p class="section-description">How wet was the diaper?</p>
           
-          <div class="wetness-grid horizontal">
+          <div class="selection-grid wetness-level-grid">
             <div 
               *ngFor="let wetness of wetnessOptions"
-              class="wetness-option compact"
+              class="selection-option"
               [class.selected]="selectedWetness === wetness.value"
               (click)="selectWetness(wetness.value)">
-              <div class="wetness-icon">
+              <div class="option-icon">
                 <ion-icon name="water" [class]="'wetness-' + wetness.value"></ion-icon>
               </div>
-              <div class="wetness-content">
-                <h4>{{ wetness.label }}</h4>
-                <p>{{ wetness.description }}</p>
-              </div>
-              <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="selectedWetness === wetness.value"></ion-icon>
+              <span class="option-label">{{ wetness.label }}</span>
             </div>
           </div>
         </div>

@@ -18,7 +18,7 @@
 
 .baby-icon {
   font-size: 3rem;
-  color: #e91e63;
+  color: #8383ed;
   margin-bottom: 1rem;
 }
 
@@ -71,7 +71,6 @@
 .select-item {
   --background: #ffffff;
   --border-radius: 12px;
-  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   --padding-start: 16px;
   --padding-end: 16px;
   --min-height: 48px;
@@ -102,10 +101,9 @@
 }
 
 .add-baby-button {
-  --background: #e91e63;
+  --background: #8383ed;
   --background-hover: #d81b60;
   --border-radius: 12px;
-  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
   --color: #ffffff;
   margin-top: 2rem;
   height: 48px;
@@ -115,7 +113,6 @@
   &:disabled {
     --background: #e2e8f0;
     --color: #94a3b8;
-    --box-shadow: none;
   }
 }
 

@@ -1,43 +1,41 @@
 <ion-content class="login-content">
   <div class="login-container">
-    <!-- Header -->
-    <div class="header-section">
+    <!-- Top Section with Logo (Gray Background) -->
+    <div class="top-section">
       <div class="logo-container">
-        <ion-icon name="heart" class="logo-icon"></ion-icon>
-        <h1 class="app-title">NariCare</h1>
+        <img src="assets/NariCare logo.svg" alt="NariCare Logo" class="logo-image">
       </div>
-      <p class="welcome-text" *ngIf="!show2FA">Welcome back! Sign in to continue your breastfeeding journey.</p>
-      <p class="welcome-text" *ngIf="show2FA">We've sent a verification code to {{ pendingEmail }}</p>
     </div>
+
+    <!-- Bottom Section with Form (White Background) -->
+    <div class="bottom-section">
+      <div class="welcome-section">
+        <h2 class="welcome-title" *ngIf="!show2FA">Welcome to the NariCare family!!</h2>
+        <p class="welcome-subtitle" *ngIf="show2FA">We've sent a verification code to {{ pendingEmail }}</p>
+      </div>
 
     <!-- Login Form -->
     <form *ngIf="!show2FA" [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <div class="form-group">
-        <ion-item lines="none" class="input-item">
-          <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input
-            formControlName="email"
-            type="email"
-            placeholder="Email address"
-            autocomplete="email"
-            [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
-          </ion-input>
-        </ion-item>
+      <div class="input-container">
+        <ion-input
+          formControlName="email"
+          type="email"
+          placeholder="Email Address"
+          class="custom-input"
+          fill="outline">
+        </ion-input>
         <div class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
           {{ getErrorMessage('email') }}
         </div>
       </div>
 
-      <div class="form-group">
-        <ion-item lines="none" class="input-item">
-          <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input
-            formControlName="password"
-            [type]="showPassword ? 'text' : 'password'"
-            placeholder="Password"
-            autocomplete="current-password"
-            [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
-          </ion-input>
+      <div class="input-container">
+        <ion-input
+          formControlName="password"
+          [type]="showPassword ? 'text' : 'password'"
+          placeholder="Password"
+          class="custom-input password-input"
+          fill="outline">
           <ion-button 
             fill="clear" 
             slot="end" 
@@ -45,10 +43,16 @@
             class="password-toggle">
             <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
           </ion-button>
-        </ion-item>
+        </ion-input>
         <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
           {{ getErrorMessage('password') }}
         </div>
+      </div>
+
+      <div class="forgot-password-container">
+        <ion-button fill="clear" class="forgot-password-link">
+          Forgot password?
+        </ion-button>
       </div>
 
       <ion-button
@@ -56,7 +60,7 @@
         expand="block"
         class="login-button"
         [disabled]="!loginForm.valid">
-        Sign In
+        Login
       </ion-button>
     </form>
 
@@ -96,41 +100,34 @@
       </div>
     </form>
 
-    <!-- Social Sign-in Section -->
-    <div class="social-signin-section" *ngIf="!show2FA">
-      <div class="divider">
-        <span>Or</span>
-      </div>
-      
-      <div class="social-buttons">
-        <ion-button
-          expand="block"
-          fill="outline"
-          (click)="signInWithGoogle()"
-          class="social-button google-button">
-          <ion-icon name="logo-google" slot="start"></ion-icon>
-          Sign in with Google
-        </ion-button>
-        
-        <ion-button
-          expand="block"
-          fill="outline"
-          (click)="signInWithFacebook()"
-          class="social-button facebook-button">
-          <ion-icon name="logo-facebook" slot="start"></ion-icon>
-          Sign in with Facebook
-        </ion-button>
-      </div>
+    <!-- Register Link -->
+    <div class="register-section" *ngIf="!show2FA">
+      <p class="register-prompt" (click)="navigateToRegister()">
+        Not a member? <label class="register-link">Register now</label>
+      </p>
     </div>
 
-    <!-- Footer -->
-    <div class="footer-section">
-      <p class="register-prompt">
-        Don't have an account? 
-        <ion-button fill="clear" (click)="navigateToRegister()" class="register-link">
-          Sign up here
-        </ion-button>
-      </p>
+      <!-- Social Sign-in Section -->
+      <div class="social-signin-section" *ngIf="!show2FA">
+        <div class="divider-line"></div>
+        <p class="social-divider">Or continue with</p>
+        
+        <div class="social-buttons">
+          <ion-button
+            (click)="signInWithGoogle()"
+            class="social-button google-button"
+            fill="clear">
+            <ion-icon name="logo-google"></ion-icon>
+          </ion-button>
+          
+          <ion-button
+            (click)="signInWithFacebook()"
+            class="social-button facebook-button"
+            fill="clear">
+            <ion-icon name="logo-facebook"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
     </div>
   </div>
 </ion-content>

@@ -117,7 +117,7 @@ Go to Firestore > Start collection > `article-categories`:
   "name": "Breastfeeding Basics",
   "description": "Essential information for new mothers",
   "icon": "heart",
-  "color": "#e91e63"
+  "color": "#8383ed"
 }
 ```
 

@@ -13,7 +13,7 @@
 </ion-header>
 
 <ion-content>
-  <div class="emotion-checkin-container">
+  <div class="feed-log-container">
     
     <!-- Progress indicator -->
     <div class="progress-container" *ngIf="!isInSettingsMode()">
@@ -28,169 +28,169 @@
       <p class="settings-text">Customize your check-in experience</p>
     </div>
 
-    <form [formGroup]="emotionForm" class="emotion-form">
+    <form [formGroup]="emotionForm" class="feed-form single-form">
       
       <!-- Step 1: Emotional Struggles -->
-      <div class="form-step" *ngIf="shouldShowStep(1)">
-        <h2 class="step-title">💙 How are you feeling today?</h2>
-        <p class="step-description">Select any struggles you're experiencing. It's okay to feel this way - you're not alone.</p>
+      <div class="form-section" *ngIf="shouldShowStep(1)">
+        <h2 class="section-title">💙 How are you feeling today?</h2>
+        <p class="section-description">Select any struggles you're experiencing. It's okay to feel this way - you're not alone.</p>
         
-        <div class="selection-section">
-          <div class="selection-grid struggles-grid">
-            <div 
-              *ngFor="let struggle of emotionalStruggles"
-              class="selection-option struggle-option"
-              [class.selected]="isStruggleSelected(struggle)"
-              (click)="toggleStruggle(struggle)">
-              <div class="option-emoji">{{ struggle.emoji }}</div>
-              <div class="option-content">
-                <span class="option-text">{{ struggle.text }}</span>
-              </div>
-              <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isStruggleSelected(struggle)"></ion-icon>
+        <div class="feed-type-grid">
+          <div 
+            *ngFor="let struggle of emotionalStruggles"
+            class="feed-type-option"
+            [class.selected]="isStruggleSelected(struggle)"
+            (click)="toggleStruggle(struggle)">
+            <div class="feed-type-icon">
+              <span class="emoji-icon">{{ struggle.emoji }}</span>
             </div>
-          </div>
-          
-          <div class="selection-summary" *ngIf="getSelectedCount('struggles') > 0">
-            <p>{{ getSelectedCount('struggles') }} struggle{{ getSelectedCount('struggles') !== 1 ? 's' : '' }} selected</p>
+            <div class="feed-type-content">
+              <h4>{{ struggle.text }}</h4>
+            </div>
+            <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isStruggleSelected(struggle)"></ion-icon>
           </div>
         </div>
+        
+        <div class="selection-summary" *ngIf="getSelectedCount('struggles') > 0">
+          <p>{{ getSelectedCount('struggles') }} struggle{{ getSelectedCount('struggles') !== 1 ? 's' : '' }} selected</p>
+        </div>
 
-        <ion-button 
-          expand="block" 
-          (click)="nextStep()" 
-          class="next-button">
-          Continue
-        </ion-button>
+        <div class="save-section">
+          <ion-button 
+            expand="block" 
+            (click)="nextStep()" 
+            class="save-button">
+            Continue
+          </ion-button>
+        </div>
       </div>
 
       <!-- Step 2: Positive Moments -->
-      <div class="form-step" *ngIf="shouldShowStep(2)">
-        <h2 class="step-title">✨ What went well today?</h2>
-        <p class="step-description">Celebrate the positive moments, no matter how small. You're doing amazing!</p>
+      <div class="form-section" *ngIf="shouldShowStep(2)">
+        <h2 class="section-title">✨ What went well today?</h2>
+        <p class="section-description">Celebrate the positive moments, no matter how small. You're doing amazing!</p>
         
-        <div class="selection-section">
-          <div class="selection-grid positive-grid">
-            <div 
-              *ngFor="let moment of positiveMoments"
-              class="selection-option positive-option"
-              [class.selected]="isPositiveMomentSelected(moment)"
-              (click)="togglePositiveMoment(moment)">
-              <div class="option-emoji">{{ moment.emoji }}</div>
-              <div class="option-content">
-                <span class="option-text">{{ moment.text }}</span>
-              </div>
-              <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isPositiveMomentSelected(moment)"></ion-icon>
+        <div class="feed-type-grid">
+          <div 
+            *ngFor="let moment of positiveMoments"
+            class="feed-type-option"
+            [class.selected]="isPositiveMomentSelected(moment)"
+            (click)="togglePositiveMoment(moment)">
+            <div class="feed-type-icon">
+              <span class="emoji-icon">{{ moment.emoji }}</span>
             </div>
+            <div class="feed-type-content">
+              <h4>{{ moment.text }}</h4>
+            </div>
+            <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isPositiveMomentSelected(moment)"></ion-icon>
           </div>
-          
-          <div class="selection-summary" *ngIf="getSelectedCount('positive') > 0">
-            <p>{{ getSelectedCount('positive') }} positive moment{{ getSelectedCount('positive') !== 1 ? 's' : '' }} selected</p>
-          </div>
+        </div>
+        
+        <div class="selection-summary" *ngIf="getSelectedCount('positive') > 0">
+          <p>{{ getSelectedCount('positive') }} positive moment{{ getSelectedCount('positive') !== 1 ? 's' : '' }} selected</p>
         </div>
 
         <div class="button-row">
           <ion-button fill="outline" (click)="previousStep()" class="back-button">
             Back
           </ion-button>
-          <ion-button (click)="nextStep()" class="next-button">
+          <ion-button (click)="nextStep()" class="save-button">
             Continue
           </ion-button>
         </div>
       </div>
 
       <!-- Step 3: Concerning Thoughts -->
-      <div class="form-step" *ngIf="shouldShowStep(3)">
-        <h2 class="step-title">🤗 Checking in on difficult thoughts</h2>
-        <p class="step-description">These thoughts can be part of the postpartum experience. If any apply, please know that help is available.</p>
+      <div class="form-section concerning-section" *ngIf="shouldShowStep(3)">
+        <h2 class="section-title">🤗 Checking in on difficult thoughts</h2>
+        <p class="section-description">These thoughts can be part of the postpartum experience. If any apply, please know that help is available.</p>
         
-        <div class="selection-section concerning-section">
-          <div class="selection-grid concerning-grid">
-            <div 
-              *ngFor="let thought of concerningThoughts"
-              class="selection-option concerning-option"
-              [class.selected]="isConcerningThoughtSelected(thought)"
-              [class.critical]="thought.severity === 'critical'"
-              (click)="toggleConcerningThought(thought)">
-              <div class="option-emoji">{{ thought.emoji }}</div>
-              <div class="option-content">
-                <span class="option-text">{{ thought.text }}</span>
-              </div>
-              <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isConcerningThoughtSelected(thought)"></ion-icon>
+        <div class="feed-type-grid">
+          <div 
+            *ngFor="let thought of concerningThoughts"
+            class="feed-type-option concerning-option"
+            [class.selected]="isConcerningThoughtSelected(thought)"
+            [class.critical]="thought.severity === 'critical'"
+            (click)="toggleConcerningThought(thought)">
+            <div class="feed-type-icon">
+              <span class="emoji-icon">{{ thought.emoji }}</span>
             </div>
-          </div>
-          
-          <div class="selection-summary concerning-summary" *ngIf="getSelectedCount('concerning') > 0">
-            <div class="crisis-warning" *ngIf="hasCriticalThoughts()">
-              <ion-icon name="warning"></ion-icon>
-              <p>Immediate support is recommended. Please reach out for help.</p>
+            <div class="feed-type-content">
+              <h4>{{ thought.text }}</h4>
             </div>
-            <p *ngIf="!hasCriticalThoughts()">{{ getSelectedCount('concerning') }} concerning thought{{ getSelectedCount('concerning') !== 1 ? 's' : '' }} selected</p>
+            <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isConcerningThoughtSelected(thought)"></ion-icon>
           </div>
+        </div>
+        
+        <div class="selection-summary concerning-summary" *ngIf="getSelectedCount('concerning') > 0">
+          <div class="crisis-warning" *ngIf="hasCriticalThoughts()">
+            <ion-icon name="warning"></ion-icon>
+            <p>Immediate support is recommended. Please reach out for help.</p>
+          </div>
+          <p *ngIf="!hasCriticalThoughts()">{{ getSelectedCount('concerning') }} concerning thought{{ getSelectedCount('concerning') !== 1 ? 's' : '' }} selected</p>
         </div>
 
         <div class="button-row">
           <ion-button fill="outline" (click)="previousStep()" class="back-button">
             Back
           </ion-button>
-          <ion-button (click)="nextStep()" class="next-button">
+          <ion-button (click)="nextStep()" class="save-button">
             Continue
           </ion-button>
         </div>
       </div>
 
       <!-- Step 4: Journaling & Notes -->
-      <div class="form-step" *ngIf="shouldShowStep(4)">
-        <h2 class="step-title">📝 Reflect & Journal</h2>
-        <p class="step-description">Take a moment to reflect on your day. Writing can be therapeutic and help process your feelings.</p>
+      <div class="form-section notes-section" *ngIf="shouldShowStep(4)">
+        <h2 class="section-title">📝 Reflect & Journal</h2>
+        <p class="section-description">Take a moment to reflect on your day. Writing can be therapeutic and help process your feelings.</p>
         
-        <div class="journaling-section">
-          <div class="form-group">
-            <label class="field-label">🙏 What are you grateful for today?</label>
-            <ion-item lines="none" class="input-item journaling-input">
-              <ion-textarea
-                formControlName="gratefulFor"
-                placeholder="Even small things count... a smile, a moment of peace, support from someone..."
-                rows="3"
-                autoGrow="true">
-              </ion-textarea>
-            </ion-item>
-          </div>
+        <div class="form-group">
+          <label class="field-label">🙏 What are you grateful for today?</label>
+          <ion-item lines="none" class="input-item notes-input">
+            <ion-textarea
+              formControlName="gratefulFor"
+              placeholder="Even small things count... a smile, a moment of peace, support from someone..."
+              rows="3"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+        </div>
 
-          <div class="form-group">
-            <label class="field-label">🌟 What are you proud of today?</label>
-            <ion-item lines="none" class="input-item journaling-input">
-              <ion-textarea
-                formControlName="proudOfToday"
-                placeholder="Celebrate your wins, big or small... feeding your baby, asking for help, taking a shower..."
-                rows="3"
-                autoGrow="true">
-              </ion-textarea>
-            </ion-item>
-          </div>
+        <div class="form-group">
+          <label class="field-label">🌟 What are you proud of today?</label>
+          <ion-item lines="none" class="input-item notes-input">
+            <ion-textarea
+              formControlName="proudOfToday"
+              placeholder="Celebrate your wins, big or small... feeding your baby, asking for help, taking a shower..."
+              rows="3"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+        </div>
 
-          <div class="form-group">
-            <label class="field-label">🎯 What's one small goal for tomorrow?</label>
-            <ion-item lines="none" class="input-item journaling-input">
-              <ion-textarea
-                formControlName="tomorrowGoal"
-                placeholder="Something achievable... rest when baby sleeps, call a friend, try a new feeding position..."
-                rows="3"
-                autoGrow="true">
-              </ion-textarea>
-            </ion-item>
-          </div>
+        <div class="form-group">
+          <label class="field-label">🎯 What's one small goal for tomorrow?</label>
+          <ion-item lines="none" class="input-item notes-input">
+            <ion-textarea
+              formControlName="tomorrowGoal"
+              placeholder="Something achievable... rest when baby sleeps, call a friend, try a new feeding position..."
+              rows="3"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+        </div>
 
-          <div class="form-group">
-            <label class="field-label">💭 Additional thoughts or notes</label>
-            <ion-item lines="none" class="input-item journaling-input">
-              <ion-textarea
-                formControlName="additionalNotes"
-                placeholder="Anything else you'd like to remember about today..."
-                rows="4"
-                autoGrow="true">
-              </ion-textarea>
-            </ion-item>
-          </div>
+        <div class="form-group">
+          <label class="field-label">💭 Additional thoughts or notes</label>
+          <ion-item lines="none" class="input-item notes-input">
+            <ion-textarea
+              formControlName="additionalNotes"
+              placeholder="Anything else you'd like to remember about today..."
+              rows="4"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
         </div>
 
         <div class="button-row">
@@ -208,7 +208,7 @@
       </div>
 
       <!-- Settings Step -->
-      <div class="form-step" *ngIf="isInSettingsMode()">
+      <div class="form-section" *ngIf="isInSettingsMode()">
         <h2 class="step-title">⚙️ Customize Your Check-in</h2>
         <p class="step-description">Enable or disable steps to personalize your emotional check-in experience.</p>
         

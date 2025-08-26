@@ -202,7 +202,6 @@ ion-footer {
       min-height: 44px;
 
       &:not([disabled]) {
-        --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
         
         &:hover {
           --background: var(--ion-color-primary-shade);
@@ -212,7 +211,6 @@ ion-footer {
       &[disabled] {
         --background: var(--ion-color-medium);
         --color: var(--ion-color-medium-contrast);
-        --box-shadow: none;
         opacity: 0.6;
       }
     }

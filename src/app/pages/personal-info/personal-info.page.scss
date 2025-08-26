@@ -27,7 +27,7 @@
 
     ion-icon {
       font-size: 2rem;
-      color: #e91e63;
+      color: #8383ed;
     }
   }
 
@@ -51,7 +51,6 @@
     border-radius: 16px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
     .section-title {
       display: flex;
@@ -63,7 +62,7 @@
       color: #2d3748;
 
       ion-icon {
-        color: #e91e63;
+        color: #8383ed;
         font-size: 1.3rem;
       }
     }
@@ -108,9 +107,8 @@
       margin: 0;
 
       &:focus-within {
-        --border-color: #e91e63;
-        border-color: #e91e63;
-        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+        --border-color: #8383ed;
+        border-color: #8383ed;
       }
 
       &.error {
@@ -180,7 +178,7 @@
       }
 
       ion-chip {
-        --background: #e91e63;
+        --background: #8383ed;
         --color: #ffffff;
         font-weight: 500;
       }
@@ -188,8 +186,8 @@
 
     .plan-actions {
       ion-button {
-        --color: #e91e63;
-        --border-color: #e91e63;
+        --color: #8383ed;
+        --border-color: #8383ed;
       }
     }
 
@@ -217,10 +215,9 @@
   flex-direction: column;
 
   .save-button {
-    --background: #e91e63;
+    --background: #8383ed;
     --background-hover: #d81b60;
     --border-radius: 12px;
-    --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
     --color: #ffffff;
     height: 52px;
     font-weight: 600;
@@ -229,7 +226,6 @@
     &:disabled {
       --background: #e2e8f0;
       --color: #94a3b8;
-      --box-shadow: none;
     }
   }
 

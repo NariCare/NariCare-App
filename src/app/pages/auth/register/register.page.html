@@ -1,224 +1,230 @@
 <ion-content class="register-content">
   <div class="register-container">
-    <!-- Header -->
-    <div class="header-section">
+    <!-- Top Section with Logo (Gray Background) -->
+    <!-- <div class="top-section">
       <div class="logo-container">
-        <ion-icon name="heart" class="logo-icon"></ion-icon>
-        <h1 class="app-title">NariCare</h1>
+        <img src="assets/NariCare logo.svg" alt="NariCare Logo" class="logo-image">
       </div>
-      <p class="welcome-text">Join our supportive community of mothers</p>
-    </div>
+    </div> -->
 
-    <!-- Registration Form -->
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-      
-      <!-- Personal Information -->
-      <div class="form-step">
-        <h2 class="step-title">Personal Information</h2>
-        
-        <div class="form-row">
-          <div class="form-group half-width">
-            <ion-item lines="none" class="input-item">
-              <ion-input
-                formControlName="firstName"
-                placeholder="First name"
-                [class.error]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
-              </ion-input>
-            </ion-item>
-            <div class="error-message" *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
-              {{ getErrorMessage('firstName') }}
-            </div>
-          </div>
-          
-          <div class="form-group half-width">
-            <ion-item lines="none" class="input-item">
-              <ion-input
-                formControlName="lastName"
-                placeholder="Last name"
-                [class.error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
-              </ion-input>
-            </ion-item>
-            <div class="error-message" *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
-              {{ getErrorMessage('lastName') }}
-            </div>
+    <!-- Bottom Section with Form (White Background) -->
+    <div class="bottom-section">
+      <div class="welcome-section">
+        <h2 class="signup-title">sign up</h2>
+        <p class="signup-subtitle">Create an account to get started</p>
+      </div>
+
+      <!-- Registration Form -->
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+        <!-- First Name Field -->
+        <div class="input-container">
+          <ion-input
+            formControlName="firstName"
+            placeholder="First Name"
+            class="custom-input"
+            fill="outline"
+            [class.error]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+          </ion-input>
+          <div class="error-message" *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
+            {{ getErrorMessage('firstName') }}
           </div>
         </div>
 
-        <div class="form-group">
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-input
-              formControlName="email"
-              type="email"
-              placeholder="Email address"
-              [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
-            </ion-input>
-          </ion-item>
+        <!-- Last Name Field -->
+        <div class="input-container">
+          <ion-input
+            formControlName="lastName"
+            placeholder="Last Name"
+            class="custom-input"
+            fill="outline"
+            [class.error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+          </ion-input>
+          <div class="error-message" *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
+            {{ getErrorMessage('lastName') }}
+          </div>
+        </div>
+
+        <!-- Email Address Field -->
+        <div class="input-container">
+          <ion-input
+            formControlName="email"
+            type="email"
+            placeholder="Email Address"
+            class="custom-input"
+            fill="outline"
+            [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+          </ion-input>
           <div class="error-message" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
             {{ getErrorMessage('email') }}
           </div>
         </div>
 
-        <div class="form-group">
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="call-outline" slot="start" class="input-icon"></ion-icon>
+        <!-- Phone Number Field -->
+        <div class="input-container">
+          <ion-input
+            formControlName="phoneNumber"
+            type="tel"
+            placeholder="Phone Number"
+            class="custom-input"
+            fill="outline"
+            [class.error]="registerForm.get('phoneNumber')?.invalid && registerForm.get('phoneNumber')?.touched">
+          </ion-input>
+          <div class="error-message" *ngIf="registerForm.get('phoneNumber')?.invalid && registerForm.get('phoneNumber')?.touched">
+            {{ getErrorMessage('phoneNumber') }}
+          </div>
+        </div>
+
+        <!-- WhatsApp Same as Phone Checkbox -->
+        <div class="checkbox-container">
+          <ion-checkbox formControlName="whatsappSameAsPhone"></ion-checkbox>
+          <label class="checkbox-text">WhatsApp number same as phone number</label>
+        </div>
+
+        <!-- WhatsApp Number Field - Only show if checkbox is unchecked -->
+        <div class="input-container" *ngIf="!registerForm.get('whatsappSameAsPhone')?.value">
+          <div class="whatsapp-input-wrapper">
+            <ion-icon name="logo-whatsapp" class="whatsapp-icon"></ion-icon>
             <ion-input
-              formControlName="phoneNumber"
+              formControlName="whatsappNumber"
               type="tel"
-              placeholder="Phone number (optional)">
+              placeholder="WhatsApp Phone Number"
+              class="custom-input whatsapp-input"
+              fill="outline"
+              [class.error]="registerForm.get('whatsappNumber')?.invalid && registerForm.get('whatsappNumber')?.touched">
             </ion-input>
-          </ion-item>
-        </div>
-
-        <!-- WhatsApp Number Section -->
-        <div class="whatsapp-section" *ngIf="registerForm.get('phoneNumber')?.value">
-          <div class="form-group">
-            <ion-item lines="none" class="checkbox-item">
-              <ion-checkbox formControlName="whatsappSameAsPhone" slot="start"></ion-checkbox>
-              <ion-label class="checkbox-label">
-                WhatsApp number is the same as phone number
-              </ion-label>
-            </ion-item>
           </div>
-
-          <div class="form-group" *ngIf="!registerForm.get('whatsappSameAsPhone')?.value">
-            <ion-item lines="none" class="input-item">
-              <ion-icon name="logo-whatsapp" slot="start" class="input-icon whatsapp-icon"></ion-icon>
-              <ion-input
-                formControlName="whatsappNumber"
-                type="tel"
-                placeholder="WhatsApp number">
-              </ion-input>
-            </ion-item>
+          <div class="error-message" *ngIf="registerForm.get('whatsappNumber')?.invalid && registerForm.get('whatsappNumber')?.touched">
+            {{ getErrorMessage('whatsappNumber') }}
           </div>
         </div>
 
-        <div class="form-group">
-          <ion-item lines="none" class="select-item">
-            <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-select formControlName="motherType" placeholder="I am a... (optional)">
-              <ion-select-option value="pregnant">Expecting Mother</ion-select-option>
-              <ion-select-option value="new_mom">New Mother</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </div>
-
-        <!-- Conditional fields for Pregnant Mothers -->
-        <div class="form-group" *ngIf="registerForm.get('motherType')?.value === 'pregnant'">
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-datetime
-              formControlName="dueDate"
-              presentation="date"
-              placeholder="Due date"
-              [min]="getTodayDate()"
-              [class.error]="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
-              <div slot="title">Select Due Date</div>
-            </ion-datetime>
-          </ion-item>
-          <div class="error-message" *ngIf="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
-            {{ getErrorMessage('dueDate') }}
-          </div>
-        </div>
-
-
-        <div class="form-group">
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-input
-              formControlName="password"
-              [type]="showPassword ? 'text' : 'password'"
-              placeholder="Password"
-              [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-            </ion-input>
-            <ion-button fill="clear" slot="end" (click)="togglePasswordVisibility('password')" class="password-toggle">
+        <!-- Password Field -->
+        <div class="input-container">
+          <ion-input
+            formControlName="password"
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="Create a password"
+            class="custom-input password-input"
+            fill="outline"
+            [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+            <ion-button 
+              fill="clear" 
+              slot="end" 
+              (click)="togglePasswordVisibility('password')"
+              class="password-toggle">
               <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
             </ion-button>
-          </ion-item>
+          </ion-input>
           <div class="error-message" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
             {{ getErrorMessage('password') }}
           </div>
         </div>
 
-        <div class="form-group">
-          <ion-item lines="none" class="input-item">
-            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-input
-              formControlName="confirmPassword"
-              [type]="showConfirmPassword ? 'text' : 'password'"
-              placeholder="Confirm password"
-              [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
-            </ion-input>
-            <ion-button fill="clear" slot="end" (click)="togglePasswordVisibility('confirmPassword')" class="password-toggle">
+        <!-- Confirm Password Field -->
+        <div class="input-container">
+          <ion-input
+            formControlName="confirmPassword"
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            placeholder="Confirm password"
+            class="custom-input password-input"
+            fill="outline"
+            [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+            <ion-button 
+              fill="clear" 
+              slot="end" 
+              (click)="togglePasswordVisibility('confirmPassword')"
+              class="password-toggle">
               <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
             </ion-button>
-          </ion-item>
+          </ion-input>
           <div class="error-message" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
             {{ getErrorMessage('confirmPassword') }}
           </div>
         </div>
 
-        <!-- Terms and Conditions -->
-        <div class="form-group terms-section">
-          <ion-item lines="none" class="checkbox-item">
-            <ion-checkbox formControlName="agreeToTerms" slot="start"></ion-checkbox>
-            <ion-label class="checkbox-label terms-label">
-              I agree to the <a href="#" class="terms-link">Terms of Service</a> and 
-              <a href="#" class="terms-link">Privacy Policy</a>
-            </ion-label>
-          </ion-item>
+        <!-- Mother Type Selection -->
+        <div class="input-container">
+          <ion-select 
+            formControlName="motherType" 
+            placeholder="I am a... (optional)"
+            class="custom-select"
+            fill="outline"
+            interface="popover">
+            <ion-select-option value="pregnant">Expecting Mother</ion-select-option>
+            <ion-select-option value="new_mom">New Mother</ion-select-option>
+          </ion-select>
+        </div>
+
+        <!-- Due Date for Pregnant Mothers -->
+        <div class="input-container" *ngIf="registerForm.get('motherType')?.value === 'pregnant'">
+          <ion-datetime
+            formControlName="dueDate"
+            presentation="date"
+            placeholder="Due date"
+            class="custom-datetime"
+            fill="outline"
+            [min]="getTodayDate()"
+            [class.error]="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
+            <div slot="title">Select Due Date</div>
+          </ion-datetime>
+          <div class="error-message" *ngIf="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
+            {{ getErrorMessage('dueDate') }}
+          </div>
+        </div>
+
+        <!-- Terms and Conditions Checkbox -->
+        <div class="terms-container">
+          <div class="checkbox-wrapper">
+            <ion-checkbox formControlName="agreeToTerms"></ion-checkbox>
+            <label class="terms-text">
+              I've read and agree with the <span class="terms-link">Terms and Conditions</span> and the <span class="terms-link">Privacy Policy</span>.
+            </label>
+          </div>
           <div class="error-message" *ngIf="registerForm.get('agreeToTerms')?.invalid && registerForm.get('agreeToTerms')?.touched">
             You must agree to the terms and conditions
           </div>
         </div>
+
+
 
         <!-- Submit Button -->
         <ion-button 
           expand="block"
           type="submit" 
           [disabled]="!registerForm.valid"
-          class="register-button">
-          <ion-icon name="person-add-outline" slot="start"></ion-icon>
+          class="signup-button">
           Create Account
         </ion-button>
-      </div>
-    </form>
+      </form>
 
-    <!-- Social Sign-in Section -->
-    <div class="social-signin-section">
-      <div class="divider">
-        <span>Or</span>
+      <!-- Login Link -->
+      <div class="login-section">
+        <p class="login-prompt" (click)="navigateToLogin()">
+          Already have an account? <label class="login-link">Sign in here</label>
+        </p>
       </div>
-      
-      <div class="social-buttons">
-        <ion-button
-          expand="block"
-          fill="outline"
-          (click)="signInWithGoogle()"
-          class="social-button google-button">
-          <ion-icon name="logo-google" slot="start"></ion-icon>
-          Sign up with Google
-        </ion-button>
+
+      <!-- Social Sign-in Section -->
+      <div class="social-signin-section">
+        <div class="divider-line"></div>
+        <p class="social-divider">Or continue with</p>
         
-        <ion-button
-          expand="block"
-          fill="outline"
-          (click)="signInWithFacebook()"
-          class="social-button facebook-button">
-          <ion-icon name="logo-facebook" slot="start"></ion-icon>
-          Sign up with Facebook
-        </ion-button>
+        <div class="social-buttons">
+          <ion-button
+            (click)="signInWithGoogle()"
+            class="social-button google-button"
+            fill="clear">
+            <ion-icon name="logo-google"></ion-icon>
+          </ion-button>
+          
+          <ion-button
+            (click)="signInWithFacebook()"
+            class="social-button facebook-button"
+            fill="clear">
+            <ion-icon name="logo-facebook"></ion-icon>
+          </ion-button>
+        </div>
       </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer-section">
-      <p class="login-prompt">
-        Already have an account? 
-        <ion-button fill="clear" (click)="navigateToLogin()" class="login-link">
-          Sign in here
-        </ion-button>
-      </p>
     </div>
   </div>
 </ion-content>

@@ -75,9 +75,6 @@
                   <span class="join-status" *ngIf="room.participants.length >= room.maxParticipants">
                     Group Full
                   </span>
-                  <span class="join-status" *ngIf="room.participants.length < room.maxParticipants">
-                    {{ room.maxParticipants - room.participants.length }} spots left
-                  </span>
                 </div>
               </div>
               <div class="room-action">

@@ -166,10 +166,10 @@ export class WHOGrowthChartService {
         percentile: point.percentile
       })),
       type: 'scatter',
-      color: '#e91e63',
+      color: '#8383ed',
       marker: {
         radius: 6,
-        fillColor: '#e91e63',
+        fillColor: '#8383ed',
         lineColor: '#ffffff',
         lineWidth: 2
       },

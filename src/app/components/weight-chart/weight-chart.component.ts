@@ -141,7 +141,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
           style: { 
             fontSize: '18px', 
             fontWeight: '600',
-            color: '#e91e63',
+            color: '#8383ed',
             fontFamily: 'Inter, sans-serif'
           }
         },
@@ -222,7 +222,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
         tooltip: {
           shared: false,
           backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          borderColor: '#e91e63',
+          borderColor: '#8383ed',
           borderRadius: 8,
           shadow: true,
           formatter: function() {
@@ -238,7 +238,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
               let percentileText = that.getPercentileMessage(percentile);
               
               return `<div style="text-align: center; padding: 4px;">
-                        <div style="font-weight: 600; color: #e91e63; margin-bottom: 4px;">💕 Your Baby</div>
+                        <div style="font-weight: 600; color: #8383ed; margin-bottom: 4px;">💕 Your Baby</div>
                         <div style="margin-bottom: 2px;"><strong>${ageText}</strong></div>
                         <div style="margin-bottom: 2px;">Weight: <strong>${weight}kg</strong></div>
                         <div style="color: #10b981; font-weight: 500;">${percentileText}</div>
@@ -288,10 +288,10 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
             y: point.value,
             percentile: point.percentile
           })),
-          color: '#e91e63',
+          color: '#8383ed',
           marker: {
             radius: 8,
-            fillColor: '#e91e63',
+            fillColor: '#8383ed',
             lineColor: '#ffffff',
             lineWidth: 3,
             symbol: 'circle'
@@ -386,10 +386,10 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
           name: 'Your Baby',
           type: 'scatter',
           data: babyGrowthPoints.map(point => [point.ageInWeeks, point.value]),
-          color: '#e91e63',
+          color: '#8383ed',
           marker: {
             radius: 6,
-            fillColor: '#e91e63',
+            fillColor: '#8383ed',
             lineColor: '#ffffff',
             lineWidth: 2
           }
@@ -479,10 +479,10 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
             y: point.value,
             percentile: point.percentile
           })),
-          color: '#e91e63',
+          color: '#8383ed',
           marker: {
             radius: 6,
-            fillColor: '#e91e63',
+            fillColor: '#8383ed',
             lineColor: '#ffffff',
             lineWidth: 2
           },

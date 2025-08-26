@@ -82,7 +82,7 @@ export class GroupChatMessagesComponent implements OnInit, OnChanges, AfterViewC
 
   getSenderRoleColor(role: string): string {
     switch (role) {
-      case 'expert': return '#e91e63';
+      case 'expert': return '#8383ed';
       case 'moderator': return '#ff9800';
       default: return '#26a69a';
     }

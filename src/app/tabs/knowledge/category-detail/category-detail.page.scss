@@ -3,7 +3,7 @@
 }
 
 .category-header {
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   border-radius: 20px;
   padding: 2rem;
   display: flex;
@@ -69,14 +69,12 @@
   padding: 1rem;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:active {
     transform: translateY(1px);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   }
 }
 

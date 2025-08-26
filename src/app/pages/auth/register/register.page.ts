@@ -25,7 +25,7 @@ export class RegisterPage implements OnInit {
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      phoneNumber: [''], // Optional
+      phoneNumber: ['', [Validators.required]],
       whatsappSameAsPhone: [true], // Checkbox for WhatsApp same as phone
       whatsappNumber: [''], // Conditional WhatsApp number field
       motherType: [''], // Optional
@@ -38,6 +38,23 @@ export class RegisterPage implements OnInit {
   }
 
   ngOnInit() {
+    // Auto-split full name into firstName and lastName
+    this.registerForm.get('firstName')?.valueChanges.subscribe((fullName) => {
+      if (fullName && fullName.trim().includes(' ')) {
+        const nameParts = fullName.trim().split(' ');
+        const firstName = nameParts.slice(0, -1).join(' ');
+        const lastName = nameParts[nameParts.length - 1];
+        
+        // Prevent infinite loop by checking if values are different
+        if (this.registerForm.get('firstName')?.value !== firstName) {
+          this.registerForm.get('firstName')?.setValue(firstName, { emitEvent: false });
+        }
+        if (this.registerForm.get('lastName')?.value !== lastName) {
+          this.registerForm.get('lastName')?.setValue(lastName, { emitEvent: false });
+        }
+      }
+    });
+
     // Listen for motherType changes to trigger conditional validation
     this.registerForm.get('motherType')?.valueChanges.subscribe(() => {
       // Clear conditional fields when mother type changes

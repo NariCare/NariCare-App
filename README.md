@@ -131,7 +131,7 @@ export const environment = {
 ## 🎨 Design System
 
 The application uses a maternal-focused design system with:
-- **Primary Color**: Pink (#E91E63)
+- **Primary Color**: Pink (#8383ed)
 - **Secondary Color**: Teal (#26A69A)
 - **Accent Colors**: Warm orange and soft blues
 - **Typography**: Inter font family

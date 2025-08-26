@@ -1,126 +1,131 @@
 .content-container {
   padding: 1rem;
+  padding-bottom: 100px; // Bottom padding for tab bar navigation
   // background: linear-gradient(135deg, #a8dadc, #b8e6e8);
   min-height: 100vh;
+  background: #f9f9f9;
 }
 
-/* Top Action Buttons */
-.action-buttons-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+/* Tracker Cards Container */
+.tracker-cards-container {
   margin-bottom: 2rem;
   padding: 0 0.5rem;
 }
 
-.action-button {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
-  padding: 2rem 1rem;
+/* 2x2 Grid for top row */
+.tracker-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tracker-card {
+  background: #ffffff;
+  // border-radius: 16px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid transparent;
+  // border: 1px solid transparent;
   min-height: 120px;
+  font-family: 'Poppins', sans-serif;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-    background: rgba(255, 255, 255, 1);
   }
 
   &:active {
     transform: translateY(0);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
-  .action-icon {
+  .tracker-icon {
     width: 60px;
     height: 60px;
-    border-radius: 50%;
-    background: rgba(168, 218, 220, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 1rem;
-    transition: all 0.3s ease;
-
-    ion-icon {
-      font-size: 2rem;
-      color: #ffffff;
-    }
   }
 
-  .action-label {
-    font-size: 1.1rem;
-    font-weight: 600;
+  .tracker-svg-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .tracker-label {
+    font-size: 1rem;
+    font-weight: 500;
     color: #2d3748;
     text-align: center;
+    font-family: 'Poppins', sans-serif;
   }
 
-  &.fast-feed .action-icon {
-    background: rgba(168, 218, 220, 0.9);
+  // Color-coded backgrounds from Figma
+  &.feed-card {
+    background: #FFEDF4; // Pink background
   }
 
-  &.feed .action-icon {
-    background: rgba(168, 218, 220, 0.9);
+  &.diaper-card {
+    background: #EDEDFD; // Purple background
   }
 
-  &.weight-size .action-icon {
-    background: rgba(168, 218, 220, 0.9);
+  &.weight-card {
+    background: #FFF0DE; // Yellow background
   }
 
-  &.poo .action-icon {
-    background: rgba(168, 218, 220, 0.9);
+  &.pump-card {
+    background: #E2F5EF; // Teal background
   }
 
-  &.pump .action-icon {
-    background: rgba(38, 166, 154, 0.9);
-  }
+  // Full-width emotional check-in card
+  &.emotional-card {
+    background: #FFF7D7; // Yellow background like in Figma
+    grid-column: 1 / -1; // Span full width
+    min-height: 80px;
+    padding: 1.5rem;
+    margin-top: 0.5rem;
 
-  &.emotion-checkin .action-icon {
-    background: rgba(233, 30, 99, 0.9);
+    .emotional-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .tracker-icon {
+      margin-bottom: 0.5rem;
+    }
+
+    .tracker-label {
+      font-size: 1rem;
+      font-weight: 500;
+    }
   }
 }
 
 /* Main Tab Selector */
 .main-tab-selector {
   margin-bottom: 2rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  border-radius: 0;
+  padding: 2px;
+  box-shadow: none;
+  border: none;
+  border-bottom: none;
 }
 
-.main-tabs-segment {
-  --background: transparent;
-  --color-checked: #2d3748;
-  --background-checked: #ffffff;
-  --border-radius: 12px;
-  --indicator-color: transparent;
-
-  ion-segment-button {
-    --color: #64748b;
-    --color-checked: #2d3748;
-    --background-checked: #ffffff;
-    --border-radius: 12px;
-    font-weight: 600;
-    margin: 0.25rem;
-    min-height: 44px;
-
-    ion-label {
-      font-size: 0.95rem;
-    }
-  }
-}
+/* Tab styling now handled by global.scss */
 
 /* Tab Content */
 .tab-content {
   min-height: 400px;
+  position: relative; // Enable absolute positioning for FAB within this container
+  padding-bottom: 80px; // Add space for FAB within the tab content
 }
 
 /* My Babies Tab */
@@ -131,32 +136,25 @@
 }
 
 .baby-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  padding: 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 2px solid transparent;
-
-  &.selected {
-    border-color: #e91e63;
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.2);
-  }
+  border: 1px solid #f1f5f9;
+  font-family: 'Poppins', sans-serif;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 
   .baby-avatar {
-    width: 60px;
-    height: 60px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+    background: #8383ed;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -164,7 +162,7 @@
     flex-shrink: 0;
 
     ion-icon {
-      font-size: 2rem;
+      font-size: 1.4rem;
       color: #ffffff;
     }
   }
@@ -174,27 +172,30 @@
 
     h3 {
       margin: 0 0 0.25rem 0;
-      font-size: 1.3rem;
-      font-weight: 600;
+      font-size: 1rem;
+      font-weight: 500;
       color: #2d3748;
+      font-family: 'Poppins', sans-serif;
     }
 
     .baby-age {
-      margin: 0 0 0.25rem 0;
-      font-size: 0.9rem;
-      color: #64748b;
+      margin: 0;
+      font-size: 0.875rem;
+      color: #6b7280;
+      font-family: 'Poppins', sans-serif;
     }
 
     .baby-weight {
       margin: 0;
-      font-size: 0.85rem;
-      color: #94a3b8;
+      font-size: 0.875rem;
+      color: #6b7280;
+      font-family: 'Poppins', sans-serif;
     }
   }
 
   .baby-arrow {
-    color: #cbd5e1;
-    font-size: 1.2rem;
+    color: #d1d5db;
+    font-size: 1.1rem;
   }
 }
 
@@ -234,7 +235,6 @@
   background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   position: relative;
 
@@ -353,14 +353,12 @@
   // --background-hover: #9bc5c7;
   --border-radius: 25px;
   --color: #ffffff;
-  // --box-shadow: 0 4px 12px rgba(168, 218, 220, 0.4);
   height: 50px;
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 
   &:hover {
-    // --box-shadow: 0 6px 16px rgba(168, 218, 220, 0.5);
     transform: translateY(-1px);
   }
 }
@@ -370,7 +368,6 @@
   background: rgba(255, 255, 255, 0.95);
   border-radius: 16px;
   padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .records-list {
@@ -612,13 +609,11 @@
     border-radius: 12px;
     padding: 1rem;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     border: 1px solid #f1f5f9;
     transition: all 0.2s ease;
 
     &:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .stat-icon {
@@ -645,7 +640,7 @@
     }
 
     &.emotion-stat .stat-icon {
-      background: linear-gradient(135deg, #e91e63, #f06292);
+      background: linear-gradient(135deg, #8383ed, #8383ed);
     }
 
     .stat-content {
@@ -676,7 +671,6 @@
   background: #ffffff;
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
 
   .section-header {
@@ -723,7 +717,7 @@
   }
 
   &.emotion-section .section-title-icon ion-icon {
-    background: linear-gradient(135deg, #e91e63, #f06292);
+    background: linear-gradient(135deg, #8383ed, #8383ed);
   }
 }
 
@@ -762,7 +756,7 @@
       }
 
       &.emotion {
-        background: linear-gradient(135deg, #e91e63, #f06292);
+        background: linear-gradient(135deg, #8383ed, #8383ed);
       }
     }
 
@@ -893,7 +887,7 @@
 
         .struggle-count {
           font-weight: 500;
-          color: #e91e63;
+          color: #8383ed;
         }
       }
     }
@@ -904,10 +898,10 @@
     }
 
     &.emotion-item {
-      border-left: 3px solid #e91e63;
+      border-left: 3px solid #8383ed;
 
       .activity-details ion-icon {
-        color: #e91e63;
+        color: #8383ed;
       }
     }
   }
@@ -1017,29 +1011,52 @@
 }
 
 /* Core Modal Components */
+/* Floating Add Baby Button - Inside Tab */
+.fab-wrapper {
+  position: absolute;
+  bottom: 20px; // Position relative to the tab content
+  right: 20px;
+  z-index: 100;
+  pointer-events: none;
+  
+  ion-fab-button {
+    pointer-events: all;
+  }
+  
+  // Adjust for different screen sizes
+  @media (max-width: 768px) {
+    bottom: 16px;
+    right: 16px;
+  }
+}
+
 .add-baby-fab {
-  --background: #e91e63;
-  --background-hover: #d81b60;
+  --background: #8383ed;
+  --background-hover: #7676d1;
   --color: #ffffff;
-  --box-shadow: 0 4px 16px rgba(233, 30, 99, 0.4);
+  width: 56px;
+  height: 56px;
 
   &:hover {
-    --background: #d81b60;
-    --box-shadow: 0 6px 20px rgba(233, 30, 99, 0.5);
+    --background: #7676d1;
     transform: scale(1.05);
+  }
+
+  ion-icon {
+    font-size: 24px;
   }
 }
 
 .add-first-baby-button {
-  --background: #e91e63;
-  --background-hover: #d81b60;
+  --background: #8383ed;
+  --background-hover: #7676d1;
   --border-radius: 12px;
-  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
   --color: #ffffff;
   margin-top: 1.5rem;
   height: 48px;
   font-weight: 600;
   letter-spacing: 0.025em;
+  font-family: 'Poppins', sans-serif;
 }
 
 @media (min-width: 768px) {

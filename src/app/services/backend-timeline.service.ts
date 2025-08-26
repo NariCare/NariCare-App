@@ -214,7 +214,7 @@ export class BackendTimelineService {
         description: 'Your baby has arrived! This is the beginning of your beautiful journey together.',
         category: 'milestone',
         icon: 'heart',
-        color: '#e91e63',
+        color: '#8383ed',
         whatToExpected: [
           'Baby will want to feed 8-12 times in 24 hours',
           'Colostrum (liquid gold) is all baby needs',

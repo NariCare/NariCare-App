@@ -12,7 +12,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .room-info {
@@ -25,7 +24,7 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -80,7 +79,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #e91e63, #f06292);
+    background: linear-gradient(135deg, #8383ed, #8383ed);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -153,7 +152,7 @@
     }
 
     .message-bubble {
-      background: #e91e63;
+      background: #8383ed;
       color: #ffffff;
     }
 
@@ -202,7 +201,6 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .avatar-initials {
@@ -224,7 +222,6 @@
   justify-content: center;
   font-size: 0.7rem;
   color: inherit;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .message-content {
@@ -250,7 +247,6 @@
   background: #ffffff;
   border-radius: 18px;
   padding: 0.75rem 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #f1f5f9;
   word-wrap: break-word;
   position: relative;
@@ -305,7 +301,6 @@
     max-width: 300px;
     height: auto;
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     transition: transform 0.2s ease;
     
@@ -333,7 +328,6 @@
   &:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
   .video-thumbnail {
@@ -527,7 +521,7 @@
 /* Custom Scrollbar */
 .messages-container {
   scrollbar-width: thin;
-  scrollbar-color: #e91e63 #f1f5f9;
+  scrollbar-color: #8383ed #f1f5f9;
 }
 
 .messages-container::-webkit-scrollbar {
@@ -539,7 +533,7 @@
 }
 
 .messages-container::-webkit-scrollbar-thumb {
-  background: #e91e63;
+  background: #8383ed;
   border-radius: 2px;
 }
 

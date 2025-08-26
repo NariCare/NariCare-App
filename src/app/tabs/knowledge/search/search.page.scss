@@ -9,7 +9,6 @@
 .custom-searchbar {
   --background: #ffffff;
   --border-radius: 12px;
-  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   --color: #2d3748;
   --placeholder-color: #94a3b8;
   --icon-color: #94a3b8;
@@ -53,14 +52,12 @@
   padding: 1rem;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:active {
     transform: translateY(1px);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   }
 }
 

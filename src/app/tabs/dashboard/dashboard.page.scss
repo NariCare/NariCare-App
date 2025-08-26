@@ -1,6 +1,6 @@
 .dashboard-header {
   ion-toolbar {
-    --background: linear-gradient(135deg, #e91e63 0%, #f06292 100%);
+    --background: linear-gradient(135deg, #8383ed 0%, #8383ed 100%);
     --color: #ffffff;
     --border-width: 0;
   }
@@ -74,14 +74,12 @@
   padding: 1rem;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:active {
     transform: translateY(1px);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -102,7 +100,7 @@
 }
 
 .action-card-primary .action-icon {
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
 }
 
 .action-card-success .action-icon {
@@ -151,7 +149,6 @@
   background: #ffffff;
   border-radius: 16px;
   padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
 }
 
@@ -169,7 +166,7 @@
 }
 
 .insight-icon {
-  color: #e91e63;
+  color: #8383ed;
   font-size: 1.25rem;
   margin-right: 0.5rem;
 }
@@ -184,7 +181,7 @@
 }
 
 .insight-action {
-  --color: #e91e63;
+  --color: #8383ed;
   --padding-start: 0;
   --padding-end: 0;
   margin: 0;
@@ -230,15 +227,13 @@
   background: #ffffff;
   border-radius: 16px;
   padding: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
   overflow: hidden;
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
 
   &.upcoming {
@@ -302,7 +297,7 @@
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -380,7 +375,7 @@
   }
   
   .join-button {
-    --background: #e91e63;
+    --background: #8383ed;
     --background-hover: #d81b60;
     --border-radius: 8px;
     --color: #ffffff;
@@ -424,7 +419,6 @@
   background: linear-gradient(135deg, #fef7f7, #ffffff);
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.06);
   border: 1px solid #fce4ec;
 }
 
@@ -438,7 +432,7 @@
   width: 60px;
   height: 60px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -483,17 +477,15 @@
 }
 
 .book-consultation-button {
-  --background: #e91e63;
+  --background: #8383ed;
   --background-hover: #d81b60;
   --border-radius: 12px;
-  --box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
   --color: #ffffff;
   height: 48px;
   font-weight: 600;
   letter-spacing: 0.025em;
 
   &:hover {
-    --box-shadow: 0 6px 16px rgba(233, 30, 99, 0.4);
     transform: translateY(-1px);
   }
 }
@@ -502,7 +494,6 @@
   background: #ffffff;
   border-radius: 16px;
   padding: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
@@ -516,7 +507,7 @@
 }
 
 .activity-icon {
-  color: #e91e63;
+  color: #8383ed;
   font-size: 2rem;
   margin-right: 1rem;
 }
@@ -541,12 +532,11 @@
   background: #ffffff;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 1px solid #f1f5f9;
 }
 
 .timeline-header {
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   padding: 1.5rem;
   display: flex;
   align-items: center;
@@ -621,13 +611,11 @@
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   }
 
   &.current-item {
     background: linear-gradient(135deg, #fef7f7, #ffffff);
-    border-color: #e91e63;
-    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.15);
+    border-color: #8383ed;
 
     .week-badge {
       animation: currentWeekPulse 2s infinite ease-in-out;
@@ -698,17 +686,16 @@
   color: #ffffff;
   font-size: 0.8rem;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   border: 3px solid #ffffff;
   z-index: 10;
 }
 
 @keyframes currentWeekPulse {
   0%, 100% {
-    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    transform: scale(1);
   }
   50% {
-    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.5);
+    transform: scale(1.05);
   }
 }
 
@@ -718,7 +705,7 @@
   top: 100%;
   width: 2px;
   height: 2rem;
-  background: linear-gradient(to bottom, #e91e63, #f06292);
+  background: linear-gradient(to bottom, #8383ed, #8383ed);
   z-index: 5;
 }
 
@@ -727,7 +714,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
-  color: #e91e63;
+  color: #8383ed;
   font-size: 0.85rem;
   font-weight: 600;
 
@@ -775,17 +762,15 @@
 }
 
 .see-more-button {
-  --background: linear-gradient(135deg, #e91e63, #f06292);
+  --background: linear-gradient(135deg, #8383ed, #8383ed);
   --color: #ffffff;
   --border-radius: 25px;
-  --box-shadow: 0 4px 16px rgba(233, 30, 99, 0.3);
   height: 50px;
   font-weight: 600;
   letter-spacing: 1px;
   min-width: 200px;
 
   &:hover {
-    --box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4);
     transform: translateY(-2px);
   }
 }
@@ -812,7 +797,6 @@
 
 .onboarding-action {
   border: 2px solid #ff9800;
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
   position: relative;
   overflow: hidden;
 
@@ -846,7 +830,6 @@
   }
 
   &:hover {
-    box-shadow: 0 8px 24px rgba(255, 152, 0, 0.3);
     transform: translateY(-3px);
   }
 }

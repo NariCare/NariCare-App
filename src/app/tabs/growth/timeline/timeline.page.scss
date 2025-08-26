@@ -1,18 +1,17 @@
 .timeline-page-container {
   padding: 0;
-  background: linear-gradient(135deg, #fef7f7, #f8fafc);
+  background: #f9f9f9;
   min-height: 100vh;
 }
 
 .timeline-header {
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   padding: 2rem 1rem;
   text-align: center;
   color: #ffffff;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
 }
 
 .week-indicator {
@@ -30,7 +29,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   border: 3px solid #ffffff;
 
   ion-icon {
@@ -78,7 +76,7 @@
 }
 
 .baby-selector-card {
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   border-radius: 20px;
   padding: 1.5rem;
   margin: 1rem;
@@ -86,7 +84,6 @@
   align-items: center;
   justify-content: space-between;
   color: #ffffff;
-  box-shadow: 0 4px 16px rgba(233, 30, 99, 0.3);
 }
 
 .baby-info {
@@ -182,20 +179,17 @@
   padding: 1rem;
   display: flex;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.2s ease;
   
   &.selected {
-    border-color: #e91e63;
+    border-color: #8383ed;
     background: linear-gradient(135deg, #fef7f7, #ffffff);
-    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.15);
   }
   
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -203,7 +197,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e91e63, #f06292);
+  background: linear-gradient(135deg, #8383ed, #8383ed);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -246,7 +240,7 @@
 }
 
 .selected-icon {
-  color: #e91e63;
+  color: #8383ed;
   font-size: 1.5rem;
   margin-left: 0.5rem;
 }
@@ -268,7 +262,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #e91e63, #f06292);
+  background: linear-gradient(90deg, #8383ed, #8383ed);
   border-radius: 4px;
   transition: width 0.5s ease;
 }
@@ -284,9 +278,8 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #e91e63;
+  background: #8383ed;
   border: 3px solid #ffffff;
-  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.4);
 }
 
 .progress-labels {
@@ -308,7 +301,6 @@
   background: #ffffff;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border: 2px solid transparent;
   transition: all 0.3s ease;
   position: relative;
@@ -316,17 +308,14 @@
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   }
 
   &:active {
     transform: translateY(0);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   &.current-week {
-    border-color: #e91e63;
-    box-shadow: 0 8px 24px rgba(233, 30, 99, 0.2);
+    border-color: #8383ed;
     transform: scale(1.02);
     
     &::before {
@@ -334,7 +323,7 @@
       position: absolute;
       top: 0;
       right: 0;
-      background: #e91e63;
+      background: #8383ed;
       color: #ffffff;
       padding: 0.25rem 0.75rem;
       font-size: 0.7rem;
@@ -394,7 +383,6 @@
   color: #ffffff;
   font-weight: 700;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   z-index: 5;
 
   .week-number {
@@ -430,7 +418,6 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
   ion-icon {
     font-size: 1.5rem;
@@ -486,7 +473,7 @@
 
   .more-indicator {
     font-size: 0.75rem;
-    color: #e91e63;
+    color: #8383ed;
     font-weight: 500;
     background: rgba(233, 30, 99, 0.1);
     padding: 0.25rem 0.5rem;
@@ -532,7 +519,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #e91e63, #f06292);
+        background: linear-gradient(135deg, #8383ed, #8383ed);
         
         ion-icon {
           font-size: 1.5rem;
