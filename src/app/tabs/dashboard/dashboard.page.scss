@@ -243,11 +243,6 @@
   &.completed {
     border-left: 4px solid #3b82f6;
   }
-
-  &.cancelled {
-    border-left: 4px solid #ef4444;
-    opacity: 0.8;
-  }
 }
 
 .consultation-status-badge {
@@ -376,7 +371,7 @@
   
   .join-button {
     --background: #8383ed;
-    --background-hover: #d81b60;
+    // --background-hover: #d81b60;
     --border-radius: 8px;
     --color: #ffffff;
     height: 32px;
@@ -478,7 +473,7 @@
 
 .book-consultation-button {
   --background: #8383ed;
-  --background-hover: #d81b60;
+  // --background-hover: #d81b60;
   --border-radius: 12px;
   --color: #ffffff;
   height: 48px;
@@ -614,7 +609,7 @@
   }
 
   &.current-item {
-    background: linear-gradient(135deg, #fef7f7, #ffffff);
+    // background: linear-gradient(135deg, #fef7f7, #ffffff);
     border-color: #8383ed;
 
     .week-badge {
