@@ -41,7 +41,7 @@ export class DashboardPage implements OnInit, AfterViewInit {
     {
       title: 'Ask AI Assistant',
       description: 'Get instant help with breastfeeding questions',
-      icon: 'chatbot',
+      icon: 'chatbox-ellipses',
       action: 'openChatbot',
       color: 'primary',
       priority: false

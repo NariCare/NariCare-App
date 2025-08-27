@@ -45,6 +45,7 @@ export interface ArticleCategory {
   description: string;
   icon: string;
   color: string;
+  customIcon?: string;
 }
 
 export interface SearchResult {

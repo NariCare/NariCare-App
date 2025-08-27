@@ -11,7 +11,8 @@
       "id": "breastfeeding-techniques",
       "name": "Breastfeeding Techniques",
       "description": "Proper positioning, latching, and feeding techniques",
-      "icon": "baby",
+      "icon": "school",
+      "customIcon": "assets/Fed directly.svg",
       "color": "#26a69a"
     },
     {

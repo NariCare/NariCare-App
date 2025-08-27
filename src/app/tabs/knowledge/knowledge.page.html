@@ -27,7 +27,8 @@
           class="category-card"
           (click)="onCategorySelect(category.id)">
           <div class="category-icon" [style.background-color]="category.color">
-            <ion-icon [name]="category.icon"></ion-icon>
+            <ion-icon *ngIf="!category.customIcon" [name]="category.icon"></ion-icon>
+            <img *ngIf="category.customIcon" [src]="category.customIcon" alt="{{ category.name }}" class="custom-category-icon">
           </div>
           <div class="category-content">
             <h3>{{ category.name }}</h3>
