@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 import { VideoPlayerModalComponent } from '../components/video-player-modal/video-player-modal.component';
 import { TimelineModalComponent } from '../components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from '../components/specific-week-modal/specific-week-modal.component';
@@ -16,6 +17,7 @@ import { EmotionCheckinModalComponent } from '../components/emotion-checkin-moda
 import { BabyCreationModalComponent } from '../components/baby-creation-modal/baby-creation-modal.component';
 import { WeightLogModalComponent } from '../components/weight-log-modal/weight-log-modal.component';
 import { CreateGroupModalComponent } from '../components/create-group-modal/create-group-modal.component';
+import { CustomIconComponent } from '../components/custom-icon/custom-icon.component';
 
 @NgModule({
   declarations: [
@@ -32,13 +34,15 @@ import { CreateGroupModalComponent } from '../components/create-group-modal/crea
     EmotionCheckinModalComponent,
     BabyCreationModalComponent,
     WeightLogModalComponent,
-    CreateGroupModalComponent
+    CreateGroupModalComponent,
+    CustomIconComponent
   ],
   imports: [
     CommonModule,
     IonicModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    HttpClientModule
   ],
   exports: [
     VideoPlayerModalComponent,
@@ -54,7 +58,8 @@ import { CreateGroupModalComponent } from '../components/create-group-modal/crea
     EmotionCheckinModalComponent,
     BabyCreationModalComponent,
     WeightLogModalComponent,
-    CreateGroupModalComponent
+    CreateGroupModalComponent,
+    CustomIconComponent
   ]
 })
 export class SharedModule { }

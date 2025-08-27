@@ -13,7 +13,7 @@
   <div class="baby-creation-container">
     <!-- Header Section -->
     <div class="header-section">
-      <ion-icon name="baby" class="baby-icon"></ion-icon>
+      <app-custom-icon [babyGender]="babyForm.get('gender')?.value || 'male'" size="48px" class="baby-icon"></app-custom-icon>
       <h2>Tell us about your baby</h2>
       <p>We'll use this information to provide personalized tracking and guidance.</p>
     </div>

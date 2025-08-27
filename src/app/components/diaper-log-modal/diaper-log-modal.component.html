@@ -17,7 +17,7 @@
       <div class="form-section selected-baby-info" *ngIf="selectedBabyLocal && !shouldShowBabySelection()">
         <div class="selected-baby-display">
           <div class="baby-avatar">
-            <ion-icon name="baby"></ion-icon>
+            <app-custom-icon [babyGender]="selectedBabyLocal?.gender || 'male'" size="32px"></app-custom-icon>
           </div>
           <div class="baby-info">
             <h3>{{ selectedBabyLocal.name }}</h3>
@@ -39,7 +39,7 @@
             [class.selected]="selectedBabyLocal?.id === baby.id"
             (click)="selectBaby(baby)">
             <div class="baby-avatar">
-              <ion-icon name="baby"></ion-icon>
+              <app-custom-icon [babyGender]="baby.gender" size="32px"></app-custom-icon>
             </div>
             <div class="baby-info">
               <h3>{{ baby.name }}</h3>

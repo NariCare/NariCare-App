@@ -13,7 +13,7 @@
       <div class="tracker-cards-grid">
         <div class="tracker-card feed-card" (click)="onFeed()">
           <div class="tracker-icon">
-            <img src="assets/Feed.svg" alt="Feed" class="tracker-svg-icon">
+            <app-custom-icon trackerType="feed" size="50px"></app-custom-icon>
           </div>
           <span class="tracker-label">Feed</span>
         </div>
@@ -27,7 +27,7 @@
         
         <div class="tracker-card weight-card" (click)="onWeightSize()">
           <div class="tracker-icon">
-            <img src="assets/Weight.svg" alt="Weight" class="tracker-svg-icon">
+            <app-custom-icon trackerType="weight" size="40px"></app-custom-icon>
           </div>
           <span class="tracker-label">Weight</span>
         </div>
@@ -44,7 +44,7 @@
       <div class="tracker-card emotional-card" (click)="onEmotionCheckin()">
         <div class="emotional-content">
           <div class="tracker-icon">
-            <img src="assets/Emotional check-in.svg" alt="Emotional check-in" class="tracker-svg-icon">
+            <app-custom-icon trackerType="emotional" size="100px"></app-custom-icon>
           </div>
           <span class="tracker-label">Emotional check-in</span>
         </div>
@@ -72,7 +72,7 @@
           [class.selected]="selectedBaby?.id === baby.id"
           (click)="selectBaby(baby)">
           <div class="baby-avatar">
-            <ion-icon name="heart"></ion-icon>
+            <img [src]="getBabyIconUrl(baby.gender)" alt="Baby" style="width: 32px; height: 32px;">
           </div>
           <div class="baby-info">
             <h3>{{ baby.name }}</h3>
@@ -84,7 +84,7 @@
       </div>
       
       <div class="empty-babies" *ngIf="!user || !user.babies || user.babies.length === 0">
-        <ion-icon name="baby"></ion-icon>
+        <app-custom-icon name="Baby boy" size="48px"></app-custom-icon>
         <h3>No babies added yet</h3>
         <p>Add your baby's information to start tracking growth and feeding</p>
         <!-- <ion-button 
@@ -381,7 +381,7 @@
               [class.selected]="selectedBaby?.id === baby.id"
               (click)="selectBaby(baby)">
               <div class="baby-option-avatar">
-                <ion-icon name="baby"></ion-icon>
+                <img [src]="getBabyIconUrl(baby.gender)" alt="Baby" style="width: 32px; height: 32px;">
               </div>
               <div class="baby-option-info">
                 <h4>{{ baby.name }}</h4>
@@ -416,7 +416,7 @@
           <!-- Baby Info Header -->
           <div class="baby-info-header" *ngIf="selectedBaby">
             <div class="baby-avatar">
-              <ion-icon name="happy"></ion-icon>
+              <img [src]="getBabyIconUrl(selectedBaby.gender)" alt="Baby" style="width: 32px; height: 32px;">
             </div>
             <div class="baby-details">
               <h3>{{ selectedBaby.name }}</h3>

@@ -1415,4 +1415,8 @@ export class GrowthPage implements OnInit {
 
     return await modal.present();
   }
+
+  getBabyIconUrl(gender: string): string {
+    return gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg';
+  }
 }

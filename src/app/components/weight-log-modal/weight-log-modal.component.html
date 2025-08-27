@@ -17,7 +17,7 @@
       <div class="form-section selected-baby-info" *ngIf="getSelectedWeightBaby() && !shouldShowBabySelectionForWeight()">
         <div class="selected-baby-display">
           <div class="baby-avatar">
-            <ion-icon name="baby"></ion-icon>
+            <app-custom-icon [babyGender]="getSelectedWeightBaby()?.gender || 'male'" size="32px"></app-custom-icon>
           </div>
           <div class="baby-info">
             <h3>{{ getSelectedWeightBaby()?.name }}</h3>
@@ -39,7 +39,7 @@
             [class.selected]="getSelectedWeightBaby()?.id === baby.id"
             (click)="selectWeightBaby(baby)">
             <div class="baby-avatar">
-              <ion-icon name="baby"></ion-icon>
+              <app-custom-icon [babyGender]="baby.gender" size="32px"></app-custom-icon>
             </div>
             <div class="baby-info">
               <h3>{{ baby.name }}</h3>

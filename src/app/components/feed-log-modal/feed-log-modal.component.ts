@@ -452,4 +452,17 @@ export class FeedLogModalComponent implements OnInit {
   isPredefinedNoteSelected(note: PredefinedNote): boolean {
     return this.selectedPredefinedNotes.includes(note.id);
   }
+
+  getFeedingIconType(feedType: string): 'breast' | 'expressed' | 'formula' {
+    switch (feedType) {
+      case 'direct':
+        return 'breast';
+      case 'expressed':
+        return 'expressed';
+      case 'formula':
+        return 'formula';
+      default:
+        return 'breast';
+    }
+  }
 }

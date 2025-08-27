@@ -17,7 +17,7 @@
       <div class="form-section selected-baby-info" *ngIf="selectedBaby && !shouldShowBabySelection()">
         <div class="selected-baby-display">
           <div class="baby-avatar">
-            <ion-icon name="baby"></ion-icon>
+            <app-custom-icon [babyGender]="selectedBaby.gender" size="32px"></app-custom-icon>
           </div>
           <div class="baby-info">
             <h3>{{ selectedBaby.name }}</h3>
@@ -39,7 +39,7 @@
             [class.selected]="selectedBaby?.id === baby.id"
             (click)="selectBaby(baby)">
             <div class="baby-avatar">
-              <ion-icon name="baby"></ion-icon>
+              <app-custom-icon [babyGender]="baby.gender" size="32px"></app-custom-icon>
             </div>
             <div class="baby-info">
               <h3>{{ baby.name }}</h3>
@@ -65,7 +65,7 @@
               [class.selected]="isFeedTypeSelected(feedType.value)"
               (click)="toggleFeedType(feedType.value)">
               <div class="feed-type-icon">
-                <ion-icon [name]="feedType.icon"></ion-icon>
+                <app-custom-icon [feedingType]="getFeedingIconType(feedType.value)" size="32px"></app-custom-icon>
               </div>
               <div class="feed-type-content">
                 <h4>{{ feedType.label }}</h4>

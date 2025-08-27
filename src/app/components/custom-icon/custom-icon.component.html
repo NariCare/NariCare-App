@@ -1,0 +1,11 @@
+<div 
+  class="custom-icon" 
+  [style.width]="size" 
+  [style.height]="size"
+  [style.fill]="color"
+  [innerHTML]="iconSvg">
+  <!-- Fallback content for debugging -->
+  <span *ngIf="!iconSvg" style="background: red; color: white; padding: 2px;">
+    Loading...
+  </span>
+</div>

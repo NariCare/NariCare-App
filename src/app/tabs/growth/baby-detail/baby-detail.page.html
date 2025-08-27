@@ -27,7 +27,7 @@
     <!-- Baby Avatar Section -->
     <div class="baby-avatar-section">
       <div class="baby-avatar-large">
-        <ion-icon name="happy"></ion-icon>
+        <app-custom-icon [babyGender]="baby?.gender || 'male'" size="60px"></app-custom-icon>
       </div>
     </div>
 
@@ -315,7 +315,7 @@
           <!-- Baby Info Header -->
           <div class="baby-info-header" *ngIf="baby">
             <div class="baby-avatar">
-              <ion-icon name="happy"></ion-icon>
+              <app-custom-icon [babyGender]="baby?.gender || 'male'" size="32px"></app-custom-icon>
             </div>
             <div class="baby-details">
               <h3>{{ baby.name }}</h3>
