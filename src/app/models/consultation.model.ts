@@ -10,6 +10,7 @@ export interface Consultation {
   topic: string;
   notes?: string;
   meeting_link?: string;
+  jitsi_room_token?: string;
   expert_notes?: string;
   user_rating?: number;
   user_feedback?: string;

@@ -23,7 +23,12 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
-    path: 'video-call/:meetingId',
+    path: 'video-call/:consultationId',
+    loadChildren: () => import('./pages/video-call/video-call.module').then(m => m.VideoCallPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'video-call-legacy/:meetingId',
     loadChildren: () => import('./pages/video-call/video-call.module').then(m => m.VideoCallPageModule),
     canActivate: [AuthGuard]
   },

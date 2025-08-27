@@ -157,10 +157,8 @@ export class ProfilePage implements OnInit {
   joinConsultation(consultation: Consultation) {
     const meetingLink = consultation.meeting_link || consultation.meetingLink;
     if (meetingLink) {
-      // Extract the room name from the Jitsi meeting link
-      const roomName = meetingLink.split('/').pop();
-      // Navigate to the new video call page
-      this.router.navigate(['/video-call', roomName]);
+      // Navigate to the video call page with consultation ID
+      this.router.navigate(['/video-call', consultation.id]);
     }
   }
 

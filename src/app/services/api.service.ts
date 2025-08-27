@@ -183,6 +183,7 @@ export interface ConsultationResponse {
   topic: string;
   notes?: string;
   meeting_link?: string;
+  jitsi_room_token?: string;
   expert_notes?: string;
   user_rating?: number;
   user_feedback?: string;
@@ -910,6 +911,32 @@ export class ApiService {
     return this.http.put<ApiResponse<ConsultationResponse>>(`${this.baseUrl}/consultations/${consultationId}/reschedule`, reschedule, {
       headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
+  }
+
+  // Expert consultation management
+  getExpertConsultations(status?: 'scheduled' | 'in-progress' | 'completed' | 'cancelled', upcoming?: boolean, page?: number, limit?: number): Observable<ApiResponse<ConsultationResponse[]>> {
+    let params = new HttpParams();
+    
+    if (status) params = params.set('status', status);
+    if (upcoming !== undefined) params = params.set('upcoming', upcoming.toString());
+    if (page) params = params.set('page', page.toString());
+    if (limit) params = params.set('limit', limit.toString());
+
+    console.log('Getting expert consultations from /consultations/my-expert-consultations endpoint');
+    
+    return this.http.get<ApiResponse<ConsultationResponse[]>>(`${this.baseUrl}/consultations/my-expert-consultations`, {
+      headers: this.getAuthHeaders(),
+      params
+    }).pipe(catchError(this.handleError));
+  }
+
+  updateConsultationStatus(consultationId: string, status: 'in-progress' | 'completed'): Observable<ApiResponse<ConsultationResponse>> {
+    return this.http.put<ApiResponse<ConsultationResponse>>(`${this.baseUrl}/consultations/${consultationId}/status`, 
+      { status }, 
+      {
+        headers: this.getAuthHeaders()
+      }
+    ).pipe(catchError(this.handleError));
   }
 
   getConsultationStats(period?: '7d' | '30d' | '90d'): Observable<ApiResponse<ConsultationStatsResponse>> {

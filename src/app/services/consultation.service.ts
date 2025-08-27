@@ -192,19 +192,9 @@ export class ConsultationService {
   private mapConsultationResponseToConsultation(consultationResponse: ConsultationResponse): Consultation {
     const scheduledAt = new Date(consultationResponse.scheduled_at);
     
-    // Convert old Jitsi links to Whereby links if needed
-    const originalMeetingLink = consultationResponse.meeting_link;
-    let convertedMeetingLink = originalMeetingLink;
-    
-    if (originalMeetingLink && originalMeetingLink.includes('meet.jit.si')) {
-      console.log('Converting old Jitsi link to Whereby:', originalMeetingLink);
-      // Extract room name from Jitsi link and create Whereby equivalent
-      const roomName = originalMeetingLink.split('/').pop()?.split('#')[0];
-      if (roomName) {
-        convertedMeetingLink = `https://whereby.com/${roomName}`;
-        console.log('Converted to Whereby link:', convertedMeetingLink);
-      }
-    }
+    // Use meeting link and JWT token as provided by backend
+    const meetingLink = consultationResponse.meeting_link;
+    const jwtToken = consultationResponse.jitsi_room_token;
     
     return {
       id: consultationResponse.id,
@@ -217,7 +207,8 @@ export class ConsultationService {
       actual_end_time: consultationResponse.actual_end_time,
       topic: consultationResponse.topic,
       notes: consultationResponse.notes,
-      meeting_link: convertedMeetingLink,
+      meeting_link: meetingLink,
+      jitsi_room_token: jwtToken,
       expert_notes: consultationResponse.expert_notes,
       user_rating: consultationResponse.user_rating,
       user_feedback: consultationResponse.user_feedback,
@@ -239,7 +230,7 @@ export class ConsultationService {
       type: consultationResponse.consultation_type,
       scheduledAt: scheduledAt,
       duration: 30, // Default duration, could be calculated from actual times
-      meetingLink: convertedMeetingLink, // Legacy field using converted link
+      meetingLink: meetingLink, // Legacy field
       followUpRequired: consultationResponse.follow_up_required,
       reminderSent: false // This field isn't in the API response
     };
@@ -274,5 +265,120 @@ export class ConsultationService {
     } else {
       throw new Error(response?.error || 'Failed to cancel consultation');
     }
+  }
+
+  // ============================================================================
+  // EXPERT CONSULTATION METHODS
+  // ============================================================================
+
+  getExpertConsultations(status?: 'scheduled' | 'in-progress' | 'completed' | 'cancelled', upcoming?: boolean): Observable<Consultation[]> {
+    console.log('Getting expert consultations with status:', status, 'upcoming:', upcoming);
+    
+    return this.apiService.getExpertConsultations(status, upcoming).pipe(
+      map(response => {
+        console.log('getExpertConsultations API response:', response);
+        if (response.success && response.data && response.data.length > 0) {
+          const consultations = response.data.map(consultation => {
+            const mapped = this.mapConsultationResponseToConsultation(consultation);
+            console.log('Mapped expert consultation:', { 
+              original: consultation, 
+              mapped: mapped,
+              scheduledAt: mapped.scheduledAt,
+              scheduled_at: mapped.scheduled_at
+            });
+            return mapped;
+          });
+          console.log('Final expert consultations array:', consultations);
+          return consultations;
+        }
+        console.log('No expert consultations found in API response');
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error loading expert consultations from API:', error);
+        throw error;
+      })
+    );
+  }
+
+  async updateConsultationStatus(id: string, status: 'in-progress' | 'completed'): Promise<void> {
+    try {
+      const response = await this.apiService.updateConsultationStatus(id, status).toPromise();
+      if (response?.success) {
+        console.log('Consultation status updated successfully:', response.data);
+      } else {
+        throw new Error(response?.error || 'Failed to update consultation status');
+      }
+    } catch (error: any) {
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  // Helper method to check if user can join consultation (for experts)
+  canExpertJoinConsultation(consultation: Consultation): boolean {
+    const now = new Date();
+    const consultationTime = new Date(consultation.scheduledAt || consultation.scheduled_at);
+    const timeDiff = consultationTime.getTime() - now.getTime();
+    const minutesDiff = timeDiff / (1000 * 60);
+    
+    // Experts can join 30 minutes before scheduled time and up to 60 minutes after
+    return minutesDiff <= 30 && minutesDiff >= -60;
+  }
+
+  // Method to get consultation status display for experts
+  getExpertConsultationStatusDisplay(consultation: Consultation): {
+    text: string;
+    color: string;
+    canJoin: boolean;
+    canStart: boolean;
+  } {
+    const now = new Date();
+    const consultationTime = new Date(consultation.scheduledAt || consultation.scheduled_at);
+    const timeDiff = consultationTime.getTime() - now.getTime();
+    const minutesDiff = timeDiff / (1000 * 60);
+
+    if (consultation.status === 'completed') {
+      return { text: 'Completed', color: 'success', canJoin: false, canStart: false };
+    }
+
+    if (consultation.status === 'cancelled') {
+      return { text: 'Cancelled', color: 'danger', canJoin: false, canStart: false };
+    }
+
+    if (consultation.status === 'in-progress') {
+      return { text: 'In Progress - Join', color: 'warning', canJoin: true, canStart: false };
+    }
+
+    if (minutesDiff <= 30 && minutesDiff >= -60) {
+      if (minutesDiff <= 5 && minutesDiff >= 0) {
+        return { text: 'Start Call', color: 'primary', canJoin: true, canStart: true };
+      }
+      return { text: 'Join Call', color: 'primary', canJoin: true, canStart: false };
+    }
+
+    if (minutesDiff > 30) {
+      const hours = Math.floor(minutesDiff / 60);
+      const minutes = Math.floor(minutesDiff % 60);
+      
+      if (hours > 0) {
+        return { text: `In ${hours}h ${minutes}m`, color: 'medium', canJoin: false, canStart: false };
+      } else {
+        return { text: `In ${minutes}m`, color: 'warning', canJoin: false, canStart: false };
+      }
+    }
+
+    return { text: 'Missed', color: 'danger', canJoin: false, canStart: false };
+  }
+
+  private getErrorMessage(error: any): string {
+    if (error?.message) {
+      return error.message;
+    }
+    
+    if (error?.error?.message) {
+      return error.error.message;
+    }
+    
+    return 'An unexpected error occurred. Please try again.';
   }
 }

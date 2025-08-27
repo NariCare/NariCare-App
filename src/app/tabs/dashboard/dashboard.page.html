@@ -81,7 +81,7 @@
 
     <!-- Upcoming Consultations -->
     <div class="section" *ngIf="upcomingConsultations.length > 0">
-      <h2 class="section-title">Upcoming Consultations</h2>
+      <h2 class="section-title">{{ user?.role === 'expert' ? 'Scheduled Client Calls' : 'Upcoming Consultations' }}</h2>
       <div class="consultations-list">
         <div *ngFor="let consultation of upcomingConsultations" class="consultation-card" 
              [class.upcoming]="consultation.status === 'scheduled'">
@@ -97,7 +97,8 @@
               </div>
               <div class="consultation-info">
                 <h4>{{ consultation.topic | titlecase }}</h4>
-                <p class="expert-name">with {{ getExpertName(consultation.expertId || consultation.expert_id) }}</p>
+                <p class="expert-name" *ngIf="user?.role !== 'expert'">with {{ getExpertName(consultation.expertId || consultation.expert_id) }}</p>
+                <p class="client-name" *ngIf="user?.role === 'expert'">Client: {{ getClientName(consultation) }}</p>
               </div>
             </div>
             
@@ -184,7 +185,8 @@
               </div>
               <div class="consultation-info">
                 <h4>{{ consultation.topic | titlecase }}</h4>
-                <p class="expert-name">with {{ getExpertName(consultation.expertId || consultation.expert_id) }}</p>
+                <p class="expert-name" *ngIf="user?.role !== 'expert'">with {{ getExpertName(consultation.expertId || consultation.expert_id) }}</p>
+                <p class="client-name" *ngIf="user?.role === 'expert'">Client: {{ getClientName(consultation) }}</p>
               </div>
             </div>
             

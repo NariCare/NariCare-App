@@ -233,11 +233,11 @@ export class ConsultationBookingModalComponent implements OnInit {
 
         } else {
           // Create new consultation
-          // Generate unique meeting link using Whereby (true guest access, no authentication)
+          // Generate unique meeting link using JaaS (Jitsi as a Service)
           const timestamp = Date.now().toString().slice(-8);
           const randomString = Math.random().toString(36).substring(2, 8);
           const meetingId = `naricare-${timestamp}-${randomString}`;
-          const meetingLink = `https://whereby.com/${meetingId}`;
+          const meetingLink = `https://8x8.vc/vpaas-magic-cookie-6f3fc0395bc447f38a2ceb30c7ac54d5/${meetingId}`;
 
           const consultation: Omit<Consultation, 'id'> = {
             user_id: this.user.uid,

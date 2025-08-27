@@ -121,10 +121,15 @@ export class DashboardPage implements OnInit, AfterViewInit {
       this.consultationsLoading = true;
       this.consultationsError = null;
       
-      this.consultationService.getUserConsultations(this.user.uid).subscribe({
+      // Load different consultations based on user role
+      const consultationObservable = this.user.role === 'expert' 
+        ? this.consultationService.getExpertConsultations('scheduled', true)
+        : this.consultationService.getUserConsultations(this.user.uid);
+      
+      consultationObservable.subscribe({
         next: (consultations) => {
           this.consultationsLoading = false;
-          console.log('Loaded consultations:', consultations);
+          console.log('Loaded consultations for role:', this.user?.role, consultations);
           
           // Store all consultations
           this.allConsultations = consultations;
@@ -301,6 +306,13 @@ export class DashboardPage implements OnInit, AfterViewInit {
     return `${expert.first_name || ''} ${expert.last_name || ''}`.trim() || 'Expert';
   }
 
+  getClientName(consultation: Consultation): string {
+    // Get client name from consultation user information
+    const firstName = consultation.user_first_name || '';
+    const lastName = consultation.user_last_name || '';
+    return `${firstName} ${lastName}`.trim() || consultation.user_email || 'Client';
+  }
+
   isConsultationReady(consultation: Consultation): boolean {
     const now = new Date();
     const consultationTime = consultation.scheduledAt 
@@ -316,26 +328,44 @@ export class DashboardPage implements OnInit, AfterViewInit {
   async joinConsultation(consultation: Consultation) {
     const meetingLink = consultation.meeting_link || consultation.meetingLink;
     if (meetingLink) {
+      // Check if user is expert and can start/join consultation
+      if (this.user?.role === 'expert') {
+        const statusInfo = this.consultationService.getExpertConsultationStatusDisplay(consultation);
+        
+        if (statusInfo.canStart && consultation.status === 'scheduled') {
+          // Expert can start the consultation - update status to in-progress
+          try {
+            await this.consultationService.updateConsultationStatus(consultation.id, 'in-progress');
+            console.log('Consultation marked as in-progress');
+            // Refresh consultations to show updated status
+            this.loadUpcomingConsultations();
+          } catch (error) {
+            console.error('Error updating consultation status:', error);
+          }
+        }
+      }
+
       // Show options for joining the consultation
+      const isExpert = this.user?.role === 'expert';
       const alert = await this.alertController.create({
-        header: 'Join Consultation',
-        message: 'Choose how to join your video consultation with our guest-friendly video platform.',
+        header: isExpert ? 'Join Consultation as Expert' : 'Join Consultation',
+        message: `Choose how to join your video consultation via JaaS (Jitsi as a Service).${
+          isExpert ? ' As an expert, you can join 30 minutes early.' : ''
+        }`,
         buttons: [
           {
             text: 'Open in Browser',
             cssClass: 'primary-button',
             handler: () => {
-              // Open directly in browser - works great with Whereby
+              // Open directly in browser - works great with JaaS
               window.open(meetingLink, '_blank');
             }
           },
           {
             text: 'Use In-App Call',
             handler: () => {
-              // Extract the room name from the meeting link
-              const roomName = meetingLink.split('/').pop()?.split('#')[0];
-              // Navigate to the video call page
-              this.router.navigate(['/video-call', roomName]);
+              // Navigate to the video call page with consultation ID
+              this.router.navigate(['/video-call', consultation.id]);
             }
           },
           {
