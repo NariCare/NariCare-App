@@ -922,9 +922,9 @@ export class ApiService {
     if (page) params = params.set('page', page.toString());
     if (limit) params = params.set('limit', limit.toString());
 
-    console.log('Getting expert consultations from /consultations/my-expert-consultations endpoint');
+    console.log('Getting expert consultations from /consultations/expert/my-consultations endpoint');
     
-    return this.http.get<ApiResponse<ConsultationResponse[]>>(`${this.baseUrl}/consultations/my-expert-consultations`, {
+    return this.http.get<ApiResponse<ConsultationResponse[]>>(`${this.baseUrl}/consultations/expert/my-consultations`, {
       headers: this.getAuthHeaders(),
       params
     }).pipe(catchError(this.handleError));
