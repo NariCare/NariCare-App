@@ -79,9 +79,10 @@ export class ExpertConsultationsPage implements OnInit, OnDestroy {
           const safeConsultations = Array.isArray(consultations) ? consultations : [];
           const now = new Date();
           
-          // Filter upcoming consultations
+          // Filter upcoming consultations - keep in upcoming until 30 minutes after scheduled time
           this.upcomingConsultations = safeConsultations.filter(consultation => {
             if (!consultation.scheduledAt && !consultation.scheduled_at) {
+              console.log('Consultation missing date:', consultation);
               return false;
             }
             
@@ -89,7 +90,23 @@ export class ExpertConsultationsPage implements OnInit, OnDestroy {
               const consultationDate = consultation.scheduledAt 
                 ? new Date(consultation.scheduledAt)
                 : new Date(consultation.scheduled_at);
-              return consultationDate > now && consultation.status === 'scheduled';
+              
+              // Add 30 minutes to consultation time
+              const consultationEndTime = new Date(consultationDate.getTime() + 30 * 60 * 1000);
+              
+              console.log('Checking consultation for upcoming:', {
+                id: consultation.id,
+                status: consultation.status,
+                consultationDate: consultationDate,
+                consultationEndTime: consultationEndTime,
+                now: now,
+                isStillUpcoming: now <= consultationEndTime,
+                isScheduled: consultation.status === 'scheduled'
+              });
+              
+              // Show in upcoming if current time is before consultation end time (scheduled time + 30 mins)
+              // and status is scheduled or in-progress
+              return now <= consultationEndTime && (consultation.status === 'scheduled' || consultation.status === 'in-progress');
             } catch (error) {
               console.error('Error processing consultation date:', error, consultation);
               return false;
@@ -101,17 +118,31 @@ export class ExpertConsultationsPage implements OnInit, OnDestroy {
             consultation.status === 'completed'
           );
           
-          // Filter past/cancelled consultations
+          // Filter past/cancelled consultations - includes scheduled consultations past 30-minute window
           this.pastConsultations = safeConsultations.filter(consultation => {
+            if (consultation.status === 'cancelled') {
+              return true; // Always include cancelled consultations
+            }
+            
+            if (!consultation.scheduledAt && !consultation.scheduled_at) {
+              return false;
+            }
+            
             try {
               const consultationDate = consultation.scheduledAt 
                 ? new Date(consultation.scheduledAt)
                 : new Date(consultation.scheduled_at);
-              return consultation.status === 'cancelled' || 
-                     (consultationDate <= now && consultation.status !== 'completed' && consultation.status !== 'scheduled');
+              
+              // Add 30 minutes to consultation time
+              const consultationEndTime = new Date(consultationDate.getTime() + 30 * 60 * 1000);
+              
+              // Include in past if:
+              // 1. Status is cancelled
+              // 2. Current time is past the 30-minute window and status is still 'scheduled'
+              return now > consultationEndTime && consultation.status === 'scheduled';
             } catch (error) {
               console.error('Error processing consultation date for past consultations:', error, consultation);
-              return consultation.status === 'cancelled';
+              return false;
             }
           });
           
@@ -173,23 +204,34 @@ export class ExpertConsultationsPage implements OnInit, OnDestroy {
     return `${firstName} ${lastName}`.trim() || consultation.user_email || 'Client';
   }
   
-  async editConsultation(consultation: Consultation) {
-    const modal = await this.modalController.create({
-      component: ConsultationBookingModalComponent,
-      componentProps: {
-        consultation: consultation
-      },
-      cssClass: 'consultation-booking-modal'
+  async viewConsultationSummary(consultation: Consultation) {
+    const clientName = this.getClientName(consultation);
+    const scheduledTime = consultation.scheduledAt || consultation.scheduled_at;
+    const scheduledDate = scheduledTime ? new Date(scheduledTime) : new Date();
+    
+    const alert = await this.alertController.create({
+      header: 'Consultation Summary',
+      message: `
+        <div class="consultation-summary">
+          <p><strong>Client:</strong> ${clientName}</p>
+          <p><strong>Topic:</strong> ${consultation.topic?.replace(/-/g, ' ')?.replace(/\b\w/g, l => l.toUpperCase()) || 'General Consultation'}</p>
+          <p><strong>Status:</strong> ${consultation.status?.charAt(0).toUpperCase() + consultation.status?.slice(1)}</p>
+          <p><strong>Scheduled:</strong> ${scheduledDate.toLocaleDateString()} at ${scheduledDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+          <p><strong>Duration:</strong> 30 minutes</p>
+          ${consultation.notes ? `<p><strong>Notes:</strong> ${consultation.notes}</p>` : ''}
+          ${consultation.user_email ? `<p><strong>Email:</strong> ${consultation.user_email}</p>` : ''}
+        </div>
+      `,
+      buttons: [
+        {
+          text: 'Close',
+          role: 'cancel'
+        }
+      ],
+      cssClass: 'consultation-summary-alert'
     });
 
-    modal.onDidDismiss().then((result) => {
-      if (result.data?.updated) {
-        this.loadExpertConsultations();
-        this.showSuccessToast('Consultation updated successfully!');
-      }
-    });
-
-    return await modal.present();
+    await alert.present();
   }
   
   // Experts can join consultations at any time without restrictions

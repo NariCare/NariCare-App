@@ -100,6 +100,10 @@
     overflow: hidden;
     transition: all 0.2s ease;
 
+    &.clickable {
+      cursor: pointer;
+    }
+
     &:hover {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transform: translateY(-1px);
@@ -315,6 +319,29 @@
 
     .detail-item {
       font-size: 0.85rem;
+    }
+  }
+}
+
+// Consultation summary alert styles
+:host ::ng-deep .consultation-summary-alert {
+  .alert-wrapper {
+    max-width: 400px;
+  }
+
+  .alert-message {
+    text-align: left;
+    
+    .consultation-summary {
+      p {
+        margin: 8px 0;
+        line-height: 1.4;
+        
+        strong {
+          color: #374151;
+          font-weight: 600;
+        }
+      }
     }
   }
 }

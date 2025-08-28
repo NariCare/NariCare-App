@@ -13,6 +13,7 @@ import { Consultation, Expert } from '../../models/consultation.model';
 import { TimelineModalComponent } from '../../components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from '../../components/specific-week-modal/specific-week-modal.component';
 import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
+import { AvailabilitySchedulerModalComponent } from '../../components/availability-scheduler-modal/availability-scheduler-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -127,19 +128,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       this._quickActions = [
         {
           title: 'My Schedule',
-          description: 'View your consultation schedule',
+          description: 'Configure your availability for consultations',
           icon: 'calendar',
-          action: 'viewSchedule',
+          action: 'setSchedule',
           color: 'primary',
-          priority: false
-        },
-        {
-          title: 'Client Management',
-          description: 'Manage your clients and sessions',
-          icon: 'people',
-          action: 'manageClients',
-          color: 'secondary',
-          priority: false
+          priority: true
         },
         {
           title: 'Expert Resources',
@@ -294,14 +287,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         this.router.navigate(['/tabs/chat']);
         break;
       // Expert-specific actions
-      case 'viewSchedule':
-        // Scroll to consultations section
-        setTimeout(() => {
-          const element = document.querySelector('app-expert-consultations');
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
+      case 'setSchedule':
+        this.openAvailabilityScheduler();
         break;
       case 'manageClients':
         setTimeout(() => {
@@ -340,6 +327,22 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     if (hour < 12) return `Good morning, ${firstName}!`;
     if (hour < 17) return `Good afternoon, ${firstName}!`;
     return `Good evening, ${firstName}!`;
+  }
+
+  async openAvailabilityScheduler() {
+    const modal = await this.modalController.create({
+      component: AvailabilitySchedulerModalComponent,
+      cssClass: 'availability-scheduler-modal'
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data) {
+        // Show success message
+        this.showSuccessToast('Availability updated successfully!');
+      }
+    });
+
+    return await modal.present();
   }
 
   async openConsultationBooking() {

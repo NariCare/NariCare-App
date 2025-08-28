@@ -270,6 +270,15 @@ export interface AvailabilitySlot {
   updated_at: string;
 }
 
+export interface UpdateAvailabilityRequest {
+  availability: {
+    dayOfWeek: number;    // 0=Sunday, 1=Monday, ..., 6=Saturday
+    startTime: string;    // HH:MM format (24-hour)
+    endTime: string;      // HH:MM format (24-hour)
+    isAvailable: boolean; // boolean
+  }[];
+}
+
 export interface CreateConsultationRequest {
   expertId: string;
   scheduledAt: string;
@@ -857,6 +866,18 @@ export class ApiService {
     return this.http.get<ApiResponse<AvailabilitySlot[]>>(`${this.baseUrl}/experts/${expertId}/availability`, {
       headers: this.getAuthHeaders(),
       params
+    }).pipe(catchError(this.handleError));
+  }
+
+  getMyExpertAvailability(): Observable<ApiResponse<AvailabilitySlot[]>> {
+    return this.http.get<ApiResponse<AvailabilitySlot[]>>(`${this.baseUrl}/experts/profile/me/availability`, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  updateExpertAvailability(availabilityData: UpdateAvailabilityRequest): Observable<ApiResponse<{ message: string }>> {
+    return this.http.put<ApiResponse<{ message: string }>>(`${this.baseUrl}/experts/profile/me/availability`, availabilityData, {
+      headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 

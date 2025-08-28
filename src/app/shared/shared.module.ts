@@ -18,6 +18,7 @@ import { BabyCreationModalComponent } from '../components/baby-creation-modal/ba
 import { WeightLogModalComponent } from '../components/weight-log-modal/weight-log-modal.component';
 import { CreateGroupModalComponent } from '../components/create-group-modal/create-group-modal.component';
 import { CustomIconComponent } from '../components/custom-icon/custom-icon.component';
+import { AvailabilitySchedulerModalComponent } from '../components/availability-scheduler-modal/availability-scheduler-modal.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { CustomIconComponent } from '../components/custom-icon/custom-icon.compo
     BabyCreationModalComponent,
     WeightLogModalComponent,
     CreateGroupModalComponent,
-    CustomIconComponent
+    CustomIconComponent,
+    AvailabilitySchedulerModalComponent
   ],
   imports: [
     CommonModule,
@@ -59,7 +61,8 @@ import { CustomIconComponent } from '../components/custom-icon/custom-icon.compo
     BabyCreationModalComponent,
     WeightLogModalComponent,
     CreateGroupModalComponent,
-    CustomIconComponent
+    CustomIconComponent,
+    AvailabilitySchedulerModalComponent
   ]
 })
 export class SharedModule { }

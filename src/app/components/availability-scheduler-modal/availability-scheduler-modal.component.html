@@ -1,0 +1,130 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Weekly hours</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="availability-content">
+  <div class="availability-container">
+    
+    <!-- Header Section -->
+    <div class="availability-header">
+      <p class="subtitle">Set when you are available for meetings</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <ion-spinner name="circles"></ion-spinner>
+      <p>Loading your current availability...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="loadError && !loading" class="error-container">
+      <ion-icon name="warning-outline" class="error-icon"></ion-icon>
+      <p class="error-message">{{ loadError }}</p>
+      <ion-button fill="outline" size="small" (click)="loadExistingAvailability()">
+        <ion-icon name="refresh" slot="start"></ion-icon>
+        Retry
+      </ion-button>
+    </div>
+
+    <!-- Schedule Configuration -->
+    <div *ngIf="!loading && !loadError" class="schedule-config">
+      <div *ngFor="let day of weekSchedule; let dayIndex = index" class="day-row">
+        
+        <!-- Day Circle -->
+        <div class="day-circle" [class.enabled]="day.enabled">
+          <span>{{ getDayInitial(day.dayName) }}</span>
+        </div>
+
+        <!-- Time Slots Container -->
+        <div class="time-slots-container">
+          <!-- No slots / disabled state -->
+          <div *ngIf="!day.enabled || day.timeSlots.length === 0" class="unavailable">
+            Unavailable
+          </div>
+          
+          <!-- Time slots -->
+          <div *ngFor="let slot of day.timeSlots; let slotIndex = index" class="time-slot-row">
+            <div class="time-editing">
+              <select [(ngModel)]="slot.start" class="time-select" (change)="onTimeChange(day, slotIndex)">
+                <option *ngFor="let time of timeOptions" [value]="time.value">{{ time.label }}</option>
+              </select>
+              <span class="dash">-</span>
+              <select [(ngModel)]="slot.end" class="time-select" (change)="onTimeChange(day, slotIndex)">
+                <option *ngFor="let time of timeOptions" [value]="time.value">{{ time.label }}</option>
+              </select>
+              
+              <!-- Remove button for this specific slot -->
+              <ion-button 
+                fill="clear" 
+                size="default" 
+                (click)="removeTimeSlot(day, slotIndex)"
+                class="slot-remove-btn">
+                <ion-icon name="close" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="day-actions">
+          <!-- Add button -->
+          <ion-button 
+            fill="clear" 
+            size="default" 
+            (click)="addTimeSlot(day)"
+            class="add-btn">
+            <ion-icon name="add" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clear Schedule Button -->
+    <div class="clear-schedule-section" *ngIf="hasAnySchedule()">
+      <ion-button 
+        fill="outline" 
+        color="danger"
+        (click)="confirmClearSchedule()"
+        class="clear-schedule-button">
+        <ion-icon name="trash" slot="start"></ion-icon>
+        Clear All Schedule
+      </ion-button>
+      <p class="clear-schedule-note">
+        This will mark you as unavailable for all consultations (like taking leave)
+      </p>
+    </div>
+
+    <!-- Timezone Selector -->
+    <div class="timezone-section">
+      <ion-item>
+        <ion-select [(ngModel)]="selectedTimezone" placeholder="Select Timezone">
+          <ion-select-option value="Asia/Kolkata">India Standard Time</ion-select-option>
+          <ion-select-option value="America/New_York">Eastern Time</ion-select-option>
+          <ion-select-option value="America/Los_Angeles">Pacific Time</ion-select-option>
+          <ion-select-option value="Europe/London">GMT</ion-select-option>
+        </ion-select>
+        <ion-icon name="chevron-down" slot="end"></ion-icon>
+      </ion-item>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="footer-actions">
+      <ion-button fill="clear" (click)="dismiss()">
+        Cancel
+      </ion-button>
+      <ion-button expand="block" (click)="save()" class="save-button">
+        Save
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

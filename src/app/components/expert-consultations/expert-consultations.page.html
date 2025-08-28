@@ -45,7 +45,8 @@
          [class.upcoming]="consultation.status === 'scheduled'"
          [class.completed]="consultation.status === 'completed'"
          [class.cancelled]="consultation.status === 'cancelled'"
-         [class.in-progress]="consultation.status === 'in-progress'">
+         [class.in-progress]="consultation.status === 'in-progress'"
+         [class.clickable]="true">
       
       <div class="consultation-status-badge" [attr.data-status]="consultation.status">
         {{ consultation.status | titlecase }}
@@ -78,22 +79,12 @@
         </div>
         
         <div class="consultation-actions">
-          <ion-button 
-            *ngIf="consultation.status === 'scheduled'"
-            fill="outline" 
-            size="small"
-            (click)="editConsultation(consultation)"
-            class="edit-button">
-            <ion-icon name="create" slot="start"></ion-icon>
-            Edit
-          </ion-button>
-          
           <!-- Experts can join at any time -->
           <ion-button 
             *ngIf="consultation.status === 'scheduled' || consultation.status === 'in-progress'"
             fill="solid" 
             size="small"
-            (click)="joinConsultation(consultation)"
+            (click)="joinConsultation(consultation); $event.stopPropagation()"
             class="join-button">
             <ion-icon name="videocam" slot="start"></ion-icon>
             Join Call
