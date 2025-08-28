@@ -7,7 +7,8 @@ export const environment = {
     storageBucket: "naricare-afb05.firebasestorage.app",
     messagingSenderId: "367456865327",
     appId: "1:367456865327:web:b68a3d7914199803658ada",
-    measurementId: "G-PYV60K3B2D"
+    measurementId: "G-PYV60K3B2D",
+    vapidKey: "BE7j98jUJE3meGBM2cBBxKVYUgGHzA6q3o1Rxj-UGFKiigSZQb4l1KbYy_d6eQQEvjsBQT3IykmwBGUbHUL5qjI"
   },
   // Production API URL - update this with your actual production API URL
   apiUrl: 'https://beta-api.naricare.com/api',

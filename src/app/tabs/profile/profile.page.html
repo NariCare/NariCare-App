@@ -70,6 +70,9 @@
             </div>
             <div class="item-content">
               <span class="item-label">{{ item.label }}</span>
+              <ion-badge *ngIf="item.badge && item.badge > 0" color="danger" class="notification-badge">
+                {{ item.badge > 99 ? '99+' : item.badge }}
+              </ion-badge>
             </div>
             <ion-icon name="chevron-forward-outline" class="item-arrow"></ion-icon>
           </div>

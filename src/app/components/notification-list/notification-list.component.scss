@@ -1,0 +1,144 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  gap: 16px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  min-height: 50vh;
+}
+
+.empty-state ion-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.5em;
+  font-weight: 600;
+  color: var(--ion-color-medium);
+}
+
+.empty-state p {
+  margin: 0 0 24px 0;
+  color: var(--ion-color-medium);
+  line-height: 1.4;
+}
+
+/* Notification item styling */
+ion-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+ion-item.unread {
+  --background: var(--ion-color-primary-tint);
+  --color: var(--ion-color-primary-contrast);
+  border-left: 4px solid var(--ion-color-primary);
+}
+
+ion-item ion-icon[slot="start"] {
+  margin-inline-end: 16px;
+  font-size: 24px;
+}
+
+ion-label h2 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1em;
+  line-height: 1.3;
+}
+
+ion-label p {
+  margin: 4px 0 8px 0;
+  color: var(--ion-color-medium-shade);
+  font-size: 0.9em;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 0.8em;
+}
+
+.notification-type {
+  background: var(--ion-color-light);
+  color: var(--ion-color-dark);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.notification-time {
+  color: var(--ion-color-medium);
+  font-weight: 400;
+}
+
+/* Badge styling */
+ion-badge {
+  font-size: 0.7em;
+  text-transform: capitalize;
+}
+
+/* Slide options styling */
+ion-item-options {
+  border: none;
+}
+
+ion-item-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.8em;
+}
+
+ion-item-option ion-icon {
+  font-size: 18px;
+}
+
+/* FAB styling */
+ion-fab-button {
+  --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Refresher styling */
+ion-refresher-content {
+  --color: var(--ion-color-primary);
+}
+
+/* Infinite scroll styling */
+ion-infinite-scroll-content {
+  --color: var(--ion-color-medium);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .notification-type {
+    background: var(--ion-color-dark);
+    color: var(--ion-color-light);
+  }
+  
+  ion-item.unread {
+    --background: rgba(var(--ion-color-primary-rgb), 0.1);
+  }
+}

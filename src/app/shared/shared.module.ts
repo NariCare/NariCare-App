@@ -19,6 +19,8 @@ import { WeightLogModalComponent } from '../components/weight-log-modal/weight-l
 import { CreateGroupModalComponent } from '../components/create-group-modal/create-group-modal.component';
 import { CustomIconComponent } from '../components/custom-icon/custom-icon.component';
 import { AvailabilitySchedulerModalComponent } from '../components/availability-scheduler-modal/availability-scheduler-modal.component';
+import { NotificationListComponent } from '../components/notification-list/notification-list.component';
+import { NotificationPreferencesComponent } from '../components/notification-preferences/notification-preferences.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +39,9 @@ import { AvailabilitySchedulerModalComponent } from '../components/availability-
     WeightLogModalComponent,
     CreateGroupModalComponent,
     CustomIconComponent,
-    AvailabilitySchedulerModalComponent
+    AvailabilitySchedulerModalComponent,
+    NotificationListComponent,
+    NotificationPreferencesComponent
   ],
   imports: [
     CommonModule,
@@ -62,7 +66,9 @@ import { AvailabilitySchedulerModalComponent } from '../components/availability-
     WeightLogModalComponent,
     CreateGroupModalComponent,
     CustomIconComponent,
-    AvailabilitySchedulerModalComponent
+    AvailabilitySchedulerModalComponent,
+    NotificationListComponent,
+    NotificationPreferencesComponent
   ]
 })
 export class SharedModule { }

@@ -3,10 +3,13 @@ import { Router } from '@angular/router';
 import { AlertController, ToastController, ModalController } from '@ionic/angular';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { ConsultationService } from '../../services/consultation.service';
+import { NotificationService } from '../../services/notification.service';
 import { User } from '../../models/user.model';
 import { Consultation, Expert } from '../../models/consultation.model';
 import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
 import { BabyCreationModalComponent } from '../../components/baby-creation-modal/baby-creation-modal.component';
+import { NotificationListComponent } from '../../components/notification-list/notification-list.component';
+import { NotificationPreferencesComponent } from '../../components/notification-preferences/notification-preferences.component';
 
 @Component({
   selector: 'app-profile',
@@ -17,6 +20,7 @@ export class ProfilePage implements OnInit {
   user: User | null = null;
   upcomingConsultations: Consultation[] = [];
   experts: Expert[] = [];
+  unreadNotificationCount = 0;
 
   profileSections = [
     {
@@ -25,7 +29,8 @@ export class ProfilePage implements OnInit {
         { label: 'Personal Information', icon: 'person-outline', action: 'editProfile' },
         { label: 'Baby Information', icon: 'baby-outline', action: 'editBaby' },
         { label: 'Add New Baby', icon: 'add-circle-outline', action: 'addBaby' },
-        { label: 'Notification Settings', icon: 'notifications-outline', action: 'notifications' }
+        { label: 'Notifications', icon: 'notifications-outline', action: 'viewNotifications', badge: this.unreadNotificationCount },
+        { label: 'Notification Settings', icon: 'settings-outline', action: 'notificationSettings' }
       ]
     },
     {
@@ -53,7 +58,8 @@ export class ProfilePage implements OnInit {
     private alertController: AlertController,
     private toastController: ToastController,
     private modalController: ModalController,
-    private consultationService: ConsultationService
+    private consultationService: ConsultationService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -61,10 +67,30 @@ export class ProfilePage implements OnInit {
       this.user = user;
       if (user) {
         this.loadUpcomingConsultations();
+        this.initializeNotifications();
       }
     });
     
     this.loadExperts();
+  }
+
+  private initializeNotifications() {
+    // Subscribe to unread notification count
+    this.notificationService.unreadCount$.subscribe(count => {
+      this.unreadNotificationCount = count;
+      // Update the badge in profile sections
+      const accountSection = this.profileSections.find(section => section.title === 'Account');
+      if (accountSection) {
+        const notificationItem = accountSection.items.find(item => item.action === 'viewNotifications');
+        if (notificationItem) {
+          notificationItem.badge = count;
+        }
+      }
+    });
+
+    // Load initial notifications
+    this.notificationService.loadNotifications({ limit: 10 });
+    this.notificationService.loadPreferences();
   }
 
   private loadUpcomingConsultations() {
@@ -96,7 +122,10 @@ export class ProfilePage implements OnInit {
       case 'addBaby':
         this.addBaby();
         break;
-      case 'notifications':
+      case 'viewNotifications':
+        this.openNotificationsList();
+        break;
+      case 'notificationSettings':
         this.openNotificationSettings();
         break;
       case 'subscription':
@@ -196,8 +225,22 @@ export class ProfilePage implements OnInit {
     await toast.present();
   }
 
-  private openNotificationSettings() {
-    console.log('Open notification settings');
+  async openNotificationsList() {
+    const modal = await this.modalController.create({
+      component: NotificationListComponent,
+      presentingElement: await this.modalController.getTop()
+    });
+
+    await modal.present();
+  }
+
+  async openNotificationSettings() {
+    const modal = await this.modalController.create({
+      component: NotificationPreferencesComponent,
+      presentingElement: await this.modalController.getTop()
+    });
+
+    await modal.present();
   }
 
   private viewSubscription() {

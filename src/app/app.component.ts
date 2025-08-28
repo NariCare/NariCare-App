@@ -3,6 +3,7 @@ import { Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { BackendAuthService } from './services/backend-auth.service';
 import { NotificationService } from './services/notification.service';
+import { PushNotificationService } from './services/push-notification.service';
 
 @Component({
   selector: 'app-root',
@@ -14,16 +15,20 @@ export class AppComponent implements OnInit {
     private platform: Platform,
     private router: Router,
     private backendAuthService: BackendAuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private pushNotificationService: PushNotificationService
   ) {
     this.initializeApp();
   }
 
   ngOnInit() {
-    // Initialize notification service when app starts
+    // Initialize push notification service when app starts
+    this.pushNotificationService.initializePushNotifications();
+    
+    // Initialize notification service when user is authenticated
     this.backendAuthService.currentUser$.subscribe(user => {
       if (user) {
-        this.notificationService.requestPermission(user.uid);
+        this.notificationService.requestPermission();
         this.notificationService.receiveMessage();
       }
     });

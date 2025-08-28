@@ -1,0 +1,109 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Notifications</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()" fill="clear">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="openPreferences()" fill="clear">
+        <ion-icon name="settings-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Pull to refresh -->
+  <ion-refresher slot="fixed" (ionRefresh)="refreshNotifications($event)">
+    <ion-refresher-content
+      pulling-icon="arrow-down-outline"
+      pulling-text="Pull to refresh"
+      refreshing-spinner="circles"
+      refreshing-text="Loading notifications...">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading && notifications.length === 0" class="loading-container">
+    <ion-spinner name="circles"></ion-spinner>
+    <ion-label>Loading notifications...</ion-label>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && notifications.length === 0" class="empty-state">
+    <ion-icon [name]="getEmptyStateIcon()" color="medium"></ion-icon>
+    <h2>No Notifications</h2>
+    <p>{{ getEmptyStateMessage() }}</p>
+    <ion-button fill="outline" (click)="openPreferences()">
+      <ion-icon name="settings-outline" slot="start"></ion-icon>
+      Notification Settings
+    </ion-button>
+  </div>
+
+  <!-- Notification list -->
+  <ion-list *ngIf="notifications.length > 0">
+    <ion-item-sliding *ngFor="let notification of notifications; trackBy: trackByNotificationId">
+      <ion-item 
+        button 
+        (click)="onNotificationClick(notification)"
+        [class.unread]="!notification.sent_at">
+        
+        <ion-icon 
+          [name]="getNotificationIcon(notification.notification_type)" 
+          [color]="getNotificationColor(notification.notification_type)"
+          slot="start">
+        </ion-icon>
+
+        <ion-label>
+          <h2>{{ notification.title }}</h2>
+          <p>{{ notification.body }}</p>
+          
+          <div class="notification-meta">
+            <span class="notification-type">
+              {{ getNotificationTypeDisplayName(notification.notification_type) }}
+            </span>
+            <span class="notification-time">
+              {{ formatTime(notification.scheduled_time) }}
+            </span>
+          </div>
+        </ion-label>
+
+        <!-- Delivery status indicator -->
+        <ion-badge 
+          slot="end"
+          [color]="notification.delivery_status === 'sent' ? 'success' : notification.delivery_status === 'failed' ? 'danger' : 'warning'"
+          size="small">
+          {{ notification.delivery_status }}
+        </ion-badge>
+      </ion-item>
+
+      <!-- Slide actions -->
+      <ion-item-options side="end">
+        <ion-item-option color="primary">
+          <ion-icon name="eye-outline"></ion-icon>
+          Mark Read
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+  </ion-list>
+
+  <!-- Infinite scroll -->
+  <ion-infinite-scroll 
+    threshold="100px" 
+    (ionInfinite)="loadMoreNotifications($event)"
+    [disabled]="!hasMoreNotifications">
+    <ion-infinite-scroll-content
+      loading-spinner="bubbles"
+      loading-text="Loading more notifications...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>
+
+<!-- Floating action button for preferences -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab-button (click)="openPreferences()" size="small" color="tertiary">
+    <ion-icon name="settings-outline"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

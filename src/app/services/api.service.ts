@@ -1165,6 +1165,10 @@ export class ApiService {
     localStorage.removeItem('naturalSpeechEnabled');
     localStorage.removeItem('autoSpeakEnabled');
     
+    // Clear notification token data
+    localStorage.removeItem('fcm_last_token');
+    localStorage.removeItem('fcm_last_registration');
+    
     // Clear any other user-specific data keys
     // Note: We could also clear all localStorage, but that might remove non-app data
     const keysToRemove = [];
