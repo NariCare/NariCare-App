@@ -57,7 +57,16 @@ export class EmotionCheckinModalComponent implements OnInit {
     { id: 'angry', text: 'I feel irritable or angry more often', emoji: '😠', category: 'emotional' },
     { id: 'hopeless', text: 'I feel hopeless about the future', emoji: '😰', category: 'emotional' },
     { id: 'physical-pain', text: 'I\'m experiencing physical discomfort', emoji: '😣', category: 'physical' },
-    { id: 'sleep-deprived', text: 'I\'m struggling with lack of sleep', emoji: '😵', category: 'physical' }
+    { id: 'sleep-deprived', text: 'I\'m struggling with lack of sleep', emoji: '😵', category: 'physical' },
+    // New additions
+    { id: 'sad-tearful', text: 'I feel sad or tearful often, without a clear reason', emoji: '😢', category: 'emotional' },
+    { id: 'disconnected-baby', text: 'I feel disconnected from baby', emoji: '😶', category: 'emotional' },
+    { id: 'unsupported', text: 'I feel unsupported or alone', emoji: '🙁', category: 'social' },
+    { id: 'guilty-not-enough', text: 'I feel guilty or like I\'m not doing enough', emoji: '😔', category: 'emotional' },
+    { id: 'feeding-dread', text: 'I feel fear or dread around feeding time', emoji: '😨', category: 'practical' },
+    { id: 'milk-supply-worry', text: 'I worry constantly about my milk supply', emoji: '😟', category: 'practical' },
+    { id: 'overwhelming-fatigue', text: 'Overwhelming fatigue, exhaustion, or postpartum depression impacting feeding', emoji: '😴', category: 'physical' },
+    { id: 'feeding-anxiety', text: 'Anxiety or feeling unable to leave baby due to feeding concerns', emoji: '😰', category: 'practical' }
   ];
 
   positiveMoments: PositiveMoment[] = [
@@ -70,7 +79,10 @@ export class EmotionCheckinModalComponent implements OnInit {
     { id: 'grateful', text: 'I felt grateful for this journey', emoji: '🙏', category: 'personal' },
     { id: 'baby-milestone', text: 'My baby reached a new milestone', emoji: '🎉', category: 'bonding' },
     { id: 'self-care', text: 'I took time for self-care', emoji: '💆‍♀️', category: 'personal' },
-    { id: 'community', text: 'I connected with other mothers', emoji: '👥', category: 'support' }
+    { id: 'community', text: 'I connected with other mothers', emoji: '👥', category: 'support' },
+    // New positive additions
+    { id: 'content-confident-mother', text: 'I feel content and confident in my role as a mother', emoji: '😊', category: 'personal' },
+    { id: 'joy-feeding', text: 'I feel joy or peace when holding or feeding my baby', emoji: '💗', category: 'bonding' }
   ];
 
   concerningThoughts: ConcerningThought[] = [
@@ -79,7 +91,10 @@ export class EmotionCheckinModalComponent implements OnInit {
     { id: 'escape-thoughts', text: 'I have thoughts of running away or escaping', emoji: '🏃‍♀️', severity: 'high' },
     { id: 'failure-thoughts', text: 'I constantly think I\'m failing as a mother', emoji: '😞', severity: 'moderate' },
     { id: 'intrusive-thoughts', text: 'I have scary thoughts I can\'t control', emoji: '😨', severity: 'high' },
-    { id: 'regret-baby', text: 'I regret having my baby', emoji: '😔', severity: 'high' }
+    { id: 'regret-baby', text: 'I regret having my baby', emoji: '😔', severity: 'high' },
+    // New concerning thoughts additions
+    { id: 'intrusive-scary-thoughts', text: 'I\'ve had intrusive or scary thoughts I don\'t want to have', emoji: '⚠️', severity: 'high' },
+    { id: 'no-interest', text: 'I have no interest in my baby or daily life', emoji: '🕳️', severity: 'critical' }
   ];
 
   constructor(

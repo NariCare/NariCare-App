@@ -43,16 +43,13 @@ export class DiaperLogModalComponent implements OnInit {
   ];
 
   predefinedNotes: PredefinedNote[] = [
-    { id: '1', text: 'Diaper rash noticed', indicator: 'yellow' },
-    { id: '2', text: 'Very smelly', indicator: 'red' },
-    { id: '3', text: 'Leaked through diaper', indicator: 'yellow' },
-    { id: '4', text: 'Different consistency', indicator: 'yellow' },
-    { id: '5', text: 'Fussy during change', indicator: 'red' },
-    { id: '6', text: 'Quick easy change', indicator: 'red' },
-    { id: '7', text: 'Blowout mess', indicator: 'yellow' },
-    { id: '8', text: 'Extra cleaning needed', indicator: 'yellow' },
-    { id: '9', text: 'Baby seemed uncomfortable', indicator: 'red' },
-    { id: '10', text: 'Changed outfit too', indicator: 'yellow' }
+    { id: '1', text: 'No wet diapers after day 2', indicator: 'red' },
+    { id: '2', text: 'Fewer than 6 wet diapers per day after day 7', indicator: 'red' },
+    { id: '3', text: 'Fewer than 3–4 stools per day after day 3', indicator: 'red' },
+    { id: '4', text: 'Dark concentrated urine or brick dust after day 2-3', indicator: 'red' },
+    { id: '5', text: 'Stools not yellow/seedy by day 5–6', indicator: 'red' },
+    { id: '6', text: 'Persistent dark stools or no stools in 24 hrs in the first month', indicator: 'red' },
+    { id: '7', text: 'Signs of dehydration (dry mouth, sunken fontanelle, cool limbs)', indicator: 'red' }
   ];
 
   constructor(

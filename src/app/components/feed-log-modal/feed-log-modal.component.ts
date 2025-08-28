@@ -78,18 +78,24 @@ export class FeedLogModalComponent implements OnInit {
   formulaPresets = [30, 60, 90, 120, 150, 200];
   durationPresets = [5, 10, 15, 20, 30, 45, 60];
 
-  predefinedNotes: PredefinedNote[] = [
-    { id: '4', text: 'Sleeps at breast', indicator: 'red' },
-    { id: '5', text: 'Hunger after feed', indicator: 'yellow' },
-    { id: '6', text: 'Severe nipple pain', indicator: 'red' },
-    { id: '7', text: 'Cracked/bleeding nipples', indicator: 'yellow' },
-    { id: '8', text: 'Engorged, can’t latch', indicator: 'red' },
-    { id: '9', text: 'Red breasts + fever', indicator: 'red' },
-    { id: '10', text: 'Sores not healing', indicator: 'yellow' },
-    { id: '11', text: 'No milk by day 5', indicator: 'red' },
-    { id: '12', text: 'Extreme fussiness', indicator: 'yellow' },
-    { id: '13', text: 'Never satisfied', indicator: 'yellow' }
+  babyRelatedNotes: PredefinedNote[] = [
+    { id: '4', text: 'Baby frequently falls asleep at breast or hard to wake to feed', indicator: 'red' },
+    { id: '5', text: 'Persistent hunger cues (rooting, hand sucking) or baby still hungry after feeds', indicator: 'yellow' },
+    { id: '12', text: 'Extreme fussiness or persistent crying not soothed by feeding', indicator: 'yellow' },
+    { id: '13', text: 'Baby never appearing satisfied after feeds', indicator: 'yellow' }
   ];
+
+  motherRelatedNotes: PredefinedNote[] = [
+    { id: '11', text: 'No breast fullness or milk \'coming in\' signs by day 4-5 postpartum', indicator: 'red' },
+    { id: '6', text: 'Severe nipple pain persisting through feeds', indicator: 'red' },
+    { id: '7', text: 'Cracked, bleeding, blistered, or discolored nipples', indicator: 'yellow' },
+    { id: '8', text: 'Severe, unrelieved engorgement preventing latch', indicator: 'red' },
+    { id: '9', text: 'Red, tender, warm breasts with fever/chills (possible mastitis)', indicator: 'red' },
+    { id: '10', text: 'Open breast sores not healing', indicator: 'yellow' }
+  ];
+
+  // Combined array for backward compatibility
+  predefinedNotes: PredefinedNote[] = [...this.babyRelatedNotes, ...this.motherRelatedNotes];
 
   constructor(
     private formBuilder: FormBuilder,

@@ -248,17 +248,46 @@
         
         <!-- Quick Notes Section -->
         <div class="quick-notes-section">
-          <div class="predefined-notes-grid">
-            <ion-chip 
-              *ngFor="let note of predefinedNotes"
-              [class.note-red]="note.indicator === 'red'"
-              [class.note-yellow]="note.indicator === 'yellow'"
-              [class.selected]="isPredefinedNoteSelected(note)"
-              (click)="appendPredefinedNote(note)"
-              class="predefined-note-chip">
-              <ion-icon name="checkmark-circle" class="note-selected-icon" *ngIf="isPredefinedNoteSelected(note)"></ion-icon>
-              {{ note.text }}
-            </ion-chip>
+          <!-- Baby Related Notes -->
+          <div class="notes-category">
+            <div class="category-header baby-category">
+              <ion-icon name="baby-outline" class="category-icon"></ion-icon>
+              <h3>Baby Related</h3>
+              <ion-badge color="medium">{{ babyRelatedNotes.length }}</ion-badge>
+            </div>
+            <div class="predefined-notes-grid">
+              <ion-chip 
+                *ngFor="let note of babyRelatedNotes"
+                [class.note-red]="note.indicator === 'red'"
+                [class.note-yellow]="note.indicator === 'yellow'"
+                [class.selected]="isPredefinedNoteSelected(note)"
+                (click)="appendPredefinedNote(note)"
+                class="predefined-note-chip baby-note">
+                <ion-icon name="checkmark-circle" class="note-selected-icon" *ngIf="isPredefinedNoteSelected(note)"></ion-icon>
+                {{ note.text }}
+              </ion-chip>
+            </div>
+          </div>
+
+          <!-- Mother Related Notes -->
+          <div class="notes-category">
+            <div class="category-header mother-category">
+              <ion-icon name="heart-outline" class="category-icon"></ion-icon>
+              <h3>Mother Related</h3>
+              <ion-badge color="medium">{{ motherRelatedNotes.length }}</ion-badge>
+            </div>
+            <div class="predefined-notes-grid">
+              <ion-chip 
+                *ngFor="let note of motherRelatedNotes"
+                [class.note-red]="note.indicator === 'red'"
+                [class.note-yellow]="note.indicator === 'yellow'"
+                [class.selected]="isPredefinedNoteSelected(note)"
+                (click)="appendPredefinedNote(note)"
+                class="predefined-note-chip mother-note">
+                <ion-icon name="checkmark-circle" class="note-selected-icon" *ngIf="isPredefinedNoteSelected(note)"></ion-icon>
+                {{ note.text }}
+              </ion-chip>
+            </div>
           </div>
         </div>
       </div>

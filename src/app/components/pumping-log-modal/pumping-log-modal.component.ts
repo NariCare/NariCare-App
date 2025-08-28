@@ -37,16 +37,10 @@ export class PumpingLogModalComponent implements OnInit {
   durationPresets = [5, 10, 15, 20, 30, 45];
 
   predefinedNotes: PredefinedNote[] = [
-    { id: '1', text: 'Low milk supply today', indicator: 'yellow' },
-    { id: '2', text: 'Pump flanges uncomfortable', indicator: 'red' },
-    { id: '3', text: 'Great pumping session', indicator: 'yellow' },
-    { id: '4', text: 'Stress affecting output', indicator: 'red' },
-    { id: '5', text: 'Early morning pump', indicator: 'yellow' },
-    { id: '6', text: 'Pump parts need cleaning', indicator: 'red' },
-    { id: '7', text: 'Feeling engorged', indicator: 'yellow' },
-    { id: '8', text: 'Power pump session', indicator: 'yellow' },
-    { id: '9', text: 'Rushed pumping session', indicator: 'red' },
-    { id: '10', text: 'Pumped at work', indicator: 'yellow' }
+    { id: '1', text: 'Pain during or after pumping', indicator: 'red' },
+    { id: '2', text: 'Areola being pulled into flange tunnel', indicator: 'red' },
+    { id: '3', text: 'Nipple rubbing against the tunnel', indicator: 'yellow' },
+    { id: '4', text: 'Uncomfortable every time you pump', indicator: 'yellow' }
   ];
 
   constructor(
