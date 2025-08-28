@@ -1,0 +1,132 @@
+<div class="expert-consultations">
+  <div class="section-header">
+    <h2 class="section-title">My Consultations</h2>
+    <ion-button fill="clear" size="small" (click)="retryLoadConsultations()" *ngIf="consultationsError">
+      <ion-icon name="refresh" slot="start"></ion-icon>
+      Retry
+    </ion-button>
+  </div>
+  
+  <!-- Tab Navigation -->
+  <div class="consultation-tabs">
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'upcoming'"
+      (click)="switchTab('upcoming')">
+      Upcoming ({{ upcomingConsultations.length }})
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="selectedTab === 'history'"
+      (click)="switchTab('history')">
+      History ({{ completedConsultations.length + pastConsultations.length }})
+    </button>
+  </div>
+  
+  <!-- Loading state -->
+  <div *ngIf="consultationsLoading" class="loading-container">
+    <ion-spinner name="circles"></ion-spinner>
+    <p>Loading consultations...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="consultationsError && !consultationsLoading" class="error-container">
+    <ion-icon name="warning-outline" class="error-icon"></ion-icon>
+    <p class="error-message">{{ consultationsError }}</p>
+    <ion-button fill="outline" size="small" (click)="retryLoadConsultations()">
+      <ion-icon name="refresh" slot="start"></ion-icon>
+      Retry
+    </ion-button>
+  </div>
+
+  <!-- Tab Content -->
+  <div *ngIf="!consultationsLoading && !consultationsError" class="consultations-list">
+    <div *ngFor="let consultation of getTabConsultations()" class="consultation-card" 
+         [class.upcoming]="consultation.status === 'scheduled'"
+         [class.completed]="consultation.status === 'completed'"
+         [class.cancelled]="consultation.status === 'cancelled'"
+         [class.in-progress]="consultation.status === 'in-progress'">
+      
+      <div class="consultation-status-badge" [attr.data-status]="consultation.status">
+        {{ consultation.status | titlecase }}
+      </div>
+      
+      <div class="consultation-content">
+        <div class="consultation-header">
+          <div class="consultation-icon">
+            <ion-icon name="videocam"></ion-icon>
+          </div>
+          <div class="consultation-info">
+            <h4>{{ consultation.topic | titlecase }}</h4>
+            <p class="client-name">Client: {{ getClientName(consultation) }}</p>
+          </div>
+        </div>
+        
+        <div class="consultation-details">
+          <div class="detail-item">
+            <ion-icon name="calendar" class="detail-icon"></ion-icon>
+            <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'MMM d, y' }}</span>
+          </div>
+          <div class="detail-item">
+            <ion-icon name="time" class="detail-icon"></ion-icon>
+            <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'h:mm a' }}</span>
+          </div>
+          <div class="detail-item" *ngIf="consultation.notes">
+            <ion-icon name="document-text" class="detail-icon"></ion-icon>
+            <span class="notes">{{ consultation.notes }}</span>
+          </div>
+        </div>
+        
+        <div class="consultation-actions">
+          <ion-button 
+            *ngIf="consultation.status === 'scheduled'"
+            fill="outline" 
+            size="small"
+            (click)="editConsultation(consultation)"
+            class="edit-button">
+            <ion-icon name="create" slot="start"></ion-icon>
+            Edit
+          </ion-button>
+          
+          <!-- Experts can join at any time -->
+          <ion-button 
+            *ngIf="consultation.status === 'scheduled' || consultation.status === 'in-progress'"
+            fill="solid" 
+            size="small"
+            (click)="joinConsultation(consultation)"
+            class="join-button">
+            <ion-icon name="videocam" slot="start"></ion-icon>
+            Join Call
+          </ion-button>
+          
+          <ion-button 
+            *ngIf="consultation.status === 'completed'"
+            fill="outline" 
+            size="small"
+            disabled
+            class="completed-button">
+            <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+            Completed
+          </ion-button>
+          
+          <ion-button 
+            *ngIf="consultation.status === 'cancelled'"
+            fill="outline" 
+            size="small"
+            disabled
+            class="cancelled-button">
+            <ion-icon name="close-circle" slot="start"></ion-icon>
+            Cancelled
+          </ion-button>
+        </div>
+      </div>
+    </div>
+    
+    <div *ngIf="getTabConsultations().length === 0" class="empty-state">
+      <ion-icon name="calendar-outline" class="empty-icon"></ion-icon>
+      <p class="empty-message">
+        {{ selectedTab === 'upcoming' ? 'No upcoming consultations' : 'No consultation history' }}
+      </p>
+    </div>
+  </div>
+</div>

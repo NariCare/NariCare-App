@@ -1,8 +1,8 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
-import { Observable } from 'rxjs';
-import { AuthService } from '../../services/auth.service';
+import { Observable, Subscription } from 'rxjs';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { ChatbotService } from '../../services/chatbot.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { ConsultationService } from '../../services/consultation.service';
@@ -19,7 +19,7 @@ import { ConsultationBookingModalComponent } from '../../components/consultation
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
 })
-export class DashboardPage implements OnInit, AfterViewInit {
+export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
   
   user: User | null = null;
@@ -36,6 +36,13 @@ export class DashboardPage implements OnInit, AfterViewInit {
   consultationsLoading = false;
   expertsError: string | null = null;
   expertsLoading = false;
+  
+  
+  // Subscriptions
+  private userSubscription: Subscription | null = null;
+  
+  // Cached quick actions
+  private _quickActions: any[] | null = null;
 
   baseQuickActions = [
     {
@@ -74,7 +81,7 @@ export class DashboardPage implements OnInit, AfterViewInit {
 
 
   constructor(
-    private authService: AuthService,
+    private authService: BackendAuthService,
     private router: Router,
     private chatbotService: ChatbotService,
     private timelineService: BabyTimelineService,
@@ -86,9 +93,13 @@ export class DashboardPage implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit() {
-    this.authService.currentUser$.subscribe(user => {
+    // Subscribe to user changes and store subscription for cleanup
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.user = user;
-      if (user && user.babies.length > 0) {
+      // Reset cached actions when user changes
+      this._quickActions = null;
+      
+      if (user && user.babies && user.babies.length > 0) {
         this.loadTimelineData(user.babies[0].dateOfBirth);
         this.loadUpcomingConsultations();
       }
@@ -97,9 +108,53 @@ export class DashboardPage implements OnInit, AfterViewInit {
     
     this.loadExperts();
   }
+  
+  ngOnDestroy() {
+    // Clean up subscription to prevent memory leaks
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
+  }
 
   get quickActions() {
-    return this.baseQuickActions;
+    // Cache the actions to prevent recalculation on every template access
+    if (this._quickActions !== null) {
+      return this._quickActions;
+    }
+    
+    // For experts, show different quick actions
+    if (this.user?.role === 'expert') {
+      this._quickActions = [
+        {
+          title: 'My Schedule',
+          description: 'View your consultation schedule',
+          icon: 'calendar',
+          action: 'viewSchedule',
+          color: 'primary',
+          priority: false
+        },
+        {
+          title: 'Client Management',
+          description: 'Manage your clients and sessions',
+          icon: 'people',
+          action: 'manageClients',
+          color: 'secondary',
+          priority: false
+        },
+        {
+          title: 'Expert Resources',
+          description: 'Access professional tools and guides',
+          icon: 'library',
+          action: 'expertResources',
+          color: 'tertiary',
+          priority: false
+        }
+      ];
+    } else {
+      this._quickActions = this.baseQuickActions;
+    }
+    
+    return this._quickActions;
   }
 
   ngAfterViewInit() {
@@ -117,47 +172,76 @@ export class DashboardPage implements OnInit, AfterViewInit {
   }
 
   private loadUpcomingConsultations() {
-    if (this.user) {
-      this.consultationsLoading = true;
-      this.consultationsError = null;
-      
-      // Load different consultations based on user role
-      const consultationObservable = this.user.role === 'expert' 
-        ? this.consultationService.getExpertConsultations('scheduled', true)
-        : this.consultationService.getUserConsultations(this.user.uid);
+    if (!this.user || !this.user.uid) {
+      console.warn('No user available for loading consultations');
+      return;
+    }
+    
+    // Skip loading for experts as it's handled by the expert consultations component
+    if (this.user.role === 'expert') {
+      return;
+    }
+    
+    this.consultationsLoading = true;
+    this.consultationsError = null;
+    
+    try {
+      const consultationObservable = this.consultationService.getUserConsultations(this.user.uid);
       
       consultationObservable.subscribe({
         next: (consultations) => {
           this.consultationsLoading = false;
           console.log('Loaded consultations for role:', this.user?.role, consultations);
           
+          // Safely handle consultations array
+          const safeConsultations = Array.isArray(consultations) ? consultations : [];
+          
           // Store all consultations
-          this.allConsultations = consultations;
+          this.allConsultations = safeConsultations;
           
           // Filter for upcoming consultations only
           const now = new Date();
-          this.upcomingConsultations = consultations.filter(consultation => {
-            const consultationDate = consultation.scheduledAt 
-              ? consultation.scheduledAt 
-              : new Date(consultation.scheduled_at);
-            console.log('Checking consultation:', { 
-              topic: consultation.topic, 
-              consultationDate, 
-              now, 
-              status: consultation.status,
-              isUpcoming: consultationDate > now && consultation.status === 'scheduled'
-            });
-            return consultationDate > now && consultation.status === 'scheduled';
+          this.upcomingConsultations = safeConsultations.filter(consultation => {
+            if (!consultation.scheduledAt && !consultation.scheduled_at) {
+              return false;
+            }
+            
+            try {
+              const consultationDate = consultation.scheduledAt 
+                ? consultation.scheduledAt 
+                : new Date(consultation.scheduled_at);
+              console.log('Checking consultation:', { 
+                topic: consultation.topic, 
+                consultationDate, 
+                now, 
+                status: consultation.status,
+                isUpcoming: consultationDate > now && consultation.status === 'scheduled'
+              });
+              return consultationDate > now && consultation.status === 'scheduled';
+            } catch (error) {
+              console.error('Error processing consultation date:', error, consultation);
+              return false;
+            }
           });
           
           // Filter out upcoming consultations from "My Consultations" section to avoid duplicates
-          this.nonUpcomingConsultations = consultations.filter(consultation => {
-            const consultationDate = consultation.scheduledAt 
-              ? consultation.scheduledAt 
-              : new Date(consultation.scheduled_at);
-            // Show completed, cancelled, or past scheduled consultations
-            return !(consultationDate > now && consultation.status === 'scheduled');
+          this.nonUpcomingConsultations = safeConsultations.filter(consultation => {
+            if (!consultation.scheduledAt && !consultation.scheduled_at) {
+              return true; // Include consultations without dates in history
+            }
+            
+            try {
+              const consultationDate = consultation.scheduledAt 
+                ? consultation.scheduledAt 
+                : new Date(consultation.scheduled_at);
+              // Show completed, cancelled, or past scheduled consultations
+              return !(consultationDate > now && consultation.status === 'scheduled');
+            } catch (error) {
+              console.error('Error processing consultation date for history:', error, consultation);
+              return true; // Include in history if date processing fails
+            }
           });
+          
           
           console.log('Filtered upcoming consultations:', this.upcomingConsultations);
           console.log('Filtered non-upcoming consultations:', this.nonUpcomingConsultations);
@@ -170,6 +254,10 @@ export class DashboardPage implements OnInit, AfterViewInit {
           console.error('Error loading consultations:', error);
         }
       });
+    } catch (error) {
+      this.consultationsLoading = false;
+      this.consultationsError = 'Failed to initialize consultation loading.';
+      console.error('Consultation loading initialization error:', error);
     }
   }
 
@@ -204,6 +292,27 @@ export class DashboardPage implements OnInit, AfterViewInit {
         break;
       case 'joinChat':
         this.router.navigate(['/tabs/chat']);
+        break;
+      // Expert-specific actions
+      case 'viewSchedule':
+        // Scroll to consultations section
+        setTimeout(() => {
+          const element = document.querySelector('app-expert-consultations');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+        break;
+      case 'manageClients':
+        setTimeout(() => {
+          const element = document.querySelector('app-expert-consultations');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+        break;
+      case 'expertResources':
+        this.router.navigate(['/tabs/knowledge']);
         break;
     }
   }
@@ -321,8 +430,9 @@ export class DashboardPage implements OnInit, AfterViewInit {
     const timeDiff = consultationTime.getTime() - now.getTime();
     const minutesDiff = timeDiff / (1000 * 60);
     
-    // Allow joining 15 minutes before scheduled time
-    return minutesDiff <= 15 && minutesDiff >= -30;
+    // Experts can join 30 minutes early, users can join 15 minutes early
+    const joinEarlyMinutes = this.user?.role === 'expert' ? 30 : 15;
+    return minutesDiff <= joinEarlyMinutes && minutesDiff >= -30;
   }
 
   async joinConsultation(consultation: Consultation) {
@@ -525,5 +635,17 @@ export class DashboardPage implements OnInit, AfterViewInit {
         container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
       }
     }
+  }
+
+  // Expert-specific helper methods
+  isExpert(): boolean {
+    return this.user?.role === 'expert';
+  }
+
+
+  shouldHideSection(section: 'timeline' | 'booking' | 'learning' | 'insights'): boolean {
+    if (!this.isExpert()) return false;
+    
+    return ['timeline', 'booking', 'learning', 'insights'].includes(section);
   }
 }

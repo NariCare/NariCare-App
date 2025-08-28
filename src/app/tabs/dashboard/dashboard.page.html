@@ -44,7 +44,7 @@
     </div>
 
     <!-- Today's Insights -->
-    <div class="section" *ngIf="user && user.babies && user.babies.length > 0">
+    <div class="section" *ngIf="user && user.babies && user.babies.length > 0 && !shouldHideSection('insights')">
       <h2 class="section-title">Today's Insights</h2>
       <div class="insights-container">
         <div class="insight-card">
@@ -79,9 +79,14 @@
       </div>
     </div>
 
-    <!-- Upcoming Consultations -->
-    <div class="section" *ngIf="upcomingConsultations.length > 0">
-      <h2 class="section-title">{{ user?.role === 'expert' ? 'Scheduled Client Calls' : 'Upcoming Consultations' }}</h2>
+    <!-- Expert Consultations Component -->
+    <div class="section" *ngIf="isExpert()">
+      <app-expert-consultations [user]="user"></app-expert-consultations>
+    </div>
+    
+    <!-- Regular User Upcoming Consultations -->
+    <div class="section" *ngIf="!isExpert() && upcomingConsultations.length > 0">
+      <h2 class="section-title">Upcoming Consultations</h2>
       <div class="consultations-list">
         <div *ngFor="let consultation of upcomingConsultations" class="consultation-card" 
              [class.upcoming]="consultation.status === 'scheduled'">
@@ -141,8 +146,8 @@
       </div>
     </div>
 
-    <!-- Recent Consultations Section -->
-    <div class="section" *ngIf="nonUpcomingConsultations.length > 0">
+    <!-- Recent Consultations Section - Only for regular users -->
+    <div class="section" *ngIf="!isExpert() && nonUpcomingConsultations.length > 0">
       <div class="section-header">
         <h2 class="section-title">My Consultations</h2>
         <ion-button fill="clear" size="small" (click)="retryLoadConsultations()" *ngIf="consultationsError">
@@ -261,8 +266,8 @@
       </div>
     </div>
 
-    <!-- Book Consultation Section -->
-    <div class="section">
+    <!-- Book Consultation Section - Hidden for experts -->
+    <div class="section" *ngIf="!shouldHideSection('booking')">
       <h2 class="section-title">Expert Support</h2>
       <div class="consultation-booking-card">
         <div class="booking-content">
@@ -289,8 +294,8 @@
       </div>
     </div>
 
-    <!-- Timeline Section -->
-    <div class="section">
+    <!-- Timeline Section - Hidden for experts -->
+    <div class="section" *ngIf="!shouldHideSection('timeline')">
       <h2 class="section-title">TIMELINE</h2>
       <div class="timeline-section">
         <div class="timeline-content" *ngIf="timelineData$ | async as timelineData">
@@ -356,8 +361,8 @@
         
       </div>
     </div> -->
-    <!-- Recent Activity -->
-    <div class="section">
+    <!-- Continue Learning Section - Hidden for experts -->
+    <div class="section" *ngIf="!shouldHideSection('learning')">
       <h2 class="section-title">Continue Learning</h2>
       <div class="activity-card">
         <div class="activity-content">

@@ -41,6 +41,10 @@ const routes: Routes = [
     path: '**',
     redirectTo: '/',
     pathMatch: 'full'
+  },
+  {
+    path: 'expert-consultations',
+    loadChildren: () => import('./components/expert-consultations/expert-consultations.module').then( m => m.ExpertConsultationsPageModule)
   }
 ];
 

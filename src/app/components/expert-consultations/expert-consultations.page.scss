@@ -1,0 +1,320 @@
+.expert-consultations {
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  .consultation-tabs {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 1rem;
+
+    .tab-button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &.active {
+        background: #ffffff;
+        color: #8383ed;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      &:hover:not(.active) {
+        color: #475569;
+        background: rgba(255, 255, 255, 0.5);
+      }
+    }
+  }
+
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: #64748b;
+
+    ion-spinner {
+      margin-bottom: 1rem;
+      --color: #8383ed;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+  }
+
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: #ef4444;
+    text-align: center;
+
+    .error-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+
+    .error-message {
+      margin: 0 0 1.5rem 0;
+      font-size: 0.9rem;
+    }
+  }
+
+  .consultations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .consultation-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    &.upcoming {
+      border-left: 4px solid #10b981;
+    }
+
+    &.completed {
+      border-left: 4px solid #059669;
+    }
+
+    &.cancelled {
+      border-left: 4px solid #ef4444;
+    }
+
+    &.in-progress {
+      border-left: 4px solid #f59e0b;
+    }
+  }
+
+  .consultation-status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &[data-status="scheduled"] {
+      background: rgba(16, 185, 129, 0.1);
+      color: #059669;
+    }
+
+    &[data-status="completed"] {
+      background: rgba(5, 150, 105, 0.1);
+      color: #047857;
+    }
+
+    &[data-status="cancelled"] {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+
+    &[data-status="in-progress"] {
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+    }
+  }
+
+  .consultation-content {
+    padding: 1.5rem;
+    padding-right: 6rem; // Make room for status badge
+  }
+
+  .consultation-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .consultation-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #8383ed, #a855f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 1.5rem;
+      color: #ffffff;
+    }
+  }
+
+  .consultation-info {
+    flex: 1;
+    min-width: 0; // Allow text to truncate
+
+    h4 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1f2937;
+      line-height: 1.3;
+    }
+
+    .client-name {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #6b7280;
+      font-weight: 500;
+    }
+  }
+
+  .consultation-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .detail-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #4b5563;
+
+    .detail-icon {
+      font-size: 1rem;
+      margin-right: 0.5rem;
+      color: #8383ed;
+      flex-shrink: 0;
+    }
+
+    .notes {
+      font-style: italic;
+      line-height: 1.4;
+    }
+  }
+
+  .consultation-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .edit-button {
+    --color: #6b7280;
+    --border-color: #d1d5db;
+    --border-radius: 8px;
+    height: 36px;
+    font-size: 0.85rem;
+
+    &:hover {
+      --color: #374151;
+      --border-color: #9ca3af;
+    }
+  }
+
+  .join-button {
+    --background: #8383ed;
+    --background-hover: #7c3aed;
+    --border-radius: 8px;
+    --color: #ffffff;
+    height: 36px;
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+  }
+
+  .completed-button {
+    --color: #059669;
+    --border-color: #059669;
+    --border-radius: 8px;
+    height: 36px;
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+
+  .cancelled-button {
+    --color: #dc2626;
+    --border-color: #dc2626;
+    --border-radius: 8px;
+    height: 36px;
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #64748b;
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-message {
+      font-size: 0.95rem;
+      margin: 0;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .expert-consultations {
+    .consultation-content {
+      padding: 1rem;
+      padding-right: 5rem;
+    }
+
+    .consultation-actions {
+      flex-direction: column;
+
+      ion-button {
+        width: 100%;
+      }
+    }
+
+    .detail-item {
+      font-size: 0.85rem;
+    }
+  }
+}

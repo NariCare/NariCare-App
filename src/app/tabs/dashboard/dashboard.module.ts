@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { DashboardPageRoutingModule } from './dashboard-routing.module';
 import { DashboardPage } from './dashboard.page';
 import { SharedModule } from '../../shared/shared.module';
+import { ExpertConsultationsPageModule } from '../../components/expert-consultations/expert-consultations.module';
 
 @NgModule({
   imports: [
@@ -12,9 +13,12 @@ import { SharedModule } from '../../shared/shared.module';
     FormsModule,
     IonicModule,
     DashboardPageRoutingModule,
-    SharedModule
+    SharedModule,
+    ExpertConsultationsPageModule
   ],
-  declarations: [DashboardPage],
+  declarations: [
+    DashboardPage
+  ],
   providers: []
 })
 export class DashboardPageModule {}
