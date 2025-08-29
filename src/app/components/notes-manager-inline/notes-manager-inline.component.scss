@@ -1,0 +1,11 @@
+// Import the existing styles from the modal component
+@import '../notes-manager-modal/notes-manager-modal.component.scss';
+
+// Additional styles for inline usage
+.manager-container {
+  // Override padding for inline usage
+  padding: 0;
+  
+  // Remove modal-specific backgrounds
+  background: transparent;
+}

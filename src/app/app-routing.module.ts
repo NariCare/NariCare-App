@@ -38,6 +38,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'expert-notes',
+    loadChildren: () => import('./pages/expert-notes/expert-notes.module').then(m => m.ExpertNotesPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: '/',
     pathMatch: 'full'

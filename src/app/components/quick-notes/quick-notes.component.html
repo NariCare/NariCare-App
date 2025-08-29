@@ -1,0 +1,187 @@
+<div class="quick-notes-container">
+  <div class="section-header">
+    <h2 class="section-title">Quick Notes & Links</h2>
+    <div class="header-actions">
+      <ion-button fill="clear" size="small" (click)="refreshQuickAccess()" [disabled]="loading">
+        <ion-icon name="refresh" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" size="small" (click)="openFullManager()">
+        <ion-icon name="settings" slot="start"></ion-icon>
+        Manage
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Tab Selector -->
+  <div class="tab-selector">
+    <ion-segment [(ngModel)]="selectedTab" (ionChange)="refreshQuickAccess()">
+      <ion-segment-button value="notes">
+        <ion-label>Notes ({{ quickNotes.length }})</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="links">
+        <ion-label>Links ({{ quickLinks.length }})</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="recent">
+        <ion-label>Recent ({{ recentlyUsed.length }})</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <ion-spinner name="circles"></ion-spinner>
+    <p>Loading quick access...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <ion-icon name="warning-outline" class="error-icon"></ion-icon>
+    <p class="error-message">{{ error }}</p>
+    <ion-button fill="outline" size="small" (click)="refreshQuickAccess()">
+      <ion-icon name="refresh" slot="start"></ion-icon>
+      Retry
+    </ion-button>
+  </div>
+
+  <!-- Notes Tab -->
+  <div *ngIf="selectedTab === 'notes' && !loading && !error" class="tab-content">
+    <div *ngIf="quickNotes.length === 0" class="empty-state">
+      <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+      <p>No quick notes available</p>
+      <ion-button fill="outline" size="small" (click)="openFullManager()">
+        Create Your First Note
+      </ion-button>
+    </div>
+
+    <div class="items-list" *ngIf="quickNotes.length > 0">
+      <div 
+        *ngFor="let note of quickNotes; trackBy: trackById" 
+        class="quick-item note-item"
+        [class.favorite]="note.is_favorite"
+        [class.shared]="note.is_shared">
+        
+        <div class="item-header" (click)="showNoteDetails(note)">
+          <div class="item-info">
+            <div class="item-title">
+              <ion-icon [name]="getCategoryIcon(note.category, 'note')" [color]="getCategoryColor(note.category, 'note')"></ion-icon>
+              <span>{{ note.title }}</span>
+              <ion-icon *ngIf="note.is_favorite" name="star" color="warning" class="favorite-icon"></ion-icon>
+              <ion-icon *ngIf="note.is_shared" name="people" color="secondary" class="shared-icon"></ion-icon>
+            </div>
+            <div class="item-preview">{{ note.content | slice:0:80 }}{{ note.content.length > 80 ? '...' : '' }}</div>
+            <div class="item-meta">
+              <ion-chip [color]="getCategoryColor(note.category, 'note')" size="small">{{ getCategoryLabel(note.category, 'note') }}</ion-chip>
+              <span class="usage-count">{{ formatUsageCount(note.usage_count, 'note') }}</span>
+            </div>
+          </div>
+          
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            (click)="$event.stopPropagation(); useNote(note)"
+            class="use-button">
+            <ion-icon name="copy" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        
+        <div class="item-tags" *ngIf="note.tags.length > 0">
+          <ion-chip *ngFor="let tag of note.tags.slice(0, 3)" color="light" size="small">{{ tag }}</ion-chip>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Links Tab -->
+  <div *ngIf="selectedTab === 'links' && !loading && !error" class="tab-content">
+    <div *ngIf="quickLinks.length === 0" class="empty-state">
+      <ion-icon name="link-outline" class="empty-icon"></ion-icon>
+      <p>No quick links available</p>
+      <ion-button fill="outline" size="small" (click)="openFullManager()">
+        Add Your First Link
+      </ion-button>
+    </div>
+
+    <div class="items-list" *ngIf="quickLinks.length > 0">
+      <div 
+        *ngFor="let link of quickLinks; trackBy: trackById" 
+        class="quick-item link-item"
+        [class.favorite]="link.is_favorite"
+        [class.shared]="link.is_shared">
+        
+        <div class="item-header" (click)="showLinkDetails(link)">
+          <div class="item-info">
+            <div class="item-title">
+              <ion-icon [name]="getCategoryIcon(link.category, 'link')" [color]="getCategoryColor(link.category, 'link')"></ion-icon>
+              <span>{{ link.title }}</span>
+              <ion-icon *ngIf="link.is_favorite" name="star" color="warning" class="favorite-icon"></ion-icon>
+              <ion-icon *ngIf="link.is_shared" name="people" color="secondary" class="shared-icon"></ion-icon>
+            </div>
+            <div class="item-preview" *ngIf="link.description">{{ link.description | slice:0:80 }}{{ link.description && link.description.length > 80 ? '...' : '' }}</div>
+            <div class="item-url">{{ link.url | slice:0:50 }}{{ link.url.length > 50 ? '...' : '' }}</div>
+            <div class="item-meta">
+              <ion-chip [color]="getCategoryColor(link.category, 'link')" size="small">{{ getCategoryLabel(link.category, 'link') }}</ion-chip>
+              <span class="usage-count">{{ formatUsageCount(link.click_count, 'link') }}</span>
+            </div>
+          </div>
+          
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            (click)="$event.stopPropagation(); useLink(link)"
+            class="use-button">
+            <ion-icon name="open" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        
+        <div class="item-tags" *ngIf="link.tags.length > 0">
+          <ion-chip *ngFor="let tag of link.tags.slice(0, 3)" color="light" size="small">{{ tag }}</ion-chip>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Tab -->
+  <div *ngIf="selectedTab === 'recent' && !loading && !error" class="tab-content">
+    <div *ngIf="recentlyUsed.length === 0" class="empty-state">
+      <ion-icon name="time-outline" class="empty-icon"></ion-icon>
+      <p>No recently used items</p>
+      <p class="empty-subtitle">Items you use will appear here for quick access</p>
+    </div>
+
+    <div class="items-list" *ngIf="recentlyUsed.length > 0">
+      <div 
+        *ngFor="let recentItem of recentlyUsed; trackBy: trackByRecentId" 
+        class="quick-item recent-item"
+        [class.note-type]="recentItem.type === 'note'"
+        [class.link-type]="recentItem.type === 'link'">
+        
+        <div class="item-header" (click)="handleRecentItemClick(recentItem)">
+          <div class="item-info">
+            <div class="item-title">
+              <ion-icon [name]="recentItem.type === 'note' ? 'document-text' : 'link'" 
+                        [color]="recentItem.type === 'note' ? 'primary' : 'secondary'"></ion-icon>
+              <span>{{ recentItem.item.title }}</span>
+              <ion-chip [color]="recentItem.type === 'note' ? 'primary' : 'secondary'" size="small">
+                {{ recentItem.type === 'note' ? 'Note' : 'Link' }}
+              </ion-chip>
+            </div>
+            <div class="item-preview">
+              {{ getRecentItemPreview(recentItem) }}
+            </div>
+            <div class="item-meta">
+              <span class="used-time">{{ getTimeAgo(recentItem.usedAt.toISOString()) }}</span>
+            </div>
+          </div>
+          
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            (click)="$event.stopPropagation(); useRecentItem(recentItem)"
+            class="use-button">
+            <ion-icon [name]="recentItem.type === 'note' ? 'copy' : 'open'" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

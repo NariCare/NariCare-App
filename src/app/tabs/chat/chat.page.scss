@@ -1506,3 +1506,160 @@
 .groups-list-container {
   padding: 1rem;
 }
+
+/* Expert Notes Quick Access Styles */
+.expert-notes-button {
+  --color: #8383ed;
+  
+  &.active {
+    --background: rgba(131, 131, 237, 0.1);
+    --color: #6366f1;
+  }
+}
+
+.expert-quick-access-panel {
+  position: fixed;
+  bottom: 120px;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 50vh;
+  overflow-y: auto;
+  
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    
+    h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+  }
+  
+  .panel-content {
+    padding: 1rem;
+  }
+  
+  .quick-section {
+    margin-bottom: 1.5rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    h5 {
+      margin: 0 0 0.75rem 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #4a5568;
+    }
+  }
+  
+  .quick-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .quick-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #f1f5f9;
+      border-color: #8383ed;
+    }
+    
+    &.note-quick-item {
+      border-left: 3px solid #8383ed;
+    }
+    
+    &.link-quick-item {
+      border-left: 3px solid #06b6d4;
+    }
+    
+    .item-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+      
+      .item-title {
+        flex: 1;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: #2d3748;
+      }
+      
+      .favorite-icon {
+        font-size: 0.8rem;
+      }
+    }
+    
+    .item-preview {
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.3;
+      margin-bottom: 0.25rem;
+    }
+    
+    .item-category {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+  
+  .panel-footer {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.9rem;
+    padding: 1rem;
+    
+    p {
+      margin: 0;
+      line-height: 1.4;
+    }
+  }
+}
+
+// Mobile specific styles for expert notes
+@media (max-width: 768px) {
+  .expert-quick-access-panel {
+    bottom: 110px;
+    max-height: 60vh;
+    
+    .panel-content {
+      padding: 0.75rem;
+    }
+    
+    .quick-item {
+      padding: 0.5rem;
+      
+      .item-header {
+        .item-title {
+          font-size: 0.85rem;
+        }
+      }
+      
+      .item-preview {
+        font-size: 0.75rem;
+      }
+    }
+  }
+}

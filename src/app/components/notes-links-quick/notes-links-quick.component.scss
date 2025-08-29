@@ -1,0 +1,231 @@
+.notes-links-quick {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  .section-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  ion-button {
+    --color: #8383ed;
+  }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  
+  p {
+    color: #64748b;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+.quick-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+      
+      ion-icon {
+        font-size: 1.5rem;
+        color: #ffffff;
+      }
+
+      &.notes-icon {
+        background: linear-gradient(135deg, #8383ed, #6366f1);
+      }
+
+      &.links-icon {
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+      }
+
+      &.recent-icon {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+      }
+    }
+
+    .stat-info {
+      text-align: center;
+      
+      .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        line-height: 1;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 500;
+        margin-top: 0.25rem;
+      }
+    }
+  }
+}
+
+.action-section {
+  .manage-button {
+    --border-color: #8383ed;
+    --color: #8383ed;
+    --border-radius: 12px;
+    font-weight: 600;
+    height: 44px;
+    
+    &:hover {
+      --background: rgba(131, 131, 237, 0.05);
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+
+  .empty-icon {
+    font-size: 3rem;
+    color: #cbd5e0;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  ion-button {
+    --color: #8383ed;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .notes-links-quick {
+    padding: 1rem;
+  }
+
+  .quick-stats {
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .stat-item {
+      flex-direction: row;
+      text-align: left;
+      padding: 0.75rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      
+      .stat-icon {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 0;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+        
+        ion-icon {
+          font-size: 1.25rem;
+        }
+      }
+
+      .stat-info {
+        text-align: left;
+        flex: 1;
+        
+        .stat-number {
+          font-size: 1.25rem;
+        }
+
+        .stat-label {
+          font-size: 0.8rem;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .section-header {
+    .section-title {
+      font-size: 1.1rem;
+    }
+  }
+
+  .quick-stats {
+    .stat-item {
+      padding: 0.5rem;
+      
+      .stat-icon {
+        width: 36px;
+        height: 36px;
+        margin-right: 0.5rem;
+        
+        ion-icon {
+          font-size: 1.1rem;
+        }
+      }
+
+      .stat-info {
+        .stat-number {
+          font-size: 1.1rem;
+        }
+
+        .stat-label {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+}

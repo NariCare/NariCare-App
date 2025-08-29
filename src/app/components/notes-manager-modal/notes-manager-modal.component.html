@@ -1,0 +1,368 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Manage Notes & Links</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="manager-container">
+    <!-- Tab Selector -->
+    <div class="tab-selector">
+      <ion-segment [(ngModel)]="selectedTab" (ionChange)="onTabChange()">
+        <ion-segment-button value="notes">
+          <ion-label>Notes ({{ notes.length }})</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="links">
+          <ion-label>Links ({{ links.length }})</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="filters-section" *ngIf="!showNoteForm && !showLinkForm">
+      <div class="search-bar">
+        <ion-searchbar 
+          [(ngModel)]="searchQuery"
+          (ionInput)="onSearchChange()"
+          placeholder="Search notes and links..."
+          debounce="300">
+        </ion-searchbar>
+      </div>
+
+      <div class="filter-controls">
+        <ion-select 
+          [(ngModel)]="selectedCategory" 
+          (ionChange)="applyFilters()"
+          placeholder="All Categories"
+          interface="popover">
+          <ion-select-option value="">All Categories</ion-select-option>
+          <ion-select-option 
+            *ngFor="let category of selectedTab === 'notes' ? noteCategories : linkCategories" 
+            [value]="category.key">
+            {{ category.label }}
+          </ion-select-option>
+        </ion-select>
+
+        <div class="toggle-filters">
+          <ion-checkbox 
+            [(ngModel)]="showFavoritesOnly" 
+            (ionChange)="applyFilters()">
+          </ion-checkbox>
+          <ion-label>Favorites only</ion-label>
+        </div>
+
+        <div class="toggle-filters">
+          <ion-checkbox 
+            [(ngModel)]="showSharedOnly" 
+            (ionChange)="applyFilters()">
+          </ion-checkbox>
+          <ion-label>Shared only</ion-label>
+        </div>
+
+        <ion-button fill="clear" size="small" (click)="clearFilters()">
+          <ion-icon name="close-circle" slot="start"></ion-icon>
+          Clear
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Create Buttons -->
+    <div class="create-buttons" *ngIf="!showNoteForm && !showLinkForm">
+      <ion-button 
+        expand="block" 
+        *ngIf="selectedTab === 'notes'" 
+        (click)="startCreateNote()">
+        <ion-icon name="add" slot="start"></ion-icon>
+        Create Note
+      </ion-button>
+      <ion-button 
+        expand="block" 
+        *ngIf="selectedTab === 'links'" 
+        (click)="startCreateLink()">
+        <ion-icon name="add" slot="start"></ion-icon>
+        Add Link
+      </ion-button>
+    </div>
+
+    <!-- Note Form -->
+    <div class="form-section" *ngIf="showNoteForm">
+      <h3>{{ editingNote ? 'Edit Note' : 'Create Note' }}</h3>
+      
+      <ion-item>
+        <ion-label position="stacked">Title *</ion-label>
+        <ion-input 
+          [(ngModel)]="noteForm.title" 
+          placeholder="Enter note title"
+          maxlength="200">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Category</ion-label>
+        <ion-select [(ngModel)]="noteForm.category" interface="popover">
+          <ion-select-option 
+            *ngFor="let category of noteCategories" 
+            [value]="category.key">
+            {{ category.label }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Content *</ion-label>
+        <ion-textarea 
+          [(ngModel)]="noteForm.content"
+          placeholder="Enter note content..."
+          rows="6"
+          maxlength="5000">
+        </ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Tags</ion-label>
+        <div class="tags-input">
+          <div class="tags-list" *ngIf="noteForm.tags.length > 0">
+            <ion-chip 
+              *ngFor="let tag of noteForm.tags" 
+              color="primary" 
+              (click)="removeTag(tag, 'note')">
+              {{ tag }}
+              <ion-icon name="close-circle"></ion-icon>
+            </ion-chip>
+          </div>
+          <ion-input 
+            [(ngModel)]="tagInput"
+            placeholder="Type and press Enter to add tags"
+            (keydown)="onTagInputKeypress($event, 'note')">
+          </ion-input>
+        </div>
+      </ion-item>
+
+      <div class="form-toggles">
+        <ion-item>
+          <ion-checkbox [(ngModel)]="noteForm.isFavorite"></ion-checkbox>
+          <ion-label>Mark as favorite</ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-checkbox [(ngModel)]="noteForm.isShared"></ion-checkbox>
+          <ion-label>Share with other experts</ion-label>
+        </ion-item>
+      </div>
+
+      <div class="form-actions">
+        <ion-button fill="outline" (click)="resetForm()">Cancel</ion-button>
+        <ion-button (click)="saveNote()">
+          {{ editingNote ? 'Update' : 'Create' }}
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Link Form -->
+    <div class="form-section" *ngIf="showLinkForm">
+      <h3>{{ editingLink ? 'Edit Link' : 'Add Link' }}</h3>
+      
+      <ion-item>
+        <ion-label position="stacked">Title *</ion-label>
+        <ion-input 
+          [(ngModel)]="linkForm.title" 
+          placeholder="Enter link title"
+          maxlength="200">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">URL *</ion-label>
+        <ion-input 
+          [(ngModel)]="linkForm.url" 
+          type="url"
+          placeholder="https://example.com">
+        </ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Category</ion-label>
+        <ion-select [(ngModel)]="linkForm.category" interface="popover">
+          <ion-select-option 
+            *ngFor="let category of linkCategories" 
+            [value]="category.key">
+            {{ category.label }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Description</ion-label>
+        <ion-textarea 
+          [(ngModel)]="linkForm.description"
+          placeholder="Brief description of this resource..."
+          rows="3"
+          maxlength="500">
+        </ion-textarea>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Tags</ion-label>
+        <div class="tags-input">
+          <div class="tags-list" *ngIf="linkForm.tags.length > 0">
+            <ion-chip 
+              *ngFor="let tag of linkForm.tags" 
+              color="secondary" 
+              (click)="removeTag(tag, 'link')">
+              {{ tag }}
+              <ion-icon name="close-circle"></ion-icon>
+            </ion-chip>
+          </div>
+          <ion-input 
+            [(ngModel)]="tagInput"
+            placeholder="Type and press Enter to add tags"
+            (keydown)="onTagInputKeypress($event, 'link')">
+          </ion-input>
+        </div>
+      </ion-item>
+
+      <div class="form-toggles">
+        <ion-item>
+          <ion-checkbox [(ngModel)]="linkForm.isFavorite"></ion-checkbox>
+          <ion-label>Mark as favorite</ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-checkbox [(ngModel)]="linkForm.isShared"></ion-checkbox>
+          <ion-label>Share with other experts</ion-label>
+        </ion-item>
+      </div>
+
+      <div class="form-actions">
+        <ion-button fill="outline" (click)="resetForm()">Cancel</ion-button>
+        <ion-button (click)="saveLink()">
+          {{ editingLink ? 'Update' : 'Add' }}
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Notes List -->
+    <div *ngIf="selectedTab === 'notes' && !showNoteForm" class="items-section">
+      <!-- Loading -->
+      <div *ngIf="notesLoading" class="loading-container">
+        <ion-spinner name="circles"></ion-spinner>
+        <p>Loading notes...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!notesLoading && notes.length === 0" class="empty-state">
+        <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+        <h3>No notes found</h3>
+        <p>Create your first note to get started</p>
+      </div>
+
+      <!-- Notes List -->
+      <div *ngIf="!notesLoading && notes.length > 0" class="items-list">
+        <ion-card *ngFor="let note of notes" class="item-card note-card">
+          <ion-card-header>
+            <div class="card-header">
+              <div class="card-title">
+                <ion-icon [name]="getCategoryIcon(note.category, 'note')" [color]="getCategoryColor(note.category, 'note')"></ion-icon>
+                <ion-card-title>{{ note.title }}</ion-card-title>
+                <div class="card-badges">
+                  <ion-icon *ngIf="note.is_favorite" name="star" color="warning"></ion-icon>
+                  <ion-icon *ngIf="note.is_shared" name="people" color="secondary"></ion-icon>
+                </div>
+              </div>
+              <div class="card-actions">
+                <ion-button fill="clear" size="small" (click)="useNote(note)">
+                  <ion-icon name="copy" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" (click)="startEditNote(note)">
+                  <ion-icon name="create" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="deleteNote(note)">
+                  <ion-icon name="trash" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </ion-card-header>
+          
+          <ion-card-content>
+            <p class="note-content">{{ note.content }}</p>
+            
+            <div class="card-meta">
+              <div class="tags" *ngIf="note.tags.length > 0">
+                <ion-chip *ngFor="let tag of note.tags" color="light" size="small">{{ tag }}</ion-chip>
+              </div>
+              <div class="meta-info">
+                <span>{{ getCategoryLabel(note.category, 'note') }}</span>
+                <span>Used {{ note.usage_count }} times</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+
+    <!-- Links List -->
+    <div *ngIf="selectedTab === 'links' && !showLinkForm" class="items-section">
+      <!-- Loading -->
+      <div *ngIf="linksLoading" class="loading-container">
+        <ion-spinner name="circles"></ion-spinner>
+        <p>Loading links...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!linksLoading && links.length === 0" class="empty-state">
+        <ion-icon name="link-outline" class="empty-icon"></ion-icon>
+        <h3>No links found</h3>
+        <p>Add your first link to get started</p>
+      </div>
+
+      <!-- Links List -->
+      <div *ngIf="!linksLoading && links.length > 0" class="items-list">
+        <ion-card *ngFor="let link of links" class="item-card link-card">
+          <ion-card-header>
+            <div class="card-header">
+              <div class="card-title">
+                <ion-icon [name]="getCategoryIcon(link.category, 'link')" [color]="getCategoryColor(link.category, 'link')"></ion-icon>
+                <ion-card-title>{{ link.title }}</ion-card-title>
+                <div class="card-badges">
+                  <ion-icon *ngIf="link.is_favorite" name="star" color="warning"></ion-icon>
+                  <ion-icon *ngIf="link.is_shared" name="people" color="secondary"></ion-icon>
+                </div>
+              </div>
+              <div class="card-actions">
+                <ion-button fill="clear" size="small" (click)="useLink(link)">
+                  <ion-icon name="open" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" (click)="startEditLink(link)">
+                  <ion-icon name="create" slot="icon-only"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="deleteLink(link)">
+                  <ion-icon name="trash" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </ion-card-header>
+          
+          <ion-card-content>
+            <p class="link-url">{{ link.url }}</p>
+            <p class="link-description" *ngIf="link.description">{{ link.description }}</p>
+            
+            <div class="card-meta">
+              <div class="tags" *ngIf="link.tags.length > 0">
+                <ion-chip *ngFor="let tag of link.tags" color="light" size="small">{{ tag }}</ion-chip>
+              </div>
+              <div class="meta-info">
+                <span>{{ getCategoryLabel(link.category, 'link') }}</span>
+                <span>Clicked {{ link.click_count }} times</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </div>
+</ion-content>

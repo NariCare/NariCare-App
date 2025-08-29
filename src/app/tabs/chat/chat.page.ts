@@ -8,8 +8,10 @@ import { ChatbotMessageUI, VoiceMode, ChatAttachment } from '../../models/chatbo
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { ExpertNotesService } from '../../services/expert-notes.service';
 import { ChatRoom, ChatMessage } from '../../models/chat.model';
 import { User } from '../../models/user.model';
+import { ExpertNote, ExpertLink } from '../../models/expert-notes.model';
 import { VideoPlayerModalComponent } from '../../components/video-player-modal/video-player-modal.component';
 import { CreateGroupModalComponent } from '../../components/create-group-modal/create-group-modal.component';
 
@@ -37,6 +39,11 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   selectedVoiceIndex = 0;
   isInitializing = false;
   expertBannerDismissed = false;
+  
+  // Expert notes integration
+  showQuickAccess = false;
+  quickAccessNotes: ExpertNote[] = [];
+  quickAccessLinks: ExpertLink[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -44,6 +51,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     private chatService: ChatService,
     private authService: AuthService,
     private backendAuthService: BackendAuthService,
+    private expertNotesService: ExpertNotesService,
     private router: Router,
     private alertController: AlertController,
     private modalController: ModalController
@@ -621,5 +629,129 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     });
 
     return await modal.present();
+  }
+
+  // ==================== EXPERT NOTES INTEGRATION ====================
+
+  /**
+   * Check if current user is an expert
+   */
+  isExpert(): boolean {
+    return this.currentUser?.role === 'expert' || this.currentUser?.role === 'admin';
+  }
+
+  /**
+   * Toggle quick access panel for experts
+   */
+  toggleQuickAccess() {
+    if (!this.isExpert()) return;
+    
+    this.showQuickAccess = !this.showQuickAccess;
+    
+    if (this.showQuickAccess && this.quickAccessNotes.length === 0 && this.quickAccessLinks.length === 0) {
+      this.loadQuickAccess();
+    }
+  }
+
+  /**
+   * Load quick access items for experts
+   */
+  private loadQuickAccess() {
+    if (!this.isExpert()) return;
+
+    this.expertNotesService.getQuickAccess(undefined, 'both')
+      .subscribe({
+        next: (response) => {
+          this.quickAccessNotes = response.data.notes.slice(0, 3); // Show top 3
+          this.quickAccessLinks = response.data.links.slice(0, 3); // Show top 3
+        },
+        error: (error) => {
+          console.error('Error loading quick access for chat:', error);
+        }
+      });
+  }
+
+  /**
+   * Insert note content into message textarea
+   */
+  async insertNoteIntoMessage(note: ExpertNote) {
+    try {
+      // Track usage
+      await this.expertNotesService.useNote(note.id).toPromise();
+      
+      // Format content for chat
+      const formattedContent = this.expertNotesService.formatForSharing(note, 'note');
+      
+      // Insert into message
+      if (this.messageText.trim()) {
+        this.messageText += '\n\n' + formattedContent;
+      } else {
+        this.messageText = formattedContent;
+      }
+      
+      this.showQuickAccess = false;
+      
+      // Focus on textarea
+      const textarea = document.querySelector('.message-textarea') as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.focus();
+      }
+    } catch (error) {
+      console.error('Error inserting note:', error);
+    }
+  }
+
+  /**
+   * Insert link into message textarea
+   */
+  async insertLinkIntoMessage(link: ExpertLink) {
+    try {
+      // Track usage
+      await this.expertNotesService.accessLink(link.id).toPromise();
+      
+      // Format content for chat
+      const formattedContent = this.expertNotesService.formatForSharing(link, 'link');
+      
+      // Insert into message
+      if (this.messageText.trim()) {
+        this.messageText += '\n\n' + formattedContent;
+      } else {
+        this.messageText = formattedContent;
+      }
+      
+      this.showQuickAccess = false;
+      
+      // Focus on textarea
+      const textarea = document.querySelector('.message-textarea') as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.focus();
+      }
+    } catch (error) {
+      console.error('Error inserting link:', error);
+    }
+  }
+
+  /**
+   * Get category label for display
+   */
+  getCategoryLabel(categoryKey: string, type: 'note' | 'link'): string {
+    const categoryInfo = this.expertNotesService.getCategoryInfo(categoryKey, type);
+    return categoryInfo?.label || categoryKey;
+  }
+
+  /**
+   * Get category icon
+   */
+  getCategoryIcon(categoryKey: string, type: 'note' | 'link'): string {
+    const categoryInfo = this.expertNotesService.getCategoryInfo(categoryKey, type);
+    return categoryInfo?.icon || (type === 'note' ? 'document-text' : 'link');
+  }
+
+  /**
+   * Get category color
+   */
+  getCategoryColor(categoryKey: string, type: 'note' | 'link'): string {
+    const categoryInfo = this.expertNotesService.getCategoryInfo(categoryKey, type);
+    return categoryInfo?.color || 'medium';
   }
 }

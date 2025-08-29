@@ -423,6 +423,60 @@
 
   </div>
 
+  <!-- Expert Quick Access Panel -->
+  <div class="expert-quick-access-panel" *ngIf="isExpert() && selectedTab === 'ai' && showQuickAccess">
+    <div class="panel-header">
+      <h4>Quick Access</h4>
+      <ion-button fill="clear" size="small" (click)="showQuickAccess = false">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+    
+    <div class="panel-content">
+      <!-- Quick Notes -->
+      <div class="quick-section" *ngIf="quickAccessNotes.length > 0">
+        <h5>📝 Quick Notes</h5>
+        <div class="quick-items">
+          <div 
+            *ngFor="let note of quickAccessNotes" 
+            class="quick-item note-quick-item"
+            (click)="insertNoteIntoMessage(note)">
+            <div class="item-header">
+              <ion-icon [name]="getCategoryIcon(note.category, 'note')" [color]="getCategoryColor(note.category, 'note')"></ion-icon>
+              <span class="item-title">{{ note.title }}</span>
+              <ion-icon *ngIf="note.is_favorite" name="star" color="warning" class="favorite-icon"></ion-icon>
+            </div>
+            <div class="item-preview">{{ note.content | slice:0:60 }}{{ note.content.length > 60 ? '...' : '' }}</div>
+            <div class="item-category">{{ getCategoryLabel(note.category, 'note') }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="quick-section" *ngIf="quickAccessLinks.length > 0">
+        <h5>🔗 Quick Links</h5>
+        <div class="quick-items">
+          <div 
+            *ngFor="let link of quickAccessLinks" 
+            class="quick-item link-quick-item"
+            (click)="insertLinkIntoMessage(link)">
+            <div class="item-header">
+              <ion-icon [name]="getCategoryIcon(link.category, 'link')" [color]="getCategoryColor(link.category, 'link')"></ion-icon>
+              <span class="item-title">{{ link.title }}</span>
+              <ion-icon *ngIf="link.is_favorite" name="star" color="warning" class="favorite-icon"></ion-icon>
+            </div>
+            <div class="item-preview" *ngIf="link.description">{{ link.description | slice:0:60 }}{{ link.description && link.description.length > 60 ? '...' : '' }}</div>
+            <div class="item-category">{{ getCategoryLabel(link.category, 'link') }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-footer" *ngIf="quickAccessNotes.length === 0 && quickAccessLinks.length === 0">
+        <p>No quick access items available. Create notes and links in your dashboard.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Message Input (for AI chat) -->
   <div class="message-input-container fixed-bottom" *ngIf="selectedTab === 'ai' && !(voiceMode$ | async)?.isActive">
     <div class="message-input">
@@ -439,6 +493,15 @@
         (click)="openVideoLinkInput()"
         class="attachment-button">
         <ion-icon name="videocam" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button 
+        *ngIf="isExpert()"
+        fill="clear" 
+        size="small"
+        (click)="toggleQuickAccess()"
+        [class.active]="showQuickAccess"
+        class="expert-notes-button">
+        <ion-icon name="library" slot="icon-only"></ion-icon>
       </ion-button>
       <ion-textarea
         [(ngModel)]="messageText"

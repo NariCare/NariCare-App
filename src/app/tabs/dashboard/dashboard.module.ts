@@ -6,6 +6,7 @@ import { DashboardPageRoutingModule } from './dashboard-routing.module';
 import { DashboardPage } from './dashboard.page';
 import { SharedModule } from '../../shared/shared.module';
 import { ExpertConsultationsPageModule } from '../../components/expert-consultations/expert-consultations.module';
+import { NotesLinksQuickModule } from '../../components/notes-links-quick/notes-links-quick.module';
 
 @NgModule({
   imports: [
@@ -14,7 +15,8 @@ import { ExpertConsultationsPageModule } from '../../components/expert-consultat
     IonicModule,
     DashboardPageRoutingModule,
     SharedModule,
-    ExpertConsultationsPageModule
+    ExpertConsultationsPageModule,
+    NotesLinksQuickModule
   ],
   declarations: [
     DashboardPage
