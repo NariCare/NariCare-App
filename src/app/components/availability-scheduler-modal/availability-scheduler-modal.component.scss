@@ -132,6 +132,12 @@
           align-items: center;
           gap: 8px;
           
+          .time-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+          
           .time-select {
             border: 1px solid #d1d5db;
             border-radius: 6px;
@@ -140,7 +146,23 @@
             color: #374151;
             background: white;
             outline: none;
-            min-width: 80px;
+            min-width: 70px;
+            
+            &:focus {
+              border-color: #3b82f6;
+              box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+          }
+          
+          .period-select {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px 8px;
+            font-size: 14px;
+            color: #374151;
+            background: white;
+            outline: none;
+            min-width: 50px;
             
             &:focus {
               border-color: #3b82f6;
@@ -314,9 +336,20 @@ ion-footer {
         flex-wrap: wrap;
         gap: 6px;
         
+        .time-group {
+          display: flex;
+          gap: 2px;
+          flex: 1;
+          min-width: 100px;
+        }
+        
         .time-select {
           flex: 1;
-          min-width: 70px;
+          min-width: 60px;
+        }
+        
+        .period-select {
+          min-width: 45px;
         }
         
         .dash {

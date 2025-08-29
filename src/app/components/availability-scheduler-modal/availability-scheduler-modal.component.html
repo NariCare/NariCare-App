@@ -52,13 +52,23 @@
           <!-- Time slots -->
           <div *ngFor="let slot of day.timeSlots; let slotIndex = index" class="time-slot-row">
             <div class="time-editing">
-              <select [(ngModel)]="slot.start" class="time-select" (change)="onTimeChange(day, slotIndex)">
-                <option *ngFor="let time of timeOptions" [value]="time.value">{{ time.label }}</option>
-              </select>
+              <div class="time-group">
+                <select [(ngModel)]="slot.start" class="time-select" (change)="onTimeChange(day, slotIndex)">
+                  <option *ngFor="let time of timeOptions" [value]="time.value">{{ time.label }}</option>
+                </select>
+                <select [(ngModel)]="slot.startPeriod" class="period-select" (change)="onTimeChange(day, slotIndex)">
+                  <option *ngFor="let period of periodOptions" [value]="period.value">{{ period.label }}</option>
+                </select>
+              </div>
               <span class="dash">-</span>
-              <select [(ngModel)]="slot.end" class="time-select" (change)="onTimeChange(day, slotIndex)">
-                <option *ngFor="let time of timeOptions" [value]="time.value">{{ time.label }}</option>
-              </select>
+              <div class="time-group">
+                <select [(ngModel)]="slot.end" class="time-select" (change)="onTimeChange(day, slotIndex)">
+                  <option *ngFor="let time of timeOptions" [value]="time.value">{{ time.label }}</option>
+                </select>
+                <select [(ngModel)]="slot.endPeriod" class="period-select" (change)="onTimeChange(day, slotIndex)">
+                  <option *ngFor="let period of periodOptions" [value]="period.value">{{ period.label }}</option>
+                </select>
+              </div>
               
               <!-- Remove button for this specific slot -->
               <ion-button 
