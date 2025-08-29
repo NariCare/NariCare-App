@@ -189,6 +189,18 @@ export class ExpertNotesService {
     );
   }
 
+  /**
+   * Increment link usage count (for when link is used but not actually opened)
+   */
+  incrementLinkUsage(id: string): Observable<void> {
+    return this.http.post<{success: boolean}>(`${this.API_BASE}/links/${id}/increment-usage`, {}, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      map(() => void 0),
+      catchError(this.handleError)
+    );
+  }
+
   // ==================== CONSULTATION HELPER METHODS ====================
 
   /**

@@ -1,15 +1,18 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, ModalController } from '@ionic/angular';
+import { AlertController, ModalController, PopoverController } from '@ionic/angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { ChatService } from '../../services/chat.service';
 import { WebSocketChatService } from '../../services/websocket-chat.service';
 import { AuthService } from '../../services/auth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { ExpertNotesService } from '../../services/expert-notes.service';
 import { ChatRoom, ChatMessage, ChatAttachment } from '../../models/chat.model';
 import { ChatMessage as SocketChatMessage, TypingUser } from '../../services/socket.service';
 import { User } from '../../models/user.model';
+import { ExpertNote, ExpertLink } from '../../models/expert-notes.model';
 import { VideoPlayerModalComponent } from '../../components/video-player-modal/video-player-modal.component';
+import { QuickNotesComponent } from '../../components/quick-notes/quick-notes.component';
 
 @Component({
   selector: 'app-chat-room',
@@ -51,8 +54,10 @@ export class ChatRoomPage implements OnInit, AfterViewChecked, OnDestroy {
     private webSocketChatService: WebSocketChatService,
     private authService: AuthService,
     private backendAuthService: BackendAuthService,
+    private expertNotesService: ExpertNotesService,
     private alertController: AlertController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private popoverController: PopoverController
   ) {}
 
   ngOnInit() {
@@ -547,5 +552,71 @@ export class ChatRoomPage implements OnInit, AfterViewChecked, OnDestroy {
    */
   trackByMessageId(index: number, message: SocketChatMessage): string {
     return message.id;
+  }
+
+  /**
+   * Check if current user is an expert
+   */
+  isExpert(): boolean {
+    return this.currentUser?.role === 'expert' || this.currentUser?.role === 'admin';
+  }
+
+  /**
+   * Open quick notes modal for experts to select notes/links to insert
+   */
+  async openQuickNotesModal() {
+    if (!this.isExpert()) return;
+
+    const modal = await this.modalController.create({
+      component: QuickNotesComponent,
+      componentProps: {
+        user: this.currentUser,
+        isSelectionMode: true
+      },
+      cssClass: 'quick-notes-modal'
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data && result.data.selectedContent) {
+        this.insertContentIntoMessage(result.data.selectedContent, result.data.contentType);
+      }
+    });
+
+    return await modal.present();
+  }
+
+  /**
+   * Insert selected note or link content into the message textarea
+   */
+  private insertContentIntoMessage(content: ExpertNote | ExpertLink, type: 'note' | 'link') {
+    let textToInsert = '';
+
+    if (type === 'note') {
+      const note = content as ExpertNote;
+      textToInsert = note.content;
+    } else {
+      const link = content as ExpertLink;
+      textToInsert = `${link.title}: ${link.url}`;
+      if (link.description) {
+        textToInsert += ` - ${link.description}`;
+      }
+    }
+
+    // Insert at current cursor position or append to existing text
+    if (this.groupMessageText.trim()) {
+      this.groupMessageText += '\n\n' + textToInsert;
+    } else {
+      this.groupMessageText = textToInsert;
+    }
+
+    // Update usage statistics
+    if (type === 'note') {
+      this.expertNotesService.copyNoteContent(content as ExpertNote);
+    } else {
+      // For links, we increment usage but don't actually open the link
+      this.expertNotesService.incrementLinkUsage((content as ExpertLink).id).subscribe({
+        error: (error) => console.warn('Failed to update link usage:', error)
+      });
+    }
   }
 }

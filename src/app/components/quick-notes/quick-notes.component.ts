@@ -18,6 +18,7 @@ import { NotesManagerModalComponent } from '../notes-manager-modal/notes-manager
 })
 export class QuickNotesComponent implements OnInit, OnDestroy {
   @Input() user: User | null = null;
+  @Input() isSelectionMode: boolean = false; // New input for selection mode
   
   quickNotes: ExpertNote[] = [];
   quickLinks: ExpertLink[] = [];
@@ -76,6 +77,12 @@ export class QuickNotesComponent implements OnInit, OnDestroy {
   }
 
   async useNote(note: ExpertNote) {
+    if (this.isSelectionMode) {
+      // In selection mode, return the selected note
+      this.selectContent(note, 'note');
+      return;
+    }
+
     try {
       const copied = await this.expertNotesService.copyNoteContent(note);
       if (copied) {
@@ -90,6 +97,12 @@ export class QuickNotesComponent implements OnInit, OnDestroy {
   }
 
   async useLink(link: ExpertLink) {
+    if (this.isSelectionMode) {
+      // In selection mode, return the selected link
+      this.selectContent(link, 'link');
+      return;
+    }
+
     try {
       await this.expertNotesService.openLink(link);
       await this.showSuccessToast('Link opened in new tab');
@@ -97,6 +110,16 @@ export class QuickNotesComponent implements OnInit, OnDestroy {
       console.error('Error using link:', error);
       await this.showErrorToast('Failed to open link');
     }
+  }
+
+  /**
+   * Select content and dismiss modal with selected data
+   */
+  private selectContent(content: ExpertNote | ExpertLink, type: 'note' | 'link') {
+    this.modalController.dismiss({
+      selectedContent: content,
+      contentType: type
+    });
   }
 
   async useRecentItem(recentItem: {item: ExpertNote | ExpertLink, type: 'note' | 'link', usedAt: Date}) {

@@ -128,6 +128,15 @@
         class="attachment-button">
         <ion-icon name="videocam" slot="icon-only"></ion-icon>
       </ion-button>
+      <!-- Quick Notes Button for Experts -->
+      <ion-button 
+        fill="clear" 
+        size="small"
+        (click)="openQuickNotesModal()"
+        class="attachment-button"
+        *ngIf="isExpert()">
+        <ion-icon name="bookmark" slot="icon-only"></ion-icon>
+      </ion-button>
       <ion-textarea
         [(ngModel)]="groupMessageText"
         placeholder="Type your message to the group..."
