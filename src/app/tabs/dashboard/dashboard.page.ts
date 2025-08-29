@@ -141,6 +141,14 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           priority: true
         },
         {
+          title: 'Notes & Links',
+          description: 'Manage your saved notes and helpful links',
+          icon: 'bookmark',
+          action: 'openExpertNotes',
+          color: 'secondary',
+          priority: false
+        },
+        {
           title: 'Expert Resources',
           description: 'Access professional tools and guides',
           icon: 'library',
@@ -317,6 +325,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       // Expert-specific actions
       case 'setSchedule':
         this.openAvailabilityScheduler();
+        break;
+      case 'openExpertNotes':
+        this.router.navigate(['/expert-notes']);
         break;
       case 'manageClients':
         setTimeout(() => {
