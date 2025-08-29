@@ -14,32 +14,9 @@
 
 <ion-content [fullscreen]="true">
   <div class="expert-notes-container">
-    <!-- Tab Selector -->
-    <div class="tab-selector">
-      <ion-segment [(ngModel)]="selectedTab">
-        <ion-segment-button value="quick">
-          <ion-label>Quick Access</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="manage">
-          <ion-label>Manage All</ion-label>
-        </ion-segment-button>
-      </ion-segment>
-    </div>
-
-    <!-- Quick Access Tab -->
-    <div *ngIf="selectedTab === 'quick'" class="tab-content">
-      <!-- Use the existing QuickNotesComponent -->
-      <div class="quick-notes-wrapper">
-        <app-quick-notes [user]="currentUser"></app-quick-notes>
-      </div>
-    </div>
-
-    <!-- Manage All Tab -->
-    <div *ngIf="selectedTab === 'manage'" class="tab-content">
-      <!-- Use the existing NotesManagerModalComponent content inline -->
-      <div class="manage-notes-wrapper">
-        <app-notes-manager-inline></app-notes-manager-inline>
-      </div>
+    <!-- Direct Notes & Links Management -->
+    <div class="manage-notes-wrapper">
+      <app-notes-manager-inline></app-notes-manager-inline>
     </div>
   </div>
 </ion-content>
