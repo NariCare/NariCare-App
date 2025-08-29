@@ -129,9 +129,23 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       return this._quickActions;
     }
     
-    // For experts, show different quick actions
+    let actions: any[] = [];
+    
+    // Add onboarding action if not completed (highest priority)
+    if (!this.user?.isOnboardingCompleted) {
+      actions.push({
+        title: 'Complete Your Profile',
+        description: 'Finish setting up your profile to unlock all features',
+        icon: 'person-add',
+        action: 'openOnboarding',
+        color: 'warning',
+        priority: true
+      });
+    }
+    
+    // For experts, show expert-specific quick actions
     if (this.user?.role === 'expert') {
-      this._quickActions = [
+      actions.push(
         {
           title: 'My Schedule',
           description: 'Configure your availability for consultations',
@@ -156,11 +170,13 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           color: 'tertiary',
           priority: false
         }
-      ];
+      );
     } else {
-      this._quickActions = this.baseQuickActions;
+      // Add regular user actions
+      actions.push(...this.baseQuickActions);
     }
     
+    this._quickActions = actions;
     return this._quickActions;
   }
 
@@ -310,6 +326,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   handleQuickAction(action: string) {
     switch (action) {
+      case 'openOnboarding':
+        this.router.navigate(['/onboarding']);
+        break;
       case 'openChatbot':
         this.openChatbot();
         break;
@@ -385,6 +404,12 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async openConsultationBooking() {
+    // Check if user has completed onboarding
+    if (!this.user?.isOnboardingCompleted) {
+      await this.showOnboardingRequiredAlert();
+      return;
+    }
+
     const modal = await this.modalController.create({
       component: ConsultationBookingModalComponent,
       cssClass: 'consultation-booking-modal'
@@ -402,7 +427,34 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return await modal.present();
   }
 
+  private async showOnboardingRequiredAlert() {
+    const alert = await this.alertController.create({
+      header: 'Complete Your Profile First',
+      message: 'Please complete the onboarding process before booking a consultation. This helps our experts provide you with personalized care.',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Complete Profile',
+          handler: () => {
+            this.router.navigate(['/onboarding']);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
   async editConsultation(consultation: Consultation) {
+    // Check if user has completed onboarding
+    if (!this.user?.isOnboardingCompleted) {
+      await this.showOnboardingRequiredAlert();
+      return;
+    }
+
     const modal = await this.modalController.create({
       component: ConsultationBookingModalComponent,
       componentProps: {

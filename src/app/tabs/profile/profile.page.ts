@@ -153,6 +153,12 @@ export class ProfilePage implements OnInit {
   }
 
   async openConsultationBooking() {
+    // Check if user has completed onboarding
+    if (!this.user?.isOnboardingCompleted) {
+      await this.showOnboardingRequiredAlert();
+      return;
+    }
+
     const modal = await this.modalController.create({
       component: ConsultationBookingModalComponent,
       cssClass: 'consultation-booking-modal'
@@ -166,6 +172,27 @@ export class ProfilePage implements OnInit {
     });
 
     return await modal.present();
+  }
+
+  private async showOnboardingRequiredAlert() {
+    const alert = await this.alertController.create({
+      header: 'Complete Your Profile First',
+      message: 'Please complete the onboarding process before booking a consultation. This helps our experts provide you with personalized care.',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Complete Profile',
+          handler: () => {
+            this.router.navigate(['/onboarding']);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   getExpertName(expertId: string): string {
