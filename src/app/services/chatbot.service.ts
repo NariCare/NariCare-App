@@ -1,10 +1,33 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ApiKeyService } from './api-key.service';
-import { ChatAttachment } from '../models/chat.model';
+import { ApiService } from './api.service';
+import { 
+  ChatbotConversation, 
+  ChatbotMessage, 
+  ChatbotMessageUI,
+  ChatbotContext, 
+  StartConversationRequest, 
+  SendMessageRequest, 
+  UpdateConversationRequest,
+  GetMessagesRequest,
+  GetConversationsRequest,
+  SearchConversationsRequest,
+  ChatbotApiResponse,
+  SendMessageResponse,
+  ConversationSummaryResponse,
+  ChatbotContent,
+  MediaContent,
+  ContentFormatting,
+  ContentSection,
+  VoiceMode,
+  FollowUpOption,
+  ChatAttachment
+} from '../models/chatbot.model';
 
-export interface ChatbotMessage {
+// Legacy interface - keeping for backward compatibility
+export interface LegacyChatbotMessage {
   id: string;
   content: string;
   formattedContent?: ChatbotContent;
@@ -17,60 +40,31 @@ export interface ChatbotMessage {
   attachments?: ChatAttachment[];
 }
 
-export interface ChatbotContent {
-  text: string;
-  media?: MediaContent[];
-  formatting?: ContentFormatting;
-}
+// Moved to chatbot.model.ts
 
-export interface MediaContent {
-  type: 'image' | 'video' | 'link';
-  url: string;
-  title?: string;
-  description?: string;
-  thumbnail?: string;
-}
-
-export interface ContentFormatting {
-  hasBulletPoints?: boolean;
-  hasBoldText?: boolean;
-  sections?: ContentSection[];
-}
-
-export interface ContentSection {
-  title?: string;
-  content: string;
-  type: 'text' | 'list' | 'callout';
-}
-
-export interface FollowUpOption {
-  id: string;
-  text: string;
-  action: string;
-}
-
-export interface ChatbotContext {
+// Legacy context interface
+export interface LegacyChatbotContext {
   userId: string;
   babyAge?: number;
   previousQueries: string[];
   currentTopic?: string;
 }
 
-export interface VoiceMode {
-  isActive: boolean;
-  isListening: boolean;
-  isSpeaking: boolean;
-  autoListen: boolean;
-  conversationFlow: boolean;
-}
+// Moved to chatbot.model.ts
 @Injectable({
   providedIn: 'root'
 })
 export class ChatbotService {
-  private messagesSubject = new BehaviorSubject<ChatbotMessage[]>([]);
+  private messagesSubject = new BehaviorSubject<ChatbotMessageUI[]>([]);
   public messages$ = this.messagesSubject.asObservable();
   
-  private context: ChatbotContext = {
+  private currentConversationSubject = new BehaviorSubject<ChatbotConversation | null>(null);
+  public currentConversation$ = this.currentConversationSubject.asObservable();
+  
+  private conversationsSubject = new BehaviorSubject<ChatbotConversation[]>([]);
+  public conversations$ = this.conversationsSubject.asObservable();
+  
+  private context: LegacyChatbotContext = {
     userId: '',
     previousQueries: []
   };
@@ -101,7 +95,8 @@ export class ChatbotService {
   private voiceModeTimeout: any = null;
   constructor(
     private http: HttpClient,
-    private apiKeyService: ApiKeyService
+    private apiKeyService: ApiKeyService,
+    private apiService: ApiService
   ) {
     this.initializeSpeechSynthesis();
     this.initializeSpeechRecognition();
@@ -202,6 +197,190 @@ export class ChatbotService {
     }
   }
 
+  // ============================================================================
+  // BACKEND API METHODS
+  // ============================================================================
+
+  /**
+   * Start a new conversation or get the active conversation
+   */
+  startConversation(request: StartConversationRequest): Observable<any> {
+    return this.apiService.startChatbotConversation(request);
+  }
+
+  /**
+   * Send a message to the AI chatbot
+   */
+  sendMessageToAPI(conversationId: string, request: SendMessageRequest): Observable<any> {
+    return this.apiService.sendChatbotMessage(conversationId, request.message);
+  }
+
+  /**
+   * Get messages from a conversation
+   */
+  getConversationMessages(conversationId: string, params?: GetMessagesRequest): Observable<any> {
+    return this.apiService.getChatbotMessages(conversationId, params);
+  }
+
+  /**
+   * Get user's conversations
+   */
+  getUserConversations(params?: GetConversationsRequest): Observable<any> {
+    return this.apiService.getChatbotConversations(params);
+  }
+
+  /**
+   * Update conversation context
+   */
+  updateConversation(conversationId: string, request: UpdateConversationRequest): Observable<any> {
+    return this.apiService.updateChatbotConversation(conversationId, request);
+  }
+
+  /**
+   * End a conversation
+   */
+  endConversation(conversationId: string): Observable<any> {
+    return this.apiService.endChatbotConversation(conversationId);
+  }
+
+  /**
+   * Search conversations
+   */
+  searchConversations(params: SearchConversationsRequest): Observable<any> {
+    return this.apiService.searchChatbotConversations(params.q, { limit: params.limit, offset: params.offset });
+  }
+
+  // ============================================================================
+  // ENHANCED UI METHODS
+  // ============================================================================
+
+  /**
+   * Initialize or get active conversation and load messages
+   */
+  async initializeChatWithBackend(babyAgeWeeks?: number, context?: ChatbotContext): Promise<void> {
+    try {
+      // Start or get active conversation
+      const conversationResponse = await this.startConversation({
+        babyAgeWeeks,
+        context
+      }).toPromise();
+
+      if (conversationResponse?.success && conversationResponse.data) {
+        this.currentConversationSubject.next(conversationResponse.data);
+        
+        // Load existing messages if any
+        if (conversationResponse.data.messages && conversationResponse.data.messages.length > 0) {
+          const uiMessages: ChatbotMessageUI[] = conversationResponse.data.messages.map(msg => this.convertToUIMessage(msg));
+          this.messagesSubject.next(uiMessages);
+        } else {
+          // Add welcome message if no messages exist
+          const welcomeMessage: ChatbotMessageUI = {
+            id: this.generateId(),
+            conversation_id: conversationResponse.data.id,
+            content: `Hi! I'm NariCare AI, your personal breastfeeding support assistant. ${babyAgeWeeks ? `I see your baby is ${babyAgeWeeks} weeks old.` : ''} What can I help you with today?`,
+            sender: 'bot',
+            created_at: new Date().toISOString(),
+            timestamp: new Date(),
+            follow_up_options: [
+              "I have questions about breastfeeding",
+              "I need help with feeding issues", 
+              "Tell me about my baby's development"
+            ]
+          };
+          this.messagesSubject.next([welcomeMessage]);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize chat:', error);
+      this.handleAIError();
+    }
+  }
+
+  /**
+   * Send message using backend API
+   */
+  async sendMessageWithBackend(content: string, attachments?: ChatAttachment[]): Promise<void> {
+    const currentConversation = this.currentConversationSubject.value;
+    if (!currentConversation) {
+      console.error('No active conversation');
+      return;
+    }
+
+    // Add user message to UI
+    const userMessage: ChatbotMessageUI = {
+      id: this.generateId(),
+      conversation_id: currentConversation.id,
+      content,
+      sender: 'user',
+      created_at: new Date().toISOString(),
+      timestamp: new Date(),
+      attachments
+    };
+
+    const currentMessages = this.messagesSubject.value;
+    this.messagesSubject.next([...currentMessages, userMessage]);
+
+    // Show typing indicator
+    const typingMessage: ChatbotMessageUI = {
+      id: 'typing-' + Date.now(),
+      conversation_id: currentConversation.id,
+      content: 'Thinking...',
+      sender: 'bot',
+      created_at: new Date().toISOString(),
+      timestamp: new Date(),
+      isTyping: true
+    };
+    this.messagesSubject.next([...this.messagesSubject.value, typingMessage]);
+
+    try {
+      // Send message to backend
+      const response = await this.sendMessageToAPI(currentConversation.id, { message: content }).toPromise();
+      
+      if (response?.success && response.data) {
+        // Remove typing indicator
+        const messagesWithoutTyping = this.messagesSubject.value.filter(m => !m.isTyping);
+        
+        // Add bot response
+        const botMessage = this.convertToUIMessage(response.data.botMessage);
+        this.messagesSubject.next([...messagesWithoutTyping, botMessage]);
+        
+        // Auto-speak if enabled
+        if (this.autoSpeakEnabled) {
+          setTimeout(() => {
+            this.speakMessage(botMessage.id, botMessage.content);
+          }, 800);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      this.handleAIError();
+    }
+  }
+
+  /**
+   * Convert API message to UI message
+   */
+  private convertToUIMessage(apiMessage: ChatbotMessage): ChatbotMessageUI {
+    return {
+      ...apiMessage,
+      timestamp: new Date(apiMessage.created_at),
+      isPlaying: false,
+      formattedContent: this.parseStructuredContent(apiMessage.content),
+      followUpOptions: apiMessage.follow_up_options ? this.convertFollowUpOptions(apiMessage.follow_up_options) : undefined
+    };
+  }
+
+  /**
+   * Convert follow-up options from API format
+   */
+  private convertFollowUpOptions(options: string[]): FollowUpOption[] {
+    return options.map((text, index) => ({
+      id: index.toString(),
+      text,
+      action: text.toLowerCase().replace(/[^a-z0-9]/g, '_')
+    }));
+  }
+
   initializeChat(userId: string, babyAge?: number): void {
     this.context = {
       userId,
@@ -209,10 +388,12 @@ export class ChatbotService {
       previousQueries: []
     };
 
-    const welcomeMessage: ChatbotMessage = {
+    const welcomeMessage: ChatbotMessageUI = {
       id: this.generateId(),
+      conversation_id: '',
       content: `Hi! I'm here to help you with breastfeeding and baby care questions. ${babyAge ? `I see your baby is ${babyAge} weeks old.` : ''} What would you like to know about today?`,
       sender: 'bot',
+      created_at: new Date().toISOString(),
       timestamp: new Date()
     };
 
@@ -220,10 +401,19 @@ export class ChatbotService {
   }
 
   async sendMessage(content: string, attachments?: ChatAttachment[]): Promise<void> {
-    const userMessage: ChatbotMessage = {
+    // Check if we have an active backend conversation, use that if available
+    const currentConversation = this.currentConversationSubject.value;
+    if (currentConversation) {
+      return this.sendMessageWithBackend(content, attachments);
+    }
+
+    // Fallback to legacy OpenAI integration
+    const userMessage: ChatbotMessageUI = {
       id: this.generateId(),
+      conversation_id: '',
       content,
       sender: 'user',
+      created_at: new Date().toISOString(),
       timestamp: new Date(),
       attachments
     };
@@ -234,10 +424,12 @@ export class ChatbotService {
     // Show typing indicator only if one doesn't already exist
     const hasTypingIndicator = this.messagesSubject.value.some(m => m.isTyping);
     if (!hasTypingIndicator) {
-      const typingMessage: ChatbotMessage = {
+      const typingMessage: ChatbotMessageUI = {
         id: 'typing-' + Date.now(),
+        conversation_id: '',
         content: 'Thinking...',
         sender: 'bot',
+        created_at: new Date().toISOString(),
         timestamp: new Date(),
         isTyping: true
       };
@@ -250,11 +442,13 @@ export class ChatbotService {
       // Remove all typing indicators
       const messagesWithoutTyping = this.messagesSubject.value.filter(m => !m.isTyping);
       
-      const botResponse: ChatbotMessage = {
+      const botResponse: ChatbotMessageUI = {
         id: this.generateId(),
+        conversation_id: '',
         content: response.text,
         formattedContent: response,
         sender: 'bot',
+        created_at: new Date().toISOString(),
         timestamp: new Date(),
         followUpOptions: this.generateFollowUpOptions(content),
         isPlaying: false
@@ -562,10 +756,12 @@ export class ChatbotService {
     // Remove all typing indicators
     const messagesWithoutTyping = this.messagesSubject.value.filter(m => !m.isTyping);
     
-    const errorMessage: ChatbotMessage = {
+    const errorMessage: ChatbotMessageUI = {
       id: this.generateId(),
+      conversation_id: this.currentConversationSubject.value?.id || '',
       content: "I'm having trouble processing your question right now. Would you like me to connect you with one of our lactation experts for personalized help?",
       sender: 'bot',
+      created_at: new Date().toISOString(),
       timestamp: new Date(),
       isPlaying: false
     };
@@ -605,10 +801,12 @@ export class ChatbotService {
     });
     
     // Add welcome message for voice mode
-    const welcomeMessage: ChatbotMessage = {
+    const welcomeMessage: ChatbotMessageUI = {
       id: this.generateId(),
+      conversation_id: this.currentConversationSubject.value?.id || '',
       content: "Voice mode activated! I'm listening. You can speak naturally and I'll respond with voice. Say 'stop voice mode' to exit.",
       sender: 'bot',
+      created_at: new Date().toISOString(),
       timestamp: new Date(),
       isPlaying: false
     };
@@ -704,10 +902,12 @@ export class ChatbotService {
   }
 
   requestExpertHelp(): void {
-    const expertMessage: ChatbotMessage = {
+    const expertMessage: ChatbotMessageUI = {
       id: this.generateId(),
+      conversation_id: this.currentConversationSubject.value?.id || '',
       content: "I've connected you with our expert team. They'll be with you shortly to provide personalized assistance.",
       sender: 'bot',
+      created_at: new Date().toISOString(),
       timestamp: new Date(),
       isPlaying: false
     };
@@ -721,10 +921,12 @@ export class ChatbotService {
   }
 
   addSystemMessage(content: string): void {
-    const systemMessage: ChatbotMessage = {
+    const systemMessage: ChatbotMessageUI = {
       id: this.generateId(),
+      conversation_id: this.currentConversationSubject.value?.id || '',
       content: content,
       sender: 'bot',
+      created_at: new Date().toISOString(),
       timestamp: new Date(),
       isPlaying: false
     };
@@ -928,7 +1130,7 @@ export class ChatbotService {
     return this.selectedVoice;
   }
 
-  getCurrentMessages(): ChatbotMessage[] {
+  getCurrentMessages(): ChatbotMessageUI[] {
     return this.messagesSubject.value;
   }
 

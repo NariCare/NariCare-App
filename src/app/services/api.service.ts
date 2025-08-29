@@ -1258,6 +1258,102 @@ export class ApiService {
   }
 
   // ============================================================================
+  // CHATBOT ENDPOINTS
+  // ============================================================================
+
+  startChatbotConversation(data: {
+    babyAgeWeeks?: number;
+    context?: {
+      breastfeedingGoals?: string;
+      previousChallenges?: string[];
+      currentConcerns?: string[];
+      recentChallenges?: string[];
+    };
+  }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/chatbot/conversation`, data, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  sendChatbotMessage(conversationId: string, message: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/chatbot/conversation/${conversationId}/message`, 
+      { message }, 
+      {
+        headers: this.getAuthHeaders()
+      }
+    ).pipe(catchError(this.handleError));
+  }
+
+  getChatbotMessages(conversationId: string, options?: {
+    limit?: number;
+    offset?: number;
+    order?: 'ASC' | 'DESC';
+  }): Observable<ApiResponse<any[]>> {
+    let params = new HttpParams();
+    
+    if (options?.limit) params = params.set('limit', options.limit.toString());
+    if (options?.offset) params = params.set('offset', options.offset.toString());
+    if (options?.order) params = params.set('order', options.order);
+
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/chatbot/conversation/${conversationId}/messages`, {
+      headers: this.getAuthHeaders(),
+      params
+    }).pipe(catchError(this.handleError));
+  }
+
+  getChatbotConversations(options?: {
+    limit?: number;
+    offset?: number;
+    isActive?: 'true' | 'false' | 'all';
+  }): Observable<ApiResponse<any[]>> {
+    let params = new HttpParams();
+    
+    if (options?.limit) params = params.set('limit', options.limit.toString());
+    if (options?.offset) params = params.set('offset', options.offset.toString());
+    if (options?.isActive) params = params.set('isActive', options.isActive);
+
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/chatbot/conversations`, {
+      headers: this.getAuthHeaders(),
+      params
+    }).pipe(catchError(this.handleError));
+  }
+
+  updateChatbotConversation(conversationId: string, data: {
+    babyAgeWeeks?: number;
+    context?: {
+      breastfeedingGoals?: string;
+      previousChallenges?: string[];
+      currentConcerns?: string[];
+      recentChallenges?: string[];
+    };
+  }): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/chatbot/conversation/${conversationId}`, data, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  endChatbotConversation(conversationId: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/chatbot/conversation/${conversationId}/end`, {}, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  searchChatbotConversations(query: string, options?: {
+    limit?: number;
+    offset?: number;
+  }): Observable<ApiResponse<any[]>> {
+    let params = new HttpParams().set('q', query);
+    
+    if (options?.limit) params = params.set('limit', options.limit.toString());
+    if (options?.offset) params = params.set('offset', options.offset.toString());
+
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/chatbot/search`, {
+      headers: this.getAuthHeaders(),
+      params
+    }).pipe(catchError(this.handleError));
+  }
+
+  // ============================================================================
   // CONVENIENCE METHODS FOR COMMON OPERATIONS
   // ============================================================================
 

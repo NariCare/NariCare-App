@@ -3,11 +3,12 @@ import { AfterViewChecked, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
 import { Observable } from 'rxjs';
-import { ChatbotService, ChatbotMessage, VoiceMode } from '../../services/chatbot.service';
+import { ChatbotService, LegacyChatbotMessage } from '../../services/chatbot.service';
+import { ChatbotMessageUI, VoiceMode, ChatAttachment } from '../../models/chatbot.model';
 import { ChatService } from '../../services/chat.service';
 import { AuthService } from '../../services/auth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
-import { ChatRoom, ChatMessage, ChatAttachment } from '../../models/chat.model';
+import { ChatRoom, ChatMessage } from '../../models/chat.model';
 import { User } from '../../models/user.model';
 import { VideoPlayerModalComponent } from '../../components/video-player-modal/video-player-modal.component';
 import { CreateGroupModalComponent } from '../../components/create-group-modal/create-group-modal.component';
@@ -21,7 +22,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   selectedTab = 'groups';
   chatRooms$: Observable<ChatRoom[]>;
-  chatbotMessages$: Observable<ChatbotMessage[]>;
+  chatbotMessages$: Observable<ChatbotMessageUI[]>;
   voiceMode$: Observable<VoiceMode>;
   messageText = '';
   currentUser: User | null = null;
@@ -35,6 +36,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   availableVoices: SpeechSynthesisVoice[] = [];
   selectedVoiceIndex = 0;
   isInitializing = false;
+  expertBannerDismissed = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -113,17 +115,37 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
     }
   }
 
-  private initializeChatbot() {
+  private async initializeChatbot() {
     if (this.currentUser) {
       this.isInitializing = true;
-      const babyAge = this.currentUser.babies.length > 0 ? 
-        this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
-      this.chatbotService.initializeChat(this.currentUser.uid, babyAge);
       
-      // Hide loading state after initialization
-      setTimeout(() => {
-        this.isInitializing = false;
-      }, 1500);
+      try {
+        const babyAge = this.currentUser.babies.length > 0 ? 
+          this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
+        
+        // Try to use backend API first
+        if (this.backendAuthService.isAuthenticated()) {
+          await this.chatbotService.initializeChatWithBackend(babyAge, {
+            breastfeedingGoals: 'exclusive', // Can be customized based on user preferences
+            currentConcerns: [] // Can be populated from user profile or previous sessions
+          });
+        } else {
+          // Fallback to legacy initialization
+          this.chatbotService.initializeChat(this.currentUser.uid, babyAge);
+        }
+        
+      } catch (error) {
+        console.error('Failed to initialize chatbot:', error);
+        // Fallback to legacy initialization
+        const babyAge = this.currentUser.babies.length > 0 ? 
+          this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
+        this.chatbotService.initializeChat(this.currentUser.uid, babyAge);
+      } finally {
+        // Hide loading state after initialization
+        setTimeout(() => {
+          this.isInitializing = false;
+        }, 1500);
+      }
     }
   }
 
@@ -378,7 +400,59 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   requestExpertHelp() {
+    this.expertBannerDismissed = true; // Dismiss banner when clicked
     this.chatbotService.requestExpertHelp();
+  }
+
+  dismissExpertBanner() {
+    this.expertBannerDismissed = true;
+  }
+
+  shouldShowExpertBanner(): boolean {
+    // Don't show if user has dismissed it
+    if (this.expertBannerDismissed) {
+      return false;
+    }
+
+    const messages = this.chatbotService.getCurrentMessages();
+    if (!messages || messages.length < 6) { // Increased minimum messages
+      return false;
+    }
+
+    // Don't show if AI is currently typing or speaking
+    const hasTyping = messages.some(m => m.isTyping);
+    const hasPlaying = messages.some(m => m.isPlaying);
+    if (hasTyping || hasPlaying) {
+      return false;
+    }
+
+    // Don't show if the last message was from the user (conversation is still active)
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.sender === 'user') {
+      return false;
+    }
+
+    // Check if there has been some back-and-forth conversation
+    // Count user messages and bot messages (excluding welcome message)
+    const userMessages = messages.filter(m => m.sender === 'user');
+    const botMessages = messages.filter(m => m.sender === 'bot' && !m.isTyping);
+    
+    // Only show after at least 2 user messages and 3+ bot responses
+    if (userMessages.length < 2 || botMessages.length < 3) {
+      return false;
+    }
+
+    // Don't show if it's been less than 30 seconds since last bot message
+    if (lastMessage && lastMessage.sender === 'bot') {
+      const lastMessageTime = new Date(lastMessage.created_at || lastMessage.timestamp);
+      const timeDiff = Date.now() - lastMessageTime.getTime();
+      if (timeDiff < 30000) { // 30 seconds
+        return false;
+      }
+    }
+
+    // Only show after bot has responded and there's been a meaningful conversation
+    return true;
   }
 
   async joinRoom(room: ChatRoom) {

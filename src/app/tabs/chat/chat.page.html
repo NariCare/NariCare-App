@@ -397,7 +397,8 @@
         </div>
       </div>
 
-      <div class="expert-help-banner" *ngIf="(chatbotMessages$ | async) && (chatbotMessages$ | async)!.length > 4">
+      <!-- Expert Help Banner - appears after conversation but not sticky -->
+      <div class="expert-help-banner" *ngIf="shouldShowExpertBanner()">
         <div class="banner-content">
           <ion-icon name="people"></ion-icon>
           <div class="banner-text">
@@ -405,9 +406,18 @@
             <p>Connect with our lactation experts</p>
           </div>
         </div>
-        <ion-button fill="outline" size="small" (click)="requestExpertHelp()">
-          Get Expert Help
-        </ion-button>
+        <div class="banner-actions">
+          <ion-button 
+            fill="clear" 
+            size="small" 
+            (click)="dismissExpertBanner()"
+            class="dismiss-button">
+            <ion-icon name="close" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button fill="outline" size="small" (click)="requestExpertHelp()">
+            Get Expert Help
+          </ion-button>
+        </div>
       </div>
     </div>
 
