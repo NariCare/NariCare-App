@@ -1,0 +1,327 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2024-01-01",
+  "sources": {
+    "WHO": "World Health Organization breastfeeding recommendations",
+    "CDC": "Centers for Disease Control and Prevention breastfeeding guidelines",
+    "AAP": "American Academy of Pediatrics breastfeeding policy"
+  },
+  "tipsByAge": {
+    "0-1": {
+      "weekRange": "Birth to 1 week",
+      "tips": [
+        {
+          "id": "birth_001",
+          "category": "initiation",
+          "title": "Early Initiation",
+          "content": "Begin breastfeeding within the first hour after birth. Early initiation helps establish milk production and promotes bonding.",
+          "source": "WHO",
+          "evidenceLevel": "Strong recommendation"
+        },
+        {
+          "id": "birth_002",
+          "category": "positioning",
+          "title": "Skin-to-Skin Contact",
+          "content": "Practice skin-to-skin contact immediately after birth and during the first weeks. This helps regulate baby's temperature, heart rate, and breathing.",
+          "source": "WHO",
+          "evidenceLevel": "Strong recommendation"
+        },
+        {
+          "id": "birth_003",
+          "category": "feeding",
+          "title": "Frequent Feeding",
+          "content": "Newborns need to feed 8-12 times in 24 hours. Frequent feeding in the first days helps establish milk supply and prevents jaundice.",
+          "source": "CDC",
+          "evidenceLevel": "Clinical guideline"
+        }
+      ]
+    },
+    "1-2": {
+      "weekRange": "1 to 2 weeks",
+      "tips": [
+        {
+          "id": "week1_001",
+          "category": "latch",
+          "title": "Proper Latch Signs",
+          "content": "Look for wide mouth opening, lips flanged out, and rhythmic sucking. You should hear swallowing sounds but no clicking or smacking.",
+          "source": "CDC",
+          "evidenceLevel": "Clinical guideline"
+        },
+        {
+          "id": "week1_002",
+          "category": "supply",
+          "title": "Milk Supply Establishment",
+          "content": "Your mature milk comes in around day 3-5. Feed on demand to establish good supply - the more baby nurses, the more milk you'll produce.",
+          "source": "WHO",
+          "evidenceLevel": "Strong recommendation"
+        },
+        {
+          "id": "week1_003",
+          "category": "health",
+          "title": "Monitor Weight Gain",
+          "content": "Babies typically lose 7-10% of birth weight in first few days, then regain it by 2 weeks. Consult healthcare provider if concerned.",
+          "source": "AAP",
+          "evidenceLevel": "Clinical guideline"
+        }
+      ]
+    },
+    "2-4": {
+      "weekRange": "2 to 4 weeks",
+      "tips": [
+        {
+          "id": "week2_001",
+          "category": "routine",
+          "title": "Feeding Patterns",
+          "content": "Babies may cluster feed in evenings. This is normal and helps increase milk supply for growth spurts.",
+          "source": "CDC",
+          "evidenceLevel": "Clinical observation"
+        },
+        {
+          "id": "week2_002",
+          "category": "nutrition",
+          "title": "Maternal Nutrition",
+          "content": "Maintain a balanced diet and stay hydrated. You need about 500 extra calories daily while breastfeeding.",
+          "source": "WHO",
+          "evidenceLevel": "Nutritional guideline"
+        },
+        {
+          "id": "week2_003",
+          "category": "pumping",
+          "title": "Breast Pump Introduction",
+          "content": "If needed, you can introduce pumping after 3-4 weeks once breastfeeding is well established.",
+          "source": "CDC",
+          "evidenceLevel": "Best practice"
+        }
+      ]
+    },
+    "4-8": {
+      "weekRange": "1 to 2 months",
+      "tips": [
+        {
+          "id": "month1_001",
+          "category": "development",
+          "title": "Growth Spurts",
+          "content": "Common growth spurts occur around 2-3 weeks, 6 weeks, and 3 months. Baby may feed more frequently - this is normal.",
+          "source": "CDC",
+          "evidenceLevel": "Clinical observation"
+        },
+        {
+          "id": "month1_002",
+          "category": "feeding",
+          "title": "Feeding Duration",
+          "content": "Feeding sessions may become more efficient, lasting 15-20 minutes as baby gets better at nursing.",
+          "source": "AAP",
+          "evidenceLevel": "Clinical guideline"
+        },
+        {
+          "id": "month1_003",
+          "category": "sleep",
+          "title": "Feeding and Sleep",
+          "content": "Night feeding is important for maintaining milk supply. Babies this age still need 1-3 night feeds.",
+          "source": "WHO",
+          "evidenceLevel": "Developmental guideline"
+        }
+      ]
+    },
+    "8-16": {
+      "weekRange": "2 to 4 months",
+      "tips": [
+        {
+          "id": "month2_001",
+          "category": "supply",
+          "title": "Supply Regulation",
+          "content": "Your milk supply regulates around 6-12 weeks. Your breasts may feel softer - this doesn't mean low supply.",
+          "source": "CDC",
+          "evidenceLevel": "Physiological guideline"
+        },
+        {
+          "id": "month2_002",
+          "category": "feeding",
+          "title": "Feeding Intervals",
+          "content": "Feeding intervals may stretch to 2-4 hours as baby's stomach grows and feeding becomes more efficient.",
+          "source": "AAP",
+          "evidenceLevel": "Developmental guideline"
+        },
+        {
+          "id": "month2_003",
+          "category": "development",
+          "title": "Distracted Feeding",
+          "content": "Around 3-4 months, babies become more aware of surroundings and may be easily distracted during feeds. Find a quiet space if needed.",
+          "source": "CDC",
+          "evidenceLevel": "Developmental observation"
+        }
+      ]
+    },
+    "16-24": {
+      "weekRange": "4 to 6 months",
+      "tips": [
+        {
+          "id": "month4_001",
+          "category": "feeding",
+          "title": "Reverse Cycling",
+          "content": "Some babies start reverse cycling - feeding less during day, more at night. This often happens when caregivers return to work.",
+          "source": "CDC",
+          "evidenceLevel": "Clinical observation"
+        },
+        {
+          "id": "month4_002",
+          "category": "work",
+          "title": "Return to Work Preparation",
+          "content": "If returning to work, start pumping and storing milk 2-3 weeks before. Build a freezer stash gradually.",
+          "source": "CDC",
+          "evidenceLevel": "Best practice"
+        },
+        {
+          "id": "month4_003",
+          "category": "development",
+          "title": "Teething and Nursing",
+          "content": "Teething may begin around 4-6 months. If baby bites, remain calm, remove from breast, and try again.",
+          "source": "AAP",
+          "evidenceLevel": "Clinical guideline"
+        }
+      ]
+    },
+    "24-32": {
+      "weekRange": "6 to 8 months",
+      "tips": [
+        {
+          "id": "month6_001",
+          "category": "solids",
+          "title": "Introduction of Solids",
+          "content": "WHO recommends exclusive breastfeeding for 6 months, then complementary foods alongside continued breastfeeding.",
+          "source": "WHO",
+          "evidenceLevel": "Strong recommendation"
+        },
+        {
+          "id": "month6_002",
+          "category": "feeding",
+          "title": "Breastfeeding with Solids",
+          "content": "Continue breastfeeding before offering solids. Breast milk remains the primary source of nutrition until 12 months.",
+          "source": "WHO",
+          "evidenceLevel": "Strong recommendation"
+        },
+        {
+          "id": "month6_003",
+          "category": "nutrition",
+          "title": "Iron-Rich Foods",
+          "content": "Introduce iron-rich complementary foods as baby's iron stores from birth begin to deplete around 6 months.",
+          "source": "CDC",
+          "evidenceLevel": "Nutritional guideline"
+        }
+      ]
+    },
+    "32-48": {
+      "weekRange": "8 to 12 months",
+      "tips": [
+        {
+          "id": "month8_001",
+          "category": "development",
+          "title": "Nursing Positions",
+          "content": "As baby becomes more mobile, you may need to try different nursing positions. Side-lying or sitting positions may work better.",
+          "source": "CDC",
+          "evidenceLevel": "Best practice"
+        },
+        {
+          "id": "month8_002",
+          "category": "feeding",
+          "title": "Feeding Frequency Changes",
+          "content": "As solid food intake increases, nursing sessions may become shorter but remain frequent throughout the day.",
+          "source": "AAP",
+          "evidenceLevel": "Clinical observation"
+        },
+        {
+          "id": "month8_003",
+          "category": "health",
+          "title": "Illness and Breastfeeding",
+          "content": "Continue breastfeeding during minor illnesses. Breast milk provides antibodies and comfort to sick babies.",
+          "source": "WHO",
+          "evidenceLevel": "Strong recommendation"
+        }
+      ]
+    },
+    "48-104": {
+      "weekRange": "12 to 24 months",
+      "tips": [
+        {
+          "id": "month12_001",
+          "category": "nutrition",
+          "title": "Continued Benefits",
+          "content": "WHO recommends breastfeeding up to 2 years or beyond. Breast milk continues to provide nutrition and immune benefits.",
+          "source": "WHO",
+          "evidenceLevel": "Strong recommendation"
+        },
+        {
+          "id": "month12_002",
+          "category": "development",
+          "title": "Toddler Nursing",
+          "content": "Toddlers may nurse for comfort, connection, and nutrition. Short, frequent sessions are common.",
+          "source": "AAP",
+          "evidenceLevel": "Developmental guideline"
+        },
+        {
+          "id": "month12_003",
+          "category": "weaning",
+          "title": "Natural Weaning",
+          "content": "Weaning can be gradual and child-led. Some children naturally reduce nursing frequency as they grow.",
+          "source": "WHO",
+          "evidenceLevel": "Best practice"
+        }
+      ]
+    },
+    "104-156": {
+      "weekRange": "2 to 3 years",
+      "tips": [
+        {
+          "id": "month24_001",
+          "category": "extended",
+          "title": "Extended Breastfeeding",
+          "content": "Extended breastfeeding beyond 2 years provides continued immune protection and emotional benefits.",
+          "source": "WHO",
+          "evidenceLevel": "Strong recommendation"
+        },
+        {
+          "id": "month24_002",
+          "category": "social",
+          "title": "Nursing in Public",
+          "content": "Toddler nursing may become more discreet and predictable, often following routines like before naps or bedtime.",
+          "source": "AAP",
+          "evidenceLevel": "Best practice"
+        },
+        {
+          "id": "month24_003",
+          "category": "weaning",
+          "title": "Gentle Weaning",
+          "content": "If choosing to wean, do so gradually. Reduce one feeding at a time to allow your body to adjust milk production.",
+          "source": "CDC",
+          "evidenceLevel": "Best practice"
+        }
+      ]
+    }
+  },
+  "generalTips": [
+    {
+      "id": "general_001",
+      "category": "health",
+      "title": "Stay Hydrated",
+      "content": "Drink water when you feel thirsty. Keep a water bottle nearby during feeding sessions.",
+      "source": "WHO",
+      "evidenceLevel": "General recommendation"
+    },
+    {
+      "id": "general_002",
+      "category": "support",
+      "title": "Seek Support",
+      "content": "Don't hesitate to reach out to lactation consultants, healthcare providers, or support groups when you have questions.",
+      "source": "CDC",
+      "evidenceLevel": "Best practice"
+    },
+    {
+      "id": "general_003",
+      "category": "self-care",
+      "title": "Rest When Possible",
+      "content": "Get rest when you can. Sleep deprivation can affect milk supply and your overall well-being.",
+      "source": "AAP",
+      "evidenceLevel": "Wellness guideline"
+    }
+  ]
+}

@@ -45,18 +45,30 @@
 
     <!-- Today's Insights -->
     <div class="section" *ngIf="user && user.babies && user.babies.length > 0 && !shouldHideSection('insights')">
-      <h2 class="section-title">Today's Insights</h2>
-      <div class="insights-container">
+      <div class="section-header">
+        <h2 class="section-title">Today's Insights</h2>
+        <ion-button fill="clear" size="small" (click)="refreshInsights()">
+          <ion-icon name="refresh" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+      
+      <!-- Loading state -->
+      <div *ngIf="!todaysInsights" class="loading-container">
+        <ion-spinner name="circles"></ion-spinner>
+        <p>Loading insights...</p>
+      </div>
+
+      <!-- Insights content -->
+      <div class="insights-container" *ngIf="todaysInsights">
         <div class="insight-card">
           <div class="insight-header">
             <ion-icon name="heart" class="insight-icon"></ion-icon>
             <h3>Baby's Progress</h3>
           </div>
           <div class="insight-content">
-            <p class="insight-text">{{ user.babies[0].name }} is developing beautifully! Remember to track feeding
-              patterns today.</p>
-            <ion-button fill="clear" size="small" class="insight-action">
-              View Details
+            <p class="insight-text">{{ todaysInsights.babyProgress.insight }}</p>
+            <ion-button fill="clear" size="small" class="insight-action" (click)="handleQuickAction('trackGrowth')">
+              {{ todaysInsights.babyProgress.action }}
               <ion-icon name="arrow-forward" slot="end"></ion-icon>
             </ion-button>
           </div>
@@ -65,15 +77,18 @@
         <div class="insight-card">
           <div class="insight-header">
             <ion-icon name="bulb" class="insight-icon"></ion-icon>
-            <h3>Daily Tip</h3>
+            <h3>{{ todaysInsights.dailyTip.title }}</h3>
+            <ion-chip size="small" color="medium" class="evidence-chip">{{ todaysInsights.dailyTip.source }}</ion-chip>
           </div>
           <div class="insight-content">
-            <p class="insight-text">Skin-to-skin contact helps regulate your baby's temperature and promotes bonding.
-            </p>
-            <ion-button fill="clear" size="small" class="insight-action">
-              Learn More
-              <ion-icon name="arrow-forward" slot="end"></ion-icon>
-            </ion-button>
+            <p class="insight-text">{{ todaysInsights.dailyTip.content }}</p>
+            <div class="tip-footer">
+              <span class="evidence-level">{{ todaysInsights.dailyTip.evidenceLevel }}</span>
+              <ion-button fill="clear" size="small" class="insight-action" (click)="handleQuickAction('browseKnowledge')">
+                Learn More
+                <ion-icon name="arrow-forward" slot="end"></ion-icon>
+              </ion-button>
+            </div>
           </div>
         </div>
       </div>

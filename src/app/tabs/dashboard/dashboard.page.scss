@@ -155,6 +155,7 @@
 .insight-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 0.75rem;
 
   h3 {
@@ -162,6 +163,13 @@
     font-size: 1rem;
     font-weight: 600;
     color: #2d3748;
+    flex: 1;
+  }
+  
+  .evidence-chip {
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+    opacity: 0.8;
   }
 }
 
@@ -187,6 +195,18 @@
   margin: 0;
   height: auto;
   font-size: 0.85rem;
+}
+
+.tip-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  .evidence-level {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-style: italic;
+  }
 }
 
 // Loading, error, and empty states

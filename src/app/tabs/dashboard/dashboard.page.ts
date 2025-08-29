@@ -7,6 +7,7 @@ import { ChatbotService } from '../../services/chatbot.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { ConsultationService } from '../../services/consultation.service';
 import { OnboardingService } from '../../services/onboarding.service';
+import { InsightsService, TodaysInsights } from '../../services/insights.service';
 import { BabyTimelineItem, BabyTimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { Consultation, Expert } from '../../models/consultation.model';
@@ -31,6 +32,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   nonUpcomingConsultations: Consultation[] = [];
   experts: Expert[] = [];
   showOnboardingAction = false;
+  
+  // Insights data
+  todaysInsights: TodaysInsights | null = null;
   
   // Error handling properties
   consultationsError: string | null = null;
@@ -89,6 +93,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private modalController: ModalController,
     private consultationService: ConsultationService,
     private onboardingService: OnboardingService,
+    private insightsService: InsightsService,
     private toastController: ToastController,
     private alertController: AlertController
   ) {}
@@ -103,6 +108,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       if (user && user.babies && user.babies.length > 0) {
         this.loadTimelineData(user.babies[0].dateOfBirth);
         this.loadUpcomingConsultations();
+        this.loadTodaysInsights(user.babies[0]);
       }
       // Onboarding check temporarily disabled for API testing
     });
@@ -268,6 +274,28 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         this.expertsError = 'Unable to load experts.';
         this.experts = [];
         console.error('Error loading experts:', error);
+      }
+    });
+  }
+
+  private loadTodaysInsights(baby: any) {
+    if (!baby || !baby.name || !baby.dateOfBirth) {
+      console.warn('Baby data incomplete for insights generation');
+      return;
+    }
+
+    this.insightsService.getTodaysInsights(
+      baby.name,
+      baby.dateOfBirth,
+      null // TODO: Pass last growth entry when available
+    ).subscribe({
+      next: (insights) => {
+        this.todaysInsights = insights;
+        console.log('Loaded insights:', insights);
+      },
+      error: (error) => {
+        console.error('Error loading insights:', error);
+        this.todaysInsights = null;
       }
     });
   }
@@ -650,5 +678,14 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isExpert()) return false;
     
     return ['timeline', 'booking', 'learning', 'insights'].includes(section);
+  }
+
+  /**
+   * Refresh today's insights (useful for testing or manual refresh)
+   */
+  refreshInsights() {
+    if (this.user && this.user.babies && this.user.babies.length > 0) {
+      this.loadTodaysInsights(this.user.babies[0]);
+    }
   }
 }
