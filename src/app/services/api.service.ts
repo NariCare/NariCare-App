@@ -10,6 +10,13 @@ export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
   error?: string;
+  details?: Array<{
+    type?: string;
+    value?: any;
+    msg: string;
+    path: string;
+    location?: string;
+  }>;
   pagination?: {
     page: number;
     limit: number;
@@ -1415,5 +1422,68 @@ export class ApiService {
       }),
       catchError(this.handleError)
     );
+  }
+
+  // ============================================================================
+  // ONBOARDING ENDPOINTS
+  // ============================================================================
+
+  getOnboardingSchema(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/onboarding/schema`, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  getOnboardingData(includeExpertNotes: boolean = false): Observable<ApiResponse<any>> {
+    const params = includeExpertNotes ? new HttpParams().set('includeExpertNotes', 'true') : new HttpParams();
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/onboarding/data`, {
+      headers: this.getAuthHeaders(),
+      params
+    }).pipe(catchError(this.handleError));
+  }
+
+  saveOnboardingData(data: any): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/onboarding/data`, data, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  completeOnboarding(): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/onboarding/complete`, {}, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  getOnboardingStatus(): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/onboarding/status`, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  syncOnboardingData(): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/onboarding/sync`, {}, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  // Expert-only onboarding endpoints
+  getUserOnboardingData(userId: string, includeExpertNotes: boolean = false): Observable<ApiResponse<any>> {
+    const params = includeExpertNotes ? new HttpParams().set('includeExpertNotes', 'true') : new HttpParams();
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/onboarding/data/${userId}`, {
+      headers: this.getAuthHeaders(),
+      params
+    }).pipe(catchError(this.handleError));
+  }
+
+  updateExpertNotes(userId: string, notes: string): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/onboarding/expert-notes/${userId}`, { notes }, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  getOnboardingSummary(userId: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/onboarding/summary/${userId}`, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
   }
 }

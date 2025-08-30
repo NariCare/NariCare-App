@@ -3,7 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController, AlertController } from '@ionic/angular';
 import { OnboardingService } from '../../services/onboarding.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { OnboardingData, OnboardingOptions, OnboardingProgress } from '../../models/onboarding.model';
+import { User } from '../../models/user.model';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -13,6 +15,7 @@ import { Subscription } from 'rxjs';
 })
 export class OnboardingPage implements OnInit, OnDestroy {
   onboardingForm: FormGroup;
+  currentUser: User | null = null;
   progress: OnboardingProgress = {
     totalSteps: 7,
     completedSteps: 0,
@@ -29,11 +32,15 @@ export class OnboardingPage implements OnInit, OnDestroy {
   maxDate = '2026-12-31';
   minBirthDate = '2020-01-01';
   
+  // Local storage key for onboarding data
+  private readonly ONBOARDING_STORAGE_KEY = 'onboarding_form_data';
+  
   private subscriptions: Subscription[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
     private onboardingService: OnboardingService,
+    private authService: BackendAuthService,
     private router: Router,
     private loadingController: LoadingController,
     private toastController: ToastController,
@@ -43,6 +50,16 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Subscribe to current user to prefill form
+    this.subscriptions.push(
+      this.authService.currentUser$.subscribe(user => {
+        this.currentUser = user;
+        if (user) {
+          this.prefillUserInformation(user);
+        }
+      })
+    );
+    
     // Subscribe to onboarding progress
     this.subscriptions.push(
       this.onboardingService.progress$.subscribe(progress => {
@@ -62,6 +79,75 @@ export class OnboardingPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
   }
+
+  // ============================================================================
+  // LOCAL STORAGE MANAGEMENT
+  // ============================================================================
+
+  private saveFormDataToLocalStorage(): void {
+    try {
+      const formData = {
+        formValues: this.onboardingForm.value,
+        progress: this.progress,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(this.ONBOARDING_STORAGE_KEY, JSON.stringify(formData));
+    } catch (error) {
+      console.warn('Failed to save form data to local storage:', error);
+    }
+  }
+
+  private loadFormDataFromLocalStorage(): any {
+    try {
+      const savedData = localStorage.getItem(this.ONBOARDING_STORAGE_KEY);
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        
+        // Check if data is not too old (e.g., older than 7 days)
+        const savedTimestamp = new Date(parsedData.timestamp);
+        const daysDiff = (new Date().getTime() - savedTimestamp.getTime()) / (1000 * 3600 * 24);
+        
+        if (daysDiff <= 7) {
+          return parsedData;
+        } else {
+          // Remove old data
+          this.clearLocalStorageData();
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load form data from local storage:', error);
+      this.clearLocalStorageData();
+    }
+    return null;
+  }
+
+  private clearLocalStorageData(): void {
+    try {
+      localStorage.removeItem(this.ONBOARDING_STORAGE_KEY);
+    } catch (error) {
+      console.warn('Failed to clear local storage:', error);
+    }
+  }
+
+  // Public method to clear saved form data (useful for testing or starting over)
+  public clearSavedFormData(): void {
+    this.clearLocalStorageData();
+    // Reset form to initial values
+    this.onboardingForm.reset();
+    // Reset progress
+    this.progress = {
+      totalSteps: 7,
+      completedSteps: 0,
+      currentStep: 1,
+      percentComplete: 0,
+      canProceed: false
+    };
+    // Prefill user information again if available
+    if (this.currentUser) {
+      this.prefillUserInformation(this.currentUser);
+    }
+  }
+
   // ============================================================================
   // FORM INITIALIZATION & MANAGEMENT
   // ============================================================================
@@ -150,21 +236,108 @@ export class OnboardingPage implements OnInit, OnDestroy {
       }),
       topicsOfInterest: [[]]
     });
+
+    // Load saved data from local storage
+    this.loadAndRestoreFormData();
+
+    // Subscribe to form changes to auto-save to local storage
+    this.subscriptions.push(
+      this.onboardingForm.valueChanges.subscribe(() => {
+        this.saveFormDataToLocalStorage();
+      })
+    );
+  }
+
+  private loadAndRestoreFormData(): void {
+    const savedData = this.loadFormDataFromLocalStorage();
+    if (savedData && savedData.formValues) {
+      // Restore form values
+      this.onboardingForm.patchValue(savedData.formValues, { emitEvent: false });
+      
+      // Restore progress if available
+      if (savedData.progress) {
+        this.progress = savedData.progress;
+      }
+      
+      // Update the onboarding service with restored data to synchronize validation state
+      // Extract and save all step data to ensure service state matches form state
+      for (let step = 1; step <= this.progress.totalSteps; step++) {
+        const stepData = this.extractStepData(step, savedData.formValues);
+        this.onboardingService.updateStepData(step, stepData);
+      }
+      
+      console.log('Restored onboarding form data from local storage and synchronized service state');
+    }
+  }
+
+  private prefillUserInformation(user: User): void {
+    if (!this.onboardingForm || !user) return;
+    
+    // Use setTimeout to ensure form is fully initialized
+    setTimeout(() => {
+      const currentFormValue = this.onboardingForm.value;
+      const updates: any = {};
+      
+      // Prefill email if not already set
+      if (!currentFormValue.email && user.email) {
+        updates.email = user.email;
+      }
+      
+      // Prefill phone number if not already set  
+      if (!currentFormValue.phoneNumber && user.phoneNumber) {
+        updates.phoneNumber = user.phoneNumber;
+      }
+      
+      // Prefill full name if not already set
+      if (!currentFormValue.fullName) {
+        if (user.firstName && user.lastName) {
+          updates.fullName = `${user.firstName} ${user.lastName}`.trim();
+        } else if (user.firstName) {
+          updates.fullName = user.firstName;
+        }
+      }
+      
+      // Apply updates if any
+      if (Object.keys(updates).length > 0) {
+        console.log('Prefilling user information:', updates);
+        this.onboardingForm.patchValue(updates);
+      }
+    }, 100);
   }
 
   private updateFormFromData(data: Partial<OnboardingData>): void {
-    if (!data) return;
+    if (!data) {
+      // If no onboarding data, try to prefill from current user
+      if (this.currentUser) {
+        this.prefillUserInformation(this.currentUser);
+      }
+      return;
+    }
     
     // Update form with current data
     const formUpdate: any = {};
     
     // Personal Info
     if (data.personalInfo) {
-      formUpdate.email = data.personalInfo.email;
-      formUpdate.fullName = data.personalInfo.fullName;
-      formUpdate.phoneNumber = data.personalInfo.phoneNumber;
+      formUpdate.email = data.personalInfo.email || this.currentUser?.email;
+      formUpdate.fullName = data.personalInfo.fullName || 
+        (this.currentUser?.firstName && this.currentUser?.lastName ? 
+         `${this.currentUser.firstName} ${this.currentUser.lastName}`.trim() : 
+         this.currentUser?.firstName);
+      formUpdate.phoneNumber = data.personalInfo.phoneNumber || this.currentUser?.phoneNumber;
       formUpdate.employmentStatus = data.personalInfo.employmentStatus;
       formUpdate.languagesSpoken = data.personalInfo.languagesSpoken;
+    } else if (this.currentUser) {
+      // If personalInfo doesn't exist, prefill from current user
+      formUpdate.email = this.currentUser.email;
+      if (this.currentUser.firstName && this.currentUser.lastName) {
+        formUpdate.fullName = `${this.currentUser.firstName} ${this.currentUser.lastName}`.trim();
+      } else if (this.currentUser.firstName) {
+        formUpdate.fullName = this.currentUser.firstName;
+      }
+      if (this.currentUser.phoneNumber) {
+        formUpdate.phoneNumber = this.currentUser.phoneNumber;
+      }
     }
     
     // Pregnancy Info
@@ -203,6 +376,14 @@ export class OnboardingPage implements OnInit, OnDestroy {
     const success = this.onboardingService.nextStep();
     if (!success) {
       this.showValidationErrors();
+    } else {
+      // If we successfully moved to the final step, save all form data
+      // The service will have updated the current step after nextStep() succeeds
+      setTimeout(() => {
+        if (this.progress.currentStep === this.progress.totalSteps) {
+          this.saveAllFormDataToService();
+        }
+      }, 100);
     }
   }
 
@@ -213,12 +394,29 @@ export class OnboardingPage implements OnInit, OnDestroy {
   goToStep(step: number): void {
     this.saveCurrentStepData();
     this.onboardingService.goToStep(step);
+    
+    // When reaching the final step, save all form data to ensure complete validation
+    if (step === this.progress.totalSteps) {
+      setTimeout(() => {
+        this.saveAllFormDataToService();
+      }, 100);
+    }
   }
 
   private saveCurrentStepData(): void {
     const formValue = this.onboardingForm.value;
     const stepData = this.extractStepData(this.progress.currentStep, formValue);
     this.onboardingService.updateStepData(this.progress.currentStep, stepData);
+  }
+
+  private saveAllFormDataToService(): void {
+    const formValue = this.onboardingForm.value;
+    // Save all steps to ensure service has complete data
+    for (let step = 1; step <= this.progress.totalSteps; step++) {
+      const stepData = this.extractStepData(step, formValue);
+      this.onboardingService.updateStepData(step, stepData);
+    }
+    console.log('Saved all form data to onboarding service');
   }
 
   private extractStepData(step: number, formValue: any): any {
@@ -344,11 +542,17 @@ export class OnboardingPage implements OnInit, OnDestroy {
     await loading.present();
 
     try {
+      // Save all form data to ensure service has complete data
+      this.saveAllFormDataToService();
+      
       // Save final step data
       this.saveCurrentStepData();
       
       // Complete onboarding through service
       await this.onboardingService.completeOnboarding();
+
+      // Clear local storage data since onboarding is complete
+      this.clearLocalStorageData();
 
       await loading.dismiss();
       

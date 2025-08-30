@@ -29,7 +29,7 @@ export class OnboardingService {
       completedSteps: data.completedSteps?.length || 0,
       currentStep,
       percentComplete: ((data.completedSteps?.length || 0) / this.totalSteps) * 100,
-      canProceed: this.canProceedToNextStep(currentStep, data)
+      canProceed: this.canProceedOrComplete(currentStep, data)
     }))
   );
 
@@ -59,7 +59,19 @@ export class OnboardingService {
 
   private async prefillExistingData(): Promise<void> {
     try {
-      // Get current user profile and baby data
+      // First try to load existing onboarding data from backend
+      const onboardingResponse = await this.apiService.getOnboardingData().toPromise();
+      
+      if (onboardingResponse?.success && onboardingResponse.data) {
+        // If onboarding data exists, transform it back to frontend format
+        const backendData = onboardingResponse.data;
+        const frontendData = this.transformFromBackendFormat(backendData);
+        this.updateOnboardingData(frontendData);
+        console.log('Loaded existing onboarding data from backend:', frontendData);
+        return;
+      }
+
+      // If no onboarding data exists, prefill from user profile and baby data
       const [userResponse, babiesResponse] = await Promise.all([
         this.apiService.getUserProfile().toPromise(),
         this.apiService.getUserBabies().toPromise()
@@ -156,6 +168,41 @@ export class OnboardingService {
     }
 
     this.updateOnboardingData(updatedData);
+    
+    // Auto-save to backend (fire and forget)
+    this.autoSaveToBackend(updatedData);
+  }
+
+  private autoSaveToBackend(data: Partial<OnboardingData>): void {
+    // Only auto-save if we have meaningful data
+    if (!data.personalInfo && !data.pregnancyInfo && !data.breastfeedingInfo) {
+      return;
+    }
+
+    try {
+      const backendData = this.transformToBackendFormat(data as OnboardingData);
+      this.apiService.saveOnboardingData(backendData).subscribe({
+        next: (response) => {
+          if (response?.success) {
+            console.log('Auto-saved onboarding data to backend');
+          } else {
+            if (response?.details && Array.isArray(response.details)) {
+              const fieldErrors = response.details.map((detail: any) => 
+                `${detail.path}: ${detail.msg}`
+              );
+              console.warn('Auto-save validation errors:', fieldErrors);
+            } else {
+              console.warn('Auto-save failed:', response?.error);
+            }
+          }
+        },
+        error: (error) => {
+          console.warn('Auto-save error (non-critical):', error);
+        }
+      });
+    } catch (error) {
+      console.warn('Auto-save transformation error:', error);
+    }
   }
 
   // ============================================================================
@@ -189,6 +236,27 @@ export class OnboardingService {
   private canProceedToNextStep(step: number, data: Partial<OnboardingData>): boolean {
     const validation = this.validateStep(step, data);
     return validation.isValid;
+  }
+
+  private canProceedOrComplete(step: number, data: Partial<OnboardingData>): boolean {
+    // If we're on the final step, check if ALL steps are valid (for completion)
+    if (step === this.totalSteps) {
+      return this.canCompleteOnboarding(data);
+    }
+    // Otherwise, just validate the current step (for navigation)
+    return this.canProceedToNextStep(step, data);
+  }
+
+  private canCompleteOnboarding(data: Partial<OnboardingData>): boolean {
+    // Validate all steps for completion
+    for (let stepNum = 1; stepNum <= this.totalSteps; stepNum++) {
+      const validation = this.validateStep(stepNum, data);
+      if (!validation.isValid) {
+        console.log(`Step ${stepNum} validation failed:`, validation.errors);
+        return false;
+      }
+    }
+    return true;
   }
 
   validateStep(step: number, data: Partial<OnboardingData>): OnboardingStepValidation {
@@ -412,10 +480,32 @@ export class OnboardingService {
     }
 
     try {
-      // Sync data to backend modules
-      await this.syncOnboardingData(data);
+      // Transform data to backend format and save with completion flag
+      const backendData = this.transformToBackendFormat(data);
+      backendData.complete_onboarding = true;
+
+      // Save final onboarding data to backend
+      const saveResponse = await this.apiService.saveOnboardingData(backendData).toPromise();
+      if (!saveResponse?.success) {
+        // Handle validation errors with specific field information
+        if (saveResponse?.details && Array.isArray(saveResponse.details)) {
+          const fieldErrors = saveResponse.details.map((detail: any) => 
+            `${detail.path}: ${detail.msg}`
+          ).join('\n');
+          throw new Error(`Validation failed:\n${fieldErrors}`);
+        }
+        throw new Error(saveResponse?.error || 'Failed to save onboarding data');
+      }
+
+      // Complete onboarding via API
+      const completeResponse = await this.apiService.completeOnboarding().toPromise();
+      if (!completeResponse?.success) {
+        throw new Error(completeResponse?.error || 'Failed to complete onboarding');
+      }
+
+      console.log('Onboarding completed successfully:', completeResponse);
       
-      // Mark onboarding as completed
+      // Mark onboarding as completed locally
       const completedData = {
         ...data,
         isCompleted: true,
@@ -435,19 +525,21 @@ export class OnboardingService {
   }
 
   private async syncOnboardingData(data: OnboardingData): Promise<void> {
-    // Update user profile
-    await this.syncUserProfile(data);
+    // Transform data to backend API format and save
+    const backendData = this.transformToBackendFormat(data);
     
-    // Create/update baby profile
-    if (data.pregnancyInfo.motherType === 'new_mom' && data.pregnancyInfo.babyInfo) {
-      await this.syncBabyProfile(data);
+    try {
+      // Save onboarding data to backend
+      const response = await this.apiService.saveOnboardingData(backendData).toPromise();
+      if (!response?.success) {
+        throw new Error(response?.error || 'Failed to save onboarding data');
+      }
+      
+      console.log('Onboarding data saved to backend:', response);
+    } catch (error) {
+      console.error('Error saving onboarding data:', error);
+      throw error;
     }
-    
-    // Sync growth records
-    await this.syncGrowthRecords(data);
-    
-    // Update notification preferences
-    await this.syncNotificationPreferences(data);
   }
 
   private async syncUserProfile(data: OnboardingData): Promise<void> {
@@ -510,6 +602,317 @@ export class OnboardingService {
 
   private async syncNotificationPreferences(data: OnboardingData): Promise<void> {
     await this.apiService.updateNotificationPreferences(data.preferencesInfo.notificationPreferences).toPromise();
+  }
+
+  // ============================================================================
+  // DATA TRANSFORMATION METHODS
+  // ============================================================================
+
+  private transformToBackendFormat(data: OnboardingData): any {
+    const [firstName, ...lastNameParts] = data.personalInfo.fullName.split(' ');
+    const lastName = lastNameParts.join(' ');
+
+    return {
+      personal_info: {
+        first_name: firstName,
+        last_name: lastName,
+        age: this.calculateMotherAge(data.pregnancyInfo.babyInfo?.dateOfBirth), // Calculate mother's age, not baby's
+        location: '', // Not collected in frontend
+        occupation: data.personalInfo.employmentStatus,
+        education_level: data.supportInfo.educationLevel,
+        marital_status: this.mapFamilyStructureToMaritalStatus(data.supportInfo.familyStructure),
+        family_size: data.supportInfo.familyStructure === 'nuclear' ? 3 : 4, // Estimate
+        previous_children: data.pregnancyInfo.isFirstChild ? 0 : 1,
+        primary_language: data.personalInfo.languagesSpoken?.[0] || 'English'
+      },
+
+      pregnancy_info: {
+        gestational_age_weeks: data.pregnancyInfo.babyInfo?.gestationalAge || null,
+        birth_date: data.pregnancyInfo.babyInfo?.dateOfBirth || data.pregnancyInfo.dueDate || null,
+        birth_type: this.mapDeliveryType(data.pregnancyInfo.babyInfo?.deliveryType),
+        birth_weight: data.pregnancyInfo.babyInfo?.birthWeight || null,
+        apgar_score: 9, // Default healthy score since not collected in frontend
+        pregnancy_complications: [],
+        labor_complications: [],
+        medications_during_pregnancy: [],
+        prenatal_care: true // Assume true
+      },
+
+      breastfeeding_info: {
+        previous_experience: data.breastfeedingInfo.experienceLevel === 'experienced',
+        previous_duration_months: data.breastfeedingInfo.experienceLevel === 'experienced' ? 6 : 0,
+        breastfeeding_goals: this.mapBreastfeedingGoals(data.preferencesInfo.milkSupplyGoals),
+        main_concerns: data.preferencesInfo.currentChallenges || [],
+        current_challenges: data.preferencesInfo.currentChallenges || [],
+        pain_level: 0, // Not collected in frontend
+        confidence_level: data.breastfeedingInfo.experienceLevel === 'experienced' ? 8 : 5,
+        support_received: [data.supportInfo.currentSupportSystem]
+      },
+
+      medical_info: {
+        medical_conditions: data.medicalInfo.motherMedicalConditions || [],
+        current_medications: [], // Not collected in frontend
+        allergies: data.medicalInfo.allergies ? [data.medicalInfo.allergies] : [],
+        previous_surgeries: [],
+        breast_surgeries: data.medicalInfo.nippleAnatomicalIssues ? ['nipple_correction'] : [],
+        hormonal_conditions: [],
+        mental_health_history: [],
+        family_medical_history: []
+      },
+
+      feeding_info: {
+        current_feeding_method: this.mapFeedingMethod(data.feedingInfo, data.breastfeedingInfo),
+        feeding_frequency_per_day: data.breastfeedingInfo.breastfeedingDetails?.directFeedsPerDay || 8,
+        feeding_duration_minutes: this.mapTimePerBreast(data.breastfeedingInfo.breastfeedingDetails?.timePerBreast),
+        night_feedings_count: Math.floor((data.breastfeedingInfo.breastfeedingDetails?.directFeedsPerDay || 8) / 4),
+        formula_supplements: data.feedingInfo.usesFormula || false,
+        vitamin_supplements: data.feedingInfo.usesBreastmilkSupplements || false,
+        pumping_frequency: data.feedingInfo.pumpingDetails?.sessionsPerDay || 0,
+        milk_supply_concerns: data.preferencesInfo.currentChallenges?.includes('Low milk supply') || false,
+        weight_gain_concerns: data.preferencesInfo.currentChallenges?.includes('Baby weight concerns') || false
+      },
+
+      support_info: {
+        partner_support_level: this.mapSupportLevel(data.supportInfo.currentSupportSystem),
+        family_support_level: this.mapSupportLevel(data.supportInfo.currentSupportSystem),
+        friend_support_level: 5, // Default
+        professional_support: ['lactation_consultant'], // Default
+        work_status: this.mapEmploymentStatus(data.personalInfo.employmentStatus),
+        return_to_work_timeline: '3_months', // Default
+        childcare_arrangements: [data.supportInfo.familyStructure],
+        main_support_person: 'partner' // Default
+      },
+
+      preferences_info: {
+        preferred_communication_method: 'app_notifications',
+        best_contact_times: ['morning', 'evening'],
+        consultation_preferences: ['video_calls', 'chat'],
+        privacy_level: 'private',
+        data_sharing_consent: true,
+        research_participation_consent: false,
+        emergency_contact: {
+          name: 'Emergency Contact',
+          phone: '+1234567890',
+          relationship: 'family'
+        }
+      },
+
+      complete_onboarding: false // Will be set to true when completing
+    };
+  }
+
+  private calculateAge(birthDateString?: string): number | null {
+    if (!birthDateString) return null;
+    const today = new Date();
+    const birthDate = new Date(birthDateString);
+    const ageInWeeks = Math.floor((today.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24 * 7));
+    return Math.floor(ageInWeeks / 52); // Convert weeks to years (approximately)
+  }
+
+  private calculateMotherAge(babyBirthDateString?: string): number {
+    // Since we don't collect mother's birth date, we'll estimate based on common birthing age
+    // Most mothers are between 25-35 when giving birth
+    if (!babyBirthDateString) {
+      return 28; // Default reasonable age
+    }
+    
+    // Add estimated age at birth (average 28) to baby's current age
+    const today = new Date();
+    const babyBirthDate = new Date(babyBirthDateString);
+    const yearsSinceBirth = Math.floor((today.getTime() - babyBirthDate.getTime()) / (1000 * 60 * 60 * 24 * 365));
+    
+    return Math.max(18, 28 + yearsSinceBirth); // Minimum age 18, estimated mother age
+  }
+
+  private mapFamilyStructureToMaritalStatus(familyStructure: string): string {
+    switch (familyStructure) {
+      case 'single_parent': return 'single';
+      case 'nuclear': return 'married';
+      case 'extended': return 'married';
+      default: return 'married';
+    }
+  }
+
+  private mapDeliveryType(deliveryType?: string): string {
+    switch (deliveryType) {
+      case 'c_section': return 'cesarean';
+      case 'assisted': return 'assisted';
+      case 'vaginal': return 'vaginal';
+      default: return 'vaginal';
+    }
+  }
+
+  private mapBreastfeedingGoals(milkSupplyGoals?: string): string[] {
+    if (!milkSupplyGoals) return ['exclusive_breastfeeding_6_months'];
+    if (milkSupplyGoals.includes('exclusive')) return ['exclusive_breastfeeding_6_months'];
+    return ['continue_until_1_year'];
+  }
+
+  private mapFeedingMethod(feedingInfo: any, breastfeedingInfo: any): string {
+    if (!breastfeedingInfo.currentlyBreastfeeding) return 'exclusive_formula';
+    if (feedingInfo.usesFormula) return 'mixed_feeding';
+    if (feedingInfo.ownsPump && feedingInfo.pumpingDetails?.sessionsPerDay > 0) return 'exclusive_pumping';
+    return 'exclusive_breastfeeding';
+  }
+
+  private mapTimePerBreast(timePerBreast?: string): number {
+    switch (timePerBreast) {
+      case '5_min': return 5;
+      case '10_min': return 10;
+      case '15_min': return 15;
+      case '20_min': return 20;
+      case 'varies': return 15;
+      default: return 15;
+    }
+  }
+
+  private mapSupportLevel(supportSystem: string): number {
+    if (supportSystem.toLowerCase().includes('excellent') || supportSystem.toLowerCase().includes('great')) return 9;
+    if (supportSystem.toLowerCase().includes('good')) return 7;
+    if (supportSystem.toLowerCase().includes('some')) return 5;
+    if (supportSystem.toLowerCase().includes('limited')) return 3;
+    return 6; // Default moderate support
+  }
+
+  private mapEmploymentStatus(employmentStatus: string): string {
+    switch (employmentStatus) {
+      case 'employed': return 'maternity_leave';
+      case 'unemployed': return 'not_working';
+      case 'student': return 'student';
+      case 'maternity_leave': return 'maternity_leave';
+      default: return 'maternity_leave';
+    }
+  }
+
+  private transformFromBackendFormat(backendData: any): Partial<OnboardingData> {
+    const personalInfo = backendData.personal_info || {};
+    const pregnancyInfo = backendData.pregnancy_info || {};
+    const breastfeedingInfo = backendData.breastfeeding_info || {};
+    const medicalInfo = backendData.medical_info || {};
+    const feedingInfo = backendData.feeding_info || {};
+    const supportInfo = backendData.support_info || {};
+    const preferencesInfo = backendData.preferences_info || {};
+
+    return {
+      personalInfo: {
+        email: personalInfo.email || '',
+        fullName: `${personalInfo.first_name || ''} ${personalInfo.last_name || ''}`.trim(),
+        phoneNumber: personalInfo.phone_number || '',
+        employmentStatus: this.reverseMapEmploymentStatus(supportInfo.work_status),
+        languagesSpoken: personalInfo.primary_language ? [personalInfo.primary_language] : []
+      },
+      pregnancyInfo: {
+        motherType: pregnancyInfo.birth_date ? 'new_mom' : 'pregnant',
+        dueDate: pregnancyInfo.birth_date || undefined,
+        isFirstChild: personalInfo.previous_children === 0,
+        babyInfo: pregnancyInfo.birth_date ? {
+          name: '', // Not stored in backend format
+          dateOfBirth: pregnancyInfo.birth_date,
+          gender: (pregnancyInfo.birth_type === 'cesarean' ? 'female' : 'male') as 'male' | 'female' | 'other',
+          birthWeight: pregnancyInfo.birth_weight || 0,
+          birthHeight: 50, // Default
+          deliveryType: this.reverseMapDeliveryType(pregnancyInfo.birth_type),
+          gestationalAge: pregnancyInfo.gestational_age_weeks || 40
+        } : undefined
+      },
+      breastfeedingInfo: {
+        experienceLevel: breastfeedingInfo.previous_experience ? 'experienced' : 'first_time',
+        currentlyBreastfeeding: feedingInfo.current_feeding_method !== 'exclusive_formula',
+        breastfeedingDetails: {
+          directFeedsPerDay: feedingInfo.feeding_frequency_per_day || 8,
+          latchQuality: 'deep', // Default
+          offersBothBreasts: true, // Default
+          timePerBreast: this.reverseMapTimePerBreast(feedingInfo.feeding_duration_minutes),
+          breastfeedingDuration: '6-12 months'
+        },
+        babyOutput: {
+          peeCount24h: 6, // Default
+          poopCount24h: 3 // Default
+        }
+      },
+      medicalInfo: {
+        motherMedicalConditions: medicalInfo.medical_conditions || [],
+        motherMedicalConditionsOther: '',
+        allergies: medicalInfo.allergies ? medicalInfo.allergies.join(', ') : '',
+        nippleAnatomicalIssues: medicalInfo.breast_surgeries && medicalInfo.breast_surgeries.length > 0,
+        nippleIssuesDescription: '',
+        babyMedicalConditions: '',
+        babyHospitalized: false,
+        babyHospitalizationReason: ''
+      },
+      feedingInfo: {
+        usesFormula: feedingInfo.formula_supplements || false,
+        usesBottle: feedingInfo.pumping_frequency > 0,
+        ownsPump: feedingInfo.pumping_frequency > 0,
+        pumpingDetails: feedingInfo.pumping_frequency > 0 ? {
+          pumpType: 'electric_double',
+          sessionsPerDay: feedingInfo.pumping_frequency,
+          averageOutput: 150, // Default
+          pumpingDuration: 20, // Default
+          storageMethod: ['Refrigerator (fresh milk)']
+        } : undefined,
+        usesBreastmilkSupplements: feedingInfo.vitamin_supplements || false
+      },
+      supportInfo: {
+        currentSupportSystem: `Partner support level: ${supportInfo.partner_support_level}/10`,
+        familyStructure: this.reverseMapFamilyStructure(supportInfo.childcare_arrangements),
+        educationLevel: personalInfo.education_level || 'bachelors',
+        householdIncome: '50k_75k' // Default
+      },
+      preferencesInfo: {
+        currentChallenges: breastfeedingInfo.current_challenges || [],
+        expectationsFromProgram: 'Looking forward to expert guidance and support',
+        milkSupplyGoals: breastfeedingInfo.breastfeeding_goals ? breastfeedingInfo.breastfeeding_goals.join(', ') : '',
+        notificationPreferences: {
+          articleUpdates: true,
+          consultationReminders: true,
+          groupMessages: true,
+          growthReminders: true,
+          expertMessages: true,
+          pumpingReminders: false
+        },
+        topicsOfInterest: ['Newborn care basics', 'Pumping and storage']
+      },
+      completedSteps: [1, 2, 3, 4, 5, 6, 7],
+      isCompleted: backendData.completed_at ? true : false,
+      completedAt: backendData.completed_at ? new Date(backendData.completed_at) : undefined
+    };
+  }
+
+  private reverseMapEmploymentStatus(workStatus: string): 'employed' | 'unemployed' | 'maternity_leave' | 'student' {
+    switch (workStatus) {
+      case 'maternity_leave': return 'employed';
+      case 'not_working': return 'unemployed';
+      case 'student': return 'student';
+      case 'working_part_time': return 'employed';
+      case 'working_full_time': return 'employed';
+      default: return 'employed';
+    }
+  }
+
+  private reverseMapDeliveryType(birthType: string): 'vaginal' | 'c_section' | 'assisted' {
+    switch (birthType) {
+      case 'cesarean': return 'c_section';
+      case 'assisted': return 'assisted';
+      case 'vbac': return 'vaginal';
+      default: return 'vaginal';
+    }
+  }
+
+  private reverseMapTimePerBreast(duration: number): '5_min' | '10_min' | '15_min' | '20_min' | 'varies' {
+    if (duration <= 5) return '5_min';
+    if (duration <= 10) return '10_min';
+    if (duration <= 15) return '15_min';
+    if (duration <= 20) return '20_min';
+    return 'varies';
+  }
+
+  private reverseMapFamilyStructure(childcareArrangements: string[]): 'nuclear' | 'extended' | 'single_parent' | 'other' {
+    if (!childcareArrangements || childcareArrangements.length === 0) return 'nuclear';
+    const arrangement = childcareArrangements[0];
+    if (arrangement.includes('extended')) return 'extended';
+    if (arrangement.includes('single')) return 'single_parent';
+    return 'nuclear';
   }
 
   // ============================================================================

@@ -142,8 +142,29 @@ export const OnboardingOptions = {
   ],
 
   languages: [
-    'English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 
-    'Russian', 'Chinese', 'Japanese', 'Korean', 'Arabic', 'Hindi', 'Other'
+    'Hindi',
+    'English', 
+    'Bengali',
+    'Telugu',
+    'Marathi',
+    'Tamil',
+    'Gujarati',
+    'Urdu',
+    'Kannada',
+    'Odia',
+    'Malayalam',
+    'Punjabi',
+    'Assamese',
+    'Maithili',
+    'Sanskrit',
+    'Nepali',
+    'Konkani',
+    'Manipuri',
+    'Bodo',
+    'Dogri',
+    'Kashmiri',
+    'Santali',
+    'Other'
   ],
 
   deliveryTypes: [
