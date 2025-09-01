@@ -492,10 +492,23 @@ ion-toolbar {
   --border-radius: 16px;
 }
 
+/* Quick Notes Modal Styles */
+.quick-notes-modal {
+  --width: 95%;
+  --height: 75%;
+  --border-radius: 16px;
+  --max-height: 600px;
+}
+
 @media (min-width: 768px) {
   .emotion-checkin-modal {
     --width: 80%;
     --height: 85%;
+  }
+  
+  .quick-notes-modal {
+    --width: 80%;
+    --height: 70%;
   }
 }
 
@@ -503,6 +516,11 @@ ion-toolbar {
   .emotion-checkin-modal {
     --width: 70%;
     --height: 80%;
+  }
+  
+  .quick-notes-modal {
+    --width: 60%;
+    --height: 65%;
   }
 }
 
