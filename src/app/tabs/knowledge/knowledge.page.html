@@ -36,6 +36,7 @@
           <div 
             *ngFor="let article of categoryGroup.articles"
             class="article-card grid-item"
+            [style.background]="getRandomGradient(article.id)"
             (click)="onArticleSelect(article)">
             <div class="article-image" *ngIf="article.imageUrl">
               <img [src]="article.imageUrl" [alt]="article.title">

@@ -105,4 +105,30 @@ export class KnowledgePage implements OnInit {
   isBookmarked(articleId: string): boolean {
     return this.bookmarkedArticles.includes(articleId);
   }
+
+  getRandomGradient(articleId: string): string {
+    const gradients = [
+      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+      'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+      'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+      'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+      'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)',
+      'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+      'linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%)'
+    ];
+    
+    // Use article ID to generate consistent random index
+    let hash = 0;
+    for (let i = 0; i < articleId.length; i++) {
+      const char = articleId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    const index = Math.abs(hash) % gradients.length;
+    return gradients[index];
+  }
 }
