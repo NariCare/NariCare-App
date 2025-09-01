@@ -250,10 +250,18 @@
   border: 1px solid #f1f5f9;
   overflow: hidden;
   position: relative;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
+  cursor: pointer;
 
   &:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    border-color: #e2e8f0;
+  }
+
+  &:active {
+    transform: translateY(0);
+    transition: all 0.1s ease;
   }
 
   &.upcoming {
@@ -513,6 +521,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: all 0.2s ease;
+  position: relative;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  }
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--category-color, #8383ed);
+    border-radius: 16px 16px 0 0;
+    opacity: 0.8;
+  }
 }
 
 .activity-content {
@@ -522,7 +549,7 @@
 }
 
 .activity-icon {
-  color: #8383ed;
+  color: var(--category-color, #8383ed);
   font-size: 2rem;
   margin-right: 1rem;
 }
@@ -539,6 +566,20 @@
     margin: 0;
     font-size: 0.85rem;
     color: #64748b;
+  }
+  
+  .learning-progress {
+    margin-top: 0.5rem;
+    
+    .progress-text {
+      font-size: 0.75rem;
+      color: var(--category-color, #8383ed);
+      font-weight: 500;
+      background: rgba(131, 131, 237, 0.1);
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      display: inline-block;
+    }
   }
 }
 

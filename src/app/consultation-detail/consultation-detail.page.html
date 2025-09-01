@@ -1,0 +1,427 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Consultation Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Consultation Details</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="consultation-content" *ngIf="consultation">
+    <!-- Consultation Summary Header -->
+    <div class="consultation-header">
+      <div class="consultation-info">
+        <h2>{{ consultation.topic }}</h2>
+        <div class="consultation-meta">
+          <ion-chip [color]="getConsultationStatusColor()">
+            <ion-label>{{ getConsultationStatusText() }}</ion-label>
+          </ion-chip>
+          <p class="consultation-date">{{ formatDate(consultation.scheduled_at) }}</p>
+        </div>
+        
+        <div class="participants">
+          <div class="participant">
+            <ion-icon name="person-circle" color="primary"></ion-icon>
+            <span>{{ currentUser?.role === 'expert' ? getUserName() : 'You' }}</span>
+          </div>
+          <div class="participant">
+            <ion-icon name="medical" color="secondary"></ion-icon>
+            <span>{{ currentUser?.role === 'expert' ? 'You' : getExpertName() }}</span>
+            <span class="credentials" *ngIf="consultation.expert_credentials">
+              {{ consultation.expert_credentials }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <ion-segment [(ngModel)]="selectedTab" (ionChange)="onSegmentChange($event)">
+        <ion-segment-button value="onboarding">
+          <ion-label>Patient Information</ion-label>
+          <ion-icon name="document-text"></ion-icon>
+        </ion-segment-button>
+        <ion-segment-button value="report">
+          <ion-label>Consultation Report</ion-label>
+          <ion-icon name="clipboard"></ion-icon>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Onboarding Data Tab -->
+    <div class="tab-content" *ngIf="selectedTab === 'onboarding'">
+      <div class="onboarding-data" *ngIf="onboardingData; else noOnboardingData">
+        
+        <!-- Personal Information -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="person"></ion-icon>
+              Personal Information
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>Name:</strong>
+                <span>{{ getPersonalInfo().first_name }} {{ getPersonalInfo().last_name }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPersonalInfo().age">
+                <strong>Age:</strong>
+                <span>{{ getPersonalInfo().age }} years</span>
+              </div>
+              <div class="info-item" *ngIf="getPersonalInfo().occupation">
+                <strong>Occupation:</strong>
+                <span>{{ formatValue(getPersonalInfo().occupation) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPersonalInfo().education_level">
+                <strong>Education:</strong>
+                <span>{{ formatValue(getPersonalInfo().education_level, 'education_level') }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPersonalInfo().primary_language">
+                <strong>Primary Language:</strong>
+                <span>{{ formatValue(getPersonalInfo().primary_language) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPersonalInfo().previous_children !== undefined">
+                <strong>Previous Children:</strong>
+                <span>{{ getPersonalInfo().previous_children }}</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Pregnancy Information -->
+        <ion-card *ngIf="getPregnancyInfo().birth_date">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="heart"></ion-icon>
+              Birth Information
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>Birth Date:</strong>
+                <span>{{ formatDate(getPregnancyInfo().birth_date) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPregnancyInfo().gestational_age_weeks">
+                <strong>Gestational Age:</strong>
+                <span>{{ getPregnancyInfo().gestational_age_weeks }} weeks</span>
+              </div>
+              <div class="info-item" *ngIf="getPregnancyInfo().birth_type">
+                <strong>Birth Type:</strong>
+                <span>{{ formatValue(getPregnancyInfo().birth_type, 'birth_type') }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPregnancyInfo().birth_weight">
+                <strong>Birth Weight:</strong>
+                <span>{{ getPregnancyInfo().birth_weight }} lbs</span>
+              </div>
+              <div class="info-item" *ngIf="getPregnancyInfo().apgar_score">
+                <strong>APGAR Score:</strong>
+                <span>{{ getPregnancyInfo().apgar_score }}/10</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Breastfeeding Information -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="nutrition"></ion-icon>
+              Breastfeeding Information
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>Previous Experience:</strong>
+                <span>{{ formatBoolean(getBreastfeedingInfo().previous_experience) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getBreastfeedingInfo().breastfeeding_goals?.length">
+                <strong>Goals:</strong>
+                <span>{{ formatValue(getBreastfeedingInfo().breastfeeding_goals) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getBreastfeedingInfo().main_concerns?.length">
+                <strong>Main Concerns:</strong>
+                <span>{{ formatValue(getBreastfeedingInfo().main_concerns) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getBreastfeedingInfo().confidence_level">
+                <strong>Confidence Level:</strong>
+                <span>{{ getBreastfeedingInfo().confidence_level }}/10</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Medical Information -->
+        <ion-card *ngIf="getMedicalInfo().medical_conditions?.length || getMedicalInfo().allergies?.length">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="medical"></ion-icon>
+              Medical Information
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-grid">
+              <div class="info-item" *ngIf="getMedicalInfo().medical_conditions?.length">
+                <strong>Medical Conditions:</strong>
+                <span>{{ formatValue(getMedicalInfo().medical_conditions) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getMedicalInfo().allergies?.length">
+                <strong>Allergies:</strong>
+                <span>{{ formatValue(getMedicalInfo().allergies) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getMedicalInfo().current_medications?.length">
+                <strong>Current Medications:</strong>
+                <span>{{ formatValue(getMedicalInfo().current_medications) }}</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Feeding Information -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="restaurant"></ion-icon>
+              Current Feeding Information
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>Feeding Method:</strong>
+                <span>{{ formatValue(getFeedingInfo().current_feeding_method, 'feeding_method') }}</span>
+              </div>
+              <div class="info-item" *ngIf="getFeedingInfo().feeding_frequency_per_day">
+                <strong>Feeds Per Day:</strong>
+                <span>{{ getFeedingInfo().feeding_frequency_per_day }}</span>
+              </div>
+              <div class="info-item" *ngIf="getFeedingInfo().feeding_duration_minutes">
+                <strong>Duration Per Feed:</strong>
+                <span>{{ getFeedingInfo().feeding_duration_minutes }} minutes</span>
+              </div>
+              <div class="info-item" *ngIf="getFeedingInfo().pumping_frequency">
+                <strong>Pumping Sessions:</strong>
+                <span>{{ getFeedingInfo().pumping_frequency }} per day</span>
+              </div>
+              <div class="info-item">
+                <strong>Supply Concerns:</strong>
+                <span>{{ formatBoolean(getFeedingInfo().milk_supply_concerns) }}</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Support Information -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="people"></ion-icon>
+              Support System
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-grid">
+              <div class="info-item" *ngIf="getSupportInfo().partner_support_level">
+                <strong>Partner Support:</strong>
+                <span>{{ formatSupportLevel(getSupportInfo().partner_support_level) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getSupportInfo().family_support_level">
+                <strong>Family Support:</strong>
+                <span>{{ formatSupportLevel(getSupportInfo().family_support_level) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getSupportInfo().work_status">
+                <strong>Work Status:</strong>
+                <span>{{ formatValue(getSupportInfo().work_status, 'work_status') }}</span>
+              </div>
+              <div class="info-item" *ngIf="getSupportInfo().return_to_work_timeline">
+                <strong>Return to Work:</strong>
+                <span>{{ formatValue(getSupportInfo().return_to_work_timeline, 'return_to_work') }}</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <ng-template #noOnboardingData>
+        <div class="no-data-message">
+          <ion-icon name="document-text-outline" size="large"></ion-icon>
+          <h3>No Onboarding Data Available</h3>
+          <p>The patient has not completed their onboarding assessment yet.</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Consultation Report Tab -->
+    <div class="tab-content" *ngIf="selectedTab === 'report'">
+      <div class="consultation-report">
+        
+        <!-- Basic Consultation Info -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="information-circle"></ion-icon>
+              Consultation Summary
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>Topic:</strong>
+                <span>{{ consultation.topic }}</span>
+              </div>
+              <div class="info-item">
+                <strong>Status:</strong>
+                <ion-chip [color]="getConsultationStatusColor()">
+                  <ion-label>{{ getConsultationStatusText() }}</ion-label>
+                </ion-chip>
+              </div>
+              <div class="info-item">
+                <strong>Scheduled:</strong>
+                <span>{{ formatDate(consultation.scheduled_at) }}</span>
+              </div>
+              <div class="info-item" *ngIf="consultation.actual_start_time">
+                <strong>Started:</strong>
+                <span>{{ formatDate(consultation.actual_start_time) }}</span>
+              </div>
+              <div class="info-item" *ngIf="consultation.actual_end_time">
+                <strong>Ended:</strong>
+                <span>{{ formatDate(consultation.actual_end_time) }}</span>
+              </div>
+              <div class="info-item" *ngIf="consultation.follow_up_required !== undefined">
+                <strong>Follow-up Required:</strong>
+                <span>{{ consultation.follow_up_required ? 'Yes' : 'No' }}</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Expert Notes -->
+        <ion-card *ngIf="hasExpertNotes() || currentUser?.role === 'expert'; else noExpertNotes">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="clipboard"></ion-icon>
+              Expert Assessment & Notes
+            </ion-card-title>
+            <ion-card-subtitle *ngIf="getExpertNotesDate()">
+              Updated on {{ getExpertNotesDate() }} by {{ getExpertNotesAuthor() }}
+            </ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <!-- Read-only view for users and experts not editing -->
+            <div class="expert-notes-content" *ngIf="!isEditingExpertNotes && hasExpertNotes()">
+              <p [innerHTML]="getFormattedExpertNotes()"></p>
+            </div>
+            
+            <!-- Editable view for experts -->
+            <div class="expert-notes-editor" *ngIf="isEditingExpertNotes && currentUser?.role === 'expert'">
+              <ion-textarea
+                [(ngModel)]="expertNotesContent"
+                placeholder="Enter your assessment, recommendations, and notes for this consultation..."
+                rows="8"
+                fill="outline"
+                [disabled]="expertNotesSaving">
+              </ion-textarea>
+            </div>
+            
+            <!-- No notes placeholder for experts -->
+            <div class="no-notes-placeholder" *ngIf="!hasExpertNotes() && !isEditingExpertNotes && currentUser?.role === 'expert'">
+              <p class="placeholder-text">No expert notes have been added yet.</p>
+            </div>
+            
+            <!-- Action buttons for experts -->
+            <div class="expert-notes-actions" *ngIf="currentUser?.role === 'expert'">
+              <!-- Editing mode buttons -->
+              <div class="editing-actions" *ngIf="isEditingExpertNotes">
+                <ion-button fill="clear" size="small" (click)="openQuickNotesModal()">
+                  <ion-icon name="bookmark" slot="start"></ion-icon>
+                  Quick Notes
+                </ion-button>
+                <ion-button fill="clear" size="small" (click)="toggleExpertNotesEdit()">
+                  <ion-icon name="close" slot="start"></ion-icon>
+                  Cancel
+                </ion-button>
+                <ion-button fill="solid" size="small" (click)="saveExpertNotes()" [disabled]="expertNotesSaving">
+                  <ion-spinner *ngIf="expertNotesSaving" name="dots"></ion-spinner>
+                  <ion-icon *ngIf="!expertNotesSaving" name="checkmark" slot="start"></ion-icon>
+                  {{ expertNotesSaving ? 'Saving...' : 'Save' }}
+                </ion-button>
+              </div>
+              
+              <!-- View mode buttons -->
+              <div class="view-actions" *ngIf="!isEditingExpertNotes">
+                <ion-button fill="outline" size="small" (click)="startEditingExpertNotes()">
+                  <ion-icon name="create" slot="start"></ion-icon>
+                  {{ hasExpertNotes() ? 'Edit Notes' : 'Add Notes' }}
+                </ion-button>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <ng-template #noExpertNotes>
+          <div class="no-data-message">
+            <ion-icon name="clipboard-outline" size="large"></ion-icon>
+            <h3>No Expert Notes Available</h3>
+            <p *ngIf="isScheduled()">
+              Expert notes will be available after the consultation is completed.
+            </p>
+            <p *ngIf="isCompleted()">
+              No notes were added by the expert for this consultation.
+            </p>
+            <p *ngIf="isCancelled()">
+              This consultation was cancelled.
+            </p>
+          </div>
+        </ng-template>
+
+        <!-- User Feedback (if consultation is completed) -->
+        <ion-card *ngIf="hasUserFeedback()">
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="star"></ion-icon>
+              Your Feedback
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="feedback-content">
+              <div *ngIf="consultation.user_rating" class="rating">
+                <strong>Rating: </strong>
+                <span class="stars">
+                  <ion-icon 
+                    *ngFor="let star of [1,2,3,4,5]" 
+                    [name]="star <= consultation.user_rating ? 'star' : 'star-outline'"
+                    [color]="star <= consultation.user_rating ? 'warning' : 'medium'">
+                  </ion-icon>
+                </span>
+                <span>({{ consultation.user_rating }}/5)</span>
+              </div>
+              <div *ngIf="consultation.user_feedback" class="feedback">
+                <strong>Feedback:</strong>
+                <p>{{ consultation.user_feedback }}</p>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="!consultation">
+    <ion-spinner name="circles"></ion-spinner>
+    <p>Loading consultation details...</p>
+  </div>
+</ion-content>

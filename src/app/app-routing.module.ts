@@ -43,13 +43,19 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'expert-consultations',
+    loadChildren: () => import('./components/expert-consultations/expert-consultations.module').then( m => m.ExpertConsultationsPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'consultation-detail/:id',
+    loadChildren: () => import('./consultation-detail/consultation-detail.module').then( m => m.ConsultationDetailPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: '**',
     redirectTo: '/',
     pathMatch: 'full'
-  },
-  {
-    path: 'expert-consultations',
-    loadChildren: () => import('./components/expert-consultations/expert-consultations.module').then( m => m.ExpertConsultationsPageModule)
   }
 ];
 

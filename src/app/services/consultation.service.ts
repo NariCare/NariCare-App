@@ -84,6 +84,52 @@ export class ConsultationService {
     );
   }
 
+  getConsultationById(consultationId: string): Observable<{success: boolean, data?: Consultation, error?: string}> {
+    return this.apiService.getConsultationById(consultationId).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          // Transform API response to match consultation model
+          const consultation: Consultation = {
+            id: response.data.id,
+            user_id: response.data.user_id,
+            expert_id: response.data.expert_id,
+            consultation_type: response.data.consultation_type,
+            status: response.data.status,
+            scheduled_at: response.data.scheduled_at,
+            actual_start_time: response.data.actual_start_time,
+            actual_end_time: response.data.actual_end_time,
+            topic: response.data.topic,
+            notes: response.data.notes,
+            meeting_link: response.data.meeting_link,
+            jitsi_room_token: response.data.jitsi_room_token,
+            expert_notes: response.data.expert_notes,
+            user_rating: response.data.user_rating,
+            user_feedback: response.data.user_feedback,
+            follow_up_required: response.data.follow_up_required,
+            created_at: response.data.created_at,
+            updated_at: response.data.updated_at,
+            user_first_name: response.data.user_first_name,
+            user_last_name: response.data.user_last_name,
+            user_email: response.data.user_email,
+            expert_first_name: response.data.expert_first_name,
+            expert_last_name: response.data.expert_last_name,
+            expert_email: response.data.expert_email,
+            expert_credentials: response.data.expert_credentials,
+            expert_rating: response.data.expert_rating,
+            expert_user_id: response.data.expert_user_id
+          };
+          
+          return { success: true, data: consultation };
+        }
+        return { success: false, error: response.message || 'Failed to load consultation' };
+      }),
+      catchError(error => {
+        console.error('Error getting consultation by ID:', error);
+        return of({ success: false, error: 'Failed to load consultation details' });
+      })
+    );
+  }
+
   async scheduleConsultation(consultation: Omit<Consultation, 'id'>): Promise<void> {
     const expertId = consultation.expert_id || consultation.expertId || '';
     const scheduledAt = consultation.scheduled_at || (consultation.scheduledAt ? consultation.scheduledAt.toISOString() : '');

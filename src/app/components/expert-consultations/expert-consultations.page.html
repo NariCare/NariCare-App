@@ -46,7 +46,8 @@
          [class.completed]="consultation.status === 'completed'"
          [class.cancelled]="consultation.status === 'cancelled'"
          [class.in-progress]="consultation.status === 'in-progress'"
-         [class.clickable]="true">
+         [class.clickable]="true"
+         (click)="openConsultationDetail(consultation)">
       
       <div class="consultation-status-badge" [attr.data-status]="consultation.status">
         {{ consultation.status | titlecase }}

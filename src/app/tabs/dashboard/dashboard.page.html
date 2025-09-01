@@ -105,7 +105,8 @@
       <h2 class="section-title">Upcoming Consultations</h2>
       <div class="consultations-list">
         <div *ngFor="let consultation of upcomingConsultations" class="consultation-card" 
-             [class.upcoming]="consultation.status === 'scheduled'">
+             [class.upcoming]="consultation.status === 'scheduled'"
+             (click)="openConsultationDetail(consultation)">
           
           <div class="consultation-status-badge" [attr.data-status]="consultation.status">
             {{ consultation.status | titlecase }}
@@ -142,7 +143,7 @@
               <ion-button 
                 fill="outline" 
                 size="small"
-                (click)="editConsultation(consultation)"
+                (click)="editConsultation(consultation); $event.stopPropagation()"
                 class="edit-button">
                 <ion-icon name="create" slot="start"></ion-icon>
                 Edit
@@ -150,7 +151,7 @@
               <ion-button 
                 fill="solid" 
                 size="small"
-                (click)="joinConsultation(consultation)"
+                (click)="joinConsultation(consultation); $event.stopPropagation()"
                 [disabled]="!isConsultationReady(consultation)"
                 class="join-button">
                 <ion-icon name="videocam" slot="start"></ion-icon>
@@ -193,7 +194,8 @@
         <div *ngFor="let consultation of nonUpcomingConsultations" class="consultation-card" 
              [class.upcoming]="consultation.status === 'scheduled'" 
              [class.completed]="consultation.status === 'completed'"
-             [class.cancelled]="consultation.status === 'cancelled'">
+             [class.cancelled]="consultation.status === 'cancelled'"
+             (click)="openConsultationDetail(consultation)">
           
           <div class="consultation-status-badge" [attr.data-status]="consultation.status">
             {{ consultation.status | titlecase }}
@@ -231,7 +233,7 @@
                 *ngIf="consultation.status === 'scheduled'"
                 fill="outline" 
                 size="small"
-                (click)="editConsultation(consultation)"
+                (click)="editConsultation(consultation); $event.stopPropagation()"
                 class="edit-button">
                 <ion-icon name="create" slot="start"></ion-icon>
                 Edit
@@ -240,7 +242,7 @@
                 *ngIf="consultation.status === 'scheduled'"
                 fill="solid" 
                 size="small"
-                (click)="joinConsultation(consultation)"
+                (click)="joinConsultation(consultation); $event.stopPropagation()"
                 [disabled]="!isConsultationReady(consultation)"
                 class="join-button">
                 <ion-icon name="videocam" slot="start"></ion-icon>
@@ -380,15 +382,20 @@
     <!-- Continue Learning Section - Hidden for experts -->
     <div class="section" *ngIf="!shouldHideSection('learning')">
       <h2 class="section-title">Continue Learning</h2>
-      <div class="activity-card">
+      <div class="activity-card" [style.--category-color]="getCurrentLearningActivity().categoryColor">
         <div class="activity-content">
-          <ion-icon name="book" class="activity-icon"></ion-icon>
+          <ion-icon [name]="getCurrentLearningActivity().icon" class="activity-icon"></ion-icon>
           <div class="activity-text">
-            <h3>Breastfeeding Basics</h3>
-            <p>Complete your reading progress • 3 articles remaining</p>
+            <h3>{{ getCurrentLearningActivity().title }}</h3>
+            <p>{{ getCurrentLearningActivity().description }}</p>
+            <div class="learning-progress" *ngIf="hasLearningProgress()">
+              <span class="progress-text">{{ getLearningProgressText() }}</span>
+            </div>
           </div>
         </div>
-        <ion-button fill="outline" size="small">Continue</ion-button>
+        <ion-button fill="outline" size="small" (click)="continueLearning()">
+          {{ getCurrentLearningActivity().type === 'bookmarked' ? 'Continue' : 'Explore' }}
+        </ion-button>
       </div>
     </div>
 

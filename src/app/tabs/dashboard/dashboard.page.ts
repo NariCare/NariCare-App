@@ -8,6 +8,8 @@ import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { ConsultationService } from '../../services/consultation.service';
 import { OnboardingService } from '../../services/onboarding.service';
 import { InsightsService, TodaysInsights } from '../../services/insights.service';
+import { BackendKnowledgeService } from '../../services/backend-knowledge.service';
+import { Article } from '../../models/knowledge-base.model';
 import { BabyTimelineItem, BabyTimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { Consultation, Expert } from '../../models/consultation.model';
@@ -35,6 +37,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   
   // Insights data
   todaysInsights: TodaysInsights | null = null;
+  
+  // Learning data
+  recentArticles: Article[] = [];
+  bookmarkedArticles: Article[] = [];
+  currentLearningProgress: any = null;
   
   // Error handling properties
   consultationsError: string | null = null;
@@ -94,6 +101,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private consultationService: ConsultationService,
     private onboardingService: OnboardingService,
     private insightsService: InsightsService,
+    private knowledgeService: BackendKnowledgeService,
     private toastController: ToastController,
     private alertController: AlertController
   ) {}
@@ -109,6 +117,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         this.loadTimelineData(user.babies[0].dateOfBirth);
         this.loadUpcomingConsultations();
         this.loadTodaysInsights(user.babies[0]);
+        this.loadLearningData();
+      } else if (user) {
+        // Load learning data even without baby data
+        this.loadLearningData();
       }
       // Onboarding check temporarily disabled for API testing
     });
@@ -750,5 +762,141 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     if (this.user && this.user.babies && this.user.babies.length > 0) {
       this.loadTodaysInsights(this.user.babies[0]);
     }
+  }
+
+  /**
+   * Navigate to consultation detail page
+   */
+  openConsultationDetail(consultation: Consultation) {
+    this.router.navigate(['/consultation-detail', consultation.id]);
+  }
+
+  /**
+   * Load learning-related data for the dashboard
+   */
+  private loadLearningData() {
+    // Load recent articles for discovery
+    this.knowledgeService.getRecentArticles(5).subscribe({
+      next: (articles) => {
+        this.recentArticles = articles;
+      },
+      error: (error) => {
+        console.error('Error loading recent articles:', error);
+        this.recentArticles = [];
+      }
+    });
+
+    // Load bookmarked articles if user is authenticated
+    if (this.user?.uid) {
+      this.knowledgeService.getUserBookmarks(this.user.uid).subscribe({
+        next: (bookmarkIds) => {
+          // Load full article details for bookmarked articles (simplified approach)
+          // In a real implementation, you might want to batch load these
+          this.loadBookmarkedArticleDetails(bookmarkIds.slice(0, 3)); // Show top 3
+        },
+        error: (error) => {
+          console.error('Error loading bookmarks:', error);
+          this.bookmarkedArticles = [];
+        }
+      });
+    }
+  }
+
+  private loadBookmarkedArticleDetails(bookmarkIds: string[]) {
+    if (bookmarkIds.length === 0) {
+      this.bookmarkedArticles = [];
+      return;
+    }
+
+    // Load details for each bookmarked article
+    const articlePromises = bookmarkIds.map(id => 
+      this.knowledgeService.getArticle(id).toPromise()
+    );
+
+    Promise.all(articlePromises).then(articles => {
+      this.bookmarkedArticles = articles.filter(article => article != null) as Article[];
+    }).catch(error => {
+      console.error('Error loading bookmarked article details:', error);
+      this.bookmarkedArticles = [];
+    });
+  }
+
+  /**
+   * Get the current learning activity to display
+   */
+  getCurrentLearningActivity(): any {
+    // Priority: bookmarked articles, then recent articles
+    if (this.bookmarkedArticles.length > 0) {
+      const article = this.bookmarkedArticles[0];
+      return {
+        type: 'bookmarked',
+        title: article.title,
+        description: `Continue reading • ${article.readTime} min read`,
+        icon: 'bookmark',
+        article: article,
+        categoryColor: article.category.color
+      };
+    }
+
+    if (this.recentArticles.length > 0) {
+      const article = this.recentArticles[0];
+      return {
+        type: 'recent',
+        title: article.title,
+        description: `New article • ${article.readTime} min read • ${article.category.name}`,
+        icon: 'library',
+        article: article,
+        categoryColor: article.category.color
+      };
+    }
+
+    // Fallback
+    return {
+      type: 'general',
+      title: 'Breastfeeding Basics',
+      description: 'Start your learning journey with essential topics',
+      icon: 'school',
+      categoryColor: '#8383ed'
+    };
+  }
+
+  /**
+   * Handle continuing learning activity
+   */
+  continueLearning() {
+    const activity = this.getCurrentLearningActivity();
+    
+    if (activity.article) {
+      // Navigate to the specific article
+      this.router.navigate(['/tabs/knowledge/article', activity.article.id]);
+    } else {
+      // Navigate to knowledge base
+      this.router.navigate(['/tabs/knowledge']);
+    }
+  }
+
+  /**
+   * Check if user has any learning progress to continue
+   */
+  hasLearningProgress(): boolean {
+    return this.bookmarkedArticles.length > 0 || this.recentArticles.length > 0;
+  }
+
+  /**
+   * Get learning progress text
+   */
+  getLearningProgressText(): string {
+    const bookmarkedCount = this.bookmarkedArticles.length;
+    const totalRecentCount = this.recentArticles.length;
+    
+    if (bookmarkedCount > 0) {
+      return `${bookmarkedCount} bookmarked article${bookmarkedCount > 1 ? 's' : ''} to continue`;
+    }
+    
+    if (totalRecentCount > 0) {
+      return `${totalRecentCount} new article${totalRecentCount > 1 ? 's' : ''} available`;
+    }
+    
+    return 'Start your learning journey';
   }
 }

@@ -302,4 +302,11 @@ export class ExpertConsultationsPage implements OnInit, OnDestroy {
     });
     await toast.present();
   }
+
+  /**
+   * Navigate to consultation detail page
+   */
+  openConsultationDetail(consultation: Consultation) {
+    this.router.navigate(['/consultation-detail', consultation.id]);
+  }
 }
