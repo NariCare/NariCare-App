@@ -18,80 +18,44 @@
       </ion-searchbar>
     </div>
 
-    <!-- Categories -->
-    <div class="section">
-      <h2 class="section-title">Browse by Category</h2>
-      <div class="categories-grid">
-        <div 
-          *ngFor="let category of categories$ | async"
-          class="category-card"
-          (click)="onCategorySelect(category.id)">
-          <div class="category-icon" [style.background-color]="category.color">
-            <ion-icon *ngIf="!category.customIcon" [name]="category.icon"></ion-icon>
-            <img *ngIf="category.customIcon" [src]="category.customIcon" alt="{{ category.name }}" class="custom-category-icon">
-          </div>
-          <div class="category-content">
-            <h3>{{ category.name }}</h3>
-            <p>{{ category.description }}</p>
-          </div>
-        </div>
+    <!-- Articles by Category -->
+    <div *ngFor="let categoryGroup of categorizedArticles$ | async" class="category-section">
+      <div class="section-header">
+        <h2 class="section-title">{{ categoryGroup.category.name }}</h2>
+        <ion-button 
+          fill="clear" 
+          size="small" 
+          class="see-all-button"
+          (click)="onSeeAllCategory(categoryGroup.category.id)">
+          SEE ALL
+        </ion-button>
       </div>
-    </div>
-
-    <!-- Featured Articles -->
-    <div class="section">
-      <h2 class="section-title">Featured Articles</h2>
-      <div class="articles-list">
-        <div 
-          *ngFor="let article of featuredArticles$ | async"
-          class="article-card featured"
-          (click)="onArticleSelect(article)">
-          <div class="article-image" *ngIf="article.imageUrl">
-            <img [src]="article.imageUrl" [alt]="article.title">
-          </div>
-          <div class="article-content">
-            <div class="article-meta">
-              <ion-chip [color]="getDifficultyColor(article.difficulty)" size="small">
-                {{ article.difficulty }}
-              </ion-chip>
-              <span class="read-time">{{ formatReadTime(article.readTime) }}</span>
+      
+      <div class="horizontal-scroll">
+        <div class="articles-grid">
+          <div 
+            *ngFor="let article of categoryGroup.articles"
+            class="article-card grid-item"
+            (click)="onArticleSelect(article)">
+            <div class="article-image" *ngIf="article.imageUrl">
+              <img [src]="article.imageUrl" [alt]="article.title">
             </div>
-            <h3>{{ article.title }}</h3>
-            <p>{{ article.summary }}</p>
-            <div class="article-footer">
-              <span class="author">By {{ article.author }}</span>
-              <span class="date">{{ article.publishedAt | date:'MMM d, y' }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Articles -->
-    <div class="section">
-      <h2 class="section-title">Recent Articles</h2>
-      <div class="articles-list compact">
-        <div 
-          *ngFor="let article of recentArticles$ | async"
-          class="article-card compact"
-          (click)="onArticleSelect(article)">
-          <div class="article-content">
-            <div class="article-meta">
-              <ion-chip [color]="getDifficultyColor(article.difficulty)" size="small">
-                {{ article.difficulty }}
-              </ion-chip>
-              <span class="read-time">{{ formatReadTime(article.readTime) }}</span>
-            </div>
-            <h4>{{ article.title }}</h4>
-            <p>{{ article.summary }}</p>
-            <div class="article-footer">
-              <span class="category-tag">{{ article.category.name }}</span>
-              <span class="date">{{ article.publishedAt | date:'MMM d' }}</span>
+            <div class="article-content">
+              <div class="article-meta">
+                <ion-chip [color]="getDifficultyColor(article.difficulty)" size="small">
+                  {{ article.difficulty }}
+                </ion-chip>
+              </div>
+              <h3>{{ article.title }}</h3>
+              <p>{{ article.summary }}</p>
+              <div class="article-footer">
+                <span class="read-time">{{ formatReadTime(article.readTime) }}</span>
+                <ion-button fill="clear" size="small" class="bookmark-button" (click)="toggleBookmark(article.id, $event)">
+                  <ion-icon [name]="isBookmarked(article.id) ? 'bookmark' : 'bookmark-outline'" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
             </div>
           </div>
-          <ion-button fill="clear" size="small" class="bookmark-button" (click)="toggleBookmark(article.id, $event)">
-            <ion-icon [name]="isBookmarked(article.id) ? 'bookmark' : 'bookmark-outline'" slot="icon-only"></ion-icon>
-          </ion-button>
         </div>
       </div>
     </div>

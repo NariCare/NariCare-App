@@ -252,6 +252,27 @@ export class KnowledgeBaseService {
     );
   }
 
+  getArticlesGroupedByCategory(limit: number = 5): Observable<{ category: ArticleCategory, articles: Article[] }[]> {
+    return this.ensureDataLoaded().pipe(
+      map(data => {
+        const categories = data.categories || [];
+        const articles = data.articles || [];
+        
+        return categories.map((category: ArticleCategory) => {
+          const categoryArticles = articles
+            .filter((article: any) => article.category === category.id)
+            .slice(0, limit)
+            .map((article: any) => this.transformArticle(article));
+          
+          return {
+            category,
+            articles: categoryArticles
+          };
+        }).filter(group => group.articles.length > 0);
+      })
+    );
+  }
+
   clearSearchFilters(): void {
     this.searchTermSubject.next('');
     this.selectedCategorySubject.next('');

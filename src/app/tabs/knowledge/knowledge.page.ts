@@ -12,9 +12,7 @@ import { User } from '../../models/user.model';
   styleUrls: ['./knowledge.page.scss'],
 })
 export class KnowledgePage implements OnInit {
-  categories$: Observable<ArticleCategory[]>;
-  featuredArticles$: Observable<Article[]>;
-  recentArticles$: Observable<Article[]>;
+  categorizedArticles$: Observable<{ category: ArticleCategory, articles: Article[] }[]>;
   searchTerm = '';
   user: User | null = null;
   bookmarkedArticles: string[] = [];
@@ -24,9 +22,7 @@ export class KnowledgePage implements OnInit {
     private authService: AuthService,
     private router: Router
   ) {
-    this.categories$ = this.knowledgeService.getCategories();
-    this.featuredArticles$ = this.knowledgeService.getFeaturedArticles();
-    this.recentArticles$ = this.knowledgeService.getRecentArticles();
+    this.categorizedArticles$ = this.knowledgeService.getArticlesGroupedByCategory(5);
   }
 
   ngOnInit() {
@@ -64,6 +60,10 @@ export class KnowledgePage implements OnInit {
   }
 
   onCategorySelect(categoryId: string) {
+    this.router.navigate(['/tabs/knowledge/category', categoryId]);
+  }
+
+  onSeeAllCategory(categoryId: string) {
     this.router.navigate(['/tabs/knowledge/category', categoryId]);
   }
 
