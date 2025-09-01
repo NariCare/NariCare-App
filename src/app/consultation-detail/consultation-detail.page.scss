@@ -7,7 +7,7 @@
     .consultation-info {
       h2 {
         margin: 0 0 12px 0;
-        color: var(--ion-color-dark);
+        color: #2d3748;
         font-size: 1.5rem;
         font-weight: 600;
       }
@@ -20,7 +20,7 @@
         
         .consultation-date {
           margin: 0;
-          color: var(--ion-color-medium);
+          color: #64748b;
           font-size: 0.9rem;
         }
       }
@@ -41,7 +41,7 @@
           }
           
           .credentials {
-            color: var(--ion-color-medium);
+            color: #64748b;
             font-size: 0.85rem;
             margin-left: 4px;
           }
@@ -58,8 +58,8 @@
       border-radius: 8px;
       
       ion-segment-button {
-        --color-checked: var(--ion-color-primary);
-        --indicator-color: var(--ion-color-primary);
+        --color-checked: #8383ed;
+        --indicator-color: #8383ed;
         
         ion-label {
           font-size: 0.9rem;
@@ -95,16 +95,16 @@
             gap: 8px;
             font-size: 1.1rem;
             font-weight: 600;
-            color: var(--ion-color-dark);
+            color: #2d3748;
             
             ion-icon {
               font-size: 1.2rem;
-              color: var(--ion-color-primary);
+              color: #8383ed;
             }
           }
           
           ion-card-subtitle {
-            color: var(--ion-color-medium);
+            color: #64748b;
             font-size: 0.85rem;
             margin-top: 4px;
           }
@@ -128,7 +128,7 @@
               gap: 4px;
               
               strong {
-                color: var(--ion-color-dark);
+                color: #2d3748;
                 font-size: 0.85rem;
                 font-weight: 600;
                 text-transform: uppercase;
@@ -136,13 +136,13 @@
               }
               
               span {
-                color: var(--ion-color-medium-shade);
+                color: #4a5568;
                 font-size: 0.95rem;
                 line-height: 1.4;
                 
                 &:empty::after {
                   content: "Not specified";
-                  color: var(--ion-color-medium);
+                  color: #94a3b8;
                   font-style: italic;
                 }
               }
@@ -157,7 +157,7 @@
           .expert-notes-content {
             p {
               line-height: 1.6;
-              color: var(--ion-color-dark-shade);
+              color: #2d3748;
               margin: 0;
               white-space: pre-wrap;
             }
@@ -268,7 +268,7 @@
               p {
                 margin: 8px 0 0 0;
                 line-height: 1.5;
-                color: var(--ion-color-medium-shade);
+                color: #4a5568;
               }
             }
           }
@@ -285,7 +285,7 @@
   justify-content: center;
   padding: 40px 20px;
   text-align: center;
-  color: var(--ion-color-medium);
+  color: #64748b;
   
   ion-icon {
     margin-bottom: 16px;
@@ -297,7 +297,7 @@
     margin: 0 0 8px 0;
     font-size: 1.2rem;
     font-weight: 600;
-    color: var(--ion-color-medium-shade);
+    color: #4a5568;
   }
   
   p {
@@ -365,7 +365,7 @@
   
   p {
     margin: 0;
-    color: var(--ion-color-medium);
+    color: #64748b;
     font-size: 0.9rem;
   }
 }
@@ -411,7 +411,7 @@
         ion-card-content {
           .expert-notes-content {
             p {
-              color: var(--ion-color-light-shade);
+              color: #e2e8f0;
             }
           }
         }
