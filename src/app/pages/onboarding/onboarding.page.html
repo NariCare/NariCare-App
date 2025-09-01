@@ -138,7 +138,7 @@
         <div class="form-group" *ngIf="shouldShowField('dueDate')">
           <ion-item lines="none" class="input-item">
             <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-datetime-button datetime="dueDate">Due Date</ion-datetime-button>
+            <ion-datetime-button datetime="dueDate"></ion-datetime-button>
           </ion-item>
           <ion-modal [keepContentsMounted]="true">
             <ng-template>
@@ -147,7 +147,8 @@
                 formControlName="dueDate"
                 presentation="date"
                 [min]="currentDate"
-                [max]="maxDate">
+                [max]="maxDate"
+                showDefaultButtons="true">
               </ion-datetime>
             </ng-template>
           </ion-modal>
@@ -206,7 +207,7 @@
           <div class="form-group">
             <ion-item lines="none" class="input-item">
               <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-              <ion-datetime-button datetime="birthDate">Date of Birth</ion-datetime-button>
+              <ion-datetime-button datetime="birthDate"></ion-datetime-button>
             </ion-item>
             <ion-modal [keepContentsMounted]="true">
               <ng-template>
@@ -215,7 +216,8 @@
                   formControlName="babyDateOfBirth"
                   presentation="date"
                   [max]="currentDate"
-                  [min]="minBirthDate">
+                  [min]="minBirthDate"
+                  showDefaultButtons="true">
                 </ion-datetime>
               </ng-template>
             </ion-modal>
@@ -290,7 +292,7 @@
             
             <div class="form-group half-width">
               <ion-item lines="none" class="input-item">
-                <ion-datetime-button datetime="weightDate">Weight Check Date</ion-datetime-button>
+                <ion-datetime-button datetime="weightDate"></ion-datetime-button>
               </ion-item>
               <ion-modal [keepContentsMounted]="true">
                 <ng-template>
@@ -298,7 +300,8 @@
                     id="weightDate" 
                     formControlName="weightCheckDate"
                     presentation="date"
-                    [max]="currentDate">
+                    [max]="currentDate"
+                    showDefaultButtons="true">
                   </ion-datetime>
                 </ng-template>
               </ion-modal>

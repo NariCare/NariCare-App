@@ -178,7 +178,20 @@
   --padding-start: 16px;
   --padding-end: 16px;
   --min-height: 52px;
+  --border-width: 1px;
+  --border-color: #e2e8f0;
+  --border-style: solid;
   margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    --border-color: #cbd5e1;
+  }
+
+  &:focus-within {
+    --border-color: #8383ed;
+    box-shadow: 0 0 0 3px rgba(131, 131, 237, 0.1);
+  }
 
   &.error {
     --border-color: #ef4444;
@@ -191,12 +204,62 @@
   margin-right: 12px;
 }
 
-.datetime-button {
-  // width: 100%;
-  // text-align: left;
+.datetime-item {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
 
-  ion-label {
-    color: #64748b;
+.dropdown-icon {
+  color: #94a3b8;
+  font-size: 1.2rem;
+  transition: transform 0.2s ease;
+}
+
+.input-item:hover .dropdown-icon {
+  color: #8383ed;
+  transform: scale(1.1);
+}
+
+.datetime-button-full {
+  width: 100%;
+  --color: #2d3748;
+  --background: transparent;
+  text-align: left;
+  font-size: 1rem;
+  padding: 8px 0;
+  margin: 0;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  
+  &::part(native) {
+    padding: 8px 0;
+    margin: 0;
+    text-align: left;
+    width: 100%;
+  }
+  
+  &:not([disabled]):hover {
+    --color: #8383ed;
+  }
+}
+
+ion-datetime-button {
+  width: 100%;
+  --color: #2d3748;
+  --background: transparent;
+  cursor: pointer;
+  
+  &::part(native) {
+    width: 100%;
+    text-align: left;
+    padding: 8px 0;
   }
 }
 

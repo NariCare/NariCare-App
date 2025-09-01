@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController, ToastController, AlertController } from '@ionic/angular';
+import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
 import { OnboardingService } from '../../services/onboarding.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { OnboardingData, OnboardingOptions, OnboardingProgress } from '../../models/onboarding.model';
@@ -44,7 +44,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
     private router: Router,
     private loadingController: LoadingController,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private modalController: ModalController
   ) {
     this.initializeForm();
   }
@@ -163,17 +164,17 @@ export class OnboardingPage implements OnInit, OnDestroy {
       
       // Step 2: Pregnancy & Birth Information
       motherType: ['', [Validators.required]],
-      dueDate: [''],
+      dueDate: [new Date().toISOString()],
       isFirstChild: [null],
       babyName: [''],
-      babyDateOfBirth: [''],
+      babyDateOfBirth: [new Date().toISOString()],
       babyGender: [''],
       babyBirthWeight: [null],
       babyBirthHeight: [null],
       deliveryType: [''],
       gestationalAge: [40],
       babyCurrentWeight: [null],
-      weightCheckDate: [''],
+      weightCheckDate: [new Date().toISOString()],
       
       // Step 3: Breastfeeding Details
       experienceLevel: ['', [Validators.required]],
@@ -688,4 +689,22 @@ export class OnboardingPage implements OnInit, OnDestroy {
     };
     return titles[step as keyof typeof titles] || `Step ${step}`;
   }
+
+  // Date picker helper methods
+  getFormattedDate(fieldName: string): string {
+    const value = this.onboardingForm.get(fieldName)?.value;
+    if (!value) return '';
+    
+    try {
+      const date = new Date(value);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch {
+      return '';
+    }
+  }
+
 }
