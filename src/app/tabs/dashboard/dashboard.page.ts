@@ -393,10 +393,66 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   getGreeting(): string {
     const hour = new Date().getHours();
     const firstName = this.user?.firstName || 'there';
+    const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
     
-    if (hour < 12) return `Good morning, ${firstName}!`;
-    if (hour < 17) return `Good afternoon, ${firstName}!`;
-    return `Good evening, ${firstName}!`;
+    if (hour < 12) return `Good morning, ${capitalizedName}!`;
+    if (hour < 17) return `Good afternoon, ${capitalizedName}!`;
+    return `Good evening, ${capitalizedName}!`;
+  }
+
+  getCurrentDate(): string {
+    const today = new Date();
+    const options: Intl.DateTimeFormatOptions = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    return today.toLocaleDateString('en-US', options);
+  }
+
+  getBabyAgeOrDueDate(): string {
+    if (!this.user?.babies || this.user.babies.length === 0) {
+      return '';
+    }
+
+    const baby = this.user.babies[0];
+    
+    if (baby.dateOfBirth) {
+      const birthDate = new Date(baby.dateOfBirth);
+      const today = new Date();
+      const diffTime = today.getTime() - birthDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 0) {
+        // Baby not born yet - show due date
+        const daysUntilDue = Math.abs(diffDays);
+        if (daysUntilDue < 7) {
+          return `Due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}`;
+        } else {
+          const weeksUntilDue = Math.floor(daysUntilDue / 7);
+          const remainingDays = daysUntilDue % 7;
+          if (remainingDays === 0) {
+            return `Due in ${weeksUntilDue} week${weeksUntilDue !== 1 ? 's' : ''}`;
+          }
+          return `Due in ${weeksUntilDue}w ${remainingDays}d`;
+        }
+      } else {
+        // Baby is born - show age
+        if (diffDays < 7) {
+          return `${diffDays} day${diffDays !== 1 ? 's' : ''} old`;
+        } else {
+          const weeks = Math.floor(diffDays / 7);
+          const remainingDays = diffDays % 7;
+          if (remainingDays === 0) {
+            return `${weeks} week${weeks !== 1 ? 's' : ''} old`;
+          }
+          return `${weeks}w ${remainingDays}d old`;
+        }
+      }
+    }
+    
+    return '';
   }
 
   async openAvailabilityScheduler() {

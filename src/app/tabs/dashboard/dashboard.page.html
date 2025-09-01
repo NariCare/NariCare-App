@@ -4,7 +4,8 @@
       <div class="header-content">
         <div class="greeting-section">
           <h1 class="greeting">{{ getGreeting() }}</h1>
-          <!-- <p class="tier-badge">{{ getTierDisplay() }}</p> -->
+          <p class="current-date">{{ getCurrentDate() }}</p>
+          <p class="baby-info" *ngIf="getBabyAgeOrDueDate()">{{ getBabyAgeOrDueDate() }}</p>
         </div>
         <!-- <ion-button fill="clear" (click)="navigateToProfile()" class="profile-button">
           <ion-icon name="person-circle-outline" slot="icon-only"></ion-icon>

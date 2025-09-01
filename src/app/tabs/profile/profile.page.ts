@@ -33,14 +33,14 @@ export class ProfilePage implements OnInit {
         { label: 'Notification Settings', icon: 'settings-outline', action: 'notificationSettings' }
       ]
     },
-    {
-      title: 'Subscription',
-      items: [
-        { label: 'Current Plan', icon: 'card-outline', action: 'subscription' },
-        { label: 'Upgrade Plan', icon: 'arrow-up-outline', action: 'upgrade' },
-        { label: 'Billing History', icon: 'receipt-outline', action: 'billing' }
-      ]
-    },
+    // {
+    //   title: 'Subscription',
+    //   items: [
+    //     { label: 'Current Plan', icon: 'card-outline', action: 'subscription' },
+    //     { label: 'Upgrade Plan', icon: 'arrow-up-outline', action: 'upgrade' },
+    //     { label: 'Billing History', icon: 'receipt-outline', action: 'billing' }
+    //   ]
+    // },
     {
       title: 'Support',
       items: [

@@ -18,8 +18,8 @@ export class ChatService {
   private mockChatRooms: ChatRoom[] = [
     {
       id: 'general-newborn-support',
-      name: 'Newborn Support Group',
-      description: 'Support for mothers with newborns (0-3 months)',
+      name: 'New Mother Support Group',
+      description: 'Support for new mothers with newborns (0-3 months)',
       type: 'general',
       topic: 'newborn',
       isPrivate: false,
@@ -27,6 +27,19 @@ export class ChatService {
       moderators: ['expert-1'],
       maxParticipants: 20,
       createdAt: new Date('2024-01-01'),
+      lastMessageTimestamp: new Date()
+    },
+    {
+      id: 'general-working-moms',
+      name: 'Working Mothers Support',
+      description: 'Support for mothers returning to work while breastfeeding',
+      type: 'general',
+      topic: 'work',
+      isPrivate: false,
+      participants: ['user-10', 'user-11'],
+      moderators: ['expert-2'],
+      maxParticipants: 20,
+      createdAt: new Date('2024-01-20'),
       lastMessageTimestamp: new Date()
     },
     {
@@ -66,19 +79,6 @@ export class ChatService {
       moderators: ['expert-2'],
       maxParticipants: 20,
       createdAt: new Date('2024-01-15'),
-      lastMessageTimestamp: new Date()
-    },
-    {
-      id: 'general-working-moms',
-      name: 'Working Moms Support',
-      description: 'Support for mothers returning to work while breastfeeding',
-      type: 'general',
-      topic: 'work',
-      isPrivate: false,
-      participants: ['user-10', 'user-11'],
-      moderators: ['expert-2'],
-      maxParticipants: 20,
-      createdAt: new Date('2024-01-20'),
       lastMessageTimestamp: new Date()
     }
   ];

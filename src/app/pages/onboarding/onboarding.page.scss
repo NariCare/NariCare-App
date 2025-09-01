@@ -58,6 +58,62 @@
   color: #64748b;
 }
 
+.step-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.step-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+  
+  &.completed {
+    background-color: #10b981;
+    border-color: #10b981;
+    
+    span {
+      color: #ffffff;
+    }
+  }
+  
+  &.current {
+    background-color: #8383ed;
+    border-color: #8383ed;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(131, 131, 237, 0.3);
+    
+    span {
+      color: #ffffff;
+    }
+  }
+  
+  &.accessible:hover {
+    transform: scale(1.05);
+    background-color: rgba(131, 131, 237, 0.1);
+  }
+  
+  &:not(.accessible) {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .onboarding-form {
   flex: 1;
 }
