@@ -74,34 +74,22 @@
             <div class="info-grid">
               <div class="info-item">
                 <strong>Name:</strong>
-                <span>{{ getPersonalInfo().first_name }} {{ getPersonalInfo().last_name }}</span>
+                <span>{{ getPersonalInfo().fullName }}</span>
               </div>
-              <div class="info-item" *ngIf="getPersonalInfo().age">
-                <strong>Age:</strong>
-                <span>{{ getPersonalInfo().age }} years</span>
+              <div class="info-item">
+                <strong>Employment:</strong>
+                <span>{{ formatValue(getPersonalInfo().employmentStatus, 'work_status') }}</span>
               </div>
-              <div class="info-item" *ngIf="getPersonalInfo().occupation">
-                <strong>Occupation:</strong>
-                <span>{{ formatValue(getPersonalInfo().occupation) }}</span>
-              </div>
-              <div class="info-item" *ngIf="getPersonalInfo().education_level">
-                <strong>Education:</strong>
-                <span>{{ formatValue(getPersonalInfo().education_level, 'education_level') }}</span>
-              </div>
-              <div class="info-item" *ngIf="getPersonalInfo().primary_language">
-                <strong>Primary Language:</strong>
-                <span>{{ formatValue(getPersonalInfo().primary_language) }}</span>
-              </div>
-              <div class="info-item" *ngIf="getPersonalInfo().previous_children !== undefined">
-                <strong>Previous Children:</strong>
-                <span>{{ getPersonalInfo().previous_children }}</span>
+              <div class="info-item" *ngIf="getPersonalInfo().languagesSpoken?.length">
+                <strong>Languages:</strong>
+                <span>{{ formatValue(getPersonalInfo().languagesSpoken) }}</span>
               </div>
             </div>
           </ion-card-content>
         </ion-card>
 
-        <!-- Pregnancy Information -->
-        <ion-card *ngIf="getPregnancyInfo().birth_date">
+        <!-- Pregnancy & Baby Information -->
+        <ion-card>
           <ion-card-header>
             <ion-card-title>
               <ion-icon name="heart"></ion-icon>
@@ -111,24 +99,53 @@
           <ion-card-content>
             <div class="info-grid">
               <div class="info-item">
-                <strong>Birth Date:</strong>
-                <span>{{ formatDate(getPregnancyInfo().birth_date) }}</span>
+                <strong>Mother Type:</strong>
+                <span>{{ formatValue(getPregnancyInfo().motherType) }}</span>
               </div>
-              <div class="info-item" *ngIf="getPregnancyInfo().gestational_age_weeks">
-                <strong>Gestational Age:</strong>
-                <span>{{ getPregnancyInfo().gestational_age_weeks }} weeks</span>
+              <div class="info-item" *ngIf="getPregnancyInfo().dueDate">
+                <strong>Due Date:</strong>
+                <span>{{ formatDate(getPregnancyInfo().dueDate) }}</span>
               </div>
-              <div class="info-item" *ngIf="getPregnancyInfo().birth_type">
-                <strong>Birth Type:</strong>
-                <span>{{ formatValue(getPregnancyInfo().birth_type, 'birth_type') }}</span>
+              <div class="info-item">
+                <strong>First Child:</strong>
+                <span>{{ formatBoolean(getPregnancyInfo().isFirstChild) }}</span>
               </div>
-              <div class="info-item" *ngIf="getPregnancyInfo().birth_weight">
-                <strong>Birth Weight:</strong>
-                <span>{{ getPregnancyInfo().birth_weight }} lbs</span>
-              </div>
-              <div class="info-item" *ngIf="getPregnancyInfo().apgar_score">
-                <strong>APGAR Score:</strong>
-                <span>{{ getPregnancyInfo().apgar_score }}/10</span>
+              
+              <!-- Baby Information -->
+              <div class="baby-info-section" *ngIf="getPregnancyInfo().babyInfo">
+                <h4>Baby Information</h4>
+                <div class="info-item">
+                  <strong>Name:</strong>
+                  <span>{{ getPregnancyInfo().babyInfo.name }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Date of Birth:</strong>
+                  <span>{{ formatDate(getPregnancyInfo().babyInfo.dateOfBirth) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Gender:</strong>
+                  <span>{{ formatValue(getPregnancyInfo().babyInfo.gender) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Birth Weight:</strong>
+                  <span>{{ getPregnancyInfo().babyInfo.birthWeight }} kg</span>
+                </div>
+                <div class="info-item">
+                  <strong>Birth Height:</strong>
+                  <span>{{ getPregnancyInfo().babyInfo.birthHeight }} cm</span>
+                </div>
+                <div class="info-item">
+                  <strong>Delivery Type:</strong>
+                  <span>{{ formatValue(getPregnancyInfo().babyInfo.deliveryType, 'birth_type') }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Gestational Age:</strong>
+                  <span>{{ getPregnancyInfo().babyInfo.gestationalAge }} weeks</span>
+                </div>
+                <div class="info-item" *ngIf="getPregnancyInfo().babyInfo.currentWeight">
+                  <strong>Current Weight:</strong>
+                  <span>{{ getPregnancyInfo().babyInfo.currentWeight }} kg</span>
+                </div>
               </div>
             </div>
           </ion-card-content>
@@ -145,27 +162,57 @@
           <ion-card-content>
             <div class="info-grid">
               <div class="info-item">
-                <strong>Previous Experience:</strong>
-                <span>{{ formatBoolean(getBreastfeedingInfo().previous_experience) }}</span>
+                <strong>Experience Level:</strong>
+                <span>{{ formatValue(getBreastfeedingInfo().experienceLevel) }}</span>
               </div>
-              <div class="info-item" *ngIf="getBreastfeedingInfo().breastfeeding_goals?.length">
-                <strong>Goals:</strong>
-                <span>{{ formatValue(getBreastfeedingInfo().breastfeeding_goals) }}</span>
+              <div class="info-item">
+                <strong>Currently Breastfeeding:</strong>
+                <span>{{ formatBoolean(getBreastfeedingInfo().currentlyBreastfeeding) }}</span>
               </div>
-              <div class="info-item" *ngIf="getBreastfeedingInfo().main_concerns?.length">
-                <strong>Main Concerns:</strong>
-                <span>{{ formatValue(getBreastfeedingInfo().main_concerns) }}</span>
+              
+              <!-- Breastfeeding Details -->
+              <div class="breastfeeding-details" *ngIf="getBreastfeedingInfo().breastfeedingDetails">
+                <h4>Breastfeeding Details</h4>
+                <div class="info-item">
+                  <strong>Direct Feeds Per Day:</strong>
+                  <span>{{ getBreastfeedingInfo().breastfeedingDetails.directFeedsPerDay }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Latch Quality:</strong>
+                  <span>{{ formatValue(getBreastfeedingInfo().breastfeedingDetails.latchQuality) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Offers Both Breasts:</strong>
+                  <span>{{ formatBoolean(getBreastfeedingInfo().breastfeedingDetails.offersBothBreasts) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Time Per Breast:</strong>
+                  <span>{{ formatValue(getBreastfeedingInfo().breastfeedingDetails.timePerBreast) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Duration Goal:</strong>
+                  <span>{{ getBreastfeedingInfo().breastfeedingDetails.breastfeedingDuration }}</span>
+                </div>
               </div>
-              <div class="info-item" *ngIf="getBreastfeedingInfo().confidence_level">
-                <strong>Confidence Level:</strong>
-                <span>{{ getBreastfeedingInfo().confidence_level }}/10</span>
+              
+              <!-- Baby Output -->
+              <div class="baby-output" *ngIf="getBreastfeedingInfo().babyOutput">
+                <h4>Baby Output (24h)</h4>
+                <div class="info-item">
+                  <strong>Pee Count:</strong>
+                  <span>{{ getBreastfeedingInfo().babyOutput.peeCount24h }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Poop Count:</strong>
+                  <span>{{ getBreastfeedingInfo().babyOutput.poopCount24h }}</span>
+                </div>
               </div>
             </div>
           </ion-card-content>
         </ion-card>
 
         <!-- Medical Information -->
-        <ion-card *ngIf="getMedicalInfo().medical_conditions?.length || getMedicalInfo().allergies?.length">
+        <ion-card>
           <ion-card-header>
             <ion-card-title>
               <ion-icon name="medical"></ion-icon>
@@ -174,17 +221,37 @@
           </ion-card-header>
           <ion-card-content>
             <div class="info-grid">
-              <div class="info-item" *ngIf="getMedicalInfo().medical_conditions?.length">
-                <strong>Medical Conditions:</strong>
-                <span>{{ formatValue(getMedicalInfo().medical_conditions) }}</span>
+              <div class="info-item" *ngIf="getMedicalInfo().motherMedicalConditions?.length">
+                <strong>Mother's Medical Conditions:</strong>
+                <span>{{ formatValue(getMedicalInfo().motherMedicalConditions) }}</span>
               </div>
-              <div class="info-item" *ngIf="getMedicalInfo().allergies?.length">
+              <div class="info-item" *ngIf="getMedicalInfo().allergies">
                 <strong>Allergies:</strong>
-                <span>{{ formatValue(getMedicalInfo().allergies) }}</span>
+                <span>{{ getMedicalInfo().allergies }}</span>
               </div>
-              <div class="info-item" *ngIf="getMedicalInfo().current_medications?.length">
-                <strong>Current Medications:</strong>
-                <span>{{ formatValue(getMedicalInfo().current_medications) }}</span>
+              <div class="info-item" *ngIf="getMedicalInfo().motherMedicalConditionsOther">
+                <strong>Other Medical Conditions:</strong>
+                <span>{{ getMedicalInfo().motherMedicalConditionsOther }}</span>
+              </div>
+              <div class="info-item">
+                <strong>Nipple Anatomical Issues:</strong>
+                <span>{{ formatBoolean(getMedicalInfo().nippleAnatomicalIssues) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getMedicalInfo().nippleIssuesDescription">
+                <strong>Nipple Issues Description:</strong>
+                <span>{{ getMedicalInfo().nippleIssuesDescription }}</span>
+              </div>
+              <div class="info-item" *ngIf="getMedicalInfo().babyMedicalConditions">
+                <strong>Baby's Medical Conditions:</strong>
+                <span>{{ getMedicalInfo().babyMedicalConditions }}</span>
+              </div>
+              <div class="info-item">
+                <strong>Baby Hospitalized:</strong>
+                <span>{{ formatBoolean(getMedicalInfo().babyHospitalized) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getMedicalInfo().babyHospitalizationReason">
+                <strong>Hospitalization Reason:</strong>
+                <span>{{ getMedicalInfo().babyHospitalizationReason }}</span>
               </div>
             </div>
           </ion-card-content>
@@ -201,24 +268,92 @@
           <ion-card-content>
             <div class="info-grid">
               <div class="info-item">
-                <strong>Feeding Method:</strong>
-                <span>{{ formatValue(getFeedingInfo().current_feeding_method, 'feeding_method') }}</span>
-              </div>
-              <div class="info-item" *ngIf="getFeedingInfo().feeding_frequency_per_day">
-                <strong>Feeds Per Day:</strong>
-                <span>{{ getFeedingInfo().feeding_frequency_per_day }}</span>
-              </div>
-              <div class="info-item" *ngIf="getFeedingInfo().feeding_duration_minutes">
-                <strong>Duration Per Feed:</strong>
-                <span>{{ getFeedingInfo().feeding_duration_minutes }} minutes</span>
-              </div>
-              <div class="info-item" *ngIf="getFeedingInfo().pumping_frequency">
-                <strong>Pumping Sessions:</strong>
-                <span>{{ getFeedingInfo().pumping_frequency }} per day</span>
+                <strong>Uses Formula:</strong>
+                <span>{{ formatBoolean(getFeedingInfo().usesFormula) }}</span>
               </div>
               <div class="info-item">
-                <strong>Supply Concerns:</strong>
-                <span>{{ formatBoolean(getFeedingInfo().milk_supply_concerns) }}</span>
+                <strong>Uses Bottle:</strong>
+                <span>{{ formatBoolean(getFeedingInfo().usesBottle) }}</span>
+              </div>
+              <div class="info-item">
+                <strong>Owns Pump:</strong>
+                <span>{{ formatBoolean(getFeedingInfo().ownsPump) }}</span>
+              </div>
+              <div class="info-item">
+                <strong>Uses Breastmilk Supplements:</strong>
+                <span>{{ formatBoolean(getFeedingInfo().usesBreastmilkSupplements) }}</span>
+              </div>
+              
+              <!-- Formula Details -->
+              <div class="formula-details" *ngIf="getFeedingInfo().formulaDetails">
+                <h4>Formula Details</h4>
+                <div class="info-item">
+                  <strong>Formula Type:</strong>
+                  <span>{{ getFeedingInfo().formulaDetails.formulaType }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Amount Per Feed:</strong>
+                  <span>{{ getFeedingInfo().formulaDetails.amountPerFeed }} ml</span>
+                </div>
+                <div class="info-item">
+                  <strong>Feeds Per Day:</strong>
+                  <span>{{ getFeedingInfo().formulaDetails.feedsPerDay }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Reason for Formula:</strong>
+                  <span>{{ getFeedingInfo().formulaDetails.reasonForFormula }}</span>
+                </div>
+              </div>
+              
+              <!-- Bottle Details -->
+              <div class="bottle-details" *ngIf="getFeedingInfo().bottleDetails">
+                <h4>Bottle Details</h4>
+                <div class="info-item">
+                  <strong>Bottle Type:</strong>
+                  <span>{{ getFeedingInfo().bottleDetails.bottleType }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Amount Per Feed:</strong>
+                  <span>{{ getFeedingInfo().bottleDetails.amountPerFeed }} ml</span>
+                </div>
+                <div class="info-item">
+                  <strong>Feeds Per Day:</strong>
+                  <span>{{ getFeedingInfo().bottleDetails.feedsPerDay }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Content Type:</strong>
+                  <span>{{ formatValue(getFeedingInfo().bottleDetails.contentType) }}</span>
+                </div>
+              </div>
+              
+              <!-- Pumping Details -->
+              <div class="pumping-details" *ngIf="getFeedingInfo().pumpingDetails">
+                <h4>Pumping Details</h4>
+                <div class="info-item">
+                  <strong>Pump Type:</strong>
+                  <span>{{ formatValue(getFeedingInfo().pumpingDetails.pumpType) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Sessions Per Day:</strong>
+                  <span>{{ getFeedingInfo().pumpingDetails.sessionsPerDay }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Average Output:</strong>
+                  <span>{{ getFeedingInfo().pumpingDetails.averageOutput }} ml</span>
+                </div>
+                <div class="info-item">
+                  <strong>Duration:</strong>
+                  <span>{{ getFeedingInfo().pumpingDetails.pumpingDuration }} minutes</span>
+                </div>
+                <div class="info-item">
+                  <strong>Storage Method:</strong>
+                  <span>{{ formatValue(getFeedingInfo().pumpingDetails.storageMethod) }}</span>
+                </div>
+              </div>
+              
+              <div class="info-item" *ngIf="getFeedingInfo().supplementsDetails">
+                <strong>Supplements Details:</strong>
+                <span>{{ getFeedingInfo().supplementsDetails }}</span>
               </div>
             </div>
           </ion-card-content>
@@ -229,26 +364,56 @@
           <ion-card-header>
             <ion-card-title>
               <ion-icon name="people"></ion-icon>
-              Support System
+              Support & Demographics
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
             <div class="info-grid">
-              <div class="info-item" *ngIf="getSupportInfo().partner_support_level">
-                <strong>Partner Support:</strong>
-                <span>{{ formatSupportLevel(getSupportInfo().partner_support_level) }}</span>
+              <div class="info-item">
+                <strong>Current Support System:</strong>
+                <span>{{ getSupportInfo().currentSupportSystem }}</span>
               </div>
-              <div class="info-item" *ngIf="getSupportInfo().family_support_level">
-                <strong>Family Support:</strong>
-                <span>{{ formatSupportLevel(getSupportInfo().family_support_level) }}</span>
+              <div class="info-item">
+                <strong>Family Structure:</strong>
+                <span>{{ formatValue(getSupportInfo().familyStructure) }}</span>
               </div>
-              <div class="info-item" *ngIf="getSupportInfo().work_status">
-                <strong>Work Status:</strong>
-                <span>{{ formatValue(getSupportInfo().work_status, 'work_status') }}</span>
+              <div class="info-item">
+                <strong>Education Level:</strong>
+                <span>{{ formatValue(getSupportInfo().educationLevel, 'education_level') }}</span>
               </div>
-              <div class="info-item" *ngIf="getSupportInfo().return_to_work_timeline">
-                <strong>Return to Work:</strong>
-                <span>{{ formatValue(getSupportInfo().return_to_work_timeline, 'return_to_work') }}</span>
+              <div class="info-item" *ngIf="getSupportInfo().householdIncome">
+                <strong>Household Income:</strong>
+                <span>{{ formatValue(getSupportInfo().householdIncome) }}</span>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+        
+        <!-- Preferences & Goals -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="settings"></ion-icon>
+              Goals & Preferences
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-grid">
+              <div class="info-item" *ngIf="getPreferencesInfo().currentChallenges?.length">
+                <strong>Current Challenges:</strong>
+                <span>{{ formatValue(getPreferencesInfo().currentChallenges) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPreferencesInfo().expectationsFromProgram">
+                <strong>Program Expectations:</strong>
+                <span>{{ getPreferencesInfo().expectationsFromProgram }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPreferencesInfo().milkSupplyGoals">
+                <strong>Milk Supply Goals:</strong>
+                <span>{{ getPreferencesInfo().milkSupplyGoals }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPreferencesInfo().topicsOfInterest?.length">
+                <strong>Topics of Interest:</strong>
+                <span>{{ formatValue(getPreferencesInfo().topicsOfInterest) }}</span>
               </div>
             </div>
           </ion-card-content>

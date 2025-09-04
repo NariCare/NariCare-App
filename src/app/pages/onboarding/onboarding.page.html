@@ -117,19 +117,17 @@
         
         <div class="form-group">
           <label class="input-label">Are you currently...</label>
-          <ion-radio-group formControlName="motherType">
+          <ion-radio-group formControlName="motherType" class="horizontal-radio-group">
             <ion-item lines="none" class="radio-item">
               <ion-radio slot="start" value="pregnant"></ion-radio>
               <ion-label>
                 <h3>Pregnant</h3>
-                <p>Expecting a baby</p>
               </ion-label>
             </ion-item>
             <ion-item lines="none" class="radio-item">
               <ion-radio slot="start" value="new_mom"></ion-radio>
               <ion-label>
                 <h3>New Mother</h3>
-                <p>Have given birth recently</p>
               </ion-label>
             </ion-item>
           </ion-radio-group>
@@ -156,14 +154,14 @@
 
         <div class="form-group">
           <label class="input-label">Is this your first child?</label>
-          <ion-radio-group formControlName="isFirstChild">
+          <ion-radio-group formControlName="isFirstChild" class="horizontal-radio-group">
             <ion-item lines="none" class="radio-item">
               <ion-radio slot="start" [value]="true"></ion-radio>
-              <ion-label>Yes, this is my first child</ion-label>
+              <ion-label>Yes</ion-label>
             </ion-item>
             <ion-item lines="none" class="radio-item">
               <ion-radio slot="start" [value]="false"></ion-radio>
-              <ion-label>No, I have other children</ion-label>
+              <ion-label>No</ion-label>
             </ion-item>
           </ion-radio-group>
         </div>

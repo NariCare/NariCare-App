@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
@@ -41,7 +41,8 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private alertController: AlertController,
     private modalController: ModalController,
-    private expertNotesService: ExpertNotesService
+    private expertNotesService: ExpertNotesService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -130,9 +131,15 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
       }
 
       if (onboardingResponse?.success && onboardingResponse.data) {
-        this.onboardingData = onboardingResponse.data;
-        // Initialize expert notes content for editing
-        this.expertNotesContent = this.onboardingData.expert_notes || '';
+        // Use setTimeout to ensure proper zone handling
+        setTimeout(() => {
+          this.onboardingData = onboardingResponse.data;
+          console.log('Setting onboarding data in setTimeout:', this.onboardingData);
+          // Initialize expert notes content for editing
+          this.expertNotesContent = this.onboardingData.expertNotes || '';
+          // Trigger change detection
+          this.cdr.detectChanges();
+        }, 0);
       }
     } catch (error) {
       console.warn('Could not load onboarding data:', error);
@@ -206,50 +213,50 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
 
   // Helper methods for onboarding data display
   getPersonalInfo(): any {
-    return this.onboardingData?.personal_info || {};
+    return this.onboardingData?.personalInfo || {};
   }
 
   getPregnancyInfo(): any {
-    return this.onboardingData?.pregnancy_info || {};
+    return this.onboardingData?.pregnancyInfo || {};
   }
 
   getBreastfeedingInfo(): any {
-    return this.onboardingData?.breastfeeding_info || {};
+    return this.onboardingData?.breastfeedingInfo || {};
   }
 
   getMedicalInfo(): any {
-    return this.onboardingData?.medical_info || {};
+    return this.onboardingData?.medicalInfo || {};
   }
 
   getFeedingInfo(): any {
-    return this.onboardingData?.feeding_info || {};
+    return this.onboardingData?.feedingInfo || {};
   }
 
   getSupportInfo(): any {
-    return this.onboardingData?.support_info || {};
+    return this.onboardingData?.supportInfo || {};
   }
 
   getPreferencesInfo(): any {
-    return this.onboardingData?.preferences_info || {};
+    return this.onboardingData?.preferencesInfo || {};
   }
 
   hasExpertNotes(): boolean {
-    return !!(this.consultation?.expert_notes || this.onboardingData?.expert_notes);
+    return !!(this.consultation?.expert_notes || this.onboardingData?.expertNotes);
   }
 
   getExpertNotes(): string {
-    return this.consultation?.expert_notes || this.onboardingData?.expert_notes || '';
+    return this.consultation?.expert_notes || this.onboardingData?.expertNotes || '';
   }
 
   getExpertNotesDate(): string {
-    if (this.onboardingData?.expert_notes_updated_at) {
-      return this.formatDate(this.onboardingData.expert_notes_updated_at);
+    if (this.onboardingData?.expertNotesUpdatedAt) {
+      return this.formatDate(this.onboardingData.expertNotesUpdatedAt);
     }
     return '';
   }
 
   getExpertNotesAuthor(): string {
-    return this.onboardingData?.expert_notes_updated_by_name || 'Expert';
+    return this.onboardingData?.expertNotesUpdatedBy || 'Expert';
   }
 
   getFormattedExpertNotes(): string {
@@ -379,9 +386,9 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
       if (response?.success) {
         // Update local data
         if (this.onboardingData) {
-          this.onboardingData.expert_notes = this.expertNotesContent;
-          this.onboardingData.expert_notes_updated_at = new Date().toISOString();
-          this.onboardingData.expert_notes_updated_by_name = `${this.currentUser.firstName} ${this.currentUser.lastName}`;
+          this.onboardingData.expertNotes = this.expertNotesContent;
+          this.onboardingData.expertNotesUpdatedAt = new Date().toISOString();
+          this.onboardingData.expertNotesUpdatedBy = `${this.currentUser.firstName} ${this.currentUser.lastName}`;
         }
         
         // Exit editing mode
@@ -448,12 +455,10 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
 
   private formatWorkStatus(status: string): string {
     const statusMap: {[key: string]: string} = {
+      'employed': 'Employed',
+      'unemployed': 'Unemployed',
       'maternity_leave': 'Maternity Leave',
-      'working_full_time': 'Working Full Time',
-      'working_part_time': 'Working Part Time', 
-      'not_working': 'Not Working',
-      'student': 'Student',
-      'unemployed': 'Unemployed'
+      'student': 'Student'
     };
     return statusMap[status] || status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
@@ -462,8 +467,8 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
     const levelMap: {[key: string]: string} = {
       'high_school': 'High School',
       'some_college': 'Some College',
-      'bachelor_degree': 'Bachelor\'s Degree',
-      'master_degree': 'Master\'s Degree',
+      'bachelors': 'Bachelor\'s Degree',
+      'masters': 'Master\'s Degree',
       'doctorate': 'Doctorate',
       'trade_school': 'Trade School'
     };
@@ -484,7 +489,7 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
     const typeMap: {[key: string]: string} = {
       'vaginal': 'Vaginal Delivery',
       'c_section': 'C-Section',
-      'assisted_vaginal': 'Assisted Vaginal Delivery'
+      'assisted': 'Assisted Delivery'
     };
     return typeMap[type] || type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }

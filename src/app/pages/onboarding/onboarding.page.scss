@@ -271,6 +271,16 @@ ion-datetime-button {
   --min-height: 48px;
 }
 
+.horizontal-radio-group {
+  display: flex;
+  gap: 1rem;
+  
+  .radio-item {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
 .gender-options,
 .preferences-list {
   display: flex;
