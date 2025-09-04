@@ -251,8 +251,24 @@ export class OnboardingPage implements OnInit, OnDestroy {
   private loadAndRestoreFormData(): void {
     const savedData = this.loadFormDataFromLocalStorage();
     if (savedData && savedData.formValues) {
-      // Restore form values
-      this.onboardingForm.patchValue(savedData.formValues, { emitEvent: false });
+      // First restore babies FormArray if it exists
+      if (savedData.formValues.babies && Array.isArray(savedData.formValues.babies)) {
+        // Clear existing babies
+        while (this.babiesFormArray.length !== 0) {
+          this.babiesFormArray.removeAt(0);
+        }
+        
+        // Add saved babies
+        savedData.formValues.babies.forEach((babyData: any) => {
+          const babyForm = this.createBabyForm();
+          babyForm.patchValue(babyData, { emitEvent: false });
+          this.babiesFormArray.push(babyForm);
+        });
+      }
+      
+      // Restore other form values (excluding babies since we handled it above)
+      const { babies, ...otherFormValues } = savedData.formValues;
+      this.onboardingForm.patchValue(otherFormValues, { emitEvent: false });
       
       // Restore progress if available
       if (savedData.progress) {
@@ -441,6 +457,16 @@ export class OnboardingPage implements OnInit, OnDestroy {
           })
         };
       case 3:
+        // For pregnant mothers, return empty breastfeeding data
+        if (formValue.motherType === 'pregnant') {
+          return {
+            experienceLevel: null,
+            currentlyBreastfeeding: false,
+            breastfeedingDetails: null,
+            babyOutput: null
+          };
+        }
+        
         return {
           experienceLevel: formValue.experienceLevel,
           currentlyBreastfeeding: formValue.currentlyBreastfeeding,
@@ -722,6 +748,23 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   addBaby(): void {
     const babyForm = this.createBabyForm();
+    
+    // If this is not the first baby, copy data from first baby (except name)
+    if (this.babiesFormArray.length > 0) {
+      const firstBabyData = this.babiesFormArray.at(0).value;
+      babyForm.patchValue({
+        name: '', // Keep name empty
+        dateOfBirth: firstBabyData.dateOfBirth,
+        gender: firstBabyData.gender,
+        birthWeight: firstBabyData.birthWeight,
+        birthHeight: firstBabyData.birthHeight,
+        deliveryType: firstBabyData.deliveryType,
+        gestationalAge: firstBabyData.gestationalAge,
+        currentWeight: firstBabyData.currentWeight,
+        weightCheckDate: firstBabyData.weightCheckDate
+      });
+    }
+    
     this.babiesFormArray.push(babyForm);
   }
 

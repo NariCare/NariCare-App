@@ -294,6 +294,29 @@ ion-header {
               }
             }
           }
+          
+          .babies-info-section {
+            .baby-item {
+              margin-bottom: 1rem;
+              
+              h5 {
+                color: #8383ed;
+                font-size: 1rem;
+                font-weight: 600;
+                margin: 0 0 12px 0;
+                padding: 8px 12px;
+                background: rgba(131, 131, 237, 0.1);
+                border-radius: 6px;
+                border-left: 3px solid #8383ed;
+              }
+              
+              .baby-separator {
+                border: none;
+                border-top: 1px solid #e2e8f0;
+                margin: 1.5rem 0;
+              }
+            }
+          }
         }
       }
     }

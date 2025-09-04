@@ -216,6 +216,10 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
     return this.onboardingData?.personalInfo || {};
   }
 
+  getBabies(): any[] {
+    return this.onboardingData?.pregnancyInfo?.babies || [];
+  }
+
   getPregnancyInfo(): any {
     return this.onboardingData?.pregnancyInfo || {};
   }

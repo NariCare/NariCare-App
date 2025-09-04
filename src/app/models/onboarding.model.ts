@@ -118,7 +118,7 @@ export interface OnboardingData {
     currentSupportSystem: string;
     familyStructure: 'nuclear' | 'extended' | 'single_parent' | 'other';
     educationLevel: 'high_school' | 'some_college' | 'bachelors' | 'masters' | 'doctorate';
-    householdIncome: 'under_25k' | '25k_50k' | '50k_75k' | '75k_100k' | '100k_150k' | 'over_150k' | 'prefer_not_to_say';
+    householdIncome: 'under_3l' | '3l_6l' | '6l_10l' | '10l_15l' | '15l_25l' | 'over_25l' | 'prefer_not_to_say';
   };
 
   // Step 7: Preferences & Goals
@@ -228,12 +228,12 @@ export const OnboardingOptions = {
   ],
 
   householdIncomes: [
-    { value: 'under_25k', label: 'Under $25,000' },
-    { value: '25k_50k', label: '$25,000 - $50,000' },
-    { value: '50k_75k', label: '$50,000 - $75,000' },
-    { value: '75k_100k', label: '$75,000 - $100,000' },
-    { value: '100k_150k', label: '$100,000 - $150,000' },
-    { value: 'over_150k', label: 'Over $150,000' },
+    { value: 'under_3l', label: 'Under ₹3 lakhs' },
+    { value: '3l_6l', label: '₹3 - 6 lakhs' },
+    { value: '6l_10l', label: '₹6 - 10 lakhs' },
+    { value: '10l_15l', label: '₹10 - 15 lakhs' },
+    { value: '15l_25l', label: '₹15 - 25 lakhs' },
+    { value: 'over_25l', label: 'Over ₹25 lakhs' },
     { value: 'prefer_not_to_say', label: 'Prefer not to say' },
   ],
 

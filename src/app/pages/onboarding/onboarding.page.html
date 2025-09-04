@@ -345,8 +345,13 @@
         </div>
       </div>
 
-      <!-- Step 3: Breastfeeding Details -->
-      <div class="form-step" *ngIf="progress.currentStep === 3">
+      <!-- Step 3: Breastfeeding Details - Only for New Mothers -->
+      <div class="form-step" *ngIf="progress.currentStep === 3 && onboardingForm.get('motherType')?.value === 'new_mom'">
+        <h2 class="step-title">Breastfeeding Assessment</h2>
+        <p class="step-description">Help us understand your breastfeeding experience and current situation</p>
+        
+        <!-- Form content here -->
+        <div class="breastfeeding-form-content">
         <h2 class="step-title">Breastfeeding Assessment</h2>
         <p class="step-description">Help us understand your breastfeeding experience and current situation</p>
         
@@ -362,14 +367,14 @@
 
         <div class="form-group">
           <label class="input-label">Are you currently breastfeeding?</label>
-          <ion-radio-group formControlName="currentlyBreastfeeding">
+          <ion-radio-group formControlName="currentlyBreastfeeding" class="horizontal-radio-group">
             <ion-item lines="none" class="radio-item">
               <ion-radio slot="start" [value]="true"></ion-radio>
-              <ion-label>Yes, currently breastfeeding</ion-label>
+              <ion-label>Yes</ion-label>
             </ion-item>
             <ion-item lines="none" class="radio-item">
               <ion-radio slot="start" [value]="false"></ion-radio>
-              <ion-label>No, not currently breastfeeding</ion-label>
+              <ion-label>No</ion-label>
             </ion-item>
           </ion-radio-group>
         </div>
@@ -477,6 +482,40 @@
             Continue
           </ion-button>
         </div>
+        </div>
+      </div>
+      
+      <!-- Step 3: Placeholder for Pregnant Mothers -->
+      <div class="form-step" *ngIf="progress.currentStep === 3 && onboardingForm.get('motherType')?.value === 'pregnant'">
+        <h2 class="step-title">Almost There!</h2>
+        <p class="step-description">Since you're expecting, we'll skip the breastfeeding questions for now. You can complete this assessment after your baby arrives.</p>
+        
+        <div class="pregnancy-info">
+          <ion-card class="info-card">
+            <ion-card-content>
+              <div class="info-content">
+                <ion-icon name="heart" color="primary" size="large"></ion-icon>
+                <h3>Preparing for Breastfeeding</h3>
+                <p>After your baby arrives, NariCare will help you with:</p>
+                <ul>
+                  <li>Initial latch guidance</li>
+                  <li>Milk supply establishment</li>
+                  <li>24/7 expert support</li>
+                  <li>Growth tracking</li>
+                </ul>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </div>
+        
+        <div class="button-row">
+          <ion-button fill="outline" (click)="previousStep()" class="back-button">
+            Back
+          </ion-button>
+          <ion-button (click)="nextStep()" class="next-button">
+            Continue
+          </ion-button>
+        </div>
       </div>
 
       <!-- Step 4: Medical & Health Information -->
@@ -520,7 +559,7 @@
 
         <div class="form-group">
           <label class="input-label">Do you have any nipple anatomical issues?</label>
-          <ion-radio-group formControlName="nippleAnatomicalIssues">
+          <ion-radio-group formControlName="nippleAnatomicalIssues" class="horizontal-radio-group">
             <ion-item lines="none" class="radio-item">
               <ion-radio slot="start" [value]="true"></ion-radio>
               <ion-label>Yes</ion-label>
@@ -560,7 +599,7 @@
 
           <div class="form-group">
             <label class="input-label">Has your baby been hospitalized since birth?</label>
-            <ion-radio-group formControlName="babyHospitalized">
+            <ion-radio-group formControlName="babyHospitalized" class="horizontal-radio-group">
               <ion-item lines="none" class="radio-item">
                 <ion-radio slot="start" [value]="true"></ion-radio>
                 <ion-label>Yes</ion-label>
@@ -605,14 +644,14 @@
           
           <div class="form-group">
             <label class="input-label">Do you use formula?</label>
-            <ion-radio-group formControlName="usesFormula">
+            <ion-radio-group formControlName="usesFormula" class="horizontal-radio-group">
               <ion-item lines="none" class="radio-item">
                 <ion-radio slot="start" [value]="true"></ion-radio>
-                <ion-label>Yes, I use formula</ion-label>
+                <ion-label>Yes</ion-label>
               </ion-item>
               <ion-item lines="none" class="radio-item">
                 <ion-radio slot="start" [value]="false"></ion-radio>
-                <ion-label>No, I don't use formula</ion-label>
+                <ion-label>No</ion-label>
               </ion-item>
             </ion-radio-group>
           </div>
@@ -673,14 +712,14 @@
           
           <div class="form-group">
             <label class="input-label">Do you use bottles?</label>
-            <ion-radio-group formControlName="usesBottle">
+            <ion-radio-group formControlName="usesBottle" class="horizontal-radio-group">
               <ion-item lines="none" class="radio-item">
                 <ion-radio slot="start" [value]="true"></ion-radio>
-                <ion-label>Yes, I use bottles</ion-label>
+                <ion-label>Yes</ion-label>
               </ion-item>
               <ion-item lines="none" class="radio-item">
                 <ion-radio slot="start" [value]="false"></ion-radio>
-                <ion-label>No, I don't use bottles</ion-label>
+                <ion-label>No</ion-label>
               </ion-item>
             </ion-radio-group>
           </div>
@@ -748,14 +787,14 @@
           
           <div class="form-group">
             <label class="input-label">Do you own a breast pump?</label>
-            <ion-radio-group formControlName="ownsPump">
+            <ion-radio-group formControlName="ownsPump" class="horizontal-radio-group">
               <ion-item lines="none" class="radio-item">
                 <ion-radio slot="start" [value]="true"></ion-radio>
-                <ion-label>Yes, I own a breast pump</ion-label>
+                <ion-label>Yes</ion-label>
               </ion-item>
               <ion-item lines="none" class="radio-item">
                 <ion-radio slot="start" [value]="false"></ion-radio>
-                <ion-label>No, I don't own a breast pump</ion-label>
+                <ion-label>No</ion-label>
               </ion-item>
             </ion-radio-group>
           </div>
@@ -830,7 +869,7 @@
           
           <div class="form-group">
             <label class="input-label">Do you use any breastmilk supplements/additives?</label>
-            <ion-radio-group formControlName="usesBreastmilkSupplements">
+            <ion-radio-group formControlName="usesBreastmilkSupplements" class="horizontal-radio-group">
               <ion-item lines="none" class="radio-item">
                 <ion-radio slot="start" [value]="true"></ion-radio>
                 <ion-label>Yes</ion-label>

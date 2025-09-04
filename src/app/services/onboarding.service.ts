@@ -266,6 +266,11 @@ export class OnboardingService {
       case 2:
         return this.validatePregnancyInfo(data.pregnancyInfo, validation);
       case 3:
+        // Skip breastfeeding validation for pregnant mothers
+        if (data.pregnancyInfo?.motherType === 'pregnant') {
+          validation.isValid = true;
+          return validation;
+        }
         return this.validateBreastfeedingInfo(data.breastfeedingInfo, validation);
       case 4:
         return this.validateMedicalInfo(data.medicalInfo, validation);
