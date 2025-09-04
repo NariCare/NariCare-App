@@ -14,7 +14,20 @@ export interface OnboardingData {
     dueDate?: string; // Required if pregnant
     isFirstChild: boolean;
     
-    // Baby information - required if new_mom
+    // Baby information - required if new_mom, supports multiple babies
+    babies?: {
+      name: string;
+      dateOfBirth: string;
+      gender: 'male' | 'female' | 'other';
+      birthWeight: number; // in kg
+      birthHeight: number; // in cm
+      deliveryType: 'vaginal' | 'c_section' | 'assisted';
+      gestationalAge: number; // in weeks
+      currentWeight?: number; // most recent weight
+      weightCheckDate?: string;
+    }[];
+    
+    // Keep babyInfo for backward compatibility
     babyInfo?: {
       name: string;
       dateOfBirth: string;

@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
 import { OnboardingService } from '../../services/onboarding.service';
@@ -26,6 +26,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
   
   conditionalRequirements: { [key: string]: boolean } = {};
   options = OnboardingOptions;
+  
+  // Multiple babies support
+  babies: FormGroup[] = [];
   
   // Template helper properties
   currentDate = new Date().toISOString();
@@ -166,15 +169,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
       motherType: ['', [Validators.required]],
       dueDate: [new Date().toISOString()],
       isFirstChild: [null],
-      babyName: [''],
-      babyDateOfBirth: [new Date().toISOString()],
-      babyGender: [''],
-      babyBirthWeight: [null],
-      babyBirthHeight: [null],
-      deliveryType: [''],
-      gestationalAge: [40],
-      babyCurrentWeight: [null],
-      weightCheckDate: [new Date().toISOString()],
+      numberOfBabies: [1],
+      babies: this.formBuilder.array([]),
       
       // Step 3: Breastfeeding Details
       experienceLevel: ['', [Validators.required]],
@@ -238,6 +234,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
       topicsOfInterest: [[]]
     });
 
+    // Initialize with one baby by default
+    this.addBaby();
+    
     // Load saved data from local storage
     this.loadAndRestoreFormData();
 
@@ -436,17 +435,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
           dueDate: formValue.dueDate,
           isFirstChild: formValue.isFirstChild,
           ...(formValue.motherType === 'new_mom' && {
-            babyInfo: {
-              name: formValue.babyName,
-              dateOfBirth: formValue.babyDateOfBirth,
-              gender: formValue.babyGender,
-              birthWeight: formValue.babyBirthWeight,
-              birthHeight: formValue.babyBirthHeight,
-              deliveryType: formValue.deliveryType,
-              gestationalAge: formValue.gestationalAge,
-              currentWeight: formValue.babyCurrentWeight,
-              weightCheckDate: formValue.weightCheckDate
-            }
+            babies: formValue.babies || [],
+            // Keep babyInfo for backward compatibility (use first baby)
+            babyInfo: formValue.babies && formValue.babies.length > 0 ? formValue.babies[0] : null
           })
         };
       case 3:
@@ -705,6 +696,49 @@ export class OnboardingPage implements OnInit, OnDestroy {
     } catch {
       return '';
     }
+  }
+
+  // ============================================================================
+  // MULTIPLE BABIES MANAGEMENT
+  // ============================================================================
+
+  get babiesFormArray(): FormArray {
+    return this.onboardingForm.get('babies') as FormArray;
+  }
+
+  createBabyForm(): FormGroup {
+    return this.formBuilder.group({
+      name: ['', Validators.required],
+      dateOfBirth: [new Date().toISOString(), Validators.required],
+      gender: ['', Validators.required],
+      birthWeight: [null, [Validators.required, Validators.min(0.5)]],
+      birthHeight: [null, [Validators.required, Validators.min(30)]],
+      deliveryType: ['', Validators.required],
+      gestationalAge: [40, [Validators.required, Validators.min(20)]],
+      currentWeight: [null],
+      weightCheckDate: [new Date().toISOString()]
+    });
+  }
+
+  addBaby(): void {
+    const babyForm = this.createBabyForm();
+    this.babiesFormArray.push(babyForm);
+  }
+
+  removeBaby(index: number): void {
+    if (this.babiesFormArray.length > 1) {
+      this.babiesFormArray.removeAt(index);
+    }
+  }
+
+  getBabyNumber(index: number): string {
+    if (this.babiesFormArray.length === 1) return '';
+    return ` ${index + 1}`;
+  }
+
+  getBabyTitle(index: number): string {
+    if (this.babiesFormArray.length === 1) return 'Baby Information';
+    return `Baby ${index + 1} Information`;
   }
 
 }

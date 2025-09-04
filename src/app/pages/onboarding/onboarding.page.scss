@@ -281,6 +281,45 @@ ion-datetime-button {
   }
 }
 
+// Multiple babies styles
+.babies-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  
+  .subsection-title {
+    margin: 0;
+  }
+}
+
+.baby-form-container {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(131, 131, 237, 0.2);
+}
+
+.baby-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  
+  h4 {
+    margin: 0;
+    color: #8383ed;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+}
+
+.add-baby-button {
+  --color: #8383ed;
+  --border-color: #8383ed;
+}
+
 .gender-options,
 .preferences-list {
   display: flex;
