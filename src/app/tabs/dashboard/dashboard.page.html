@@ -1,4 +1,4 @@
-<ion-header [translucent]="true" class="dashboard-header">
+<ion-header [translucent]="true" class="dashboard-header" [class.collapsed]="isHeaderCollapsed">
   <ion-toolbar>
     <ion-title>
       <div class="header-content">
@@ -25,7 +25,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="dashboard-content">
+<ion-content [fullscreen]="true" class="dashboard-content" [scrollEvents]="true" (ionScroll)="onContentScroll($event)">
   <!-- Profile Icon and Baby Info Badge Overlapping Header and Content -->
   <div class="profile-icon-overlay-container">
     <ion-button 

@@ -55,6 +55,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   
   // Cached quick actions
   private _quickActions: any[] | null = null;
+  
+  // Header collapse state
+  isHeaderCollapsed = false;
+  private lastScrollTop = 0;
 
   baseQuickActions = [
     {
@@ -134,6 +138,25 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
+  }
+
+  onContentScroll(event: any) {
+    const scrollTop = event.detail.scrollTop;
+    const scrollThreshold = 30; // Reduced threshold for quicker response
+    
+    console.log('Scroll event:', { scrollTop, lastScrollTop: this.lastScrollTop, isCollapsed: this.isHeaderCollapsed });
+    
+    if (scrollTop > scrollThreshold && scrollTop > this.lastScrollTop && !this.isHeaderCollapsed) {
+      // Scrolling down - collapse header
+      console.log('Collapsing header');
+      this.isHeaderCollapsed = true;
+    } else if ((scrollTop < this.lastScrollTop || scrollTop <= scrollThreshold) && this.isHeaderCollapsed) {
+      // Scrolling up or near top - expand header
+      console.log('Expanding header');
+      this.isHeaderCollapsed = false;
+    }
+    
+    this.lastScrollTop = Math.max(0, scrollTop); // Prevent negative scroll values
   }
 
   get quickActions() {
