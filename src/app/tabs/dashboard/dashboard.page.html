@@ -32,7 +32,16 @@
       fill="clear" 
       class="profile-button-overlay" 
       (click)="navigateToProfile()">
-      <ion-icon name="person-circle" slot="icon-only"></ion-icon>
+      <!-- Show baby image if baby exists, otherwise show person icon -->
+      <div class="profile-avatar" *ngIf="user?.babies && user.babies.length > 0; else personIcon">
+        <img 
+          [src]="getBabyAvatarImage()" 
+          [alt]="user.babies[0].name + ' avatar'"
+          class="baby-avatar-image" />
+      </div>
+      <ng-template #personIcon>
+        <ion-icon name="person-circle" slot="icon-only"></ion-icon>
+      </ng-template>
     </ion-button>
     <div class="baby-info-overlay" *ngIf="getBabyAgeOrDueDate()">
       {{ getBabyAgeOrDueDate() }}

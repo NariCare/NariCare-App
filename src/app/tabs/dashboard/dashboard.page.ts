@@ -463,6 +463,23 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return '';
   }
 
+  getBabyAvatarImage(): string {
+    if (!this.user?.babies || this.user.babies.length === 0) {
+      return 'assets/images/baby-neutral.png'; // fallback image
+    }
+
+    const baby = this.user.babies[0];
+    
+    // Return appropriate baby image based on gender
+    if (baby.gender === 'male') {
+      return 'assets/images/baby-boy.png';
+    } else if (baby.gender === 'female') {
+      return 'assets/images/baby-girl.png';
+    } else {
+      return 'assets/images/baby-neutral.png';
+    }
+  }
+
   async openAvailabilityScheduler() {
     const modal = await this.modalController.create({
       component: AvailabilitySchedulerModalComponent,

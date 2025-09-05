@@ -128,6 +128,7 @@
   border: 3px solid #ffffff;
   backdrop-filter: blur(12px);
   transition: all 0.3s ease;
+  overflow: hidden;
 
   ion-icon {
     font-size: 2rem;
@@ -137,6 +138,23 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(131, 131, 237, 0.4);
   }
+}
+
+.profile-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.baby-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .section {
