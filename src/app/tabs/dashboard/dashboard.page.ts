@@ -503,6 +503,40 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  getBabyAgeInDays(): number {
+    if (!this.user?.babies || this.user.babies.length === 0) {
+      return 0;
+    }
+
+    const baby = this.user.babies[0];
+    if (baby.dateOfBirth) {
+      const birthDate = new Date(baby.dateOfBirth);
+      const today = new Date();
+      const diffTime = today.getTime() - birthDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      return Math.max(0, diffDays);
+    }
+    
+    return 0;
+  }
+
+  hasUnreadNotifications(): boolean {
+    // Placeholder for notification logic
+    // This would typically check for unread messages, reminders, etc.
+    return false; // Set to true to test the notification badge
+  }
+
+  showDateOptions() {
+    // Placeholder for date picker or calendar functionality
+    console.log('Show date options - could open calendar or date picker');
+  }
+
+  showNotifications() {
+    // Navigate to notifications page or show notification modal
+    console.log('Show notifications');
+    // this.router.navigate(['/notifications']);
+  }
+
   async openAvailabilityScheduler() {
     const modal = await this.modalController.create({
       component: AvailabilitySchedulerModalComponent,

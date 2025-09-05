@@ -2,23 +2,45 @@
   <ion-toolbar>
     <ion-title>
       <div class="header-content">
+        <!-- Subtle background decoration -->
+        <div class="header-decoration">
+          <div class="floating-bubble bubble-1"></div>
+          <div class="floating-bubble bubble-2"></div>
+          <div class="floating-bubble bubble-3"></div>
+        </div>
+        
         <div class="greeting-section">
           <!-- Morning Messages (6 AM - 12 PM) -->
           <h1 class="greeting" *ngIf="getTimeOfDay() === 'morning'">
+            <ion-icon name="sunny" class="time-icon"></ion-icon>
             You're amazing, {{ getFirstName() }}!
           </h1>
           
           <!-- Afternoon Messages (12 PM - 6 PM) -->
           <h1 class="greeting" *ngIf="getTimeOfDay() === 'afternoon'">
+            <ion-icon name="partly-sunny" class="time-icon"></ion-icon>
             Keep nurturing, {{ getFirstName() }}!
           </h1>
           
           <!-- Evening Messages (6 PM - 6 AM) -->
           <h1 class="greeting" *ngIf="getTimeOfDay() === 'evening'">
+            <ion-icon name="moon" class="time-icon"></ion-icon>
             Rest well, {{ getFirstName() }}!
           </h1>
           
-          <p class="current-date">{{ getCurrentDate() }}</p>
+          <div class="date-container" (click)="showDateOptions()">
+            <p class="current-date">{{ getCurrentDate() }}</p>
+            <div class="streak-indicator" *ngIf="user?.babies && user.babies.length > 0">
+              <ion-icon name="flame"></ion-icon>
+              <span>{{ getBabyAgeInDays() }} days of motherhood</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Notification badge -->
+        <div class="notification-badge" *ngIf="hasUnreadNotifications()" (click)="showNotifications()">
+          <ion-icon name="notifications"></ion-icon>
+          <div class="notification-dot"></div>
         </div>
       </div>
     </ion-title>
