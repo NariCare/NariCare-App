@@ -113,11 +113,11 @@
               
               <!-- Babies Information -->
               <div class="babies-info-section" *ngIf="getPregnancyInfo().babies && getPregnancyInfo().babies.length > 0">
-                <h4>{{ getPregnancyInfo().babies.length > 1 ? 'Babies Information' : 'Baby Information' }}</h4>
+                <h4>{{ getPregnancyInfo().babies?.length > 1 ? 'Babies Information' : 'Baby Information' }}</h4>
                 
                 <!-- Loop through all babies -->
                 <div class="baby-item" *ngFor="let baby of getPregnancyInfo().babies; let i = index">
-                  <h5 *ngIf="getPregnancyInfo().babies.length > 1">{{ baby.name || 'Baby ' + (i + 1) }}</h5>
+                  <h5 *ngIf="getPregnancyInfo().babies?.length > 1">{{ baby.name || 'Baby ' + (i + 1) }}</h5>
                   
                   <div class="info-item">
                     <strong>Name:</strong>
@@ -147,17 +147,17 @@
                     <strong>Gestational Age:</strong>
                     <span>{{ baby.gestationalAge }} weeks</span>
                   </div>
-                  <div class="info-item" *ngIf="baby.currentWeight">
+                  <div class="info-item">
                     <strong>Current Weight:</strong>
-                    <span>{{ baby.currentWeight }} kg</span>
+                    <span>{{ baby.currentWeight ? baby.currentWeight + ' kg' : 'Not specified' }}</span>
                   </div>
-                  <div class="info-item" *ngIf="baby.weightCheckDate">
+                  <div class="info-item">
                     <strong>Weight Check Date:</strong>
-                    <span>{{ formatDate(baby.weightCheckDate) }}</span>
+                    <span>{{ baby.weightCheckDate ? formatDate(baby.weightCheckDate) : 'Not specified' }}</span>
                   </div>
                   
                   <!-- Separator for multiple babies -->
-                  <hr *ngIf="i < getPersonalInfo().babies.length - 1" class="baby-separator">
+                  <hr *ngIf="i < getPregnancyInfo().babies?.length - 1" class="baby-separator">
                 </div>
               </div>
             </div>
@@ -183,30 +183,7 @@
                 <span>{{ formatBoolean(getBreastfeedingInfo().currentlyBreastfeeding) }}</span>
               </div>
               
-              <!-- Breastfeeding Details -->
-              <div class="breastfeeding-details" *ngIf="getBreastfeedingInfo().breastfeedingDetails">
-                <h4>Breastfeeding Details</h4>
-                <div class="info-item">
-                  <strong>Direct Feeds Per Day:</strong>
-                  <span>{{ getBreastfeedingInfo().breastfeedingDetails.directFeedsPerDay }}</span>
-                </div>
-                <div class="info-item">
-                  <strong>Latch Quality:</strong>
-                  <span>{{ formatValue(getBreastfeedingInfo().breastfeedingDetails.latchQuality) }}</span>
-                </div>
-                <div class="info-item">
-                  <strong>Offers Both Breasts:</strong>
-                  <span>{{ formatBoolean(getBreastfeedingInfo().breastfeedingDetails.offersBothBreasts) }}</span>
-                </div>
-                <div class="info-item">
-                  <strong>Time Per Breast:</strong>
-                  <span>{{ formatValue(getBreastfeedingInfo().breastfeedingDetails.timePerBreast) }}</span>
-                </div>
-                <div class="info-item">
-                  <strong>Duration Goal:</strong>
-                  <span>{{ getBreastfeedingInfo().breastfeedingDetails.breastfeedingDuration }}</span>
-                </div>
-              </div>
+              <!-- Note: Detailed breastfeeding data not available in current API response -->
               
               <!-- Baby Output -->
               <div class="baby-output" *ngIf="getBreastfeedingInfo().babyOutput">
@@ -297,39 +274,20 @@
                 <span>{{ formatBoolean(getFeedingInfo().usesBreastmilkSupplements) }}</span>
               </div>
               
-              <!-- Formula Details -->
-              <div class="formula-details" *ngIf="getFeedingInfo().formulaDetails">
-                <h4>Formula Details</h4>
-                <div class="info-item">
-                  <strong>Formula Type:</strong>
-                  <span>{{ getFeedingInfo().formulaDetails.formulaType }}</span>
-                </div>
-                <div class="info-item">
-                  <strong>Amount Per Feed:</strong>
-                  <span>{{ getFeedingInfo().formulaDetails.amountPerFeed }} ml</span>
-                </div>
-                <div class="info-item">
-                  <strong>Feeds Per Day:</strong>
-                  <span>{{ getFeedingInfo().formulaDetails.feedsPerDay }}</span>
-                </div>
-                <div class="info-item">
-                  <strong>Reason for Formula:</strong>
-                  <span>{{ getFeedingInfo().formulaDetails.reasonForFormula }}</span>
-                </div>
-              </div>
+              <!-- Formula Details not available in current API response -->
               
               <!-- Bottle Details -->
               <div class="bottle-details" *ngIf="getFeedingInfo().bottleDetails">
                 <h4>Bottle Details</h4>
-                <div class="info-item">
+                <div class="info-item" *ngIf="getFeedingInfo().bottleDetails.bottleType">
                   <strong>Bottle Type:</strong>
                   <span>{{ getFeedingInfo().bottleDetails.bottleType }}</span>
                 </div>
-                <div class="info-item">
+                <div class="info-item" *ngIf="getFeedingInfo().bottleDetails.amountPerFeed">
                   <strong>Amount Per Feed:</strong>
                   <span>{{ getFeedingInfo().bottleDetails.amountPerFeed }} ml</span>
                 </div>
-                <div class="info-item">
+                <div class="info-item" *ngIf="getFeedingInfo().bottleDetails.feedsPerDay">
                   <strong>Feeds Per Day:</strong>
                   <span>{{ getFeedingInfo().bottleDetails.feedsPerDay }}</span>
                 </div>
@@ -342,19 +300,19 @@
               <!-- Pumping Details -->
               <div class="pumping-details" *ngIf="getFeedingInfo().pumpingDetails">
                 <h4>Pumping Details</h4>
-                <div class="info-item">
+                <div class="info-item" *ngIf="getFeedingInfo().pumpingDetails.pumpType">
                   <strong>Pump Type:</strong>
                   <span>{{ formatValue(getFeedingInfo().pumpingDetails.pumpType) }}</span>
                 </div>
-                <div class="info-item">
+                <div class="info-item" *ngIf="getFeedingInfo().pumpingDetails.sessionsPerDay">
                   <strong>Sessions Per Day:</strong>
                   <span>{{ getFeedingInfo().pumpingDetails.sessionsPerDay }}</span>
                 </div>
-                <div class="info-item">
+                <div class="info-item" *ngIf="getFeedingInfo().pumpingDetails.averageOutput">
                   <strong>Average Output:</strong>
                   <span>{{ getFeedingInfo().pumpingDetails.averageOutput }} ml</span>
                 </div>
-                <div class="info-item">
+                <div class="info-item" *ngIf="getFeedingInfo().pumpingDetails.pumpingDuration">
                   <strong>Duration:</strong>
                   <span>{{ getFeedingInfo().pumpingDetails.pumpingDuration }} minutes</span>
                 </div>
@@ -394,9 +352,9 @@
                 <strong>Education Level:</strong>
                 <span>{{ formatValue(getSupportInfo().educationLevel, 'education_level') }}</span>
               </div>
-              <div class="info-item" *ngIf="getSupportInfo().householdIncome">
+              <div class="info-item">
                 <strong>Household Income:</strong>
-                <span>{{ formatValue(getSupportInfo().householdIncome) }}</span>
+                <span>{{ getSupportInfo().householdIncome ? formatValue(getSupportInfo().householdIncome, 'household_income') : 'Not specified' }}</span>
               </div>
             </div>
           </ion-card-content>
@@ -412,21 +370,21 @@
           </ion-card-header>
           <ion-card-content>
             <div class="info-grid">
-              <div class="info-item" *ngIf="getPreferencesInfo().currentChallenges?.length">
+              <div class="info-item">
                 <strong>Current Challenges:</strong>
-                <span>{{ formatValue(getPreferencesInfo().currentChallenges) }}</span>
+                <span>{{ getPreferencesInfo().currentChallenges?.length ? formatValue(getPreferencesInfo().currentChallenges) : 'Not specified' }}</span>
               </div>
-              <div class="info-item" *ngIf="getPreferencesInfo().expectationsFromProgram">
+              <div class="info-item">
                 <strong>Program Expectations:</strong>
-                <span>{{ getPreferencesInfo().expectationsFromProgram }}</span>
+                <span>{{ getPreferencesInfo().expectationsFromProgram || 'Not specified' }}</span>
               </div>
-              <div class="info-item" *ngIf="getPreferencesInfo().milkSupplyGoals">
+              <div class="info-item">
                 <strong>Milk Supply Goals:</strong>
-                <span>{{ getPreferencesInfo().milkSupplyGoals }}</span>
+                <span>{{ getPreferencesInfo().milkSupplyGoals && getPreferencesInfo().milkSupplyGoals.trim() ? getPreferencesInfo().milkSupplyGoals : 'Not specified' }}</span>
               </div>
-              <div class="info-item" *ngIf="getPreferencesInfo().topicsOfInterest?.length">
+              <div class="info-item">
                 <strong>Topics of Interest:</strong>
-                <span>{{ formatValue(getPreferencesInfo().topicsOfInterest) }}</span>
+                <span>{{ getPreferencesInfo().topicsOfInterest?.length ? formatValue(getPreferencesInfo().topicsOfInterest) : 'Not specified' }}</span>
               </div>
             </div>
           </ion-card-content>

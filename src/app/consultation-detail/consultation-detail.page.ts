@@ -450,6 +450,8 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
         return this.formatBirthType(value);
       case 'return_to_work':
         return this.formatReturnToWork(value);
+      case 'household_income':
+        return this.formatHouseholdIncome(value);
       default:
         // Generic formatting - replace underscores and capitalize
         return value.replace(/_/g, ' ')
@@ -507,6 +509,18 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
       'already_working': 'Already Working'
     };
     return timelineMap[timeline] || timeline.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  private formatHouseholdIncome(income: string): string {
+    const incomeMap: {[key: string]: string} = {
+      '6l_10l': '6-10 Lakhs',
+      '10l_15l': '10-15 Lakhs',
+      '15l_20l': '15-20 Lakhs',
+      '20l_plus': '20+ Lakhs',
+      'under_3l': 'Under 3 Lakhs',
+      '3l_6l': '3-6 Lakhs'
+    };
+    return incomeMap[income] || income.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
   /**
