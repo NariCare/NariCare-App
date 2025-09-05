@@ -391,14 +391,21 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
   }
 
-  getGreeting(): string {
+  getTimeOfDay(): string {
     const hour = new Date().getHours();
-    const firstName = this.user?.firstName || 'there';
-    const capitalizedName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
     
-    if (hour < 12) return `Good morning, ${capitalizedName}!`;
-    if (hour < 17) return `Good afternoon, ${capitalizedName}!`;
-    return `Good evening, ${capitalizedName}!`;
+    if (hour >= 6 && hour < 12) {
+      return 'morning';
+    } else if (hour >= 12 && hour < 18) {
+      return 'afternoon';
+    } else {
+      return 'evening';
+    }
+  }
+
+  getFirstName(): string {
+    const firstName = this.user?.firstName || 'Mama';
+    return firstName.charAt(0).toUpperCase() + firstName.slice(1);
   }
 
   getCurrentDate(): string {
