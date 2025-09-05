@@ -424,11 +424,11 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
    * Format raw backend values to user-friendly text
    */
   formatValue(value: any, field?: string): string {
-    if (!value) return 'Not specified';
+    if (!value || (typeof value === 'string' && value.trim() === '')) return 'Not specified';
     
     // Handle arrays
     if (Array.isArray(value)) {
-      if (value.length === 0) return 'None';
+      if (value.length === 0) return 'Not specified';
       return value.map(item => this.formatSingleValue(item, field)).join(', ');
     }
     

@@ -43,6 +43,16 @@ export interface TwoFactorResponse {
   token?: string;
 }
 
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
 // Growth Tracking Interfaces
 export interface FeedRecordRequest {
   babyId: string;
@@ -385,6 +395,24 @@ export class ApiService {
         }),
         catchError(this.handleError)
       );
+  }
+
+  forgotPassword(email: string): Observable<ApiResponse<ForgotPasswordResponse>> {
+    return this.http.post<ApiResponse<ForgotPasswordResponse>>(`${this.baseUrl}/auth/request-password-reset`, { email })
+      .pipe(catchError(this.handleError));
+  }
+
+  resetPassword(token: string, newPassword: string, confirmPassword: string): Observable<ApiResponse<ResetPasswordResponse>> {
+    return this.http.post<ApiResponse<ResetPasswordResponse>>(`${this.baseUrl}/auth/reset-password`, { 
+      token, 
+      newPassword, 
+      confirmPassword 
+    }).pipe(catchError(this.handleError));
+  }
+
+  validateResetToken(token: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/auth/validate-reset-token`, { token })
+      .pipe(catchError(this.handleError));
   }
 
   resendOTP(email: string): Observable<ApiResponse<TwoFactorResponse>> {

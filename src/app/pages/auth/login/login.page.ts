@@ -117,6 +117,10 @@ export class LoginPage implements OnInit, OnDestroy {
     this.router.navigate(['/auth/register']);
   }
 
+  navigateToForgotPassword() {
+    this.router.navigate(['/auth/forgot-password']);
+  }
+
   async onSubmitOTP() {
     if (this.otpForm.valid) {
       const loading = await this.loadingController.create({

@@ -82,10 +82,23 @@ export class AppComponent implements OnInit {
         
         await checkAuth();
       } else {
-        // No token found, redirect to login immediately
+        // No token found, redirect to login only if not on auth pages
         const currentUrl = this.router.url;
-        if (currentUrl === '/' || currentUrl.includes('/tabs/')) {
+        const windowUrl = window.location.href;
+        const actualPath = window.location.pathname;
+        const isAuthPage = actualPath.includes('/auth/');
+        
+        console.log('No token found - router currentUrl:', currentUrl);
+        console.log('No token found - actual path:', actualPath);
+        console.log('No token found - windowUrl:', windowUrl);
+        console.log('No token found - isAuthPage:', isAuthPage);
+        
+        // Don't redirect if already on auth pages (login, register, forgot-password, reset-password)
+        if (!isAuthPage && (actualPath === '/' || actualPath.includes('/tabs/'))) {
+          console.log('Redirecting to login because not on auth page');
           this.router.navigate(['/auth/login'], { replaceUrl: true });
+        } else {
+          console.log('Not redirecting - staying on current page');
         }
       }
 

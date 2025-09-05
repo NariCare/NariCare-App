@@ -149,7 +149,7 @@
                   </div>
                   <div class="info-item">
                     <strong>Current Weight:</strong>
-                    <span>{{ baby.currentWeight ? baby.currentWeight + ' kg' : 'Not specified' }}</span>
+                    <span>{{ baby.currentWeight ? (baby.currentWeight + ' kg') : 'Not specified' }}</span>
                   </div>
                   <div class="info-item">
                     <strong>Weight Check Date:</strong>
@@ -376,7 +376,7 @@
               </div>
               <div class="info-item">
                 <strong>Program Expectations:</strong>
-                <span>{{ getPreferencesInfo().expectationsFromProgram || 'Not specified' }}</span>
+                <span>{{ getPreferencesInfo().expectationsFromProgram && getPreferencesInfo().expectationsFromProgram.trim() ? getPreferencesInfo().expectationsFromProgram : 'Not specified' }}</span>
               </div>
               <div class="info-item">
                 <strong>Milk Supply Goals:</strong>
