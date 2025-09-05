@@ -115,12 +115,13 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       
       if (user && user.babies && user.babies.length > 0) {
         this.loadTimelineData(user.babies[0].dateOfBirth);
-        this.loadUpcomingConsultations();
         this.loadTodaysInsights(user.babies[0]);
         this.loadLearningData();
+        this.loadUpcomingConsultations();
       } else if (user) {
-        // Load learning data even without baby data
+        // Load learning data and consultations even without baby data
         this.loadLearningData();
+        this.loadUpcomingConsultations();
       }
       // Onboarding check temporarily disabled for API testing
     });
