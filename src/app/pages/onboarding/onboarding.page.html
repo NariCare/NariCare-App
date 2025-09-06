@@ -85,12 +85,20 @@
 
         <div class="form-group">
           <label class="input-label">Employment Status</label>
-          <ion-radio-group formControlName="employmentStatus">
-            <ion-item *ngFor="let option of options.employmentStatus" lines="none" class="radio-item">
-              <ion-radio slot="start" [value]="option.value"></ion-radio>
-              <ion-label>{{ option.label }}</ion-label>
-            </ion-item>
-          </ion-radio-group>
+          <div class="horizontal-chip-selection">
+            <ion-chip 
+              *ngFor="let option of options.employmentStatus"
+              [class.selected]="isValueSelected('employmentStatus', option.value)"
+              (click)="selectSingleValue('employmentStatus', option.value)"
+              class="selection-chip">
+              <ion-icon 
+                *ngIf="isValueSelected('employmentStatus', option.value)" 
+                name="checkmark" 
+                class="chip-selected-icon">
+              </ion-icon>
+              {{ option.label }}
+            </ion-chip>
+          </div>
         </div>
 
         <div class="form-group">
@@ -275,12 +283,20 @@
 
               <div class="form-group">
                 <label class="input-label">Type of Delivery</label>
-                <ion-radio-group formControlName="deliveryType">
-                  <ion-item *ngFor="let delivery of options.deliveryTypes" lines="none" class="radio-item">
-                    <ion-radio slot="start" [value]="delivery.value"></ion-radio>
-                    <ion-label>{{ delivery.label }}</ion-label>
-                  </ion-item>
-                </ion-radio-group>
+                <div class="horizontal-chip-selection">
+                  <ion-chip 
+                    *ngFor="let delivery of options.deliveryTypes"
+                    [class.selected]="baby.get('deliveryType')?.value === delivery.value"
+                    (click)="baby.get('deliveryType')?.setValue(delivery.value)"
+                    class="selection-chip">
+                    <ion-icon 
+                      *ngIf="baby.get('deliveryType')?.value === delivery.value" 
+                      name="checkmark" 
+                      class="chip-selected-icon">
+                    </ion-icon>
+                    {{ delivery.label }}
+                  </ion-chip>
+                </div>
               </div>
 
               <div class="form-group">
@@ -389,36 +405,66 @@
 
           <div class="form-group">
             <label class="input-label">Latch Quality</label>
-            <ion-radio-group formControlName="latchQuality">
-              <ion-item *ngFor="let latch of options.latchQuality" lines="none" class="radio-item">
-                <ion-radio slot="start" [value]="latch.value"></ion-radio>
-                <ion-label>{{ latch.label }}</ion-label>
-              </ion-item>
-            </ion-radio-group>
+            <div class="horizontal-chip-selection">
+              <ion-chip 
+                *ngFor="let latch of options.latchQuality"
+                [class.selected]="isValueSelected('latchQuality', latch.value)"
+                (click)="selectSingleValue('latchQuality', latch.value)"
+                class="selection-chip">
+                <ion-icon 
+                  *ngIf="isValueSelected('latchQuality', latch.value)" 
+                  name="checkmark" 
+                  class="chip-selected-icon">
+                </ion-icon>
+                {{ latch.label }}
+              </ion-chip>
+            </div>
           </div>
 
           <div class="form-group">
             <label class="input-label">Do you offer both breasts per feeding?</label>
-            <ion-radio-group formControlName="offersBothBreasts">
-              <ion-item lines="none" class="radio-item">
-                <ion-radio slot="start" [value]="true"></ion-radio>
-                <ion-label>Yes, both breasts</ion-label>
-              </ion-item>
-              <ion-item lines="none" class="radio-item">
-                <ion-radio slot="start" [value]="false"></ion-radio>
-                <ion-label>No, usually one breast</ion-label>
-              </ion-item>
-            </ion-radio-group>
+            <div class="horizontal-chip-selection">
+              <ion-chip 
+                [class.selected]="isValueSelected('offersBothBreasts', true)"
+                (click)="selectSingleValue('offersBothBreasts', true)"
+                class="selection-chip">
+                <ion-icon 
+                  *ngIf="isValueSelected('offersBothBreasts', true)" 
+                  name="checkmark" 
+                  class="chip-selected-icon">
+                </ion-icon>
+                Yes, both breasts
+              </ion-chip>
+              <ion-chip 
+                [class.selected]="isValueSelected('offersBothBreasts', false)"
+                (click)="selectSingleValue('offersBothBreasts', false)"
+                class="selection-chip">
+                <ion-icon 
+                  *ngIf="isValueSelected('offersBothBreasts', false)" 
+                  name="checkmark" 
+                  class="chip-selected-icon">
+                </ion-icon>
+                No, usually one breast
+              </ion-chip>
+            </div>
           </div>
 
           <div class="form-group">
             <label class="input-label">Time spent latched on single breast</label>
-            <ion-radio-group formControlName="timePerBreast">
-              <ion-item *ngFor="let time of options.timePerBreast" lines="none" class="radio-item">
-                <ion-radio slot="start" [value]="time.value"></ion-radio>
-                <ion-label>{{ time.label }}</ion-label>
-              </ion-item>
-            </ion-radio-group>
+            <div class="horizontal-chip-selection">
+              <ion-chip 
+                *ngFor="let time of options.timePerBreast"
+                [class.selected]="isValueSelected('timePerBreast', time.value)"
+                (click)="selectSingleValue('timePerBreast', time.value)"
+                class="selection-chip">
+                <ion-icon 
+                  *ngIf="isValueSelected('timePerBreast', time.value)" 
+                  name="checkmark" 
+                  class="chip-selected-icon">
+                </ion-icon>
+                {{ time.label }}
+              </ion-chip>
+            </div>
           </div>
 
           <div class="form-group">

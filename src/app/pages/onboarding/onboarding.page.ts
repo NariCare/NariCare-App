@@ -695,7 +695,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
     this.onboardingForm.patchValue({ [formControlName]: currentValues });
   }
 
-  isValueSelected(formControlName: string, value: string): boolean {
+  isValueSelected(formControlName: string, value: string | boolean): boolean {
     const formValue = this.onboardingForm.get(formControlName)?.value;
     
     // Handle both arrays (multi-select) and single values
@@ -706,7 +706,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
     }
   }
 
-  selectSingleValue(formControlName: string, value: string): void {
+  selectSingleValue(formControlName: string, value: string | boolean): void {
     this.onboardingForm.patchValue({ [formControlName]: value });
     // The form value changes subscription will handle updateProgressState()
   }
