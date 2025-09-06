@@ -271,6 +271,21 @@ export class BackendAuthService {
     }
   }
 
+  async refreshUserProfile(): Promise<void> {
+    try {
+      const response = await this.apiService.getUserProfile().toPromise();
+      
+      if (response?.success && response.data) {
+        const user = this.transformUserData(response.data);
+        this.currentUserSubject.next(user);
+      } else {
+        throw new Error(response?.message || 'Failed to refresh profile');
+      }
+    } catch (error: any) {
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
   async updateNotificationPreferences(preferences: any): Promise<void> {
     try {
       const response = await this.apiService.updateNotificationPreferences(preferences).toPromise();
@@ -522,6 +537,13 @@ export class BackendAuthService {
 
   // Helper method to transform API user data to frontend User model
   private transformUserData(apiUser: any): User {
+    console.log('Transforming API user data:', {
+      phone_number: apiUser.phone_number,
+      whatsapp_number: apiUser.whatsapp_number,
+      due_date: apiUser.due_date,
+      mother_type: apiUser.mother_type
+    });
+    
     return {
       uid: apiUser.userId || apiUser.id || apiUser.uid || '',
       email: apiUser.email || '',

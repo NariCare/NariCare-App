@@ -47,7 +47,14 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // Refresh user profile to ensure latest data is loaded
+    try {
+      await this.backendAuthService.refreshUserProfile();
+    } catch (error) {
+      console.warn('Failed to refresh user profile:', error);
+    }
+    
     this.loadUserData();
   }
   
@@ -67,6 +74,13 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
   }
   
   private populateForm(user: User) {
+    console.log('Populating form with user data:', {
+      phoneNumber: user.phoneNumber,
+      whatsappNumber: user.whatsappNumber,
+      dueDate: user.dueDate,
+      motherType: user.motherType
+    });
+    
     this.personalInfoForm.patchValue({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -76,6 +90,13 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       motherType: user.motherType || '',
       dueDate: user.dueDate ? user.dueDate.toISOString().split('T')[0] : '',
       tierType: user.tier?.type || 'basic'
+    });
+    
+    console.log('Form values after patching:', {
+      phoneNumber: this.personalInfoForm.get('phoneNumber')?.value,
+      whatsappNumber: this.personalInfoForm.get('whatsappNumber')?.value,
+      dueDate: this.personalInfoForm.get('dueDate')?.value,
+      motherType: this.personalInfoForm.get('motherType')?.value
     });
     
     // Reset the form's dirty state after populating with saved data
