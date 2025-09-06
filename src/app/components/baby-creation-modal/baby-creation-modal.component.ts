@@ -114,6 +114,10 @@ export class BabyCreationModalComponent implements OnInit {
     }
   }
 
+  selectGender(gender: 'male' | 'female') {
+    this.babyForm.patchValue({ gender });
+  }
+
   close() {
     this.modalController.dismiss({ created: false });
   }

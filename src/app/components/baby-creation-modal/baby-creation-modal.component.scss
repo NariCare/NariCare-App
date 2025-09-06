@@ -100,6 +100,76 @@
   margin-top: 4px;
 }
 
+.field-label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  margin-left: 0.25rem;
+}
+
+.gender-selection-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.gender-option {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &.selected {
+    border-color: #8383ed;
+    background: rgba(131, 131, 237, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(131, 131, 237, 0.15);
+  }
+
+  &:hover:not(.selected) {
+    border-color: #c2c2f0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(131, 131, 237, 0.1);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.gender-icon {
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.gender-content {
+  flex: 1;
+  min-width: 0;
+
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+  }
+}
+
+.selection-indicator {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  color: #8383ed;
+  font-size: 1.25rem;
+}
+
 .add-baby-button {
   --background: #8383ed;
   // --background-hover: #d81b60;

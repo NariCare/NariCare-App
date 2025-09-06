@@ -54,15 +54,35 @@
         </div>
       </div>
 
-      <!-- Gender -->
+      <!-- Gender Selection -->
       <div class="form-group">
-        <ion-item lines="none" class="select-item">
-          <ion-icon name="body-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-select formControlName="gender" placeholder="Gender">
-            <ion-select-option value="male">Boy</ion-select-option>
-            <ion-select-option value="female">Girl</ion-select-option>
-          </ion-select>
-        </ion-item>
+        <label class="field-label">👶 Baby's Gender</label>
+        <div class="gender-selection-grid">
+          <div 
+            class="gender-option"
+            [class.selected]="babyForm.get('gender')?.value === 'male'"
+            (click)="selectGender('male')">
+            <div class="gender-icon">
+              <app-custom-icon babyGender="male" size="40px"></app-custom-icon>
+            </div>
+            <div class="gender-content">
+              <h4>Boy</h4>
+            </div>
+            <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="babyForm.get('gender')?.value === 'male'"></ion-icon>
+          </div>
+          <div 
+            class="gender-option"
+            [class.selected]="babyForm.get('gender')?.value === 'female'"
+            (click)="selectGender('female')">
+            <div class="gender-icon">
+              <app-custom-icon babyGender="female" size="40px"></app-custom-icon>
+            </div>
+            <div class="gender-content">
+              <h4>Girl</h4>
+            </div>
+            <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="babyForm.get('gender')?.value === 'female'"></ion-icon>
+          </div>
+        </div>
         <div class="error-message" *ngIf="babyForm.get('gender')?.invalid && babyForm.get('gender')?.touched">
           {{ getErrorMessage('gender') }}
         </div>

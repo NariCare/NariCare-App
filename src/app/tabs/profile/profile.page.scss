@@ -163,14 +163,31 @@
 }
 
 .logout-button {
+  --background: #ef4444;
+  --background-hover: #dc2626;
+  --background-activated: #b91c1c;
   --border-radius: 12px;
-  --border-color: #ef4444;
-  --color: #ef4444;
-  height: 52px;
+  --color: #ffffff;
+  height: 56px;
   font-weight: 600;
+  font-size: 1.05rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  
+  ion-icon {
+    font-size: 1.25rem;
+    margin-right: 0.5rem;
+  }
 
   &:hover {
-    --background: rgba(239, 68, 68, 0.1);
+    --background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
   }
 }
 
