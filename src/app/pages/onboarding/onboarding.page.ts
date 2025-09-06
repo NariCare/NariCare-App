@@ -628,8 +628,18 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
   isValueSelected(formControlName: string, value: string): boolean {
-    const values = this.onboardingForm.get(formControlName)?.value || [];
-    return values.includes(value);
+    const formValue = this.onboardingForm.get(formControlName)?.value;
+    
+    // Handle both arrays (multi-select) and single values
+    if (Array.isArray(formValue)) {
+      return formValue.includes(value);
+    } else {
+      return formValue === value;
+    }
+  }
+
+  selectSingleValue(formControlName: string, value: string): void {
+    this.onboardingForm.patchValue({ [formControlName]: value });
   }
 
   // Conditional field visibility helpers

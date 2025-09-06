@@ -388,6 +388,38 @@ ion-chip {
   }
 }
 
+.horizontal-chip-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.selection-chip {
+  position: relative;
+  border: 1px solid #e2e8f0;
+  min-height: 36px;
+  font-size: 0.9rem;
+  
+  &.selected {
+    border-color: #8383ed;
+    box-shadow: 0 2px 8px rgba(131, 131, 237, 0.15);
+    transform: translateY(-1px);
+  }
+
+  &:hover:not(.selected) {
+    border-color: #c2c2f0;
+    transform: translateY(-1px);
+    box-shadow: 0 1px 4px rgba(131, 131, 237, 0.1);
+  }
+
+  .chip-selected-icon {
+    font-size: 0.9rem;
+    margin-right: 0.25rem;
+    color: #ffffff;
+  }
+}
+
 .preference-item {
   --background: #ffffff;
   --border-radius: 12px;
@@ -421,10 +453,9 @@ ion-chip {
 .next-button,
 .complete-button {
   --background: #8383ed;
-  // --background-hover: #d81b60;
+  --background-hover: #7171e8;
   --border-radius: 12px;
   --color: #ffffff;
-  margin-top: 1rem;
   height: 52px;
   font-weight: 600;
   letter-spacing: 0.025em;
@@ -434,6 +465,7 @@ ion-chip {
   display: flex;
   gap: 0.75rem;
   margin-top: 2rem;
+  align-items: center;
 }
 
 .back-button {
@@ -442,11 +474,13 @@ ion-chip {
   --border-radius: 12px;
   flex: 1;
   height: 52px;
+  margin-top: 0 !important;
 }
 
 .next-button,
 .complete-button {
   flex: 2;
+  margin-top: 0 !important;
 }
 
 .subsection-title {

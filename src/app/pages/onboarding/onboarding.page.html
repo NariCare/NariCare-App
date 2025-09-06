@@ -347,10 +347,7 @@
         <p class="step-description">Help us understand your breastfeeding experience and current situation</p>
         
         <!-- Form content here -->
-        <div class="breastfeeding-form-content">
-        <h2 class="step-title">Breastfeeding Assessment</h2>
-        <p class="step-description">Help us understand your breastfeeding experience and current situation</p>
-        
+        <div class="breastfeeding-form-content">        
         <div class="form-group">
           <label class="input-label">Breastfeeding Experience Level</label>
           <ion-radio-group formControlName="experienceLevel">
@@ -920,22 +917,30 @@
 
         <div class="form-group">
           <label class="input-label">Family Structure</label>
-          <ion-radio-group formControlName="familyStructure">
-            <ion-item *ngFor="let structure of options.familyStructure" lines="none" class="radio-item">
-              <ion-radio slot="start" [value]="structure.value"></ion-radio>
-              <ion-label>{{ structure.label }}</ion-label>
-            </ion-item>
-          </ion-radio-group>
+          <div class="horizontal-chip-selection">
+            <ion-chip 
+              *ngFor="let structure of options.familyStructure"
+              [class.selected]="isValueSelected('familyStructure', structure.value)"
+              (click)="selectSingleValue('familyStructure', structure.value)"
+              class="selection-chip">
+              <ion-icon name="checkmark-circle" class="chip-selected-icon" *ngIf="isValueSelected('familyStructure', structure.value)"></ion-icon>
+              {{ structure.label }}
+            </ion-chip>
+          </div>
         </div>
 
         <div class="form-group">
           <label class="input-label">Education Level</label>
-          <ion-radio-group formControlName="educationLevel">
-            <ion-item *ngFor="let education of options.educationLevels" lines="none" class="radio-item">
-              <ion-radio slot="start" [value]="education.value"></ion-radio>
-              <ion-label>{{ education.label }}</ion-label>
-            </ion-item>
-          </ion-radio-group>
+          <div class="horizontal-chip-selection">
+            <ion-chip 
+              *ngFor="let education of options.educationLevels"
+              [class.selected]="isValueSelected('educationLevel', education.value)"
+              (click)="selectSingleValue('educationLevel', education.value)"
+              class="selection-chip">
+              <ion-icon name="checkmark-circle" class="chip-selected-icon" *ngIf="isValueSelected('educationLevel', education.value)"></ion-icon>
+              {{ education.label }}
+            </ion-chip>
+          </div>
         </div>
 
         <div class="form-group">
