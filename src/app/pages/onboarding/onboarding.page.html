@@ -992,12 +992,20 @@
 
         <div class="form-group">
           <label class="input-label">Household Income (Optional)</label>
-          <ion-radio-group formControlName="householdIncome">
-            <ion-item *ngFor="let income of options.householdIncomes" lines="none" class="radio-item">
-              <ion-radio slot="start" [value]="income.value"></ion-radio>
-              <ion-label>{{ income.label }}</ion-label>
-            </ion-item>
-          </ion-radio-group>
+          <div class="horizontal-chip-selection">
+            <ion-chip 
+              *ngFor="let income of options.householdIncomes"
+              [class.selected]="isValueSelected('householdIncome', income.value)"
+              (click)="selectSingleValue('householdIncome', income.value)"
+              class="selection-chip">
+              <ion-icon 
+                *ngIf="isValueSelected('householdIncome', income.value)" 
+                name="checkmark" 
+                class="chip-selected-icon">
+              </ion-icon>
+              {{ income.label }}
+            </ion-chip>
+          </div>
         </div>
 
         <div class="button-row">

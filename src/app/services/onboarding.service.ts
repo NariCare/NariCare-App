@@ -63,9 +63,14 @@ export class OnboardingService {
       const onboardingResponse = await this.apiService.getOnboardingData().toPromise();
       
       if (onboardingResponse?.success && onboardingResponse.data) {
-        // If onboarding data exists, use it directly (same format as local storage)
-        this.updateOnboardingData(onboardingResponse.data);
-        console.log('Loaded existing onboarding data from backend:', onboardingResponse.data);
+        // If onboarding data exists, use it but ensure completion status is correct
+        const backendData = { ...onboardingResponse.data };
+        // Reset completion status - only set when user explicitly completes
+        backendData.isCompleted = false;
+        delete backendData.completedAt;
+        
+        this.updateOnboardingData(backendData);
+        console.log('Loaded existing onboarding data from backend (completion status reset):', backendData);
         return;
       }
 
@@ -177,7 +182,12 @@ export class OnboardingService {
       return;
     }
 
-    this.apiService.saveOnboardingData(data).subscribe({
+    // Create a copy without completion flags for auto-save
+    const autoSaveData = { ...data };
+    delete autoSaveData.isCompleted;
+    delete autoSaveData.completedAt;
+
+    this.apiService.saveOnboardingData(autoSaveData).subscribe({
       next: (response) => {
         if (response?.success) {
           console.log('Auto-saved onboarding data to backend');
