@@ -1,0 +1,142 @@
+.modal-content {
+  padding: 1rem;
+}
+
+.babies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.baby-card {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #f9fafb;
+    border-color: #8383ed;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(131, 131, 237, 0.1);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.baby-avatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+
+  .baby-icon {
+    font-size: 2rem;
+  }
+}
+
+.baby-info {
+  flex: 1;
+  min-width: 0;
+
+  .baby-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .baby-age {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .baby-stats {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+
+    ion-chip {
+      height: 28px;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.baby-actions {
+  display: flex;
+  align-items: center;
+
+  .arrow-icon {
+    font-size: 1.2rem;
+    color: #9ca3af;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+
+  .empty-icon {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0 0 0.5rem 0;
+  }
+
+  p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .baby-card {
+    padding: 0.75rem;
+  }
+
+  .baby-avatar {
+    width: 50px;
+    height: 50px;
+    margin-right: 0.75rem;
+
+    .baby-icon {
+      font-size: 1.5rem;
+    }
+  }
+
+  .baby-info {
+    .baby-name {
+      font-size: 1rem;
+    }
+
+    .baby-age {
+      font-size: 0.85rem;
+    }
+  }
+}

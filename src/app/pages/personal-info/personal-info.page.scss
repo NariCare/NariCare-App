@@ -278,3 +278,38 @@
     }
   }
 }
+
+// Toast styling to ensure success toasts are green
+::ng-deep .success-toast {
+  --background: #10b981 !important;
+  --color: #ffffff !important;
+  
+  .toast-wrapper {
+    background: #10b981 !important;
+    color: #ffffff !important;
+    border-left: 4px solid #059669;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+  
+  .toast-content,
+  .toast-message {
+    color: #ffffff !important;
+    font-weight: 500;
+  }
+}
+
+// Override any global toast success color issues
+::ng-deep ion-toast.toast-color-success {
+  --background: #10b981 !important;
+  --color: #ffffff !important;
+  
+  .toast-wrapper {
+    background: #10b981 !important;
+    color: #ffffff !important;
+  }
+  
+  .toast-button-cancel {
+    color: #ffffff !important;
+  }
+}

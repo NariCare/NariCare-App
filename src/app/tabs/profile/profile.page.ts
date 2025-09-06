@@ -10,6 +10,7 @@ import { ConsultationBookingModalComponent } from '../../components/consultation
 import { BabyCreationModalComponent } from '../../components/baby-creation-modal/baby-creation-modal.component';
 import { NotificationListComponent } from '../../components/notification-list/notification-list.component';
 import { NotificationPreferencesComponent } from '../../components/notification-preferences/notification-preferences.component';
+import { BabySelectionModalComponent } from '../../components/baby-selection-modal/baby-selection-modal.component';
 
 @Component({
   selector: 'app-profile',
@@ -22,35 +23,7 @@ export class ProfilePage implements OnInit {
   experts: Expert[] = [];
   unreadNotificationCount = 0;
 
-  profileSections = [
-    {
-      title: 'Account',
-      items: [
-        { label: 'Personal Information', icon: 'person-outline', action: 'editProfile' },
-        { label: 'Baby Information', icon: 'baby-outline', action: 'editBaby' },
-        { label: 'Add New Baby', icon: 'add-circle-outline', action: 'addBaby' },
-        { label: 'Notifications', icon: 'notifications-outline', action: 'viewNotifications', badge: this.unreadNotificationCount },
-        { label: 'Notification Settings', icon: 'settings-outline', action: 'notificationSettings' }
-      ]
-    },
-    // {
-    //   title: 'Subscription',
-    //   items: [
-    //     { label: 'Current Plan', icon: 'card-outline', action: 'subscription' },
-    //     { label: 'Upgrade Plan', icon: 'arrow-up-outline', action: 'upgrade' },
-    //     { label: 'Billing History', icon: 'receipt-outline', action: 'billing' }
-    //   ]
-    // },
-    {
-      title: 'Support',
-      items: [
-        { label: 'Help Center', icon: 'help-circle-outline', action: 'help' },
-        { label: 'Book Expert Consultation', icon: 'videocam-outline', action: 'bookConsultation' },
-        { label: 'Contact Support', icon: 'mail-outline', action: 'contact' },
-        { label: 'Privacy Policy', icon: 'shield-outline', action: 'privacy' }
-      ]
-    }
-  ];
+  profileSections: any[] = [];
 
   constructor(
     private backendAuthService: BackendAuthService,
@@ -68,6 +41,7 @@ export class ProfilePage implements OnInit {
       if (user) {
         this.loadUpcomingConsultations();
         this.initializeNotifications();
+        this.updateProfileSections();
       }
     });
     
@@ -78,19 +52,49 @@ export class ProfilePage implements OnInit {
     // Subscribe to unread notification count
     this.notificationService.unreadCount$.subscribe(count => {
       this.unreadNotificationCount = count;
-      // Update the badge in profile sections
-      const accountSection = this.profileSections.find(section => section.title === 'Account');
-      if (accountSection) {
-        const notificationItem = accountSection.items.find(item => item.action === 'viewNotifications');
-        if (notificationItem) {
-          notificationItem.badge = count;
-        }
-      }
+      this.updateProfileSections(); // Update sections when notification count changes
     });
 
     // Load initial notifications
     this.notificationService.loadNotifications({ limit: 10 });
     this.notificationService.loadPreferences();
+  }
+
+  private updateProfileSections() {
+    const accountItems: any[] = [
+      { label: 'Personal Information', icon: 'person-outline', action: 'editProfile' }
+    ];
+
+    // Only show baby information if user has babies
+    if (this.user?.babies && this.user.babies.length > 0) {
+      accountItems.push({ 
+        label: this.user.babies.length === 1 ? `${this.user.babies[0].name}'s Information` : 'Baby Information', 
+        icon: 'baby-outline', 
+        action: 'editBaby' 
+      });
+    }
+
+    accountItems.push(
+      { label: 'Add New Baby', icon: 'add-circle-outline', action: 'addBaby' },
+      { label: 'Notifications', icon: 'notifications-outline', action: 'viewNotifications', badge: this.unreadNotificationCount },
+      { label: 'Notification Settings', icon: 'settings-outline', action: 'notificationSettings' }
+    );
+
+    this.profileSections = [
+      {
+        title: 'Account',
+        items: accountItems
+      },
+      {
+        title: 'Support',
+        items: [
+          { label: 'Help Center', icon: 'help-circle-outline', action: 'help' },
+          { label: 'Book Expert Consultation', icon: 'videocam-outline', action: 'bookConsultation' },
+          { label: 'Contact Support', icon: 'mail-outline', action: 'contact' },
+          { label: 'Privacy Policy', icon: 'shield-outline', action: 'privacy' }
+        ]
+      }
+    ];
   }
 
   private loadUpcomingConsultations() {
@@ -222,8 +226,29 @@ export class ProfilePage implements OnInit {
     this.router.navigate(['/personal-info']);
   }
 
-  private editBaby() {
-    console.log('Edit baby information');
+  private async editBaby() {
+    if (!this.user?.babies || this.user.babies.length === 0) {
+      // No babies exist, redirect to add baby
+      this.addBaby();
+      return;
+    }
+
+    if (this.user.babies.length === 1) {
+      // Only one baby, go directly to baby detail page
+      this.router.navigate(['/tabs/growth/baby-detail', this.user.babies[0].id]);
+      return;
+    }
+
+    // Multiple babies, show selection modal
+    const modal = await this.modalController.create({
+      component: BabySelectionModalComponent,
+      cssClass: 'baby-selection-modal',
+      componentProps: {
+        babies: this.user.babies
+      }
+    });
+
+    await modal.present();
   }
 
   async addBaby() {
@@ -235,6 +260,7 @@ export class ProfilePage implements OnInit {
     modal.onDidDismiss().then((result) => {
       if (result.data?.created) {
         // Baby was created successfully, user data is already refreshed in the modal
+        this.updateProfileSections(); // Refresh profile sections to show baby information item
         this.showSuccessToast(`Baby added successfully! 👶`);
       }
     });

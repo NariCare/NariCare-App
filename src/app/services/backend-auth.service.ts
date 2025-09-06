@@ -257,9 +257,12 @@ export class BackendAuthService {
     try {
       const response = await this.apiService.updateUserProfile(updates).toPromise();
       
-      if (response?.success && response.data) {
-        const updatedUser = this.transformUserData(response.data);
-        this.currentUserSubject.next(updatedUser);
+      if (response?.success) {
+        if (response.data) {
+          const updatedUser = this.transformUserData(response.data);
+          this.currentUserSubject.next(updatedUser);
+        }
+        // Success with or without data - both are valid
       } else {
         throw new Error(response?.message || 'Failed to update profile');
       }

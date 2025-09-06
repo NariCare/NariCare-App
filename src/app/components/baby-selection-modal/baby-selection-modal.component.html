@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Select Baby</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="modal-content">
+    <div class="babies-list" *ngIf="babies && babies.length > 0">
+      <div 
+        *ngFor="let baby of babies" 
+        class="baby-card"
+        (click)="selectBaby(baby)">
+        <div class="baby-avatar">
+          <ion-icon 
+            [name]="getGenderIcon(baby.gender)" 
+            [color]="getGenderColor(baby.gender)"
+            class="baby-icon">
+          </ion-icon>
+        </div>
+        <div class="baby-info">
+          <h3 class="baby-name">{{ baby.name }}</h3>
+          <p class="baby-age">{{ calculateAge(baby.dateOfBirth) }}</p>
+          <div class="baby-stats">
+            <ion-chip [color]="getGenderColor(baby.gender)" size="small">
+              <ion-icon [name]="getGenderIcon(baby.gender)" slot="start"></ion-icon>
+              {{ baby.gender | titlecase }}
+            </ion-chip>
+          </div>
+        </div>
+        <div class="baby-actions">
+          <ion-icon name="chevron-forward-outline" class="arrow-icon"></ion-icon>
+        </div>
+      </div>
+    </div>
+    
+    <div class="empty-state" *ngIf="!babies || babies.length === 0">
+      <ion-icon name="baby-outline" class="empty-icon"></ion-icon>
+      <h3>No babies found</h3>
+      <p>Add your first baby to get started with tracking their growth and development.</p>
+    </div>
+  </div>
+</ion-content>

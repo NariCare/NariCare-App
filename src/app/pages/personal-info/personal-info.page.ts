@@ -110,10 +110,15 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
         this.personalInfoForm.markAsUntouched();
         
         const toast = await this.toastController.create({
-          message: 'Personal information updated successfully!',
+          message: '✅ Personal information updated successfully!',
           duration: 3000,
           color: 'success',
-          position: 'top'
+          position: 'top',
+          cssClass: 'success-toast',
+          buttons: [{
+            text: '×',
+            role: 'cancel'
+          }]
         });
         await toast.present();
         

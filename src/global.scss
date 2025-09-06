@@ -187,6 +187,42 @@ app-onboarding {
 .fade-in { animation: fadeIn 0.3s ease-out; }
 .slide-up { animation: slideUp 0.3s ease-out; }
 
+/* Global Toast Success Styling */
+ion-toast.success-toast,
+ion-toast.toast-color-success {
+  --background: #10b981 !important;
+  --color: #ffffff !important;
+  --border-color: #059669 !important;
+}
+
+ion-toast.success-toast .toast-wrapper,
+ion-toast.toast-color-success .toast-wrapper {
+  background: #10b981 !important;
+  color: #ffffff !important;
+  border-left: 4px solid #059669 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+}
+
+ion-toast.success-toast .toast-content,
+ion-toast.success-toast .toast-message,
+ion-toast.toast-color-success .toast-content,
+ion-toast.toast-color-success .toast-message {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+/* Fallback for any toast with success color */
+ion-toast[color="success"] {
+  --background: #10b981 !important;
+  --color: #ffffff !important;
+}
+
+ion-toast[color="success"] .toast-wrapper {
+  background: #10b981 !important;
+  color: #ffffff !important;
+}
+
 /* Loading States */
 .loading-skeleton {
   background: linear-gradient(90deg, #f5f3fa 25%, #efedf6 50%, #f5f3fa 75%);
@@ -598,4 +634,26 @@ ion-button.preset-button {
   color: #ffffff !important;
   font-family: 'Poppins', sans-serif !important;
   font-weight: 700 !important;
+}
+
+/* Baby Selection Modal Styles */
+.baby-selection-modal {
+  --width: 95%;
+  --height: 70%;
+  --border-radius: 16px;
+  --max-height: 600px;
+}
+
+@media (min-width: 768px) {
+  .baby-selection-modal {
+    --width: 80%;
+    --height: 65%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .baby-selection-modal {
+    --width: 60%;
+    --height: 60%;
+  }
 }

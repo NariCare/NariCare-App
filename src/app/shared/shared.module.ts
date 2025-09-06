@@ -21,6 +21,7 @@ import { CustomIconComponent } from '../components/custom-icon/custom-icon.compo
 import { AvailabilitySchedulerModalComponent } from '../components/availability-scheduler-modal/availability-scheduler-modal.component';
 import { NotificationListComponent } from '../components/notification-list/notification-list.component';
 import { NotificationPreferencesComponent } from '../components/notification-preferences/notification-preferences.component';
+import { BabySelectionModalComponent } from '../components/baby-selection-modal/baby-selection-modal.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { NotificationPreferencesComponent } from '../components/notification-pre
     CustomIconComponent,
     AvailabilitySchedulerModalComponent,
     NotificationListComponent,
-    NotificationPreferencesComponent
+    NotificationPreferencesComponent,
+    BabySelectionModalComponent
   ],
   imports: [
     CommonModule,
@@ -68,7 +70,8 @@ import { NotificationPreferencesComponent } from '../components/notification-pre
     CustomIconComponent,
     AvailabilitySchedulerModalComponent,
     NotificationListComponent,
-    NotificationPreferencesComponent
+    NotificationPreferencesComponent,
+    BabySelectionModalComponent
   ]
 })
 export class SharedModule { }
