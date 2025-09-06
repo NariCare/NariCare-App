@@ -14,6 +14,14 @@
       margin-bottom: 2px;
     }
     
+    .tab-icon {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 2px;
+      filter: brightness(0) saturate(100%) invert(59%) sepia(8%) saturate(452%) hue-rotate(202deg) brightness(93%) contrast(84%);
+      transition: filter 0.3s ease;
+    }
+    
     ion-label {
       font-size: 0.75rem;
       font-weight: 500;
@@ -24,6 +32,10 @@
       ion-icon,
       ion-label {
         color: var(--color-selected);
+      }
+      
+      .tab-icon {
+        filter: brightness(0) saturate(100%) invert(45%) sepia(80%) saturate(4934%) hue-rotate(245deg) brightness(101%) contrast(87%);
       }
     }
   }

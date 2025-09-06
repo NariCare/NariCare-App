@@ -368,8 +368,8 @@
       </div>
     </div>
 
-    <!-- Timeline Section - Hidden for experts -->
-    <div class="section" *ngIf="!shouldHideSection('timeline')">
+    <!-- Timeline Section - Hidden for experts and when no baby -->
+    <div class="section" *ngIf="!shouldHideSection('timeline') && user && user.babies && user.babies.length > 0">
       <h2 class="section-title">TIMELINE</h2>
       <div class="timeline-section">
         <div class="timeline-content" *ngIf="timelineData$ | async as timelineData">
