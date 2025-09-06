@@ -17,21 +17,38 @@
   // Collapsed state
   &.collapsed {
     ion-toolbar {
-      --min-height: 60px; // More dramatic height reduction for testing
+      --min-height: 56px;
     }
     
     .header-content {
-      padding: 0.5rem 1rem; // Significantly reduced padding
+      padding: 0.5rem 1rem 0.75rem 1rem;
+    }
+    
+    .greeting-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
     }
     
     .greeting {
-      font-size: 1rem; // More noticeable font size reduction
-      margin: 0 auto 0.15rem auto; // Reduced margin
+      display: none;
+    }
+    
+    .date-container {
+      margin: 0;
     }
     
     .current-date {
-      font-size: 0.75rem; // More noticeable date font reduction
-      opacity: 0.8; // Slight opacity change for visibility
+      font-size: 0.75rem;
+      opacity: 0.9;
+      margin: 0;
+    }
+    
+    .streak-indicator {
+      margin-top: 0.15rem;
+      font-size: 0.7rem;
     }
   }
 }
