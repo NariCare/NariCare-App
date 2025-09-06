@@ -77,6 +77,10 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       dueDate: user.dueDate ? user.dueDate.toISOString().split('T')[0] : '',
       tierType: user.tier?.type || 'basic'
     });
+    
+    // Reset the form's dirty state after populating with saved data
+    this.personalInfoForm.markAsPristine();
+    this.personalInfoForm.markAsUntouched();
   }
   
   async onSubmit() {
@@ -100,6 +104,10 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
         
         await this.backendAuthService.updateUserProfile(updateData);
         await loading.dismiss();
+        
+        // Reset form dirty state after successful save
+        this.personalInfoForm.markAsPristine();
+        this.personalInfoForm.markAsUntouched();
         
         const toast = await this.toastController.create({
           message: 'Personal information updated successfully!',

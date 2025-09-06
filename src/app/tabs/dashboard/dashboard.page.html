@@ -30,9 +30,9 @@
           
           <div class="date-container" (click)="showDateOptions()">
             <p class="current-date">{{ getCurrentDate() }}</p>
-            <div class="streak-indicator" *ngIf="user?.babies && user.babies.length > 0">
-              <ion-icon name="flame"></ion-icon>
-              <span>{{ getBabyAgeInDays() }} days of motherhood</span>
+            <div class="streak-indicator" *ngIf="getBabyAgeOrDueDate()">
+              <ion-icon [name]="getStreakIcon()"></ion-icon>
+              <span>{{ getStreakText() }}</span>
             </div>
           </div>
         </div>

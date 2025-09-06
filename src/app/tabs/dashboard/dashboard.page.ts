@@ -443,46 +443,81 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getBabyAgeOrDueDate(): string {
-    if (!this.user?.babies || this.user.babies.length === 0) {
-      return '';
+    // Priority 1: Baby data (if baby exists, use baby's birth date)
+    if (this.user?.babies && this.user.babies.length > 0) {
+      const baby = this.user.babies[0];
+      
+      if (baby.dateOfBirth) {
+        const birthDate = new Date(baby.dateOfBirth);
+        const today = new Date();
+        const diffTime = today.getTime() - birthDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) {
+          // Baby not born yet - show due date
+          const daysUntilDue = Math.abs(diffDays);
+          if (daysUntilDue < 7) {
+            return `Due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}`;
+          } else {
+            const weeksUntilDue = Math.floor(daysUntilDue / 7);
+            const remainingDays = daysUntilDue % 7;
+            if (remainingDays === 0) {
+              return `Due in ${weeksUntilDue} week${weeksUntilDue !== 1 ? 's' : ''}`;
+            }
+            return `Due in ${weeksUntilDue}w ${remainingDays}d`;
+          }
+        } else {
+          // Baby is born - show age
+          if (diffDays < 7) {
+            return `${diffDays} day${diffDays !== 1 ? 's' : ''} old`;
+          } else {
+            const weeks = Math.floor(diffDays / 7);
+            const remainingDays = diffDays % 7;
+            if (remainingDays === 0) {
+              return `${weeks} week${weeks !== 1 ? 's' : ''} old`;
+            }
+            return `${weeks}w ${remainingDays}d old`;
+          }
+        }
+      }
     }
-
-    const baby = this.user.babies[0];
     
-    if (baby.dateOfBirth) {
-      const birthDate = new Date(baby.dateOfBirth);
+    // Priority 2: Due date (if no baby data but due date exists)
+    if (this.user?.dueDate) {
+      const dueDate = new Date(this.user.dueDate);
       const today = new Date();
-      const diffTime = today.getTime() - birthDate.getTime();
+      const diffTime = dueDate.getTime() - today.getTime();
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       
-      if (diffDays < 0) {
-        // Baby not born yet - show due date
-        const daysUntilDue = Math.abs(diffDays);
-        if (daysUntilDue < 7) {
-          return `Due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}`;
+      if (diffDays > 0) {
+        // Still pregnant - show countdown to due date
+        if (diffDays < 7) {
+          return `Due in ${diffDays} day${diffDays !== 1 ? 's' : ''}`;
         } else {
-          const weeksUntilDue = Math.floor(daysUntilDue / 7);
-          const remainingDays = daysUntilDue % 7;
+          const weeksUntilDue = Math.floor(diffDays / 7);
+          const remainingDays = diffDays % 7;
           if (remainingDays === 0) {
             return `Due in ${weeksUntilDue} week${weeksUntilDue !== 1 ? 's' : ''}`;
           }
           return `Due in ${weeksUntilDue}w ${remainingDays}d`;
         }
       } else {
-        // Baby is born - show age
-        if (diffDays < 7) {
-          return `${diffDays} day${diffDays !== 1 ? 's' : ''} old`;
+        // Past due date
+        const daysPastDue = Math.abs(diffDays);
+        if (daysPastDue < 7) {
+          return `${daysPastDue} day${daysPastDue !== 1 ? 's' : ''} overdue`;
         } else {
-          const weeks = Math.floor(diffDays / 7);
-          const remainingDays = diffDays % 7;
+          const weeksPastDue = Math.floor(daysPastDue / 7);
+          const remainingDays = daysPastDue % 7;
           if (remainingDays === 0) {
-            return `${weeks} week${weeks !== 1 ? 's' : ''} old`;
+            return `${weeksPastDue} week${weeksPastDue !== 1 ? 's' : ''} overdue`;
           }
-          return `${weeks}w ${remainingDays}d old`;
+          return `${weeksPastDue}w ${remainingDays}d overdue`;
         }
       }
     }
     
+    // No baby data and no due date
     return '';
   }
 
@@ -504,20 +539,71 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getBabyAgeInDays(): number {
-    if (!this.user?.babies || this.user.babies.length === 0) {
-      return 0;
+    // Priority 1: Baby data (if baby exists, use baby's birth date)
+    if (this.user?.babies && this.user.babies.length > 0) {
+      const baby = this.user.babies[0];
+      if (baby.dateOfBirth) {
+        const birthDate = new Date(baby.dateOfBirth);
+        const today = new Date();
+        const diffTime = today.getTime() - birthDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        return Math.max(0, diffDays);
+      }
     }
-
-    const baby = this.user.babies[0];
-    if (baby.dateOfBirth) {
-      const birthDate = new Date(baby.dateOfBirth);
+    
+    // Priority 2: Due date - calculate pregnancy days
+    if (this.user?.dueDate) {
+      // Calculate how many days into pregnancy (assuming 40 weeks = 280 days)
+      const dueDate = new Date(this.user.dueDate);
       const today = new Date();
-      const diffTime = today.getTime() - birthDate.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      return Math.max(0, diffDays);
+      const pregnancyStartDate = new Date(dueDate.getTime() - (280 * 24 * 60 * 60 * 1000)); // 280 days before due date
+      const diffTime = today.getTime() - pregnancyStartDate.getTime();
+      const pregnancyDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      return Math.max(0, pregnancyDays);
     }
     
     return 0;
+  }
+
+  getStreakIcon(): string {
+    // If baby exists, show flame (motherhood)
+    if (this.user?.babies && this.user.babies.length > 0) {
+      return 'flame';
+    }
+    
+    // If pregnant (due date exists), show heart for pregnancy journey
+    if (this.user?.dueDate) {
+      return 'heart';
+    }
+    
+    return 'flame'; // default
+  }
+
+  getStreakText(): string {
+    // Priority 1: Baby data (motherhood journey)
+    if (this.user?.babies && this.user.babies.length > 0) {
+      const days = this.getBabyAgeInDays();
+      return `${days} days of motherhood`;
+    }
+    
+    // Priority 2: Pregnancy journey
+    if (this.user?.dueDate) {
+      const dueDate = new Date(this.user.dueDate);
+      const today = new Date();
+      const diffTime = dueDate.getTime() - today.getTime();
+      const daysUntilDue = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (daysUntilDue > 0) {
+        // Still pregnant - show countdown
+        return `${daysUntilDue} days until motherhood`;
+      } else {
+        // Overdue - encouraging message
+        const daysPastDue = Math.abs(daysUntilDue);
+        return `Ready to meet your little one! ${daysPastDue} days past due`;
+      }
+    }
+    
+    return '';
   }
 
   hasUnreadNotifications(): boolean {

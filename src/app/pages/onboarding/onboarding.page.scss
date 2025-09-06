@@ -274,10 +274,47 @@ ion-datetime-button {
 .horizontal-radio-group {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
   
   .radio-item {
     flex: 1;
     margin-bottom: 0;
+    min-width: 0; // Allow items to shrink
+    
+    ion-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  
+  // Mobile responsive adjustments
+  @media (max-width: 480px) {
+    gap: 0.5rem;
+    
+    .radio-item {
+      min-width: 80px; // Minimum width to prevent text stacking
+      
+      ion-label {
+        font-size: 0.9rem;
+        line-height: 1.2;
+      }
+    }
+  }
+  
+  // Very small screens
+  @media (max-width: 360px) {
+    flex-direction: column;
+    gap: 0.75rem;
+    
+    .radio-item {
+      flex: none;
+      min-width: auto;
+      
+      ion-label {
+        white-space: normal;
+      }
+    }
   }
 }
 

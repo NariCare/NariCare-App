@@ -524,10 +524,10 @@ export class BackendAuthService {
       email: apiUser.email || '',
       firstName: apiUser.firstName || apiUser.first_name || '',
       lastName: apiUser.lastName || apiUser.last_name || '',
-      phoneNumber: apiUser.phoneNumber || apiUser.phone_number,
-      whatsappNumber: apiUser.whatsappNumber || apiUser.whatsapp_number,
+      phoneNumber: apiUser.phoneNumber || apiUser.phone_number || '',
+      whatsappNumber: apiUser.whatsappNumber || apiUser.whatsapp_number || '',
       motherType: apiUser.motherType || apiUser.mother_type,
-      dueDate: apiUser.dueDate ? new Date(apiUser.dueDate) : undefined,
+      dueDate: apiUser.dueDate || apiUser.due_date ? new Date(apiUser.dueDate || apiUser.due_date) : undefined,
       profileImage: apiUser.profileImage || apiUser.profile_image,
       role: apiUser.role || 'user',
       tier: {
