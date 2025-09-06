@@ -69,6 +69,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
       this.onboardingService.progress$.subscribe(progress => {
         this.progress = progress;
         this.updateConditionalRequirements();
+        // Update progress state when step changes
+        setTimeout(() => this.updateProgressState(), 100);
       })
     );
     
@@ -78,6 +80,16 @@ export class OnboardingPage implements OnInit, OnDestroy {
         this.updateFormFromData(data);
       })
     );
+
+    // Subscribe to form value changes to update progress
+    this.subscriptions.push(
+      this.onboardingForm.valueChanges.subscribe(() => {
+        this.updateProgressState();
+      })
+    );
+
+    // Initial progress state update
+    setTimeout(() => this.updateProgressState(), 200);
   }
 
   ngOnDestroy() {
@@ -383,6 +395,57 @@ export class OnboardingPage implements OnInit, OnDestroy {
     this.conditionalRequirements = this.onboardingService.getConditionalRequirements(this.progress.currentStep);
   }
 
+  private updateProgressState(): void {
+    // Validate current step and update canProceed
+    const canProceed = this.validateCurrentStep();
+    this.progress = {
+      ...this.progress,
+      canProceed
+    };
+  }
+
+  private validateCurrentStep(): boolean {
+    const step = this.progress.currentStep;
+    const formValue = this.onboardingForm.value;
+
+    switch (step) {
+      case 1: // Personal Information
+        return !!(formValue.firstName && formValue.lastName && formValue.email && formValue.languagesSpoken?.length);
+      
+      case 2: // Pregnancy & Birth Information
+        if (formValue.motherType === 'pregnant') {
+          return !!(formValue.motherType && formValue.dueDate);
+        } else if (formValue.motherType === 'new_mom') {
+          return !!(formValue.motherType && formValue.birthDate && formValue.gender && 
+                   formValue.birthWeight && formValue.birthHeight);
+        }
+        return false;
+      
+      case 3: // Breastfeeding Assessment (only for new mothers)
+        if (formValue.motherType === 'new_mom') {
+          return !!(formValue.experienceLevel && 
+                   (formValue.currentlyBreastfeeding !== null && formValue.currentlyBreastfeeding !== undefined));
+        }
+        return true; // Skip validation for pregnant mothers
+      
+      case 4: // Health Information
+        return !!(formValue.motherMedicalConditions?.length || formValue.motherMedicalConditions?.length === 0) && 
+               !!(formValue.babyMedicalConditions?.length || formValue.babyMedicalConditions?.length === 0);
+      
+      case 5: // Feeding Methods
+        return true; // This step is mostly optional selections
+      
+      case 6: // Social & Economic Background
+        return !!(formValue.familyStructure && formValue.educationLevel);
+      
+      case 7: // Goals & Expectations
+        return !!(formValue.expectationsFromProgram?.length && formValue.topicsOfInterest?.length);
+      
+      default:
+        return false;
+    }
+  }
+
   // ============================================================================
   // STEP NAVIGATION
   // ============================================================================
@@ -399,12 +462,14 @@ export class OnboardingPage implements OnInit, OnDestroy {
         if (this.progress.currentStep === this.progress.totalSteps) {
           this.saveAllFormDataToService();
         }
+        this.updateProgressState(); // Update progress state after navigation
       }, 100);
     }
   }
 
   previousStep(): void {
     this.onboardingService.previousStep();
+    setTimeout(() => this.updateProgressState(), 100); // Update progress state after navigation
   }
 
   goToStep(step: number): void {
@@ -415,7 +480,10 @@ export class OnboardingPage implements OnInit, OnDestroy {
     if (step === this.progress.totalSteps) {
       setTimeout(() => {
         this.saveAllFormDataToService();
+        this.updateProgressState(); // Update progress state
       }, 100);
+    } else {
+      setTimeout(() => this.updateProgressState(), 100); // Update progress state for other steps
     }
   }
 
@@ -640,6 +708,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   selectSingleValue(formControlName: string, value: string): void {
     this.onboardingForm.patchValue({ [formControlName]: value });
+    // The form value changes subscription will handle updateProgressState()
   }
 
   // Conditional field visibility helpers
