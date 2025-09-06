@@ -637,6 +637,14 @@ export class OnboardingPage implements OnInit, OnDestroy {
       // Complete onboarding through service
       await this.onboardingService.completeOnboarding();
 
+      // Refresh user profile to ensure latest onboarding status is reflected
+      try {
+        await this.authService.refreshUserProfile();
+      } catch (refreshError) {
+        console.warn('Failed to refresh user profile after onboarding completion:', refreshError);
+        // Continue with navigation even if refresh fails
+      }
+
       // Clear local storage data since onboarding is complete
       this.clearLocalStorageData();
 
