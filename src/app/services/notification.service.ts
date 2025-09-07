@@ -140,7 +140,9 @@ export class NotificationService {
     this.backendNotificationService.getNotificationPreferences().subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          this.preferences.next(response.data);
+          // Map API response to frontend interface
+          const mappedPreferences = this.mapApiResponseToPreferences(response.data);
+          this.preferences.next(mappedPreferences);
         }
       },
       error: (error) => {
@@ -154,7 +156,10 @@ export class NotificationService {
    */
   updatePreferences(preferences: NotificationPreferences): Observable<boolean> {
     return new Observable(observer => {
-      this.backendNotificationService.updateNotificationPreferences(preferences).subscribe({
+      // Map frontend preferences to API format
+      const apiPreferences = this.mapPreferencesToApiFormat(preferences);
+      
+      this.backendNotificationService.updateNotificationPreferences(apiPreferences).subscribe({
         next: (response) => {
           if (response.success) {
             this.preferences.next(preferences);
@@ -249,5 +254,45 @@ export class NotificationService {
    */
   async scheduleNotification(userId: string, type: string, title: string, body: string, scheduledTime: Date): Promise<void> {
     console.warn('scheduleNotification is deprecated. Backend notifications are handled server-side.');
+  }
+
+  // ============================================================================
+  // MAPPING METHODS
+  // ============================================================================
+
+  /**
+   * Map API response (snake_case) to frontend interface (camelCase)
+   */
+  private mapApiResponseToPreferences(apiData: any): NotificationPreferences {
+    return {
+      articleUpdates: this.convertToBoolean(apiData.article_updates),
+      callReminders: this.convertToBoolean(apiData.call_reminders),
+      groupMessages: this.convertToBoolean(apiData.group_messages),
+      growthReminders: this.convertToBoolean(apiData.growth_reminders),
+      expertMessages: this.convertToBoolean(apiData.expert_messages)
+    };
+  }
+
+  /**
+   * Map frontend preferences (camelCase) to API format (snake_case)
+   */
+  private mapPreferencesToApiFormat(preferences: NotificationPreferences): any {
+    return {
+      article_updates: preferences.articleUpdates ? 1 : 0,
+      call_reminders: preferences.callReminders ? 1 : 0,
+      group_messages: preferences.groupMessages ? 1 : 0,
+      growth_reminders: preferences.growthReminders ? 1 : 0,
+      expert_messages: preferences.expertMessages ? 1 : 0
+    };
+  }
+
+  /**
+   * Convert API value (1, 0, null) to boolean
+   */
+  private convertToBoolean(value: any): boolean {
+    if (value === null || value === undefined) {
+      return false; // Default to false for null values
+    }
+    return value === 1 || value === true;
   }
 }
