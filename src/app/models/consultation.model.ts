@@ -2,6 +2,7 @@ export interface Consultation {
   id: string;
   user_id: string;
   expert_id: string;
+  baby_id?: string; // Add baby_id field
   consultation_type: 'scheduled' | 'on-demand';
   status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
   scheduled_at: string;
@@ -31,6 +32,7 @@ export interface Consultation {
   // Legacy compatibility fields
   userId?: string; // For backward compatibility
   expertId?: string; // For backward compatibility
+  babyId?: string; // For backward compatibility
   type?: 'scheduled' | 'on-demand'; // For backward compatibility
   scheduledAt?: Date; // For backward compatibility
   duration?: number; // For backward compatibility

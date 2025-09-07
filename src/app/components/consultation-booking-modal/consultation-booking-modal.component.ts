@@ -5,8 +5,9 @@ import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ConsultationService } from '../../services/consultation.service';
 import { AuthService } from '../../services/auth.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 import { Expert, Consultation } from '../../models/consultation.model';
-import { User } from '../../models/user.model';
+import { User, Baby } from '../../models/user.model';
 import { v4 as uuidv4 } from 'uuid';
 
 @Component({
@@ -19,6 +20,8 @@ export class ConsultationBookingModalComponent implements OnInit {
   experts$: Observable<Expert[]>;
   user: User | null = null;
   selectedExpert: Expert | null = null;
+  selectedBaby: Baby | null = null;
+  babies: Baby[] = [];
   currentStep = 1;
   totalSteps = 3;
   minDate = new Date().toISOString();
@@ -38,6 +41,7 @@ export class ConsultationBookingModalComponent implements OnInit {
     private modalController: ModalController,
     private consultationService: ConsultationService,
     private authService: AuthService,
+    private backendAuthService: BackendAuthService,
     private toastController: ToastController,
     private loadingController: LoadingController
   ) {
@@ -57,7 +61,8 @@ export class ConsultationBookingModalComponent implements OnInit {
       scheduledDate: [new Date().toISOString(), [Validators.required]],
       scheduledTime: ['', [Validators.required]],
       topic: ['', [Validators.required]],
-      notes: ['']
+      notes: [''],
+      babyId: ['', [Validators.required]]
     });
   }
 
@@ -65,12 +70,22 @@ export class ConsultationBookingModalComponent implements OnInit {
     // Check if we're in edit mode
     this.isEditMode = !!this.consultation;
     
-    this.authService.currentUser$.subscribe(user => {
-      this.user = user;
-      
-      // Initialize form with consultation data if editing
-      if (this.isEditMode && this.consultation) {
-        this.initializeFormForEditing();
+    // Load user data from backend auth service (which has babies)
+    this.backendAuthService.currentUser$.subscribe(user => {
+      if (user) {
+        this.user = user;
+        this.babies = user.babies || [];
+        
+        // Auto-select baby if only one exists
+        if (this.babies.length === 1) {
+          this.selectedBaby = this.babies[0];
+          this.bookingForm.patchValue({ babyId: this.babies[0].id });
+        }
+        
+        // Initialize form with consultation data if editing
+        if (this.isEditMode && this.consultation) {
+          this.initializeFormForEditing();
+        }
       }
     });
 
@@ -193,7 +208,7 @@ export class ConsultationBookingModalComponent implements OnInit {
   }
 
   async bookConsultation() {
-    if (this.bookingForm.valid && this.user && this.selectedExpert) {
+    if (this.bookingForm.valid && this.user && this.selectedExpert && this.selectedBaby) {
       const loading = await this.loadingController.create({
         message: this.isEditMode ? 'Updating your consultation...' : 'Booking your consultation...',
         translucent: true
@@ -212,6 +227,7 @@ export class ConsultationBookingModalComponent implements OnInit {
           // Update existing consultation
           const updates = {
             expert_id: this.selectedExpert.id,
+            baby_id: formValue.babyId, // Add baby ID
             scheduled_at: scheduledDateTime.toISOString(),
             topic: formValue.topic,
             notes: formValue.notes,
@@ -242,6 +258,7 @@ export class ConsultationBookingModalComponent implements OnInit {
           const consultation: Omit<Consultation, 'id'> = {
             user_id: this.user.uid,
             expert_id: this.selectedExpert.id,
+            baby_id: formValue.babyId, // Add baby ID
             consultation_type: 'scheduled',
             status: 'scheduled',
             scheduled_at: scheduledDateTime.toISOString(),
@@ -254,6 +271,7 @@ export class ConsultationBookingModalComponent implements OnInit {
             // Legacy compatibility fields
             userId: this.user.uid,
             expertId: this.selectedExpert.id,
+            babyId: formValue.babyId, // Add baby ID for legacy compatibility
             type: 'scheduled',
             scheduledAt: scheduledDateTime,
             duration: 30,
@@ -371,5 +389,41 @@ export class ConsultationBookingModalComponent implements OnInit {
     }
     
     return stars;
+  }
+
+  // Baby selection methods
+  selectBaby(baby: Baby) {
+    this.selectedBaby = baby;
+    this.bookingForm.patchValue({ babyId: baby.id });
+  }
+
+  getBabyAge(baby: Baby): string {
+    if (!baby.dateOfBirth) return 'Unknown age';
+    
+    const birthDate = new Date(baby.dateOfBirth);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.floor(diffDays / 7);
+    const remainingDays = diffDays % 7;
+    
+    if (diffDays < 7) {
+      return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+    } else if (diffWeeks < 4) {
+      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} ${remainingDays > 0 ? `and ${remainingDays} day${remainingDays !== 1 ? 's' : ''}` : ''}`;
+    } else if (diffWeeks < 52) {
+      const months = Math.floor(diffWeeks / 4);
+      const remainingWeeks = diffWeeks % 4;
+      return `${months} month${months !== 1 ? 's' : ''} ${remainingWeeks > 0 ? `and ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''}`;
+    } else {
+      const years = Math.floor(diffWeeks / 52);
+      const remainingWeeks = diffWeeks % 52;
+      const months = Math.floor(remainingWeeks / 4);
+      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''}`;
+    }
+  }
+
+  getBabyIcon(baby: Baby): string {
+    return baby.gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg';
   }
 }

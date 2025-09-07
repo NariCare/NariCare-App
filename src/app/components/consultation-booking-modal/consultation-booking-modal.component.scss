@@ -440,6 +440,110 @@
   flex: 2;
 }
 
+// Baby Selection Styles
+.babies-horizontal-selection {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  margin: 1rem 0;
+}
+
+.single-baby-info {
+  margin: 1rem 0;
+}
+
+.baby-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+  position: relative;
+
+  &.selected {
+    border-color: #8383ed;
+    background: rgba(131, 131, 237, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(131, 131, 237, 0.15);
+  }
+
+  &:hover:not(.selected) {
+    border-color: #c2c2f0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(131, 131, 237, 0.1);
+  }
+
+  .baby-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: contain;
+    margin-bottom: 0.5rem;
+  }
+
+  .baby-info {
+    text-align: center;
+
+    h4 {
+      margin: 0 0 0.25rem 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+  }
+
+  .selected-icon {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    color: #8383ed;
+    font-size: 1.2rem;
+  }
+}
+
+.field-description {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0.5rem 0 1rem 0;
+  line-height: 1.4;
+}
+
+.no-babies-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  margin: 1rem 0;
+
+  ion-icon {
+    color: #f59e0b;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    color: #92400e;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+}
+
 @media (min-width: 768px) {
   .booking-container {
     max-width: 600px;
@@ -457,6 +561,28 @@
 
     .info-card {
       flex: 1;
+    }
+  }
+
+  .babies-horizontal-selection {
+    gap: 1.5rem;
+  }
+
+  .baby-card {
+    min-width: 140px;
+    padding: 1.5rem;
+
+    .baby-avatar {
+      width: 50px;
+      height: 50px;
+    }
+
+    .baby-info h4 {
+      font-size: 1rem;
+    }
+
+    .baby-info p {
+      font-size: 0.8rem;
     }
   }
 }

@@ -194,7 +194,52 @@
             <p><strong>Date:</strong> {{ bookingForm.get('scheduledDate')?.value | date:'fullDate' }}</p>
             <p><strong>Time:</strong> {{ bookingForm.get('scheduledTime')?.value }}</p>
             <p><strong>Duration:</strong> 30 minutes</p>
+            <p *ngIf="selectedBaby"><strong>Baby:</strong> {{ selectedBaby.name }} ({{ getBabyAge(selectedBaby) }})</p>
           </div>
+        </div>
+
+        <!-- Baby Selection -->
+        <div class="form-group" *ngIf="babies && babies.length > 0">
+          <label class="field-label">👶 Select Baby for Consultation</label>
+          <p class="field-description">Which baby is this consultation about?</p>
+          
+          <!-- Single baby - auto-selected -->
+          <div *ngIf="babies.length === 1" class="single-baby-info">
+            <div class="baby-card selected">
+              <img [src]="getBabyIcon(babies[0])" [alt]="babies[0].name" class="baby-avatar">
+              <div class="baby-info">
+                <h4>{{ babies[0].name }}</h4>
+                <p>{{ getBabyAge(babies[0]) }}</p>
+              </div>
+              <ion-icon name="checkmark-circle" class="selected-icon"></ion-icon>
+            </div>
+          </div>
+
+          <!-- Multiple babies - horizontal selection -->
+          <div *ngIf="babies.length > 1" class="babies-horizontal-selection">
+            <div 
+              *ngFor="let baby of babies"
+              class="baby-card"
+              [class.selected]="selectedBaby?.id === baby.id"
+              (click)="selectBaby(baby)">
+              <img [src]="getBabyIcon(baby)" [alt]="baby.name" class="baby-avatar">
+              <div class="baby-info">
+                <h4>{{ baby.name }}</h4>
+                <p>{{ getBabyAge(baby) }}</p>
+              </div>
+              <ion-icon name="checkmark-circle" class="selected-icon" *ngIf="selectedBaby?.id === baby.id"></ion-icon>
+            </div>
+          </div>
+          
+          <div class="error-message" *ngIf="bookingForm.get('babyId')?.invalid && bookingForm.get('babyId')?.touched">
+            Please select which baby this consultation is for
+          </div>
+        </div>
+
+        <!-- No babies warning -->
+        <div *ngIf="!babies || babies.length === 0" class="no-babies-warning">
+          <ion-icon name="warning-outline"></ion-icon>
+          <p>You need to add at least one baby to book a consultation. Please add your baby's information in the Growth section first.</p>
         </div>
 
         <div class="form-group">
@@ -256,7 +301,7 @@
           </ion-button>
           <ion-button 
             (click)="bookConsultation()" 
-            [disabled]="!bookingForm.valid"
+            [disabled]="!bookingForm.valid || !selectedBaby || (babies && babies.length === 0)"
             class="book-button">
             <ion-icon name="calendar" slot="start"></ion-icon>
             {{ isEditMode ? 'Update Consultation' : 'Book Consultation' }}
