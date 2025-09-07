@@ -87,8 +87,7 @@ export class ProfilePage implements OnInit {
 
     accountItems.push(
       { label: addBabyLabel, icon: 'add-circle-outline', action: 'addBaby' },
-      { label: 'Notifications', icon: 'notifications-outline', action: 'viewNotifications', badge: this.unreadNotificationCount },
-      { label: 'Notification Settings', icon: 'settings-outline', action: 'notificationSettings' }
+      { label: 'Notifications', icon: 'notifications-outline', action: 'viewNotifications', badge: this.unreadNotificationCount }
     );
 
     this.profileSections = [
@@ -142,9 +141,6 @@ export class ProfilePage implements OnInit {
         break;
       case 'viewNotifications':
         this.openNotificationsList();
-        break;
-      case 'notificationSettings':
-        this.openNotificationSettings();
         break;
       case 'subscription':
         this.viewSubscription();

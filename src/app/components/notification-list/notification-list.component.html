@@ -36,10 +36,6 @@
     <ion-icon [name]="getEmptyStateIcon()" color="medium"></ion-icon>
     <h2>No Notifications</h2>
     <p>{{ getEmptyStateMessage() }}</p>
-    <ion-button fill="outline" (click)="openPreferences()">
-      <ion-icon name="settings-outline" slot="start"></ion-icon>
-      Notification Settings
-    </ion-button>
   </div>
 
   <!-- Notification list -->
@@ -101,9 +97,3 @@
   </ion-infinite-scroll>
 </ion-content>
 
-<!-- Floating action button for preferences -->
-<ion-fab vertical="bottom" horizontal="end" slot="fixed">
-  <ion-fab-button (click)="openPreferences()" size="small" color="tertiary">
-    <ion-icon name="settings-outline"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
