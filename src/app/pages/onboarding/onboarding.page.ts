@@ -187,7 +187,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       // Step 3: Breastfeeding Details
       experienceLevel: ['', [Validators.required]],
       currentlyBreastfeeding: [null],
-      directFeedsPerDay: [null],
+      directFeedsPerDay: [0],
       latchQuality: [''],
       offersBothBreasts: [null],
       timePerBreast: [''],
@@ -235,14 +235,6 @@ export class OnboardingPage implements OnInit, OnDestroy {
       currentChallenges: [[]],
       expectationsFromProgram: ['', [Validators.required]],
       milkSupplyGoals: [''],
-      notificationPreferences: this.formBuilder.group({
-        articleUpdates: [true],
-        consultationReminders: [true],
-        groupMessages: [true],
-        growthReminders: [true],
-        expertMessages: [true],
-        pumpingReminders: [false]
-      }),
       topicsOfInterest: [[]]
     });
 
@@ -608,7 +600,6 @@ export class OnboardingPage implements OnInit, OnDestroy {
           currentChallenges: formValue.currentChallenges,
           expectationsFromProgram: formValue.expectationsFromProgram,
           milkSupplyGoals: formValue.milkSupplyGoals,
-          notificationPreferences: formValue.notificationPreferences,
           topicsOfInterest: formValue.topicsOfInterest
         };
       default:

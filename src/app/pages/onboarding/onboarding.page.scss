@@ -450,6 +450,55 @@ ion-chip {
   margin-top: 4px;
 }
 
+// Slider styles
+.slider-container {
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1rem;
+  
+  .slider-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+  }
+  
+  .slider-value-display {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+    
+    .slider-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #8383ed;
+      background: rgba(131, 131, 237, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      min-width: 60px;
+      text-align: center;
+    }
+  }
+  
+  .breastfeed-slider {
+    --bar-background: #e2e8f0;
+    --bar-background-active: #8383ed;
+    --bar-height: 6px;
+    --knob-background: #8383ed;
+    --knob-size: 24px;
+    --knob-box-shadow: 0 2px 8px rgba(131, 131, 237, 0.3);
+    
+    ion-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #64748b;
+    }
+  }
+}
+
 .next-button,
 .complete-button {
   --background: #8383ed;
