@@ -65,12 +65,16 @@ export class ProfilePage implements OnInit {
       { label: 'Personal Information', icon: 'person-outline', action: 'editProfile' }
     ];
 
-    // Only show baby information if user has babies
+    // Add individual baby entries
     if (this.user?.babies && this.user.babies.length > 0) {
-      accountItems.push({ 
-        label: this.user.babies.length === 1 ? `${this.user.babies[0].name}'s Information` : 'Baby Information', 
-        icon: 'baby-outline', 
-        action: 'editBaby' 
+      this.user.babies.forEach((baby, index) => {
+        accountItems.push({
+          label: `${baby.name}'s Information`,
+          icon: 'baby-outline',
+          action: 'editSpecificBaby',
+          babyId: baby.id,
+          babyIndex: index
+        });
       });
     }
 
@@ -115,13 +119,16 @@ export class ProfilePage implements OnInit {
     });
   }
 
-  handleAction(action: string) {
+  handleAction(action: string, item?: any) {
     switch (action) {
       case 'editProfile':
         this.editProfile();
         break;
       case 'editBaby':
         this.editBaby();
+        break;
+      case 'editSpecificBaby':
+        this.editSpecificBaby(item?.babyId);
         break;
       case 'addBaby':
         this.addBaby();
@@ -249,6 +256,12 @@ export class ProfilePage implements OnInit {
     });
 
     await modal.present();
+  }
+
+  private editSpecificBaby(babyId: string) {
+    if (babyId) {
+      this.router.navigate(['/tabs/growth/baby-detail', babyId]);
+    }
   }
 
   async addBaby() {

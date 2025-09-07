@@ -64,7 +64,7 @@
           <div 
             *ngFor="let item of section.items"
             class="section-item"
-            (click)="handleAction(item.action)">
+            (click)="handleAction(item.action, item)">
             <div class="item-icon">
               <ion-icon [name]="item.icon"></ion-icon>
             </div>
