@@ -495,31 +495,47 @@
           <h3 class="subsection-title">Baby's Daily Output</h3>
           <p class="section-note">This information is crucial for assessing your baby's intake</p>
           
-          <div class="form-row">
-            <div class="form-group half-width">
-              <ion-item lines="none" class="input-item" [class.error]="isFieldInvalid('peeCount24h')">
-                <ion-label position="stacked">Wet diapers (24 hours)</ion-label>
-                <ion-input
+          <div class="diaper-sliders-row">
+            <div class="form-group">
+              <div class="slider-container">
+                <ion-label class="slider-label">Wet diapers (24 hours)</ion-label>
+                <div class="slider-value-display">
+                  <span class="slider-value">{{ onboardingForm.get('peeCount24h')?.value || 0 }}</span>
+                </div>
+                <ion-range
                   formControlName="peeCount24h"
-                  type="number"
                   min="0"
                   max="20"
-                  fill="outline">
-                </ion-input>
-              </ion-item>
+                  step="1"
+                  snaps="true"
+                  ticks="false"
+                  color="primary"
+                  class="diaper-slider">
+                  <ion-label slot="start">0</ion-label>
+                  <ion-label slot="end">20</ion-label>
+                </ion-range>
+              </div>
             </div>
             
-            <div class="form-group half-width">
-              <ion-item lines="none" class="input-item" [class.error]="isFieldInvalid('poopCount24h')">
-                <ion-label position="stacked">Soiled diapers (24 hours)</ion-label>
-                <ion-input
+            <div class="form-group">
+              <div class="slider-container">
+                <ion-label class="slider-label">Soiled diapers (24 hours)</ion-label>
+                <div class="slider-value-display">
+                  <span class="slider-value">{{ onboardingForm.get('poopCount24h')?.value || 0 }}</span>
+                </div>
+                <ion-range
                   formControlName="poopCount24h"
-                  type="number"
                   min="0"
-                  max="10"
-                  fill="outline">
-                </ion-input>
-              </ion-item>
+                  max="15"
+                  step="1"
+                  snaps="true"
+                  ticks="false"
+                  color="primary"
+                  class="diaper-slider">
+                  <ion-label slot="start">0</ion-label>
+                  <ion-label slot="end">15</ion-label>
+                </ion-range>
+              </div>
             </div>
           </div>
         </div>

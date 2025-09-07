@@ -192,8 +192,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
       offersBothBreasts: [null],
       timePerBreast: [''],
       breastfeedingDuration: [''],
-      peeCount24h: [null],
-      poopCount24h: [null],
+      peeCount24h: [0],
+      poopCount24h: [0],
       
       // Step 4: Medical & Health Information
       motherMedicalConditions: [[]],

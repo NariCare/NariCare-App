@@ -483,7 +483,8 @@ ion-chip {
     }
   }
   
-  .breastfeed-slider {
+  .breastfeed-slider,
+  .diaper-slider {
     --bar-background: #e2e8f0;
     --bar-background-active: #8383ed;
     --bar-height: 6px;
@@ -495,6 +496,22 @@ ion-chip {
       font-size: 0.8rem;
       font-weight: 500;
       color: #64748b;
+    }
+  }
+}
+
+// Diaper sliders layout
+.diaper-sliders-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    gap: 1.5rem;
+    
+    .form-group {
+      flex: 1;
     }
   }
 }
