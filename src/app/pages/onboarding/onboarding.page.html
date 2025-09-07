@@ -178,14 +178,38 @@
         <div class="baby-info-section" *ngIf="shouldShowField('babyInfo')">
           <div class="babies-header">
             <h3 class="subsection-title">Baby Information</h3>
-            <ion-button 
-              fill="outline" 
-              size="small" 
-              (click)="addBaby()" 
-              class="add-baby-button">
-              <ion-icon name="add" slot="start"></ion-icon>
-              Add Baby
-            </ion-button>
+            <div class="baby-action-buttons">
+              <ion-button 
+                fill="outline" 
+                size="small" 
+                (click)="addBaby()" 
+                class="add-baby-button">
+                <ion-icon name="add" slot="start"></ion-icon>
+                Add New Baby
+              </ion-button>
+            </div>
+          </div>
+
+          <!-- Existing Babies Selection -->
+          <div *ngIf="existingBabies.length > 0" class="existing-babies-section">
+            <h4 class="existing-babies-title">Or select from your existing babies:</h4>
+            <div class="existing-babies-grid">
+              <div 
+                *ngFor="let baby of existingBabies" 
+                class="existing-baby-card"
+                (click)="selectExistingBaby(baby)">
+                <div class="baby-avatar">
+                  <img [src]="baby.gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg'" 
+                       [alt]="baby.gender === 'female' ? 'Baby girl' : 'Baby boy'" 
+                       class="baby-icon">
+                </div>
+                <div class="baby-info">
+                  <h5 class="baby-name">{{ baby.name }}</h5>
+                  <p class="baby-age">{{ calculateBabyAge(baby.dateOfBirth || baby.date_of_birth) }}</p>
+                </div>
+                <ion-icon name="add-circle" class="add-icon"></ion-icon>
+              </div>
+            </div>
           </div>
           
           <!-- Multiple babies forms -->

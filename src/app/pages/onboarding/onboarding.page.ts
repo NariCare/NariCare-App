@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
 import { OnboardingService } from '../../services/onboarding.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { ApiService } from '../../services/api.service';
 import { OnboardingData, OnboardingOptions, OnboardingProgress } from '../../models/onboarding.model';
 import { User } from '../../models/user.model';
 import { Subscription } from 'rxjs';
@@ -29,6 +30,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
   
   // Multiple babies support
   babies: FormGroup[] = [];
+  existingBabies: any[] = [];
+  newBabiesToCreate: any[] = []; // Track babies that need to be created via API
   
   // Template helper properties
   currentDate = new Date().toISOString();
@@ -44,6 +47,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
     private formBuilder: FormBuilder,
     private onboardingService: OnboardingService,
     private authService: BackendAuthService,
+    private apiService: ApiService,
     private router: Router,
     private loadingController: LoadingController,
     private toastController: ToastController,
@@ -60,6 +64,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
         this.currentUser = user;
         if (user) {
           this.prefillUserInformation(user);
+          this.loadExistingBabies();
         }
       })
     );
@@ -94,6 +99,111 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.forEach(sub => sub.unsubscribe());
+  }
+
+  // ============================================================================
+  // BABIES MANAGEMENT
+  // ============================================================================
+
+  async loadExistingBabies(): Promise<void> {
+    try {
+      const response = await this.apiService.getUserBabies().toPromise();
+      if (response?.success && response.data) {
+        this.existingBabies = response.data;
+        console.log('Loaded existing babies:', this.existingBabies);
+      }
+    } catch (error) {
+      console.error('Error loading existing babies:', error);
+      // Continue with empty array if API fails
+      this.existingBabies = [];
+    }
+  }
+
+  selectExistingBaby(baby: any): void {
+    // Add the existing baby to the form array
+    const babyFormGroup = this.createBabyForm();
+    babyFormGroup.patchValue({
+      name: baby.name,
+      gender: baby.gender,
+      dateOfBirth: baby.dateOfBirth || baby.date_of_birth,
+      birthWeight: baby.birthWeight || baby.birth_weight,
+      birthHeight: baby.birthHeight || baby.birth_height,
+      deliveryType: baby.deliveryType || baby.delivery_type,
+      gestationalAge: baby.gestationalAge || baby.gestational_age,
+      currentWeight: baby.currentWeight || baby.current_weight,
+      weightCheckDate: baby.weightCheckDate || baby.weight_check_date,
+      existingBabyId: baby.id // Track that this is an existing baby
+    });
+
+    this.babiesFormArray.push(babyFormGroup);
+    console.log('Added existing baby to form:', baby);
+  }
+
+  calculateBabyAge(dateOfBirth: string): string {
+    if (!dateOfBirth) return '';
+    
+    const birthDate = new Date(dateOfBirth);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 7) {
+      return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} week${weeks !== 1 ? 's' : ''}`;
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      return `${months} month${months !== 1 ? 's' : ''}`;
+    } else {
+      const years = Math.floor(diffDays / 365);
+      return `${years} year${years !== 1 ? 's' : ''}`;
+    }
+  }
+
+  async createNewBabiesViaAPI(): Promise<void> {
+    console.log('Creating new babies via API...');
+    const babyPromises: Promise<any>[] = [];
+    
+    // Iterate through all babies in the form array
+    for (let i = 0; i < this.babiesFormArray.length; i++) {
+      const babyData = this.babiesFormArray.at(i).value;
+      
+      // Only create babies that don't have existingBabyId (i.e., new babies)
+      if (!babyData.existingBabyId) {
+        console.log('Creating new baby:', babyData);
+        
+        const createBabyPromise = this.apiService.createBaby({
+          name: babyData.name,
+          dateOfBirth: babyData.dateOfBirth,
+          gender: babyData.gender,
+          birthWeight: babyData.birthWeight,
+          birthHeight: babyData.birthHeight
+        }).toPromise().then(response => {
+          if (response?.success) {
+            console.log('Successfully created baby:', response.data);
+            return response.data;
+          } else {
+            throw new Error(`Failed to create baby: ${response?.message || 'Unknown error'}`);
+          }
+        });
+        
+        babyPromises.push(createBabyPromise);
+      }
+    }
+    
+    // Wait for all baby creation requests to complete
+    if (babyPromises.length > 0) {
+      try {
+        const createdBabies = await Promise.all(babyPromises);
+        console.log('All new babies created successfully:', createdBabies);
+      } catch (error) {
+        console.error('Error creating babies:', error);
+        throw error; // Rethrow to be handled by the calling method
+      }
+    } else {
+      console.log('No new babies to create');
+    }
   }
 
   // ============================================================================
@@ -625,6 +735,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
       // Save final step data
       this.saveCurrentStepData();
       
+      // Create new babies via API before completing onboarding
+      await this.createNewBabiesViaAPI();
+      
       // Complete onboarding through service
       await this.onboardingService.completeOnboarding();
 
@@ -820,7 +933,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
       deliveryType: ['', Validators.required],
       gestationalAge: [40, [Validators.required, Validators.min(20)]],
       currentWeight: [null],
-      weightCheckDate: [new Date().toISOString()]
+      weightCheckDate: [new Date().toISOString()],
+      existingBabyId: [null] // Track if this is an existing baby
     });
   }
 
