@@ -80,8 +80,13 @@ export class ProfilePage implements OnInit {
       });
     }
 
+    // Determine the add baby label based on existing babies
+    const addBabyLabel = (this.user?.babies && this.user.babies.length > 0) 
+      ? 'Add Another Baby' 
+      : 'Add New Baby';
+
     accountItems.push(
-      { label: 'Add New Baby', icon: 'add-circle-outline', action: 'addBaby' },
+      { label: addBabyLabel, icon: 'add-circle-outline', action: 'addBaby' },
       { label: 'Notifications', icon: 'notifications-outline', action: 'viewNotifications', badge: this.unreadNotificationCount },
       { label: 'Notification Settings', icon: 'settings-outline', action: 'notificationSettings' }
     );
