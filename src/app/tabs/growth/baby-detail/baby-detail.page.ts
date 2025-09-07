@@ -14,6 +14,7 @@ import { WeightChartModalComponent } from '../../../components/weight-chart-moda
 import { FeedLogModalComponent } from '../../../components/feed-log-modal/feed-log-modal.component';
 import { DiaperLogModalComponent } from '../../../components/diaper-log-modal/diaper-log-modal.component';
 import { WeightLogModalComponent } from '../../../components/weight-log-modal/weight-log-modal.component';
+import { BabyEditModalComponent } from '../../../components/baby-edit-modal/baby-edit-modal.component';
 import { 
   GrowthRecord, 
   WeightRecord, 
@@ -217,6 +218,11 @@ export class BabyDetailPage implements OnInit {
   }
 
   onEditClick() {
+    // Check if this is the edit button in the header (for baby info) or tab-specific edit
+    this.openBabyEditModal();
+  }
+
+  onAddRecordClick() {
     // Open appropriate modal based on current sub-tab
     switch (this.selectedSubTab) {
       case 'weight-size':
@@ -291,6 +297,25 @@ export class BabyDetailPage implements OnInit {
 
   closeAddPumpingModal() {
     this.showAddPumpingModal = false;
+  }
+
+  async openBabyEditModal() {
+    const modal = await this.modalController.create({
+      component: BabyEditModalComponent,
+      componentProps: {
+        baby: this.baby
+      }
+    });
+
+    modal.onDidDismiss().then((result) => {
+      if (result.data?.updated) {
+        // Baby info was updated, reload user data will refresh the baby info
+        this.loadBabyData();
+        this.showToast('Baby information updated successfully!', 'success');
+      }
+    });
+
+    return await modal.present();
   }
 
   private resetRecordForm() {

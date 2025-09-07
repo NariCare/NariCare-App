@@ -52,11 +52,15 @@
     <!-- Weight and Size Tab -->
     <div class="tab-content" *ngIf="selectedSubTab === 'weight-size'">
 
-      <!-- See Charts Button -->
-      <div class="charts-button-section">
+      <!-- Tab Actions -->
+      <div class="tab-actions-section">
         <ion-button expand="block" fill="solid" class="see-charts-button" (click)='openWeightChartModal()'>
           <ion-icon name="stats-chart" slot="start"></ion-icon>
           SEE CHARTS
+        </ion-button>
+        <ion-button expand="block" fill="outline" class="add-record-button" (click)='onAddRecordClick()'>
+          <ion-icon name="add" slot="start"></ion-icon>
+          ADD WEIGHT RECORD
         </ion-button>
       </div>
 
@@ -116,7 +120,7 @@
           <div class="empty-records">
             <ion-icon name="scale"></ion-icon>
             <h4>No weight records yet</h4>
-            <p>Start tracking by clicking the edit button above</p>
+            <p>Start tracking by clicking the "Add Weight Record" button above</p>
           </div>
         </ng-template>
       </div>
@@ -124,6 +128,14 @@
 
     <!-- Feed Tracks Tab -->
     <div class="tab-content" *ngIf="selectedSubTab === 'feed-tracks'">
+      <!-- Tab Actions -->
+      <div class="tab-actions-section">
+        <ion-button expand="block" fill="outline" class="add-record-button" (click)='onAddRecordClick()'>
+          <ion-icon name="add" slot="start"></ion-icon>
+          ADD FEED RECORD
+        </ion-button>
+      </div>
+      
       <div class="records-section">
         <h3 class="section-title">Recent Feed Records</h3>
         <div class="records-list" *ngIf="growthRecords$ | async as growthRecords; else noFeedRecords">
@@ -171,7 +183,7 @@
           <div class="empty-records">
             <ion-icon name="body"></ion-icon>
             <h4>No feed records yet</h4>
-            <p>Start tracking by clicking the edit button above</p>
+            <p>Start tracking by clicking the "Add Feed Record" button above</p>
           </div>
         </ng-template>
       </div>
@@ -179,6 +191,14 @@
 
     <!-- Diaper Change Tab -->
     <div class="tab-content" *ngIf="selectedSubTab === 'diaper-change'">
+      <!-- Tab Actions -->
+      <div class="tab-actions-section">
+        <ion-button expand="block" fill="outline" class="add-record-button" (click)='onAddRecordClick()'>
+          <ion-icon name="add" slot="start"></ion-icon>
+          ADD DIAPER CHANGE
+        </ion-button>
+      </div>
+      
       <div class="records-section">
         <h3 class="section-title">Recent Diaper Changes</h3>
         <div class="records-list" *ngIf="diaperChangeRecords$ | async as diaperRecords; else noDiaperRecords">
@@ -206,7 +226,7 @@
           <div class="empty-records">
             <ion-icon name="medical"></ion-icon>
             <h4>No diaper changes yet</h4>
-            <p>Start tracking by clicking the edit button above</p>
+            <p>Start tracking by clicking the "Add Diaper Change" button above</p>
           </div>
         </ng-template>
       </div>

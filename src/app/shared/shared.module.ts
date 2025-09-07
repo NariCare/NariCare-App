@@ -22,6 +22,7 @@ import { AvailabilitySchedulerModalComponent } from '../components/availability-
 import { NotificationListComponent } from '../components/notification-list/notification-list.component';
 import { NotificationPreferencesComponent } from '../components/notification-preferences/notification-preferences.component';
 import { BabySelectionModalComponent } from '../components/baby-selection-modal/baby-selection-modal.component';
+import { BabyEditModalComponent } from '../components/baby-edit-modal/baby-edit-modal.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import { BabySelectionModalComponent } from '../components/baby-selection-modal/
     AvailabilitySchedulerModalComponent,
     NotificationListComponent,
     NotificationPreferencesComponent,
-    BabySelectionModalComponent
+    BabySelectionModalComponent,
+    BabyEditModalComponent
   ],
   imports: [
     CommonModule,
@@ -71,7 +73,8 @@ import { BabySelectionModalComponent } from '../components/baby-selection-modal/
     AvailabilitySchedulerModalComponent,
     NotificationListComponent,
     NotificationPreferencesComponent,
-    BabySelectionModalComponent
+    BabySelectionModalComponent,
+    BabyEditModalComponent
   ]
 })
 export class SharedModule { }

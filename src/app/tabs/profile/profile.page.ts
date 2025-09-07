@@ -71,9 +71,11 @@ export class ProfilePage implements OnInit {
         accountItems.push({
           label: `${baby.name}'s Information`,
           icon: 'baby-outline',
+          customIcon: baby.gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg',
           action: 'editSpecificBaby',
           babyId: baby.id,
-          babyIndex: index
+          babyIndex: index,
+          babyGender: baby.gender
         });
       });
     }
