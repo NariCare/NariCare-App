@@ -135,6 +135,15 @@ export class BabyDetailPage implements OnInit {
   ngOnInit() {
     this.route.params.subscribe(params => {
       this.babyId = params['id'];
+      console.log('Baby Detail Page - Route param baby ID:', this.babyId);
+      
+      // Validate that we have a proper baby ID and this is the correct route
+      if (!this.babyId || this.babyId === 'undefined' || this.babyId === 'null') {
+        console.warn('Baby Detail Page - Invalid baby ID, redirecting to growth page');
+        this.router.navigate(['/tabs/growth'], { replaceUrl: true });
+        return;
+      }
+      
       if (this.babyId) {
         this.loadBabyData();
       }
@@ -148,7 +157,7 @@ export class BabyDetailPage implements OnInit {
       console.log('Baby Detail Page - Looking for baby ID:', this.babyId);
       
       this.user = user;
-      if (user && this.babyId) {
+      if (user && this.babyId && this.babyId !== 'undefined' && this.babyId !== 'null') {
         if (user.babies && Array.isArray(user.babies)) {
           console.log('Baby Detail Page - Available babies:', user.babies.map(b => ({ id: b.id, name: b.name })));
           this.baby = user.babies.find(b => b.id === this.babyId) || null;
@@ -159,16 +168,19 @@ export class BabyDetailPage implements OnInit {
             console.warn(`Baby with ID ${this.babyId} not found in user's babies list`);
             this.showToast('Baby not found. Returning to growth page.', 'warning');
             setTimeout(() => {
-              this.router.navigate(['/tabs/growth']);
+              this.router.navigate(['/tabs/growth'], { replaceUrl: true });
             }, 2000);
           }
         } else {
           console.warn('Baby Detail Page - User has no babies array or it\'s not an array');
           this.showToast('No babies found. Please add a baby first.', 'warning');
           setTimeout(() => {
-            this.router.navigate(['/tabs/growth']);
+            this.router.navigate(['/tabs/growth'], { replaceUrl: true });
           }, 2000);
         }
+      } else if (this.babyId && (this.babyId === 'undefined' || this.babyId === 'null')) {
+        console.warn('Baby Detail Page - Invalid baby ID detected, redirecting immediately');
+        this.router.navigate(['/tabs/growth'], { replaceUrl: true });
       } else {
         console.warn('Baby Detail Page - No user or baby ID');
       }
@@ -312,6 +324,11 @@ export class BabyDetailPage implements OnInit {
         // Baby info was updated, reload user data will refresh the baby info
         this.loadBabyData();
         this.showToast('Baby information updated successfully!', 'success');
+      } else if (result.data?.deleted) {
+        // Baby was deleted, redirect to growth page
+        this.showToast('Baby information deleted successfully.', 'success');
+        // Use replace to avoid back navigation issues
+        this.router.navigate(['/tabs/growth'], { replaceUrl: true });
       }
     });
 

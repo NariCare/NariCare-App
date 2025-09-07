@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ModalController, ToastController, LoadingController } from '@ionic/angular';
+import { ModalController, ToastController, LoadingController, AlertController } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { Baby } from '../../models/user.model';
@@ -19,6 +19,7 @@ export class BabyEditModalComponent implements OnInit {
     private modalController: ModalController,
     private toastController: ToastController,
     private loadingController: LoadingController,
+    private alertController: AlertController,
     private apiService: ApiService,
     private backendAuthService: BackendAuthService
   ) {
@@ -207,5 +208,71 @@ export class BabyEditModalComponent implements OnInit {
       return dateValue.split('T')[0];
     }
     return dateValue;
+  }
+
+  async confirmDeleteBaby() {
+    if (!this.baby) return;
+
+    const alert = await this.alertController.create({
+      header: 'Delete Baby',
+      message: `Are you sure you want to delete ${this.baby.name}'s information? This action cannot be undone and will permanently remove all associated records including feeding logs, weight records, and growth tracking data.`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            this.deleteBaby();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  async deleteBaby() {
+    if (!this.baby) return;
+
+    const loading = await this.loadingController.create({
+      message: `Deleting ${this.baby.name}'s information...`,
+      translucent: true
+    });
+    await loading.present();
+
+    try {
+      const response = await this.apiService.deleteBaby(this.baby.id).toPromise();
+      
+      if (response?.success) {
+        await loading.dismiss();
+        
+        const toast = await this.toastController.create({
+          message: `${this.baby.name}'s information has been deleted successfully.`,
+          duration: 3000,
+          color: 'success',
+          position: 'top'
+        });
+        await toast.present();
+
+        // Refresh user data to remove the deleted baby
+        await this.refreshUserData();
+
+        this.modalController.dismiss({ deleted: true, babyId: this.baby.id, navigateToGrowth: true });
+      } else {
+        throw new Error(response?.message || 'Failed to delete baby information');
+      }
+    } catch (error: any) {
+      await loading.dismiss();
+      const toast = await this.toastController.create({
+        message: error.message || 'Failed to delete baby information. Please try again.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    }
   }
 }

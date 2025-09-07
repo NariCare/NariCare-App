@@ -176,6 +176,17 @@
         <ion-icon name="checkmark-outline" slot="start"></ion-icon>
         Update Baby Information
       </ion-button>
+
+      <!-- Delete Button -->
+      <ion-button 
+        expand="block"
+        fill="clear"
+        color="danger"
+        (click)="confirmDeleteBaby()"
+        class="delete-baby-button">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Delete Baby
+      </ion-button>
     </form>
   </div>
 </ion-content>

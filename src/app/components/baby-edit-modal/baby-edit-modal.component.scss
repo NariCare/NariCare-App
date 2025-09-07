@@ -193,6 +193,32 @@
   }
 }
 
+.delete-baby-button {
+  --color: #ef4444;
+  --background: rgba(239, 68, 68, 0.1);
+  --background-hover: rgba(239, 68, 68, 0.15);
+  --border-radius: 12px;
+  --border-color: #ef4444;
+  --border-width: 1px;
+  margin-top: 1rem;
+  height: 48px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+
+  ion-icon {
+    color: #ef4444;
+  }
+
+  &:hover {
+    --background: rgba(239, 68, 68, 0.2);
+    --color: #dc2626;
+    
+    ion-icon {
+      color: #dc2626;
+    }
+  }
+}
+
 @media (min-width: 768px) {
   .baby-edit-container {
     max-width: 480px;

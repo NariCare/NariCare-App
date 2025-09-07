@@ -232,7 +232,8 @@ export class ProfilePage implements OnInit {
   }
 
   private editProfile() {
-    this.router.navigate(['/personal-info']);
+    console.log('Profile Page - Navigating to personal-info');
+    this.router.navigate(['/personal-info'], { replaceUrl: false });
   }
 
   private async editBaby() {
@@ -262,7 +263,15 @@ export class ProfilePage implements OnInit {
 
   private editSpecificBaby(babyId: string) {
     if (babyId) {
-      this.router.navigate(['/tabs/growth/baby-detail', babyId]);
+      // Check if baby still exists (in case of recent deletion)
+      const babyExists = this.user?.babies?.find(b => b.id === babyId);
+      if (babyExists) {
+        this.router.navigate(['/tabs/growth/baby-detail', babyId]);
+      } else {
+        // Baby no longer exists, refresh profile sections
+        this.updateProfileSections();
+        this.showErrorToast('This baby information is no longer available.');
+      }
     }
   }
 
@@ -288,6 +297,16 @@ export class ProfilePage implements OnInit {
       message,
       duration: 3000,
       color: 'success',
+      position: 'top'
+    });
+    await toast.present();
+  }
+
+  private async showErrorToast(message: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color: 'danger',
       position: 'top'
     });
     await toast.present();

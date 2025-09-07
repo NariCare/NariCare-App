@@ -48,6 +48,16 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    // Check if we're actually on the personal-info page
+    const currentUrl = this.router.url;
+    console.log('Personal Info Page - Current URL:', currentUrl);
+    
+    if (!currentUrl.includes('/personal-info')) {
+      console.warn('Personal Info Page - Not on correct route, redirecting to personal-info');
+      this.router.navigate(['/personal-info'], { replaceUrl: true });
+      return;
+    }
+    
     // Refresh user profile to ensure latest data is loaded
     try {
       await this.backendAuthService.refreshUserProfile();
