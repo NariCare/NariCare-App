@@ -519,7 +519,7 @@ export class BabyDetailPage implements OnInit {
   calculateBabyAge(): string {
     if (!this.baby || !this.baby.dateOfBirth) {
       console.warn('calculateBabyAge: No baby or dateOfBirth available');
-      return 'Age unknown';
+      return 'Unknown';
     }
     
     try {
@@ -531,22 +531,22 @@ export class BabyDetailPage implements OnInit {
       const remainingDays = diffDays % 7;
       
       if (diffDays < 7) {
-        return `${diffDays} day${diffDays !== 1 ? 's' : ''} old`;
+        return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
       } else if (diffWeeks < 4) {
-        return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} ${remainingDays > 0 ? `and ${remainingDays} day${remainingDays !== 1 ? 's' : ''}` : ''} old`;
+        return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} ${remainingDays > 0 ? `and ${remainingDays} day${remainingDays !== 1 ? 's' : ''}` : ''}`;
       } else if (diffWeeks < 52) {
         const months = Math.floor(diffWeeks / 4);
         const remainingWeeks = diffWeeks % 4;
-        return `${months} month${months !== 1 ? 's' : ''} ${remainingWeeks > 0 ? `and ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
+        return `${months} month${months !== 1 ? 's' : ''} ${remainingWeeks > 0 ? `and ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''}`;
       } else {
         const years = Math.floor(diffWeeks / 52);
         const remainingWeeks = diffWeeks % 52;
         const months = Math.floor(remainingWeeks / 4);
-        return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
+        return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''}`;
       }
     } catch (error) {
       console.error('Error calculating baby age:', error);
-      return 'Age calculation error';
+      return 'Calculation error';
     }
   }
 
