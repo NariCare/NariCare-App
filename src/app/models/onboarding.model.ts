@@ -209,7 +209,7 @@ export const OnboardingOptions = {
   motherMedicalConditions: [
     'Diabetes', 'Hypertension', 'Thyroid disorders', 'PCOS', 'Depression/Anxiety',
     'Previous breast surgery', 'Medications affecting milk supply', 'Hormonal imbalances',
-    'Mastitis history', 'IGT (Insufficient Glandular Tissue)', 'None', 'Other'
+    'Mastitis history', 'IGT (Insufficient Glandular Tissue)', 'Other'
   ],
 
   familyStructure: [

@@ -551,23 +551,45 @@
                   <h4 class="subsection-title">{{ baby.get('name')?.value || getBabyTitle(i) }} - Formula Details</h4>
                   
                   <div class="form-group">
-                    <label class="input-label">How many times are you offering formula?</label>
-                    <ion-radio-group formControlName="formulaTimesPerDay" class="vertical-radio-group">
-                      <ion-item *ngFor="let count of [1,2,3,4,5,6,7,8]" lines="none" class="radio-item">
-                        <ion-radio slot="start" [value]="count === 8 ? '8+' : count"></ion-radio>
-                        <ion-label>{{ count === 8 ? '8 or more' : count }}</ion-label>
-                      </ion-item>
-                    </ion-radio-group>
+                    <div class="slider-container">
+                      <label class="slider-label">How many times are you offering formula?</label>
+                      <div class="slider-value-display">
+                        <span class="slider-value">{{ baby.get('formulaTimesPerDay')?.value || 0 }}{{ (baby.get('formulaTimesPerDay')?.value || 0) >= 8 ? '+' : '' }} times</span>
+                      </div>
+                      <ion-range
+                        formControlName="formulaTimesPerDay"
+                        min="0"
+                        max="8"
+                        step="1"
+                        snaps="true"
+                        ticks="true"
+                        pin="true"
+                        class="formula-slider">
+                        <ion-label slot="start">0</ion-label>
+                        <ion-label slot="end">8+</ion-label>
+                      </ion-range>
+                    </div>
                   </div>
 
                   <div class="form-group">
-                    <label class="input-label">How much formula is offered per feed?</label>
-                    <ion-radio-group formControlName="formulaAmountPerFeed" class="vertical-radio-group">
-                      <ion-item *ngFor="let amount of ['120ml+','110ml','100ml','90ml','80ml','70ml','60ml','50ml','40ml','30ml','20ml','10ml']" lines="none" class="radio-item">
-                        <ion-radio slot="start" [value]="amount"></ion-radio>
-                        <ion-label>{{ amount === '120ml+' ? '120ml or more' : amount }}</ion-label>
-                      </ion-item>
-                    </ion-radio-group>
+                    <div class="slider-container">
+                      <label class="slider-label">How much formula is offered per feed?</label>
+                      <div class="slider-value-display">
+                        <span class="slider-value">{{ baby.get('formulaAmountPerFeed')?.value || 10 }}{{ (baby.get('formulaAmountPerFeed')?.value || 10) >= 120 ? '+' : '' }}ml</span>
+                      </div>
+                      <ion-range
+                        formControlName="formulaAmountPerFeed"
+                        min="10"
+                        max="120"
+                        step="10"
+                        snaps="true"
+                        ticks="true"
+                        pin="true"
+                        class="formula-slider">
+                        <ion-label slot="start">10ml</ion-label>
+                        <ion-label slot="end">120ml+</ion-label>
+                      </ion-range>
+                    </div>
                   </div>
                 </div>
 
@@ -577,12 +599,16 @@
                   
                   <div class="form-group">
                     <label class="input-label">How long does it take to finish the feed using bottle?</label>
-                    <ion-radio-group formControlName="bottleFeedDuration" class="vertical-radio-group">
-                      <ion-item *ngFor="let duration of ['5min','10min','15min','20min','25min','30min+','other']" lines="none" class="radio-item">
-                        <ion-radio slot="start" [value]="duration"></ion-radio>
-                        <ion-label>{{ duration === '30min+' ? '30min or more' : duration === 'other' ? 'Other' : duration }}</ion-label>
-                      </ion-item>
-                    </ion-radio-group>
+                    <div class="horizontal-chip-selection">
+                      <ion-chip 
+                        *ngFor="let duration of ['5min','10min','15min','20min','25min','30min+','other']"
+                        [class.selected]="baby.get('bottleFeedDuration')?.value === duration"
+                        (click)="updateBabyFormControl(i, 'bottleFeedDuration', duration)"
+                        class="selection-chip">
+                        <ion-icon name="checkmark-circle" *ngIf="baby.get('bottleFeedDuration')?.value === duration" class="chip-selected-icon"></ion-icon>
+                        {{ duration === '30min+' ? '30min+' : duration === 'other' ? 'Other' : duration }}
+                      </ion-chip>
+                    </div>
                   </div>
 
                   <div class="form-group">
@@ -655,156 +681,6 @@
           </ion-radio-group>
         </div>
 
-        <!-- Breastfeeding Details (shown if currently breastfeeding) -->
-        <div class="breastfeeding-details" *ngIf="shouldShowField('breastfeedingDetails')">
-          <h3 class="subsection-title">Breastfeeding Details</h3>
-          
-          <div class="form-group">
-            <div class="slider-container">
-              <ion-label class="slider-label">Direct breastfeeds in 24 hours</ion-label>
-              <div class="slider-value-display">
-                <span class="slider-value">{{ onboardingForm.get('directFeedsPerDay')?.value || 0 }}{{ (onboardingForm.get('directFeedsPerDay')?.value || 0) >= 12 ? '+' : '' }}</span>
-              </div>
-              <ion-range
-                formControlName="directFeedsPerDay"
-                min="0"
-                max="12"
-                step="1"
-                snaps="true"
-                ticks="false"
-                color="primary"
-                class="breastfeed-slider">
-                <ion-label slot="start">0</ion-label>
-                <ion-label slot="end">12+</ion-label>
-              </ion-range>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="input-label">Latch Quality</label>
-            <div class="horizontal-chip-selection">
-              <ion-chip 
-                *ngFor="let latch of options.latchQuality"
-                [class.selected]="isValueSelected('latchQuality', latch.value)"
-                (click)="selectSingleValue('latchQuality', latch.value)"
-                class="selection-chip">
-                <ion-icon 
-                  *ngIf="isValueSelected('latchQuality', latch.value)" 
-                  name="checkmark" 
-                  class="chip-selected-icon">
-                </ion-icon>
-                {{ latch.label }}
-              </ion-chip>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="input-label">Do you offer both breasts per feeding?</label>
-            <div class="horizontal-chip-selection">
-              <ion-chip 
-                [class.selected]="isValueSelected('offersBothBreasts', true)"
-                (click)="selectSingleValue('offersBothBreasts', true)"
-                class="selection-chip">
-                <ion-icon 
-                  *ngIf="isValueSelected('offersBothBreasts', true)" 
-                  name="checkmark" 
-                  class="chip-selected-icon">
-                </ion-icon>
-                Yes, both breasts
-              </ion-chip>
-              <ion-chip 
-                [class.selected]="isValueSelected('offersBothBreasts', false)"
-                (click)="selectSingleValue('offersBothBreasts', false)"
-                class="selection-chip">
-                <ion-icon 
-                  *ngIf="isValueSelected('offersBothBreasts', false)" 
-                  name="checkmark" 
-                  class="chip-selected-icon">
-                </ion-icon>
-                No, usually one breast
-              </ion-chip>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="input-label">Time spent latched on single breast</label>
-            <div class="horizontal-chip-selection">
-              <ion-chip 
-                *ngFor="let time of options.timePerBreast"
-                [class.selected]="isValueSelected('timePerBreast', time.value)"
-                (click)="selectSingleValue('timePerBreast', time.value)"
-                class="selection-chip">
-                <ion-icon 
-                  *ngIf="isValueSelected('timePerBreast', time.value)" 
-                  name="checkmark" 
-                  class="chip-selected-icon">
-                </ion-icon>
-                {{ time.label }}
-              </ion-chip>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <ion-item lines="none" class="input-item">
-              <ion-textarea
-                formControlName="breastfeedingDuration"
-                placeholder="How long do you plan to breastfeed?"
-                rows="2"
-                fill="outline">
-              </ion-textarea>
-            </ion-item>
-          </div>
-        </div>
-
-        <!-- Baby's Output (Always required for assessment) -->
-        <div class="baby-output-section">
-          <h3 class="subsection-title">Baby's Daily Output</h3>
-          <p class="section-note">This information is crucial for assessing your baby's intake</p>
-          
-          <div class="diaper-sliders-row">
-            <div class="form-group">
-              <div class="slider-container">
-                <ion-label class="slider-label">Wet diapers (24 hours)</ion-label>
-                <div class="slider-value-display">
-                  <span class="slider-value">{{ onboardingForm.get('peeCount24h')?.value || 0 }}</span>
-                </div>
-                <ion-range
-                  formControlName="peeCount24h"
-                  min="0"
-                  max="20"
-                  step="1"
-                  snaps="true"
-                  ticks="false"
-                  color="primary"
-                  class="diaper-slider">
-                  <ion-label slot="start">0</ion-label>
-                  <ion-label slot="end">20</ion-label>
-                </ion-range>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <div class="slider-container">
-                <ion-label class="slider-label">Soiled diapers (24 hours)</ion-label>
-                <div class="slider-value-display">
-                  <span class="slider-value">{{ onboardingForm.get('poopCount24h')?.value || 0 }}</span>
-                </div>
-                <ion-range
-                  formControlName="poopCount24h"
-                  min="0"
-                  max="15"
-                  step="1"
-                  snaps="true"
-                  ticks="false"
-                  color="primary"
-                  class="diaper-slider">
-                  <ion-label slot="start">0</ion-label>
-                  <ion-label slot="end">15</ion-label>
-                </ion-range>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <div class="button-row">
           <ion-button fill="outline" (click)="previousStep()" class="back-button">

@@ -152,8 +152,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
       hospitalizationReason: baby.hospitalizationReason || baby.hospitalization_reason || '',
       
       // Formula feeding (if available)
-      formulaTimesPerDay: baby.formulaTimesPerDay || baby.formula_times_per_day || null,
-      formulaAmountPerFeed: baby.formulaAmountPerFeed || baby.formula_amount_per_feed || null,
+      formulaTimesPerDay: this.parseFormulaValue(baby.formulaTimesPerDay || baby.formula_times_per_day, 0),
+      formulaAmountPerFeed: this.parseFormulaAmountValue(baby.formulaAmountPerFeed || baby.formula_amount_per_feed, 10),
       
       // Bottle feeding (if available)
       bottleFeedDuration: baby.bottleFeedDuration || baby.bottle_feed_duration || '',
@@ -222,6 +222,43 @@ export class OnboardingPage implements OnInit, OnDestroy {
     }
     
     return date.toISOString();
+  }
+
+  private parseFormulaValue(value: any, defaultValue: number): number {
+    if (value === null || value === undefined) return defaultValue;
+    
+    // Handle string values like '8+' from radio buttons
+    if (typeof value === 'string') {
+      if (value === '8+' || value.includes('+')) return 8;
+      const parsed = parseInt(value, 10);
+      return isNaN(parsed) ? defaultValue : Math.max(0, Math.min(8, parsed));
+    }
+    
+    // Handle numeric values
+    if (typeof value === 'number') {
+      return Math.max(0, Math.min(8, value));
+    }
+    
+    return defaultValue;
+  }
+
+  private parseFormulaAmountValue(value: any, defaultValue: number): number {
+    if (value === null || value === undefined) return defaultValue;
+    
+    // Handle string values like '120ml+', '50ml' from radio buttons
+    if (typeof value === 'string') {
+      if (value.includes('+')) return 120;
+      const numericValue = value.replace(/[^\d]/g, ''); // Remove 'ml' and other non-digits
+      const parsed = parseInt(numericValue, 10);
+      return isNaN(parsed) ? defaultValue : Math.max(10, Math.min(120, parsed));
+    }
+    
+    // Handle numeric values
+    if (typeof value === 'number') {
+      return Math.max(10, Math.min(120, value));
+    }
+    
+    return defaultValue;
   }
 
   async createNewBabiesViaAPI(): Promise<void> {
@@ -360,13 +397,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       // Step 3: Breastfeeding Details
       experienceLevel: ['', [Validators.required]],
       currentlyBreastfeeding: [null],
-      directFeedsPerDay: [0],
-      latchQuality: [''],
-      offersBothBreasts: [null],
-      timePerBreast: [''],
       breastfeedingDuration: [''],
-      peeCount24h: [0],
-      poopCount24h: [0],
       
       // Step 4: Medical & Health Information
       motherMedicalConditions: [[]],
@@ -695,27 +726,14 @@ export class OnboardingPage implements OnInit, OnDestroy {
           return {
             experienceLevel: null,
             currentlyBreastfeeding: false,
-            breastfeedingDetails: null,
-            babyOutput: null
+            breastfeedingDuration: null
           };
         }
         
         return {
           experienceLevel: formValue.experienceLevel,
           currentlyBreastfeeding: formValue.currentlyBreastfeeding,
-          ...(formValue.currentlyBreastfeeding && {
-            breastfeedingDetails: {
-              directFeedsPerDay: formValue.directFeedsPerDay,
-              latchQuality: formValue.latchQuality,
-              offersBothBreasts: formValue.offersBothBreasts,
-              timePerBreast: formValue.timePerBreast,
-              breastfeedingDuration: formValue.breastfeedingDuration
-            }
-          }),
-          babyOutput: {
-            peeCount24h: formValue.peeCount24h,
-            poopCount24h: formValue.poopCount24h
-          }
+          breastfeedingDuration: formValue.breastfeedingDuration
         };
       case 4:
         return {
@@ -1010,8 +1028,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
       hospitalizationReason: [''],
       
       // Formula feeding questions (if applicable)
-      formulaTimesPerDay: [null],
-      formulaAmountPerFeed: [null],
+      formulaTimesPerDay: [0],
+      formulaAmountPerFeed: [10],
       
       // Bottle feeding questions (if applicable)
       bottleFeedDuration: [''],
@@ -1058,6 +1076,13 @@ export class OnboardingPage implements OnInit, OnDestroy {
   getBabyTitle(index: number): string {
     if (this.babiesFormArray.length === 1) return 'Baby Information';
     return `Baby ${index + 1} Information`;
+  }
+
+  updateBabyFormControl(babyIndex: number, controlName: string, value: any): void {
+    const babyFormGroup = this.babiesFormArray.at(babyIndex) as FormGroup;
+    if (babyFormGroup && babyFormGroup.get(controlName)) {
+      babyFormGroup.get(controlName)!.setValue(value);
+    }
   }
 
 }
