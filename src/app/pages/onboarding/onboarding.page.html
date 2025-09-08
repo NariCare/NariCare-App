@@ -290,30 +290,32 @@
 
               <div class="form-row">
                 <div class="form-group half-width">
-                  <ion-item lines="none" class="input-item">
+                  <ion-item lines="none" class="input-item weight-input">
                     <ion-input
                       formControlName="birthWeight"
                       type="number"
-                      placeholder="Birth Weight (kg)"
+                      placeholder="Birth Weight"
                       step="0.1"
                       min="0.5"
                       max="8"
                       fill="outline">
                     </ion-input>
+                    <span class="unit-suffix" *ngIf="baby.get('birthWeight')?.value">kg</span>
                   </ion-item>
                 </div>
                 
                 <div class="form-group half-width">
-                  <ion-item lines="none" class="input-item">
+                  <ion-item lines="none" class="input-item height-input">
                     <ion-input
                       formControlName="birthHeight"
                       type="number"
-                      placeholder="Birth Height (cm)"
+                      placeholder="Birth Height"
                       step="0.1"
                       min="30"
                       max="70"
                       fill="outline">
                     </ion-input>
+                    <span class="unit-suffix" *ngIf="baby.get('birthHeight')?.value">cm</span>
                   </ion-item>
                 </div>
               </div>
@@ -352,14 +354,15 @@
 
               <div class="form-row">
                 <div class="form-group half-width">
-                  <ion-item lines="none" class="input-item">
+                  <ion-item lines="none" class="input-item weight-input">
                     <ion-input
                       formControlName="currentWeight"
                       type="number"
-                      placeholder="Current Weight (kg)"
+                      placeholder="Current Weight"
                       step="0.1"
                       fill="outline">
                     </ion-input>
+                    <span class="unit-suffix" *ngIf="baby.get('currentWeight')?.value">kg</span>
                   </ion-item>
                 </div>
                 
