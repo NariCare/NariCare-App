@@ -1204,12 +1204,15 @@ export class ApiService {
     localStorage.removeItem('fcm_last_token');
     localStorage.removeItem('fcm_last_registration');
     
+    // Clear onboarding form data
+    localStorage.removeItem('onboarding_form_data');
+    
     // Clear any other user-specific data keys
     // Note: We could also clear all localStorage, but that might remove non-app data
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && (key.startsWith('naricare_') || key.startsWith('speech') || key.includes('user_'))) {
+      if (key && (key.startsWith('naricare_') || key.startsWith('speech') || key.includes('user_') || key.includes('onboarding'))) {
         keysToRemove.push(key);
       }
     }
