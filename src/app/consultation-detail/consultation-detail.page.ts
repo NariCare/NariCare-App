@@ -453,6 +453,17 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
       case 'household_income':
         return this.formatHouseholdIncome(value);
       default:
+        // Special handling for time per breast values
+        if (value.includes('_min')) {
+          const minutes = value.replace('_min', '');
+          return `${minutes} minutes`;
+        }
+        
+        // Special handling for latch quality
+        if (value === 'deep' || value === 'shallow' || value === 'varies') {
+          return value.charAt(0).toUpperCase() + value.slice(1);
+        }
+        
         // Generic formatting - replace underscores and capitalize
         return value.replace(/_/g, ' ')
                    .replace(/\b\w/g, l => l.toUpperCase());

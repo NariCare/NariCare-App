@@ -156,6 +156,85 @@
                     <span>{{ baby.weightCheckDate ? formatDate(baby.weightCheckDate) : 'Not specified' }}</span>
                   </div>
                   
+                  <!-- Baby-specific feeding details -->
+                  <div class="baby-feeding-section">
+                    <h5>Feeding Details for {{ baby.name || ('Baby ' + (i + 1)) }}</h5>
+                    
+                    <div class="info-item">
+                      <strong>Direct Breastfeeds per Day:</strong>
+                      <span>{{ baby.directFeedsPerDay || 0 }}</span>
+                    </div>
+                    <div class="info-item">
+                      <strong>Latch Quality:</strong>
+                      <span>{{ formatValue(baby.latchQuality) }}</span>
+                    </div>
+                    <div class="info-item">
+                      <strong>Offers Both Breasts:</strong>
+                      <span>{{ formatBoolean(baby.offersBothBreasts) }}</span>
+                    </div>
+                    <div class="info-item">
+                      <strong>Time per Breast:</strong>
+                      <span>{{ formatValue(baby.timePerBreast) }}</span>
+                    </div>
+                    
+                    <!-- Baby Output -->
+                    <div class="info-item">
+                      <strong>Wet Diapers (24h):</strong>
+                      <span>{{ baby.peeCount24h || 0 }}</span>
+                    </div>
+                    <div class="info-item">
+                      <strong>Soiled Diapers (24h):</strong>
+                      <span>{{ baby.poopCount24h || 0 }}</span>
+                    </div>
+                    
+                    <!-- Formula feeding details -->
+                    <div class="formula-details" *ngIf="baby.formulaTimesPerDay || baby.formulaAmountPerFeed">
+                      <h6>Formula Details</h6>
+                      <div class="info-item" *ngIf="baby.formulaTimesPerDay">
+                        <strong>Formula Times per Day:</strong>
+                        <span>{{ baby.formulaTimesPerDay }}{{ baby.formulaTimesPerDay >= 8 ? '+' : '' }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="baby.formulaAmountPerFeed">
+                        <strong>Formula Amount per Feed:</strong>
+                        <span>{{ baby.formulaAmountPerFeed }}{{ baby.formulaAmountPerFeed >= 120 ? '+' : '' }}ml</span>
+                      </div>
+                    </div>
+                    
+                    <!-- Bottle feeding details -->
+                    <div class="bottle-details" *ngIf="baby.bottleFeedDuration || baby.bottleBrand || baby.pacedBottleFeeding !== undefined">
+                      <h6>Bottle Details</h6>
+                      <div class="info-item" *ngIf="baby.bottleFeedDuration">
+                        <strong>Feed Duration:</strong>
+                        <span>{{ baby.bottleFeedDuration }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="baby.bottleBrand">
+                        <strong>Bottle Brand:</strong>
+                        <span>{{ baby.bottleBrand }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="baby.pacedBottleFeeding !== undefined">
+                        <strong>Paced Bottle Feeding:</strong>
+                        <span>{{ formatBoolean(baby.pacedBottleFeeding) }}</span>
+                      </div>
+                    </div>
+                    
+                    <!-- Baby-specific medical info -->
+                    <div class="baby-medical" *ngIf="baby.medicalConditions || baby.hasBeenHospitalized !== undefined">
+                      <h6>Medical Information</h6>
+                      <div class="info-item" *ngIf="baby.medicalConditions">
+                        <strong>Medical Conditions:</strong>
+                        <span>{{ baby.medicalConditions }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="baby.hasBeenHospitalized !== undefined">
+                        <strong>Has Been Hospitalized:</strong>
+                        <span>{{ formatBoolean(baby.hasBeenHospitalized) }}</span>
+                      </div>
+                      <div class="info-item" *ngIf="baby.hospitalizationReason">
+                        <strong>Hospitalization Reason:</strong>
+                        <span>{{ baby.hospitalizationReason }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <!-- Separator for multiple babies -->
                   <hr *ngIf="i < getPregnancyInfo().babies?.length - 1" class="baby-separator">
                 </div>
@@ -183,7 +262,30 @@
                 <span>{{ formatBoolean(getBreastfeedingInfo().currentlyBreastfeeding) }}</span>
               </div>
               
-              <!-- Note: Detailed breastfeeding data not available in current API response -->
+              <!-- Breastfeeding details from main form -->
+              <div class="breastfeeding-details" *ngIf="getBreastfeedingInfo().breastfeedingDetails">
+                <h4>Breastfeeding Details</h4>
+                <div class="info-item">
+                  <strong>Direct Feeds per Day (main form):</strong>
+                  <span>{{ getBreastfeedingInfo().breastfeedingDetails.directFeedsPerDay }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Latch Quality (main form):</strong>
+                  <span>{{ formatValue(getBreastfeedingInfo().breastfeedingDetails.latchQuality) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Offers Both Breasts (main form):</strong>
+                  <span>{{ formatBoolean(getBreastfeedingInfo().breastfeedingDetails.offersBothBreasts) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Time per Breast (main form):</strong>
+                  <span>{{ formatValue(getBreastfeedingInfo().breastfeedingDetails.timePerBreast) }}</span>
+                </div>
+                <div class="info-item">
+                  <strong>Breastfeeding Duration Goal:</strong>
+                  <span>{{ getBreastfeedingInfo().breastfeedingDetails.breastfeedingDuration || 'Not specified' }}</span>
+                </div>
+              </div>
               
               <!-- Baby Output -->
               <div class="baby-output" *ngIf="getBreastfeedingInfo().babyOutput">
@@ -274,7 +376,26 @@
                 <span>{{ formatBoolean(getFeedingInfo().usesBreastmilkSupplements) }}</span>
               </div>
               
-              <!-- Formula Details not available in current API response -->
+              <!-- Formula Details -->
+              <div class="formula-details" *ngIf="getFeedingInfo().formulaDetails">
+                <h4>Formula Details</h4>
+                <div class="info-item" *ngIf="getFeedingInfo().formulaDetails.formulaType">
+                  <strong>Formula Type:</strong>
+                  <span>{{ getFeedingInfo().formulaDetails.formulaType }}</span>
+                </div>
+                <div class="info-item" *ngIf="getFeedingInfo().formulaDetails.feedsPerDay">
+                  <strong>Feeds Per Day:</strong>
+                  <span>{{ getFeedingInfo().formulaDetails.feedsPerDay }}</span>
+                </div>
+                <div class="info-item" *ngIf="getFeedingInfo().formulaDetails.amountPerFeed">
+                  <strong>Amount Per Feed:</strong>
+                  <span>{{ getFeedingInfo().formulaDetails.amountPerFeed }} ml</span>
+                </div>
+                <div class="info-item" *ngIf="getFeedingInfo().formulaDetails.reasonForFormula">
+                  <strong>Reason for Formula:</strong>
+                  <span>{{ getFeedingInfo().formulaDetails.reasonForFormula }}</span>
+                </div>
+              </div>
               
               <!-- Bottle Details -->
               <div class="bottle-details" *ngIf="getFeedingInfo().bottleDetails">
