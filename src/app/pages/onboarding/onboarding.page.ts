@@ -497,6 +497,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
   private prefillUserInformation(user: User): void {
     if (!this.onboardingForm || !user) return;
     
+    console.log('Prefilling user information with user data:', user);
+    
     // Use setTimeout to ensure form is fully initialized
     setTimeout(() => {
       const currentFormValue = this.onboardingForm.value;
@@ -519,6 +521,35 @@ export class OnboardingPage implements OnInit, OnDestroy {
         } else if (user.firstName) {
           updates.fullName = user.firstName;
         }
+      }
+      
+      // Auto-select mother type if available from registration and not already set
+      console.log('Current motherType in form:', currentFormValue.motherType);
+      console.log('User motherType (camelCase):', user.motherType);
+      console.log('User mother_type (snake_case):', (user as any).mother_type);
+      
+      if (!currentFormValue.motherType) {
+        // Handle both camelCase and snake_case field names from API
+        const userMotherType = user.motherType || (user as any).mother_type;
+        console.log('Detected userMotherType:', userMotherType);
+        
+        if (userMotherType) {
+          updates.motherType = userMotherType;
+          console.log('Auto-selecting mother type from profile:', userMotherType);
+        } else if (user.babies && user.babies.length > 0) {
+          // If user has babies but no explicit mother type, assume new mother
+          updates.motherType = 'new_mom';
+          console.log('Auto-selecting mother type as "new_mom" based on existing babies');
+        }
+      } else {
+        console.log('Mother type already set in form, skipping auto-selection');
+      }
+      
+      // Auto-fill due date for pregnant mothers if available and not already set
+      const userDueDate = user.dueDate || (user as any).due_date;
+      if (!currentFormValue.dueDate && userDueDate && (currentFormValue.motherType === 'pregnant' || updates.motherType === 'pregnant')) {
+        updates.dueDate = new Date(userDueDate).toISOString();
+        console.log('Auto-filling due date from profile:', userDueDate);
       }
       
       // Apply updates if any
