@@ -1085,4 +1085,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
     }
   }
 
+  goBack(): void {
+    this.router.navigate(['/tabs/dashboard']);
+  }
+
 }

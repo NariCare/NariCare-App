@@ -1,4 +1,15 @@
-<ion-content class="onboarding-content">
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="onboarding-content" [fullscreen]="true">
+
   <div class="onboarding-container">
     
     <!-- Header with Progress -->

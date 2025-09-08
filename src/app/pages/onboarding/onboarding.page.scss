@@ -1,3 +1,28 @@
+ion-header {
+  ion-toolbar {
+    --background: #ffffff;
+    --border-width: 0;
+    
+    ion-buttons[slot="start"] {
+      ion-button {
+        --color: #2d3748;
+        --padding-start: 8px;
+        --padding-end: 8px;
+        
+        ion-icon {
+          font-size: 1.5rem;
+          color: #2d3748;
+        }
+      }
+    }
+    
+    ion-title {
+      color: #2d3748;
+      font-weight: 600;
+    }
+  }
+}
+
 .onboarding-content {
   --padding-start: 0;
   --padding-end: 0;
