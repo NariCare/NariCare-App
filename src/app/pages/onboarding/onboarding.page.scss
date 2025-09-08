@@ -547,10 +547,21 @@ ion-chip {
   margin-bottom: 2rem;
   
   .existing-babies-title {
-    margin: 0 0 1rem 0;
+    margin: 0 0 0.5rem 0;
     font-size: 0.9rem;
     font-weight: 600;
     color: #64748b;
+  }
+  
+  .twins-helper-text {
+    margin: 0 0 1rem 0;
+    font-size: 0.8rem;
+    color: #8383ed;
+    font-style: italic;
+    background: rgba(131, 131, 237, 0.1);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid #8383ed;
   }
 }
 
