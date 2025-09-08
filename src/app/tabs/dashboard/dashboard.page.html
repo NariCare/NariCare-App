@@ -29,7 +29,8 @@
           </h1>
           
           <div class="date-container" (click)="showDateOptions()">
-            <p class="current-date">{{ getCurrentDate() }}</p>
+            <p class="current-day">{{ getCurrentDay() }}</p>
+            <p class="current-date">{{ getCurrentDateOnly() }}</p>
             <div class="streak-indicator" *ngIf="getBabyAgeOrDueDate()">
               <ion-icon [name]="getStreakIcon()"></ion-icon>
               <span>{{ getStreakText() }}</span>

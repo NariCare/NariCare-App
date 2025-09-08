@@ -957,13 +957,13 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   // Step completion status helpers
   isStepCompleted(step: number): boolean {
-    const completedSteps = this.onboardingService.getCurrentData().completedSteps || [];
-    return completedSteps.includes(step);
+    // Only mark steps as completed if they're before the current step
+    return step < this.progress.currentStep;
   }
 
   canNavigateToStep(step: number): boolean {
     // Can navigate to current step or any completed step
-    return step <= this.progress.currentStep || this.isStepCompleted(step);
+    return step <= this.progress.currentStep;
   }
 
   getStepTitle(step: number): string {

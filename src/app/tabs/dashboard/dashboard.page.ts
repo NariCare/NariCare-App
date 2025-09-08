@@ -442,6 +442,24 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return today.toLocaleDateString('en-US', options);
   }
 
+  getCurrentDay(): string {
+    const today = new Date();
+    const options: Intl.DateTimeFormatOptions = { 
+      weekday: 'long'
+    };
+    return today.toLocaleDateString('en-US', options);
+  }
+
+  getCurrentDateOnly(): string {
+    const today = new Date();
+    const options: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    return today.toLocaleDateString('en-US', options);
+  }
+
   getBabyAgeOrDueDate(): string {
     // Priority 1: Baby data (if baby exists, use baby's birth date)
     if (this.user?.babies && this.user.babies.length > 0) {

@@ -168,9 +168,19 @@
   }
 }
 
+.current-day {
+  margin: 0 auto 0.1rem auto;
+  font-size: 0.85rem; 
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  text-align: center;
+  display: block;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .current-date {
   margin: 0 auto 0.25rem auto;
-  font-size: 0.95rem; 
+  font-size: 0.9rem; 
   color: rgba(255, 255, 255, 0.9);
   font-weight: 400;
   text-align: center;
