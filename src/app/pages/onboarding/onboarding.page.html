@@ -368,6 +368,248 @@
                   </ion-modal>
                 </div>
               </div>
+
+              <!-- Baby-specific Questions -->
+              <div class="baby-specific-section">
+                <h4 class="subsection-title">{{ baby.get('name')?.value || getBabyTitle(i) }} - Breastfeeding Details</h4>
+                
+                <!-- Direct breastfeeds -->
+                <div class="form-group">
+                  <div class="slider-container">
+                    <ion-label class="slider-label">Direct breastfeeds in 24 hours</ion-label>
+                    <div class="slider-value-display">
+                      <span class="slider-value">{{ baby.get('directFeedsPerDay')?.value || 0 }}{{ (baby.get('directFeedsPerDay')?.value || 0) >= 12 ? '+' : '' }}</span>
+                    </div>
+                    <ion-range
+                      formControlName="directFeedsPerDay"
+                      min="0"
+                      max="12"
+                      step="1"
+                      snaps="true"
+                      ticks="false"
+                      color="primary"
+                      class="breastfeed-slider">
+                      <ion-label slot="start">0</ion-label>
+                      <ion-label slot="end">12+</ion-label>
+                    </ion-range>
+                  </div>
+                </div>
+
+                <!-- Latch Quality -->
+                <div class="form-group">
+                  <label class="input-label">Latch Quality</label>
+                  <div class="horizontal-chip-selection">
+                    <ion-chip 
+                      [class.selected]="baby.get('latchQuality')?.value === 'deep'"
+                      (click)="baby.get('latchQuality')?.setValue('deep')"
+                      class="selection-chip">
+                      <ion-icon 
+                        *ngIf="baby.get('latchQuality')?.value === 'deep'" 
+                        name="checkmark" 
+                        class="chip-selected-icon">
+                      </ion-icon>
+                      Deep latch, no pain
+                    </ion-chip>
+                    <ion-chip 
+                      [class.selected]="baby.get('latchQuality')?.value === 'shallow'"
+                      (click)="baby.get('latchQuality')?.setValue('shallow')"
+                      class="selection-chip">
+                      <ion-icon 
+                        *ngIf="baby.get('latchQuality')?.value === 'shallow'" 
+                        name="checkmark" 
+                        class="chip-selected-icon">
+                      </ion-icon>
+                      Shallow latch, causes pain
+                    </ion-chip>
+                  </div>
+                </div>
+
+                <!-- Both breasts per feed -->
+                <div class="form-group">
+                  <label class="input-label">Do you offer both breasts per feeding?</label>
+                  <ion-radio-group formControlName="offersBothBreasts" class="horizontal-radio-group">
+                    <ion-item lines="none" class="radio-item">
+                      <ion-radio slot="start" [value]="true"></ion-radio>
+                      <ion-label>Yes</ion-label>
+                    </ion-item>
+                    <ion-item lines="none" class="radio-item">
+                      <ion-radio slot="start" [value]="false"></ion-radio>
+                      <ion-label>No</ion-label>
+                    </ion-item>
+                  </ion-radio-group>
+                </div>
+
+                <!-- Time per breast -->
+                <div class="form-group">
+                  <label class="input-label">Amount of time baby latches on single breast</label>
+                  <div class="horizontal-chip-selection">
+                    <ion-chip 
+                      *ngFor="let time of options.timePerBreast"
+                      [class.selected]="baby.get('timePerBreast')?.value === time.value"
+                      (click)="baby.get('timePerBreast')?.setValue(time.value)"
+                      class="selection-chip">
+                      <ion-icon 
+                        *ngIf="baby.get('timePerBreast')?.value === time.value" 
+                        name="checkmark" 
+                        class="chip-selected-icon">
+                      </ion-icon>
+                      {{ time.label }}
+                    </ion-chip>
+                  </div>
+                </div>
+
+                <!-- Baby's Daily Output -->
+                <h4 class="subsection-title">{{ baby.get('name')?.value || getBabyTitle(i) }} - Daily Output</h4>
+                
+                <!-- Wet diapers -->
+                <div class="form-group">
+                  <div class="slider-container">
+                    <ion-label class="slider-label">Wet diapers (24 hours)</ion-label>
+                    <div class="slider-value-display">
+                      <span class="slider-value">{{ baby.get('peeCount24h')?.value || 0 }}</span>
+                    </div>
+                    <ion-range
+                      formControlName="peeCount24h"
+                      min="0"
+                      max="20"
+                      step="1"
+                      snaps="true"
+                      ticks="false"
+                      color="primary"
+                      class="diaper-slider">
+                      <ion-label slot="start">0</ion-label>
+                      <ion-label slot="end">20</ion-label>
+                    </ion-range>
+                  </div>
+                </div>
+
+                <!-- Soiled diapers -->
+                <div class="form-group">
+                  <div class="slider-container">
+                    <ion-label class="slider-label">Soiled diapers (24 hours)</ion-label>
+                    <div class="slider-value-display">
+                      <span class="slider-value">{{ baby.get('poopCount24h')?.value || 0 }}</span>
+                    </div>
+                    <ion-range
+                      formControlName="poopCount24h"
+                      min="0"
+                      max="15"
+                      step="1"
+                      snaps="true"
+                      ticks="false"
+                      color="primary"
+                      class="diaper-slider">
+                      <ion-label slot="start">0</ion-label>
+                      <ion-label slot="end">15</ion-label>
+                    </ion-range>
+                  </div>
+                </div>
+
+                <!-- Medical conditions -->
+                <h4 class="subsection-title">{{ baby.get('name')?.value || getBabyTitle(i) }} - Health Information</h4>
+                
+                <div class="form-group">
+                  <ion-item lines="none" class="input-item">
+                    <ion-textarea
+                      formControlName="medicalConditions"
+                      placeholder="Medical conditions (jaundice, tongue ties/lip ties, etc.) or write 'None'"
+                      rows="2"
+                      fill="outline">
+                    </ion-textarea>
+                  </ion-item>
+                </div>
+
+                <!-- Hospitalization -->
+                <div class="form-group">
+                  <label class="input-label">Has baby been hospitalized since birth?</label>
+                  <ion-radio-group formControlName="hasBeenHospitalized" class="horizontal-radio-group">
+                    <ion-item lines="none" class="radio-item">
+                      <ion-radio slot="start" [value]="true"></ion-radio>
+                      <ion-label>Yes</ion-label>
+                    </ion-item>
+                    <ion-item lines="none" class="radio-item">
+                      <ion-radio slot="start" [value]="false"></ion-radio>
+                      <ion-label>No</ion-label>
+                    </ion-item>
+                  </ion-radio-group>
+                </div>
+
+                <!-- Hospitalization reason -->
+                <div class="form-group" *ngIf="baby.get('hasBeenHospitalized')?.value === true">
+                  <ion-item lines="none" class="input-item">
+                    <ion-textarea
+                      formControlName="hospitalizationReason"
+                      placeholder="Please provide the reason for hospitalization"
+                      rows="2"
+                      fill="outline">
+                    </ion-textarea>
+                  </ion-item>
+                </div>
+
+                <!-- Formula feeding details (if applicable) -->
+                <div *ngIf="shouldShowFormulaQuestions()">
+                  <h4 class="subsection-title">{{ baby.get('name')?.value || getBabyTitle(i) }} - Formula Details</h4>
+                  
+                  <div class="form-group">
+                    <label class="input-label">How many times are you offering formula?</label>
+                    <ion-radio-group formControlName="formulaTimesPerDay" class="vertical-radio-group">
+                      <ion-item *ngFor="let count of [1,2,3,4,5,6,7,8]" lines="none" class="radio-item">
+                        <ion-radio slot="start" [value]="count === 8 ? '8+' : count"></ion-radio>
+                        <ion-label>{{ count === 8 ? '8 or more' : count }}</ion-label>
+                      </ion-item>
+                    </ion-radio-group>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="input-label">How much formula is offered per feed?</label>
+                    <ion-radio-group formControlName="formulaAmountPerFeed" class="vertical-radio-group">
+                      <ion-item *ngFor="let amount of ['120ml+','110ml','100ml','90ml','80ml','70ml','60ml','50ml','40ml','30ml','20ml','10ml']" lines="none" class="radio-item">
+                        <ion-radio slot="start" [value]="amount"></ion-radio>
+                        <ion-label>{{ amount === '120ml+' ? '120ml or more' : amount }}</ion-label>
+                      </ion-item>
+                    </ion-radio-group>
+                  </div>
+                </div>
+
+                <!-- Bottle feeding details (if applicable) -->
+                <div *ngIf="shouldShowBottleQuestions()">
+                  <h4 class="subsection-title">{{ baby.get('name')?.value || getBabyTitle(i) }} - Bottle Details</h4>
+                  
+                  <div class="form-group">
+                    <label class="input-label">How long does it take to finish the feed using bottle?</label>
+                    <ion-radio-group formControlName="bottleFeedDuration" class="vertical-radio-group">
+                      <ion-item *ngFor="let duration of ['5min','10min','15min','20min','25min','30min+','other']" lines="none" class="radio-item">
+                        <ion-radio slot="start" [value]="duration"></ion-radio>
+                        <ion-label>{{ duration === '30min+' ? '30min or more' : duration === 'other' ? 'Other' : duration }}</ion-label>
+                      </ion-item>
+                    </ion-radio-group>
+                  </div>
+
+                  <div class="form-group">
+                    <ion-item lines="none" class="input-item">
+                      <ion-input
+                        formControlName="bottleBrand"
+                        placeholder="Which bottle brand are you using?"
+                        fill="outline">
+                      </ion-input>
+                    </ion-item>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="input-label">Are you using paced bottle feeding?</label>
+                    <ion-radio-group formControlName="pacedBottleFeeding" class="horizontal-radio-group">
+                      <ion-item lines="none" class="radio-item">
+                        <ion-radio slot="start" [value]="true"></ion-radio>
+                        <ion-label>Yes</ion-label>
+                      </ion-item>
+                      <ion-item lines="none" class="radio-item">
+                        <ion-radio slot="start" [value]="false"></ion-radio>
+                        <ion-label>No</ion-label>
+                      </ion-item>
+                    </ion-radio-group>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

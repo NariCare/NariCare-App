@@ -122,21 +122,59 @@ export class OnboardingPage implements OnInit, OnDestroy {
   selectExistingBaby(baby: any): void {
     // Add the existing baby to the form array
     const babyFormGroup = this.createBabyForm();
+    
+    // Comprehensive mapping of all possible field variations from API
     babyFormGroup.patchValue({
-      name: baby.name,
+      // Basic information
+      name: baby.name || baby.baby_name,
       gender: baby.gender,
-      dateOfBirth: baby.dateOfBirth || baby.date_of_birth,
-      birthWeight: baby.birthWeight || baby.birth_weight,
-      birthHeight: baby.birthHeight || baby.birth_height,
-      deliveryType: baby.deliveryType || baby.delivery_type,
-      gestationalAge: baby.gestationalAge || baby.gestational_age,
-      currentWeight: baby.currentWeight || baby.current_weight,
-      weightCheckDate: baby.weightCheckDate || baby.weight_check_date,
-      existingBabyId: baby.id // Track that this is an existing baby
+      dateOfBirth: this.formatDateForInput(baby.dateOfBirth || baby.date_of_birth || baby.birth_date),
+      birthWeight: baby.birthWeight || baby.birth_weight || baby.weight_at_birth,
+      birthHeight: baby.birthHeight || baby.birth_height || baby.height_at_birth,
+      deliveryType: baby.deliveryType || baby.delivery_type || baby.type_of_delivery,
+      gestationalAge: baby.gestationalAge || baby.gestational_age || baby.gestational_weeks || 40,
+      currentWeight: baby.currentWeight || baby.current_weight || baby.latest_weight,
+      weightCheckDate: this.formatDateForInput(baby.weightCheckDate || baby.weight_check_date || baby.last_weight_date),
+      
+      // Breastfeeding details (if available from previous data)
+      directFeedsPerDay: baby.directFeedsPerDay || baby.direct_feeds_per_day || baby.breastfeeds_per_day || 0,
+      peeCount24h: baby.peeCount24h || baby.pee_count_24h || baby.wet_diapers || 0,
+      poopCount24h: baby.poopCount24h || baby.poop_count_24h || baby.soiled_diapers || 0,
+      latchQuality: baby.latchQuality || baby.latch_quality || '',
+      offersBothBreasts: baby.offersBothBreasts !== undefined ? baby.offersBothBreasts : 
+                        (baby.offers_both_breasts !== undefined ? baby.offers_both_breasts : null),
+      timePerBreast: baby.timePerBreast || baby.time_per_breast || '',
+      
+      // Medical information (if available)
+      medicalConditions: baby.medicalConditions || baby.medical_conditions || baby.health_conditions || '',
+      hasBeenHospitalized: baby.hasBeenHospitalized !== undefined ? baby.hasBeenHospitalized : 
+                           (baby.has_been_hospitalized !== undefined ? baby.has_been_hospitalized : null),
+      hospitalizationReason: baby.hospitalizationReason || baby.hospitalization_reason || '',
+      
+      // Formula feeding (if available)
+      formulaTimesPerDay: baby.formulaTimesPerDay || baby.formula_times_per_day || null,
+      formulaAmountPerFeed: baby.formulaAmountPerFeed || baby.formula_amount_per_feed || null,
+      
+      // Bottle feeding (if available)
+      bottleFeedDuration: baby.bottleFeedDuration || baby.bottle_feed_duration || '',
+      bottleBrand: baby.bottleBrand || baby.bottle_brand || '',
+      pacedBottleFeeding: baby.pacedBottleFeeding !== undefined ? baby.pacedBottleFeeding : 
+                         (baby.paced_bottle_feeding !== undefined ? baby.paced_bottle_feeding : null),
+      
+      existingBabyId: baby.id || baby._id // Track that this is an existing baby
     });
 
     this.babiesFormArray.push(babyFormGroup);
-    console.log('Added existing baby to form:', baby);
+    
+    // Force form update and change detection
+    this.onboardingForm.updateValueAndValidity();
+    
+    console.log('Added existing baby to form with complete data mapping:', baby);
+    console.log('Form values after adding baby:', babyFormGroup.value);
+    console.log('Babies form array length:', this.babiesFormArray.length);
+    
+    // Update progress to trigger validation
+    this.updateProgressState();
   }
 
   calculateBabyAge(dateOfBirth: string): string {
@@ -159,6 +197,31 @@ export class OnboardingPage implements OnInit, OnDestroy {
       const years = Math.floor(diffDays / 365);
       return `${years} year${years !== 1 ? 's' : ''}`;
     }
+  }
+
+  shouldShowFormulaQuestions(): boolean {
+    // Show formula questions if user selected they use formula in step 5
+    return this.onboardingForm.get('usesFormula')?.value === true;
+  }
+
+  shouldShowBottleQuestions(): boolean {
+    // Show bottle questions if user selected they use bottles in step 5
+    return this.onboardingForm.get('usesBottle')?.value === true;
+  }
+
+  formatDateForInput(dateString: string): string {
+    if (!dateString) return new Date().toISOString();
+    
+    // Handle different date formats from API
+    let date = new Date(dateString);
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date received:', dateString);
+      return new Date().toISOString();
+    }
+    
+    return date.toISOString();
   }
 
   async createNewBabiesViaAPI(): Promise<void> {
@@ -934,6 +997,27 @@ export class OnboardingPage implements OnInit, OnDestroy {
       gestationalAge: [40, [Validators.required, Validators.min(20)]],
       currentWeight: [null],
       weightCheckDate: [new Date().toISOString()],
+      
+      // Baby-specific breastfeeding and health questions
+      directFeedsPerDay: [0],
+      peeCount24h: [0],
+      poopCount24h: [0],
+      latchQuality: ['', Validators.required],
+      offersBothBreasts: [null, Validators.required],
+      timePerBreast: ['', Validators.required],
+      medicalConditions: [''],
+      hasBeenHospitalized: [null, Validators.required],
+      hospitalizationReason: [''],
+      
+      // Formula feeding questions (if applicable)
+      formulaTimesPerDay: [null],
+      formulaAmountPerFeed: [null],
+      
+      // Bottle feeding questions (if applicable)
+      bottleFeedDuration: [''],
+      bottleBrand: [''],
+      pacedBottleFeeding: [null],
+      
       existingBabyId: [null] // Track if this is an existing baby
     });
   }

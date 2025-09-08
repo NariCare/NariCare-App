@@ -599,6 +599,40 @@ ion-chip {
   align-items: center;
 }
 
+// Baby-specific questions styling
+.baby-specific-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e2e8f0;
+  
+  .subsection-title {
+    margin: 1.5rem 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #8383ed;
+    border-left: 4px solid #8383ed;
+    padding-left: 1rem;
+  }
+}
+
+.vertical-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  
+  .radio-item {
+    --background: #ffffff;
+    --border-radius: 8px;
+    margin-bottom: 0.25rem;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
 .next-button,
 .complete-button {
   --background: #8383ed;
