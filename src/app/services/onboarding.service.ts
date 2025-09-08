@@ -356,22 +356,9 @@ export class OnboardingService {
       validation.errors['currentlyBreastfeeding'] = 'Please indicate if you are currently breastfeeding';
     }
 
-    // Conditional validation for breastfeeding details
-    if (data?.currentlyBreastfeeding) {
-      const bfRequired = ['directFeedsPerDay', 'latchQuality', 'offersBothBreasts'];
-      bfRequired.forEach(field => {
-        if (data.breastfeedingDetails?.[field] === undefined || data.breastfeedingDetails?.[field] === null) {
-          validation.isValid = false;
-          validation.errors[field] = `${field} is required when currently breastfeeding`;
-        }
-      });
-    }
-
-    // Baby output is always required for assessment
-    if (data?.babyOutput?.peeCount24h === undefined || data?.babyOutput?.poopCount24h === undefined) {
-      validation.isValid = false;
-      validation.errors['babyOutput'] = 'Baby\'s daily pee and poop count are required for assessment';
-    }
+    // NOTE: Baby-specific breastfeeding details (directFeedsPerDay, latchQuality, offersBothBreasts, 
+    // peeCount24h, poopCount24h) are now validated in step 2 as part of each baby's form.
+    // Step 3 only validates general breastfeeding experience and current status.
 
     return validation;
   }
