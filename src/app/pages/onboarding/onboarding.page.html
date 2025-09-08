@@ -172,7 +172,7 @@
         </div>
 
         <div class="form-group">
-          <label class="input-label">Is this your first child?</label>
+          <label class="input-label">Is this your first delivery?</label>
           <ion-radio-group formControlName="isFirstChild" class="horizontal-radio-group">
             <ion-item lines="none" class="radio-item">
               <ion-radio slot="start" [value]="true"></ion-radio>
@@ -300,7 +300,7 @@
                       max="8"
                       fill="outline">
                     </ion-input>
-                    <span class="unit-suffix" *ngIf="baby.get('birthWeight')?.value">kg</span>
+                    <span class="unit-suffix">kg</span>
                   </ion-item>
                 </div>
                 
@@ -315,7 +315,7 @@
                       max="70"
                       fill="outline">
                     </ion-input>
-                    <span class="unit-suffix" *ngIf="baby.get('birthHeight')?.value">cm</span>
+                    <span class="unit-suffix">cm</span>
                   </ion-item>
                 </div>
               </div>
@@ -362,7 +362,7 @@
                       step="0.1"
                       fill="outline">
                     </ion-input>
-                    <span class="unit-suffix" *ngIf="baby.get('currentWeight')?.value">kg</span>
+                    <span class="unit-suffix">kg</span>
                   </ion-item>
                 </div>
                 
