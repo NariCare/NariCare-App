@@ -48,15 +48,7 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    // Check if we're actually on the personal-info page
-    const currentUrl = this.router.url;
-    console.log('Personal Info Page - Current URL:', currentUrl);
-    
-    if (!currentUrl.includes('/personal-info')) {
-      console.warn('Personal Info Page - Not on correct route, redirecting to personal-info');
-      this.router.navigate(['/personal-info'], { replaceUrl: true });
-      return;
-    }
+    console.log('Personal Info Page - Initializing...');
     
     // Refresh user profile to ensure latest data is loaded
     try {
@@ -91,6 +83,19 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       motherType: user.motherType
     });
     
+    // Handle due date more safely
+    let formattedDueDate = '';
+    if (user.dueDate) {
+      try {
+        const date = new Date(user.dueDate);
+        if (!isNaN(date.getTime())) {
+          formattedDueDate = date.toISOString().split('T')[0];
+        }
+      } catch (error) {
+        console.warn('Error formatting due date:', error);
+      }
+    }
+    
     this.personalInfoForm.patchValue({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -98,7 +103,7 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       phoneNumber: user.phoneNumber || '',
       whatsappNumber: user.whatsappNumber || '',
       motherType: user.motherType || '',
-      dueDate: user.dueDate ? user.dueDate.toISOString().split('T')[0] : '',
+      dueDate: formattedDueDate,
       tierType: user.tier?.type || 'basic'
     });
     
