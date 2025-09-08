@@ -363,13 +363,27 @@ ion-datetime-button {
 
 // Multiple babies styles
 .babies-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 1rem;
   
   .subsection-title {
-    margin: 0;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  .twins-helper-text {
+    margin: 0 0 1rem 0;
+    font-size: 0.85rem;
+    color: #8383ed;
+    font-style: italic;
+    background: rgba(131, 131, 237, 0.1);
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid #8383ed;
+  }
+  
+  .baby-action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
   }
 }
 
@@ -571,16 +585,6 @@ ion-chip {
     color: #64748b;
   }
   
-  .twins-helper-text {
-    margin: 0 0 1rem 0;
-    font-size: 0.8rem;
-    color: #8383ed;
-    font-style: italic;
-    background: rgba(131, 131, 237, 0.1);
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    border-left: 3px solid #8383ed;
-  }
 }
 
 .existing-babies-grid {
