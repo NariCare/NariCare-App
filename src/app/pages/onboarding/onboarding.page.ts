@@ -601,17 +601,150 @@ export class OnboardingPage implements OnInit, OnDestroy {
       formUpdate.dueDate = data.pregnancyInfo.dueDate;
       formUpdate.isFirstChild = data.pregnancyInfo.isFirstChild;
       
-      if (data.pregnancyInfo.babyInfo) {
+      // Handle babies array (multiple babies support)
+      if (data.pregnancyInfo.babies && Array.isArray(data.pregnancyInfo.babies) && data.pregnancyInfo.babies.length > 0) {
+        // Clear existing babies from form
+        const babiesFormArray = this.babiesFormArray;
+        while (babiesFormArray.length !== 0) {
+          babiesFormArray.removeAt(0);
+        }
+        
+        // Add each baby from API data
+        data.pregnancyInfo.babies.forEach((baby: any) => {
+          const babyForm = this.createBabyForm();
+          babyForm.patchValue({
+            name: baby.name || '',
+            dateOfBirth: baby.dateOfBirth ? new Date(baby.dateOfBirth).toISOString().split('T')[0] : '',
+            gender: baby.gender || 'male',
+            birthWeight: baby.birthWeight || '',
+            birthHeight: baby.birthHeight || '',
+            deliveryType: baby.deliveryType || '',
+            gestationalAge: baby.gestationalAge || '',
+            currentWeight: baby.currentWeight || '',
+            weightCheckDate: baby.weightCheckDate ? new Date(baby.weightCheckDate).toISOString().split('T')[0] : ''
+          }, { emitEvent: false });
+          
+          // Store additional baby data that might not be in the form
+          if (baby.existingBabyId) {
+            babyForm.addControl('existingBabyId', this.formBuilder.control(baby.existingBabyId));
+          }
+          babiesFormArray.push(babyForm);
+        });
+      }
+      // Fallback: handle single baby from babyInfo (backward compatibility)
+      else if (data.pregnancyInfo.babyInfo) {
         const baby = data.pregnancyInfo.babyInfo;
-        formUpdate.babyName = baby.name;
-        formUpdate.babyDateOfBirth = baby.dateOfBirth;
-        formUpdate.babyGender = baby.gender;
-        formUpdate.babyBirthWeight = baby.birthWeight;
-        formUpdate.babyBirthHeight = baby.birthHeight;
-        formUpdate.deliveryType = baby.deliveryType;
-        formUpdate.gestationalAge = baby.gestationalAge;
-        formUpdate.babyCurrentWeight = baby.currentWeight;
-        formUpdate.weightCheckDate = baby.weightCheckDate;
+        // Clear existing babies and add single baby
+        const babiesFormArray = this.babiesFormArray;
+        while (babiesFormArray.length !== 0) {
+          babiesFormArray.removeAt(0);
+        }
+        
+        const babyForm = this.createBabyForm();
+        babyForm.patchValue({
+          name: baby.name || '',
+          dateOfBirth: baby.dateOfBirth ? new Date(baby.dateOfBirth).toISOString().split('T')[0] : '',
+          gender: baby.gender || 'male',
+          birthWeight: baby.birthWeight || '',
+          birthHeight: baby.birthHeight || '',
+          deliveryType: baby.deliveryType || '',
+          gestationalAge: baby.gestationalAge || '',
+          currentWeight: baby.currentWeight || '',
+          weightCheckDate: baby.weightCheckDate ? new Date(baby.weightCheckDate).toISOString().split('T')[0] : ''
+        }, { emitEvent: false });
+        
+        // Store additional baby data that might not be in the form
+        if ((baby as any).existingBabyId) {
+          babyForm.addControl('existingBabyId', this.formBuilder.control((baby as any).existingBabyId));
+        }
+        babiesFormArray.push(babyForm);
+      }
+    }
+    
+    // Breastfeeding Info
+    if (data.breastfeedingInfo) {
+      formUpdate.experienceLevel = data.breastfeedingInfo.experienceLevel;
+      formUpdate.currentlyBreastfeeding = data.breastfeedingInfo.currentlyBreastfeeding;
+      formUpdate.breastfeedingDuration = (data.breastfeedingInfo as any).breastfeedingDuration;
+      
+      if (data.breastfeedingInfo.breastfeedingDetails) {
+        formUpdate.latchQuality = data.breastfeedingInfo.breastfeedingDetails.latchQuality;
+        formUpdate.timePerBreast = data.breastfeedingInfo.breastfeedingDetails.timePerBreast;
+        formUpdate.directFeedsPerDay = data.breastfeedingInfo.breastfeedingDetails.directFeedsPerDay;
+        formUpdate.offersBothBreasts = data.breastfeedingInfo.breastfeedingDetails.offersBothBreasts;
+      }
+      
+      if (data.breastfeedingInfo.babyOutput) {
+        formUpdate.peeCount24h = data.breastfeedingInfo.babyOutput.peeCount24h;
+        formUpdate.poopCount24h = data.breastfeedingInfo.babyOutput.poopCount24h;
+      }
+    }
+    
+    // Medical Info
+    if (data.medicalInfo) {
+      formUpdate.motherMedicalConditions = data.medicalInfo.motherMedicalConditions;
+      formUpdate.motherMedicalConditionsOther = data.medicalInfo.motherMedicalConditionsOther;
+      formUpdate.nippleAnatomicalIssues = data.medicalInfo.nippleAnatomicalIssues;
+      formUpdate.nippleIssuesDescription = data.medicalInfo.nippleIssuesDescription;
+      formUpdate.allergies = data.medicalInfo.allergies;
+      formUpdate.babyMedicalConditions = data.medicalInfo.babyMedicalConditions;
+      formUpdate.babyHospitalized = data.medicalInfo.babyHospitalized;
+      formUpdate.babyHospitalizationReason = data.medicalInfo.babyHospitalizationReason;
+    }
+    
+    // Feeding Info
+    if (data.feedingInfo) {
+      formUpdate.usesFormula = data.feedingInfo.usesFormula;
+      formUpdate.usesBottle = data.feedingInfo.usesBottle;
+      formUpdate.ownsPump = data.feedingInfo.ownsPump;
+      formUpdate.usesBreastmilkSupplements = data.feedingInfo.usesBreastmilkSupplements;
+      formUpdate.supplementsDetails = data.feedingInfo.supplementsDetails;
+      
+      if (data.feedingInfo.formulaDetails) {
+        formUpdate.formulaType = data.feedingInfo.formulaDetails.formulaType;
+        formUpdate.formulaFeedsPerDay = data.feedingInfo.formulaDetails.feedsPerDay;
+        formUpdate.formulaAmountPerFeed = data.feedingInfo.formulaDetails.amountPerFeed;
+        formUpdate.reasonForFormula = data.feedingInfo.formulaDetails.reasonForFormula;
+      }
+      
+      if (data.feedingInfo.bottleDetails) {
+        formUpdate.bottleType = data.feedingInfo.bottleDetails.bottleType;
+        formUpdate.bottleContentType = data.feedingInfo.bottleDetails.contentType;
+        formUpdate.bottleFeedsPerDay = data.feedingInfo.bottleDetails.feedsPerDay;
+        formUpdate.bottleAmountPerFeed = data.feedingInfo.bottleDetails.amountPerFeed;
+      }
+      
+      if (data.feedingInfo.pumpingDetails) {
+        formUpdate.pumpType = data.feedingInfo.pumpingDetails.pumpType;
+        formUpdate.pumpingSessionsPerDay = data.feedingInfo.pumpingDetails.sessionsPerDay;
+        formUpdate.pumpingDuration = data.feedingInfo.pumpingDetails.pumpingDuration;
+        formUpdate.averageOutput = data.feedingInfo.pumpingDetails.averageOutput;
+        formUpdate.storageMethod = data.feedingInfo.pumpingDetails.storageMethod;
+      }
+    }
+    
+    // Support Info
+    if (data.supportInfo) {
+      formUpdate.educationLevel = data.supportInfo.educationLevel;
+      formUpdate.familyStructure = data.supportInfo.familyStructure;
+      formUpdate.householdIncome = data.supportInfo.householdIncome;
+      formUpdate.currentSupportSystem = data.supportInfo.currentSupportSystem;
+    }
+    
+    // Preferences Info
+    if (data.preferencesInfo) {
+      formUpdate.milkSupplyGoals = data.preferencesInfo.milkSupplyGoals;
+      formUpdate.topicsOfInterest = data.preferencesInfo.topicsOfInterest;
+      formUpdate.currentChallenges = data.preferencesInfo.currentChallenges;
+      formUpdate.expectationsFromProgram = data.preferencesInfo.expectationsFromProgram;
+      
+      if (data.preferencesInfo.notificationPreferences) {
+        formUpdate.groupMessages = data.preferencesInfo.notificationPreferences.groupMessages;
+        formUpdate.articleUpdates = data.preferencesInfo.notificationPreferences.articleUpdates;
+        formUpdate.expertMessages = data.preferencesInfo.notificationPreferences.expertMessages;
+        formUpdate.growthReminders = data.preferencesInfo.notificationPreferences.growthReminders;
+        formUpdate.pumpingReminders = data.preferencesInfo.notificationPreferences.pumpingReminders;
+        formUpdate.consultationReminders = data.preferencesInfo.notificationPreferences.consultationReminders;
       }
     }
     
