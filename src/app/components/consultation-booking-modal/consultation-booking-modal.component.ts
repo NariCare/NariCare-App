@@ -119,7 +119,12 @@ export class ConsultationBookingModalComponent implements OnInit {
     // Format time as HH:mm
     const hours = timeOnly.getHours().toString().padStart(2, '0');
     const minutes = timeOnly.getMinutes().toString().padStart(2, '0');
-    const formattedTime = `${hours}:${minutes}`;
+    const startTime = `${hours}:${minutes}`;
+    
+    // Find the matching time slot in the new format "HH:mm - HH:mm"
+    const availableSlots = this.getAvailableTimeSlots();
+    const matchingSlot = availableSlots.find(slot => slot.startsWith(startTime));
+    const formattedTime = matchingSlot || startTime;
     
     this.bookingForm.patchValue({
       expertId: this.consultation.expertId || this.consultation.expert_id,
@@ -220,7 +225,9 @@ export class ConsultationBookingModalComponent implements OnInit {
         
         // Combine date and time
         const scheduledDateTime = new Date(formValue.scheduledDate);
-        const [hours, minutes] = formValue.scheduledTime.split(':');
+        // Extract start time from "HH:mm - HH:mm" format
+        const startTime = formValue.scheduledTime.split(' - ')[0];
+        const [hours, minutes] = startTime.split(':');
         scheduledDateTime.setHours(parseInt(hours), parseInt(minutes));
 
         if (this.isEditMode && this.consultation) {
@@ -348,12 +355,25 @@ export class ConsultationBookingModalComponent implements OnInit {
     if (!this.selectedExpert) return [];
     
     // Generate time slots based on expert availability
-    // For demo purposes, return common consultation times
-    return [
+    // For demo purposes, return common consultation times with 30-minute duration
+    const startTimes = [
       '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
       '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
       '17:00', '17:30', '18:00', '18:30'
     ];
+    
+    // Convert start times to time ranges (start - end)
+    return startTimes.map(startTime => {
+      const [hours, minutes] = startTime.split(':').map(Number);
+      const startDate = new Date();
+      startDate.setHours(hours, minutes);
+      
+      // Add 30 minutes for end time
+      const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+      const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
+      
+      return `${startTime} - ${endTime}`;
+    });
   }
 
   formatExpertSpecialties(specialties: string[]): string {
