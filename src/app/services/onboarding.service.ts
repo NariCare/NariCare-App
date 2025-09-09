@@ -496,11 +496,30 @@ export class OnboardingService {
     }
 
     if (data?.motherType === 'new_mom') {
+      // Check if we have babies data (either in babies array or babyInfo fallback)
+      const babies = data.babies || [];
+      const babyInfo = data.babyInfo;
+      
+      // If no babies data at all
+      if (!babies.length && !babyInfo) {
+        validation.isValid = false;
+        validation.errors['babies'] = 'At least one baby information is required';
+        return validation;
+      }
+      
+      // Validate each baby or the single babyInfo
+      const babiesData = babies.length > 0 ? babies : [babyInfo];
       const babyRequired = ['name', 'dateOfBirth', 'gender', 'birthWeight', 'birthHeight'];
-      babyRequired.forEach(field => {
-        if (!data.babyInfo?.[field]) {
-          validation.isValid = false;
-          validation.errors[`baby_${field}`] = `Baby's ${field} is required`;
+      
+      babiesData.forEach((baby, index) => {
+        if (baby) {
+          babyRequired.forEach(field => {
+            if (!baby[field]) {
+              validation.isValid = false;
+              const babyLabel = babiesData.length > 1 ? `Baby ${index + 1}'s` : `Baby's`;
+              validation.errors[`baby_${index}_${field}`] = `${babyLabel} ${field} is required`;
+            }
+          });
         }
       });
     }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
-import { ApiService, ConsultationRequest } from './api.service';
+import { ApiService, ConsultationRequest, CreateConsultationRequest } from './api.service';
 import { Consultation, Expert } from '../models/consultation.model';
 
 @Injectable({
@@ -85,15 +85,14 @@ export class BackendConsultationService {
 
   async scheduleConsultation(consultation: Omit<Consultation, 'id'>): Promise<void> {
     try {
-      const consultationData: ConsultationRequest = {
+      const consultationData: CreateConsultationRequest = {
         expertId: consultation.expertId,
         scheduledAt: consultation.scheduledAt.toISOString(),
-        duration: consultation.duration,
         topic: consultation.topic,
         notes: consultation.notes
       };
 
-      const response = await this.apiService.bookConsultation(consultationData).toPromise();
+      const response = await this.apiService.createConsultation(consultationData).toPromise();
       
       if (response?.success && response.data) {
         const newConsultation = this.transformConsultation(response.data);
@@ -188,12 +187,21 @@ export class BackendConsultationService {
   private transformExpert = (apiExpert: any): Expert => {
     return {
       id: apiExpert.id,
-      name: apiExpert.name,
+      user_id: apiExpert.user_id || apiExpert.userId || '',
+      first_name: apiExpert.first_name || apiExpert.firstName || '',
+      last_name: apiExpert.last_name || apiExpert.lastName || '',
+      email: apiExpert.email || '',
       credentials: apiExpert.credentials,
       specialties: apiExpert.specialties || [],
       bio: apiExpert.bio,
-      profileImage: apiExpert.profile_image || apiExpert.profileImage,
+      profile_image: apiExpert.profile_image || apiExpert.profileImage,
       rating: apiExpert.rating || 5.0,
+      total_consultations: apiExpert.total_consultations || apiExpert.totalConsultations || 0,
+      created_at: apiExpert.created_at || new Date().toISOString(),
+      updated_at: apiExpert.updated_at || new Date().toISOString(),
+      // Legacy compatibility fields
+      name: apiExpert.name || `${apiExpert.first_name || ''} ${apiExpert.last_name || ''}`.trim(),
+      profileImage: apiExpert.profile_image || apiExpert.profileImage,
       totalConsultations: apiExpert.total_consultations || apiExpert.totalConsultations || 0,
       availability: apiExpert.availability || []
     };
@@ -202,17 +210,45 @@ export class BackendConsultationService {
   private transformConsultation = (apiConsultation: any): Consultation => {
     return {
       id: apiConsultation.id,
+      user_id: apiConsultation.user_id || apiConsultation.userId || '',
+      expert_id: apiConsultation.expert_id || apiConsultation.expertId || '',
+      baby_id: apiConsultation.baby_id || apiConsultation.babyId,
+      consultation_type: apiConsultation.consultation_type || apiConsultation.type || 'scheduled',
+      status: apiConsultation.status || 'scheduled',
+      scheduled_at: apiConsultation.scheduled_at || apiConsultation.scheduledAt || new Date().toISOString(),
+      actual_start_time: apiConsultation.actual_start_time,
+      actual_end_time: apiConsultation.actual_end_time,
+      topic: apiConsultation.topic || '',
+      notes: apiConsultation.notes,
+      meeting_link: apiConsultation.meeting_link || apiConsultation.meetingLink,
+      jitsi_room_token: apiConsultation.jitsi_room_token,
+      expert_notes: apiConsultation.expert_notes,
+      user_rating: apiConsultation.user_rating,
+      user_feedback: apiConsultation.user_feedback,
+      follow_up_required: apiConsultation.follow_up_required || apiConsultation.followUpRequired || false,
+      created_at: apiConsultation.created_at || new Date().toISOString(),
+      updated_at: apiConsultation.updated_at || new Date().toISOString(),
+      // User information
+      user_first_name: apiConsultation.user_first_name,
+      user_last_name: apiConsultation.user_last_name,
+      user_email: apiConsultation.user_email,
+      // Expert information
+      expert_first_name: apiConsultation.expert_first_name,
+      expert_last_name: apiConsultation.expert_last_name,
+      expert_email: apiConsultation.expert_email,
+      expert_credentials: apiConsultation.expert_credentials,
+      expert_rating: apiConsultation.expert_rating,
+      expert_user_id: apiConsultation.expert_user_id,
+      // Legacy compatibility fields
       userId: apiConsultation.user_id || apiConsultation.userId,
       expertId: apiConsultation.expert_id || apiConsultation.expertId,
-      type: apiConsultation.type || 'scheduled',
-      status: apiConsultation.status || 'scheduled',
-      scheduledAt: new Date(apiConsultation.scheduled_at || apiConsultation.scheduledAt),
+      babyId: apiConsultation.baby_id || apiConsultation.babyId,
+      type: apiConsultation.consultation_type || apiConsultation.type || 'scheduled',
+      scheduledAt: new Date(apiConsultation.scheduled_at || apiConsultation.scheduledAt || new Date().toISOString()),
       duration: apiConsultation.duration || 30,
-      topic: apiConsultation.topic,
-      notes: apiConsultation.notes,
       followUpRequired: apiConsultation.follow_up_required || apiConsultation.followUpRequired || false,
-      meetingLink: apiConsultation.meeting_link || apiConsultation.meetingLink,
-      reminderSent: apiConsultation.reminder_sent || apiConsultation.reminderSent || false
+      reminderSent: apiConsultation.reminder_sent || apiConsultation.reminderSent || false,
+      meetingLink: apiConsultation.meeting_link || apiConsultation.meetingLink
     };
   };
 

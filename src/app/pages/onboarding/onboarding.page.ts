@@ -1088,14 +1088,22 @@ export class OnboardingPage implements OnInit, OnDestroy {
           breastfeedingDuration: formValue.breastfeedingDuration
         };
       case 2:
-        return {
+        const step2Data: any = {
           motherType: formValue.motherType,
           expectedDueDate: formValue.expectedDueDate,
           isFirstChild: formValue.isFirstChild,
-          ...(formValue.motherType === 'new_mom' && {
-            babies: formValue.babies || []
-          })
         };
+        
+        if (formValue.motherType === 'new_mom') {
+          // Get babies data from the FormArray instead of formValue.babies
+          const babiesData = [];
+          for (let i = 0; i < this.babiesFormArray.length; i++) {
+            babiesData.push(this.babiesFormArray.at(i).value);
+          }
+          step2Data.babies = babiesData;
+        }
+        
+        return step2Data;
       case 3:
         // For pregnant mothers, return empty feeding data
         if (formValue.motherType === 'pregnant') {
@@ -1230,33 +1238,19 @@ export class OnboardingPage implements OnInit, OnDestroy {
   private async showValidationErrors(): Promise<void> {
     // Get current form data instead of relying on service data which might be outdated
     const formValue = this.onboardingForm.value;
-    const currentData = {
-      ...this.onboardingService.getCurrentData(),
-      personalInfo: {
-        ...this.onboardingService.getCurrentData().personalInfo,
-        ...this.extractStepData(1, formValue)
-      },
-      pregnancyInfo: {
-        ...this.onboardingService.getCurrentData().pregnancyInfo,
-        ...this.extractStepData(2, formValue)
-      },
-      formulaFeedingInfo: {
-        ...this.onboardingService.getCurrentData().formulaFeedingInfo,
-        ...this.extractStepData(3, formValue)
-      },
-      supportInfo: {
-        ...this.onboardingService.getCurrentData().supportInfo,
-        ...this.extractStepData(4, formValue)
-      },
-      challengesAndExpectationsInfo: {
-        ...this.onboardingService.getCurrentData().challengesAndExpectationsInfo,
-        ...this.extractStepData(5, formValue)
-      }
-    };
+    
+    // Ensure we save current step data first
+    this.saveCurrentStepData();
+    
+    // Get the updated service data after saving
+    const currentData = this.onboardingService.getCurrentData();
     
     const validation = this.onboardingService.validateStep(this.progress.currentStep, currentData);
     
     if (!validation.isValid) {
+      console.log('Validation errors:', validation.errors);
+      console.log('Current data for validation:', currentData);
+      
       const alert = await this.alertController.create({
         header: 'Please Complete Required Fields',
         message: Object.values(validation.errors).join('\n'),
