@@ -30,7 +30,7 @@ export class RegisterPage implements OnInit {
       whatsappNumber: [''], // Conditional WhatsApp number field
       motherType: [''], // Optional
       dueDate: [''], // Conditional - required for pregnant mothers
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(6), this.passwordStrengthValidator]],
       confirmPassword: ['', [Validators.required]],
       tierType: ['basic', [Validators.required]],
       agreeToTerms: [false, [Validators.requiredTrue]]
@@ -81,6 +81,21 @@ export class RegisterPage implements OnInit {
         this.registerForm.get('whatsappNumber')?.setValue('');
       }
     });
+  }
+
+  passwordStrengthValidator(control: any) {
+    const value = control.value;
+    if (!value) return null;
+
+    const hasUpperCase = /[A-Z]/.test(value);
+    const hasLowerCase = /[a-z]/.test(value);
+    const hasNumber = /[0-9]/.test(value);
+
+    if (hasUpperCase && hasLowerCase && hasNumber) {
+      return null; // Valid
+    }
+
+    return { passwordStrength: true }; // Invalid
   }
 
   passwordMatchValidator(form: FormGroup) {
@@ -181,9 +196,21 @@ export class RegisterPage implements OnInit {
 
       } catch (error: any) {
         await loading.dismiss();
+        
+        let errorMessage = 'Registration failed. Please try again.';
+        
+        // Handle API validation errors
+        if (error.error && error.error.details && Array.isArray(error.error.details)) {
+          // Extract validation error messages
+          const validationErrors = error.error.details.map((detail: any) => detail.message).join(', ');
+          errorMessage = validationErrors;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
         const toast = await this.toastController.create({
-          message: error.message || 'Registration failed. Please try again.',
-          duration: 3000,
+          message: errorMessage,
+          duration: 4000,
           color: 'danger',
           position: 'top'
         });
@@ -278,6 +305,9 @@ export class RegisterPage implements OnInit {
     }
     if (control?.hasError('minlength')) {
       return `${this.getFieldLabel(field)} must be at least 6 characters`;
+    }
+    if (control?.hasError('passwordStrength')) {
+      return 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
     }
     if (control?.hasError('mismatch')) {
       return 'Passwords do not match';
