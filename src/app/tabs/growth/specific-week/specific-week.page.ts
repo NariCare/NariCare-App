@@ -6,6 +6,7 @@ import { AuthService } from '../../../services/auth.service';
 import { BabyTimelineItem } from '../../../models/baby-timeline.model';
 import { User } from '../../../models/user.model';
 import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
+import { AgeCalculatorUtil } from '../../../shared/utils/age-calculator.util';
 
 @Component({
   selector: 'app-specific-week',
@@ -41,9 +42,7 @@ export class SpecificWeekPage implements OnInit {
   }
 
   private calculateCurrentWeek(birthDate: Date) {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    this.currentWeek = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+    this.currentWeek = AgeCalculatorUtil.calculateAgeInWeeks(birthDate);
   }
 
   private loadWeekData() {
@@ -97,18 +96,12 @@ export class SpecificWeekPage implements OnInit {
     const weeks = this.weekNumber;
     
     if (weeks === 0) return 'At birth';
-    if (weeks < 4) {
-      return `${weeks} week${weeks !== 1 ? 's' : ''} old`;
-    } else if (weeks < 52) {
-      const months = Math.floor(weeks / 4);
-      const remainingWeeks = weeks % 4;
-      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
-    } else {
-      const years = Math.floor(weeks / 52);
-      const remainingWeeks = weeks % 52;
-      const months = Math.floor(remainingWeeks / 4);
-      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
-    }
+    
+    // Convert weeks to approximate date and use centralized utility
+    const birthDate = new Date();
+    birthDate.setDate(birthDate.getDate() - weeks * 7);
+    
+    return AgeCalculatorUtil.calculateBabyAge(birthDate);
   }
 
   getCategoryDisplayName(category: string): string {

@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 
 @Component({
   selector: 'app-baby-selection-modal',
@@ -28,20 +29,7 @@ export class BabySelectionModalComponent implements OnInit {
   }
 
   calculateAge(dateOfBirth: Date): string {
-    const now = new Date();
-    const birth = new Date(dateOfBirth);
-    const diffTime = Math.abs(now.getTime() - birth.getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    const diffWeeks = Math.floor(diffDays / 7);
-    const diffMonths = Math.floor(diffDays / 30);
-
-    if (diffDays < 7) {
-      return `${diffDays} day${diffDays !== 1 ? 's' : ''} old`;
-    } else if (diffWeeks < 8) {
-      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} old`;
-    } else {
-      return `${diffMonths} month${diffMonths !== 1 ? 's' : ''} old`;
-    }
+    return AgeCalculatorUtil.calculateBabyAge(dateOfBirth);
   }
 
   getGenderIcon(gender: string): string {

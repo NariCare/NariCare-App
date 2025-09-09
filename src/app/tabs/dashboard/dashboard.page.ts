@@ -13,6 +13,7 @@ import { Article } from '../../models/knowledge-base.model';
 import { BabyTimelineItem, BabyTimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
 import { Consultation, Expert } from '../../models/consultation.model';
+import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 import { TimelineModalComponent } from '../../components/timeline-modal/timeline-modal.component';
 import { SpecificWeekModalComponent } from '../../components/specific-week-modal/specific-week-modal.component';
 import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
@@ -466,37 +467,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       const baby = this.user.babies[0];
       
       if (baby.dateOfBirth) {
-        const birthDate = new Date(baby.dateOfBirth);
-        const today = new Date();
-        const diffTime = today.getTime() - birthDate.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays < 0) {
-          // Baby not born yet - show due date
-          const daysUntilDue = Math.abs(diffDays);
-          if (daysUntilDue < 7) {
-            return `Due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}`;
-          } else {
-            const weeksUntilDue = Math.floor(daysUntilDue / 7);
-            const remainingDays = daysUntilDue % 7;
-            if (remainingDays === 0) {
-              return `Due in ${weeksUntilDue} week${weeksUntilDue !== 1 ? 's' : ''}`;
-            }
-            return `Due in ${weeksUntilDue}w ${remainingDays}d`;
-          }
-        } else {
-          // Baby is born - show age
-          if (diffDays < 7) {
-            return `${diffDays} day${diffDays !== 1 ? 's' : ''} old`;
-          } else {
-            const weeks = Math.floor(diffDays / 7);
-            const remainingDays = diffDays % 7;
-            if (remainingDays === 0) {
-              return `${weeks} week${weeks !== 1 ? 's' : ''} old`;
-            }
-            return `${weeks}w ${remainingDays}d old`;
-          }
-        }
+        return AgeCalculatorUtil.calculateBabyAge(baby.dateOfBirth);
       }
     }
     

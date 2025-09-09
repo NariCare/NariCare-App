@@ -7,6 +7,7 @@ import { AuthService } from '../../../services/auth.service';
 import { BabyTimelineData, BabyTimelineItem } from '../../../models/baby-timeline.model';
 import { User } from '../../../models/user.model';
 import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
+import { AgeCalculatorUtil } from '../../../shared/utils/age-calculator.util';
 
 @Component({
   selector: 'app-timeline',
@@ -77,43 +78,11 @@ export class TimelinePage implements OnInit {
 
   calculateBabyAge(): string {
     if (!this.selectedBaby) return '';
-    
-    const birthDate = new Date(this.selectedBaby.dateOfBirth);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
-    
-    if (diffWeeks < 4) {
-      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} old`;
-    } else if (diffWeeks < 52) {
-      const months = Math.floor(diffWeeks / 4);
-      const remainingWeeks = diffWeeks % 4;
-      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
-    } else {
-      const years = Math.floor(diffWeeks / 52);
-      const remainingWeeks = diffWeeks % 52;
-      const months = Math.floor(remainingWeeks / 4);
-      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
-    }
+    return AgeCalculatorUtil.calculateBabyAge(this.selectedBaby.dateOfBirth);
   }
 
   calculateBabyAgeForBaby(birthDate: Date): string {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
-    
-    if (diffWeeks < 4) {
-      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} old`;
-    } else if (diffWeeks < 52) {
-      const months = Math.floor(diffWeeks / 4);
-      const remainingWeeks = diffWeeks % 4;
-      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
-    } else {
-      const years = Math.floor(diffWeeks / 52);
-      const remainingWeeks = diffWeeks % 52;
-      const months = Math.floor(remainingWeeks / 4);
-      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
-    }
+    return AgeCalculatorUtil.calculateBabyAge(birthDate);
   }
 
   // Baby selection methods
@@ -143,22 +112,7 @@ export class TimelinePage implements OnInit {
   }
 
   calculateBabyAgeForBabyDuplicate(birthDate: Date): string {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
-    
-    if (diffWeeks < 4) {
-      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} old`;
-    } else if (diffWeeks < 52) {
-      const months = Math.floor(diffWeeks / 4);
-      const remainingWeeks = diffWeeks % 4;
-      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
-    } else {
-      const years = Math.floor(diffWeeks / 52);
-      const remainingWeeks = diffWeeks % 52;
-      const months = Math.floor(remainingWeeks / 4);
-      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
-    }
+    return AgeCalculatorUtil.calculateBabyAge(birthDate);
   }
 
   scrollToCurrentWeek() {

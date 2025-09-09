@@ -8,6 +8,7 @@ import { ApiService } from '../../services/api.service';
 import { OnboardingData, OnboardingOptions, OnboardingProgress } from '../../models/onboarding.model';
 import { User } from '../../models/user.model';
 import { Subscription } from 'rxjs';
+import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 
 @Component({
   selector: 'app-onboarding',
@@ -216,24 +217,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   calculateBabyAge(dateOfBirth: string): string {
     if (!dateOfBirth) return '';
-    
-    const birthDate = new Date(dateOfBirth);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 7) {
-      return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-    } else if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      return `${weeks} week${weeks !== 1 ? 's' : ''}`;
-    } else if (diffDays < 365) {
-      const months = Math.floor(diffDays / 30);
-      return `${months} month${months !== 1 ? 's' : ''}`;
-    } else {
-      const years = Math.floor(diffDays / 365);
-      return `${years} year${years !== 1 ? 's' : ''}`;
-    }
+    return AgeCalculatorUtil.calculateBabyAge(dateOfBirth);
   }
 
 

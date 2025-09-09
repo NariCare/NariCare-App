@@ -7,6 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { WeightRecord } from '../../models/growth-tracking.model';
 import { WeightRecordRequest } from '../../services/api.service';
 import { User, Baby } from '../../models/user.model';
+import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 
 interface PredefinedWeightNote {
   id: string;
@@ -215,23 +216,7 @@ export class WeightLogModalComponent implements OnInit {
     const targetBaby = baby || this.getSelectedWeightBaby();
     if (!targetBaby) return '';
     
-    const birthDate = new Date(targetBaby.dateOfBirth);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    const diffWeeks = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
-    
-    if (diffWeeks < 4) {
-      return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} old`;
-    } else if (diffWeeks < 52) {
-      const months = Math.floor(diffWeeks / 4);
-      const remainingWeeks = diffWeeks % 4;
-      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
-    } else {
-      const years = Math.floor(diffWeeks / 52);
-      const remainingWeeks = diffWeeks % 52;
-      const months = Math.floor(remainingWeeks / 4);
-      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
-    }
+    return AgeCalculatorUtil.calculateBabyAge(targetBaby.dateOfBirth);
   }
 
   canSave(): boolean {

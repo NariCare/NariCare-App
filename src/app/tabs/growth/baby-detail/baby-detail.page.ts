@@ -30,6 +30,7 @@ import {
 } from '../../../models/growth-tracking.model';
 import { User, Baby } from '../../../models/user.model';
 import { PumpingRecord } from '../../../models/growth-tracking.model';
+import { AgeCalculatorUtil } from '../../../shared/utils/age-calculator.util';
 
 @Component({
   selector: 'app-baby-detail',
@@ -523,27 +524,7 @@ export class BabyDetailPage implements OnInit {
     }
     
     try {
-      const birthDate = new Date(this.baby.dateOfBirth);
-      const now = new Date();
-      const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      const diffWeeks = Math.floor(diffDays / 7);
-      const remainingDays = diffDays % 7;
-      
-      if (diffDays < 7) {
-        return `${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-      } else if (diffWeeks < 4) {
-        return `${diffWeeks} week${diffWeeks !== 1 ? 's' : ''} ${remainingDays > 0 ? `and ${remainingDays} day${remainingDays !== 1 ? 's' : ''}` : ''}`;
-      } else if (diffWeeks < 52) {
-        const months = Math.floor(diffWeeks / 4);
-        const remainingWeeks = diffWeeks % 4;
-        return `${months} month${months !== 1 ? 's' : ''} ${remainingWeeks > 0 ? `and ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''}`;
-      } else {
-        const years = Math.floor(diffWeeks / 52);
-        const remainingWeeks = diffWeeks % 52;
-        const months = Math.floor(remainingWeeks / 4);
-        return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''}`;
-      }
+      return AgeCalculatorUtil.calculateBabyAge(this.baby.dateOfBirth);
     } catch (error) {
       console.error('Error calculating baby age:', error);
       return 'Calculation error';

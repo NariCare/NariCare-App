@@ -2,6 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { BabyTimelineData, BabyTimelineItem } from '../../models/baby-timeline.model';
 import { VideoPlayerModalComponent } from '../video-player-modal/video-player-modal.component';
+import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 
 @Component({
   selector: 'app-timeline-modal',
@@ -49,18 +50,13 @@ export class TimelineModalComponent implements OnInit {
     
     const weeks = this.timelineData.currentWeek;
     
-    if (weeks < 4) {
-      return `${weeks} week${weeks !== 1 ? 's' : ''} old`;
-    } else if (weeks < 52) {
-      const months = Math.floor(weeks / 4);
-      const remainingWeeks = weeks % 4;
-      return `${months} month${months !== 1 ? 's' : ''}${remainingWeeks > 0 ? ` ${remainingWeeks} week${remainingWeeks !== 1 ? 's' : ''}` : ''} old`;
-    } else {
-      const years = Math.floor(weeks / 52);
-      const remainingWeeks = weeks % 52;
-      const months = Math.floor(remainingWeeks / 4);
-      return `${years} year${years !== 1 ? 's' : ''}${months > 0 ? ` ${months} month${months !== 1 ? 's' : ''}` : ''} old`;
-    }
+    if (weeks === 0) return 'At birth';
+    
+    // Convert weeks to approximate date and use centralized utility
+    const birthDate = new Date();
+    birthDate.setDate(birthDate.getDate() - weeks * 7);
+    
+    return AgeCalculatorUtil.calculateBabyAge(birthDate);
   }
 
   scrollToCurrentWeek() {
