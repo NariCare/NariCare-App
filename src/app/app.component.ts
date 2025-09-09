@@ -119,8 +119,14 @@ export class AppComponent implements OnInit {
   private navigateBasedOnUser(user: any) {
     const currentUrl = this.router.url;
     
-    // Don't redirect if already on the correct page or not on login/root page
-    if (currentUrl.includes('/tabs/') || currentUrl.includes('/onboarding')) {
+    // Don't redirect if already on legitimate app pages
+    if (currentUrl.includes('/tabs/') || 
+        currentUrl.includes('/onboarding') ||
+        currentUrl.includes('/personal-info') ||
+        currentUrl.includes('/expert-notes') ||
+        currentUrl.includes('/expert-consultations') ||
+        currentUrl.includes('/consultation-detail') ||
+        currentUrl.includes('/video-call')) {
       return;
     }
     
