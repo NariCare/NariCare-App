@@ -40,14 +40,13 @@
       <div class="form-group">
         <ion-item lines="none" class="input-item">
           <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-datetime
+          <ion-input
             formControlName="dateOfBirth"
-            presentation="date"
-            placeholder="Date of birth"
+            type="date"
+            placeholder="Select date of birth"
             [max]="getTodayDate()"
             [class.error]="babyForm.get('dateOfBirth')?.invalid && babyForm.get('dateOfBirth')?.touched">
-            <div slot="title">Select Date of Birth</div>
-          </ion-datetime>
+          </ion-input>
         </ion-item>
         <div class="error-message" *ngIf="babyForm.get('dateOfBirth')?.invalid && babyForm.get('dateOfBirth')?.touched">
           {{ getErrorMessage('dateOfBirth') }}

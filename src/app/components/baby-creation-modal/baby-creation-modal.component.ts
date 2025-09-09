@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, LoadingController } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
@@ -10,6 +10,8 @@ import { BackendAuthService } from '../../services/backend-auth.service';
   styleUrls: ['./baby-creation-modal.component.scss'],
 })
 export class BabyCreationModalComponent implements OnInit {
+  @Input() existingBabies: any[] = []; // Pass existing babies for DOB defaulting
+  
   babyForm: FormGroup;
 
   constructor(
@@ -29,7 +31,33 @@ export class BabyCreationModalComponent implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.initializeFormDefaults();
+  }
+  
+  private initializeFormDefaults() {
+    // If there are existing babies, default DOB and other common values from the first baby
+    if (this.existingBabies && this.existingBabies.length > 0) {
+      const firstBaby = this.existingBabies[0];
+      
+      // Default date of birth from first baby (for twins/triplets)
+      if (firstBaby.dateOfBirth) {
+        let defaultDate = firstBaby.dateOfBirth;
+        // Convert to YYYY-MM-DD format for ion-input type="date"
+        if (typeof defaultDate === 'string') {
+          defaultDate = new Date(defaultDate).toISOString().split('T')[0];
+        } else if (defaultDate instanceof Date) {
+          defaultDate = defaultDate.toISOString().split('T')[0];
+        }
+        
+        this.babyForm.patchValue({
+          dateOfBirth: defaultDate
+        });
+      }
+      
+      console.log('Defaulted DOB from existing baby:', firstBaby.dateOfBirth);
+    }
+  }
 
   async onSubmit() {
     if (this.babyForm.valid) {
@@ -163,10 +191,7 @@ export class BabyCreationModalComponent implements OnInit {
   }
 
   private formatDateForApi(dateValue: string): string {
-    // ion-datetime returns ISO string, extract just the date part
-    if (dateValue && dateValue.includes('T')) {
-      return dateValue.split('T')[0];
-    }
+    // ion-input with type="date" returns YYYY-MM-DD format, which is perfect for API
     return dateValue;
   }
 }
