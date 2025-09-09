@@ -157,16 +157,15 @@
 
         <!-- Due Date for Pregnant Mothers -->
         <div class="input-container" *ngIf="registerForm.get('motherType')?.value === 'pregnant'">
-          <ion-datetime
+          <ion-input
             formControlName="dueDate"
-            presentation="date"
-            placeholder="Due date"
-            class="custom-datetime"
+            type="date"
+            placeholder="Select your due date"
+            class="custom-input"
             fill="outline"
             [min]="getTodayDate()"
             [class.error]="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
-            <div slot="title">Select Due Date</div>
-          </ion-datetime>
+          </ion-input>
           <div class="error-message" *ngIf="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
             {{ getErrorMessage('dueDate') }}
           </div>

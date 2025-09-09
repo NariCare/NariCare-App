@@ -292,10 +292,7 @@ export class RegisterPage implements OnInit {
   }
 
   private formatDateForApi(dateValue: string): string {
-    // ion-datetime returns ISO string, extract just the date part
-    if (dateValue && dateValue.includes('T')) {
-      return dateValue.split('T')[0];
-    }
+    // ion-input with type="date" returns YYYY-MM-DD format directly, which is perfect for API
     return dateValue;
   }
 }
