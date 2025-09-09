@@ -290,20 +290,20 @@ export class PushNotificationService {
             if (forceUpdate) {
               this.showToast('Push notification token refreshed successfully', 'success');
             } else {
-              this.showToast('Push notifications enabled successfully', 'success');
+              // this.showToast('Push notifications enabled successfully', 'success');
             }
           }
         },
         error: (error) => {
           console.error('Failed to register push token:', error);
-          this.showToast('Failed to enable push notifications', 'danger');
+          // this.showToast('Failed to enable push notifications', 'danger');
           // Don't update stored data on failure
         }
       });
       
     } catch (error) {
       console.error('Error sending token to server:', error);
-      this.showToast('Failed to enable push notifications', 'danger');
+      // this.showToast('Failed to enable push notifications', 'danger');
     }
   }
 
