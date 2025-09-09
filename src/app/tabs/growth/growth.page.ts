@@ -1400,7 +1400,10 @@ export class GrowthPage implements OnInit {
   async openAddBabyModal() {
     const modal = await this.modalController.create({
       component: BabyCreationModalComponent,
-      cssClass: 'baby-creation-modal'
+      cssClass: 'baby-creation-modal',
+      componentProps: {
+        existingBabies: this.user?.babies || []
+      }
     });
 
     modal.onDidDismiss().then((result) => {

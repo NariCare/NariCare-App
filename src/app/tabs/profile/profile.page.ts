@@ -279,7 +279,10 @@ export class ProfilePage implements OnInit {
   async addBaby() {
     const modal = await this.modalController.create({
       component: BabyCreationModalComponent,
-      cssClass: 'baby-creation-modal'
+      cssClass: 'baby-creation-modal',
+      componentProps: {
+        existingBabies: this.user?.babies || []
+      }
     });
 
     modal.onDidDismiss().then((result) => {
