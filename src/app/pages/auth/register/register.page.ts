@@ -101,22 +101,33 @@ export class RegisterPage implements OnInit {
     const dueDate = form.get('dueDate');
 
     // Helper function to clear conditional errors while preserving other errors
-    const clearConditionalError = (control: any) => {
-      if (control?.hasError('conditionalRequired')) {
+    const clearConditionalError = (control: any, errorType: string) => {
+      if (control?.hasError(errorType)) {
         const errors = { ...control.errors };
-        delete errors.conditionalRequired;
+        delete errors[errorType];
         control.setErrors(Object.keys(errors).length > 0 ? errors : null);
       }
     };
 
     // Clear existing conditional errors first
-    clearConditionalError(dueDate);
+    clearConditionalError(dueDate, 'conditionalRequired');
+    clearConditionalError(dueDate, 'pastDate');
 
     // Apply conditional validation
     if (motherType === 'pregnant') {
       if (!dueDate?.value) {
         const errors = dueDate?.errors || {};
         dueDate?.setErrors({ ...errors, conditionalRequired: true });
+      } else {
+        // Check if due date is in the past
+        const selectedDate = new Date(dueDate.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+        
+        if (selectedDate < today) {
+          const errors = dueDate?.errors || {};
+          dueDate?.setErrors({ ...errors, pastDate: true });
+        }
       }
     }
 
@@ -258,6 +269,9 @@ export class RegisterPage implements OnInit {
     }
     if (control?.hasError('conditionalRequired')) {
       return `${this.getFieldLabel(field)} is required`;
+    }
+    if (control?.hasError('pastDate')) {
+      return 'Due date cannot be in the past';
     }
     if (control?.hasError('email')) {
       return 'Please enter a valid email address';
