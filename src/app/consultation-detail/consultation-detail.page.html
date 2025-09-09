@@ -149,11 +149,11 @@
                   </div>
                   <div class="info-item">
                     <strong>Current Weight:</strong>
-                    <span>{{ baby.currentWeight ? (baby.currentWeight + ' kg') : 'Not specified' }}</span>
+                    <span>{{ baby.mostRecentWeight ? (baby.mostRecentWeight + ' kg') : 'Not specified' }}</span>
                   </div>
                   <div class="info-item">
                     <strong>Weight Check Date:</strong>
-                    <span>{{ baby.weightCheckDate ? formatDate(baby.weightCheckDate) : 'Not specified' }}</span>
+                    <span>{{ baby.dateOfMostRecentWeightCheck ? formatDate(baby.dateOfMostRecentWeightCheck) : 'Not specified' }}</span>
                   </div>
                   
                   <!-- Baby-specific feeding details -->
@@ -162,7 +162,7 @@
                     
                     <div class="info-item">
                       <strong>Direct Breastfeeds per Day:</strong>
-                      <span>{{ baby.directFeedsPerDay || 0 }}</span>
+                      <span>{{ baby.directBreastfeedsIn24h || 0 }}</span>
                     </div>
                     <div class="info-item">
                       <strong>Latch Quality:</strong>
@@ -170,7 +170,7 @@
                     </div>
                     <div class="info-item">
                       <strong>Offers Both Breasts:</strong>
-                      <span>{{ formatBoolean(baby.offersBothBreasts) }}</span>
+                      <span>{{ formatBoolean(baby.offersBothBreastsPerFeeding) }}</span>
                     </div>
                     <div class="info-item">
                       <strong>Time per Breast:</strong>
@@ -180,16 +180,20 @@
                     <!-- Baby Output -->
                     <div class="info-item">
                       <strong>Wet Diapers (24h):</strong>
-                      <span>{{ baby.peeCount24h || 0 }}</span>
+                      <span>{{ baby.wetDiapersIn24h || 0 }}</span>
                     </div>
                     <div class="info-item">
                       <strong>Soiled Diapers (24h):</strong>
-                      <span>{{ baby.poopCount24h || 0 }}</span>
+                      <span>{{ baby.dirtyDiapersIn24h || 0 }}</span>
                     </div>
                     
                     <!-- Formula feeding details -->
-                    <div class="formula-details" *ngIf="baby.formulaTimesPerDay || baby.formulaAmountPerFeed">
+                    <div class="formula-details" *ngIf="baby.formulaTimesPerDay || baby.formulaAmountPerFeed || baby.formulaBrand">
                       <h6>Formula Details</h6>
+                      <div class="info-item" *ngIf="baby.formulaBrand">
+                        <strong>Formula Brand:</strong>
+                        <span>{{ baby.formulaBrand }}{{ baby.formulaBrandOther ? (' - ' + baby.formulaBrandOther) : '' }}</span>
+                      </div>
                       <div class="info-item" *ngIf="baby.formulaTimesPerDay">
                         <strong>Formula Times per Day:</strong>
                         <span>{{ baby.formulaTimesPerDay }}{{ baby.formulaTimesPerDay >= 8 ? '+' : '' }}</span>
@@ -198,22 +202,9 @@
                         <strong>Formula Amount per Feed:</strong>
                         <span>{{ baby.formulaAmountPerFeed }}{{ baby.formulaAmountPerFeed >= 120 ? '+' : '' }}ml</span>
                       </div>
-                    </div>
-                    
-                    <!-- Bottle feeding details -->
-                    <div class="bottle-details" *ngIf="baby.bottleFeedDuration || baby.bottleBrand || baby.pacedBottleFeeding !== undefined">
-                      <h6>Bottle Details</h6>
-                      <div class="info-item" *ngIf="baby.bottleFeedDuration">
-                        <strong>Feed Duration:</strong>
-                        <span>{{ baby.bottleFeedDuration }}</span>
-                      </div>
-                      <div class="info-item" *ngIf="baby.bottleBrand">
-                        <strong>Bottle Brand:</strong>
-                        <span>{{ baby.bottleBrand }}</span>
-                      </div>
-                      <div class="info-item" *ngIf="baby.pacedBottleFeeding !== undefined">
-                        <strong>Paced Bottle Feeding:</strong>
-                        <span>{{ formatBoolean(baby.pacedBottleFeeding) }}</span>
+                      <div class="info-item" *ngIf="baby.formulaReason">
+                        <strong>Reason for Formula:</strong>
+                        <span>{{ formatValue(baby.formulaReason) }}{{ baby.formulaReasonOther ? (' - ' + baby.formulaReasonOther) : '' }}</span>
                       </div>
                     </div>
                     
@@ -361,91 +352,112 @@
             <div class="info-grid">
               <div class="info-item">
                 <strong>Uses Formula:</strong>
-                <span>{{ formatBoolean(getFeedingInfo().usesFormula) }}</span>
+                <span>{{ formatBoolean(getFormulaInfo().usesFormula) }}</span>
               </div>
               <div class="info-item">
-                <strong>Uses Bottle:</strong>
-                <span>{{ formatBoolean(getFeedingInfo().usesBottle) }}</span>
+                <strong>Uses Bottles:</strong>
+                <span>{{ formatBoolean(getBottleInfo().usesBottles) }}</span>
               </div>
               <div class="info-item">
-                <strong>Owns Pump:</strong>
-                <span>{{ formatBoolean(getFeedingInfo().ownsPump) }}</span>
-              </div>
-              <div class="info-item">
-                <strong>Uses Breastmilk Supplements:</strong>
-                <span>{{ formatBoolean(getFeedingInfo().usesBreastmilkSupplements) }}</span>
+                <strong>Uses Pump:</strong>
+                <span>{{ formatBoolean(getPumpInfo().usesPump) }}</span>
               </div>
               
               <!-- Formula Details -->
-              <div class="formula-details" *ngIf="getFeedingInfo().formulaDetails">
+              <div class="formula-details" *ngIf="getFormulaInfo().formulaDetails && getFormulaInfo().usesFormula">
                 <h4>Formula Details</h4>
-                <div class="info-item" *ngIf="getFeedingInfo().formulaDetails.formulaType">
-                  <strong>Formula Type:</strong>
-                  <span>{{ getFeedingInfo().formulaDetails.formulaType }}</span>
+                <div class="info-item" *ngIf="getFormulaInfo().formulaDetails.formulaBrand">
+                  <strong>Formula Brand:</strong>
+                  <span>{{ getFormulaInfo().formulaDetails.formulaBrand }}{{ getFormulaInfo().formulaDetails.formulaBrandOther ? (' - ' + getFormulaInfo().formulaDetails.formulaBrandOther) : '' }}</span>
                 </div>
-                <div class="info-item" *ngIf="getFeedingInfo().formulaDetails.feedsPerDay">
-                  <strong>Feeds Per Day:</strong>
-                  <span>{{ getFeedingInfo().formulaDetails.feedsPerDay }}</span>
+                <div class="info-item" *ngIf="getFormulaInfo().formulaDetails.timesOfferedPerDay">
+                  <strong>Times Offered Per Day:</strong>
+                  <span>{{ getFormulaInfo().formulaDetails.timesOfferedPerDay }}</span>
                 </div>
-                <div class="info-item" *ngIf="getFeedingInfo().formulaDetails.amountPerFeed">
+                <div class="info-item" *ngIf="getFormulaInfo().formulaDetails.amountPerFeed">
                   <strong>Amount Per Feed:</strong>
-                  <span>{{ getFeedingInfo().formulaDetails.amountPerFeed }} ml</span>
+                  <span>{{ getFormulaInfo().formulaDetails.amountPerFeed }} ml</span>
                 </div>
-                <div class="info-item" *ngIf="getFeedingInfo().formulaDetails.reasonForFormula">
+                <div class="info-item" *ngIf="getFormulaInfo().formulaDetails.reasonForFormula">
                   <strong>Reason for Formula:</strong>
-                  <span>{{ getFeedingInfo().formulaDetails.reasonForFormula }}</span>
+                  <span>{{ getFormulaInfo().formulaDetails.reasonForFormula }}{{ getFormulaInfo().formulaDetails.reasonForFormulaOther ? (' - ' + getFormulaInfo().formulaDetails.reasonForFormulaOther) : '' }}</span>
                 </div>
               </div>
               
               <!-- Bottle Details -->
-              <div class="bottle-details" *ngIf="getFeedingInfo().bottleDetails">
+              <div class="bottle-details" *ngIf="getBottleInfo().bottleDetails && getBottleInfo().usesBottles">
                 <h4>Bottle Details</h4>
-                <div class="info-item" *ngIf="getFeedingInfo().bottleDetails.bottleType">
-                  <strong>Bottle Type:</strong>
-                  <span>{{ getFeedingInfo().bottleDetails.bottleType }}</span>
+                <div class="info-item" *ngIf="getBottleInfo().bottleDetails.bottleBrand">
+                  <strong>Bottle Brand:</strong>
+                  <span>{{ getBottleInfo().bottleDetails.bottleBrand }}{{ getBottleInfo().bottleDetails.bottleBrandOther ? (' - ' + getBottleInfo().bottleDetails.bottleBrandOther) : '' }}</span>
                 </div>
-                <div class="info-item" *ngIf="getFeedingInfo().bottleDetails.amountPerFeed">
-                  <strong>Amount Per Feed:</strong>
-                  <span>{{ getFeedingInfo().bottleDetails.amountPerFeed }} ml</span>
+                <div class="info-item" *ngIf="getBottleInfo().bottleDetails.feedDuration">
+                  <strong>Feed Duration:</strong>
+                  <span>{{ getBottleInfo().bottleDetails.feedDuration }}</span>
                 </div>
-                <div class="info-item" *ngIf="getFeedingInfo().bottleDetails.feedsPerDay">
-                  <strong>Feeds Per Day:</strong>
-                  <span>{{ getFeedingInfo().bottleDetails.feedsPerDay }}</span>
+                <div class="info-item" *ngIf="getBottleInfo().bottleDetails.usesPacedBottleFeeding !== undefined">
+                  <strong>Uses Paced Bottle Feeding:</strong>
+                  <span>{{ formatBoolean(getBottleInfo().bottleDetails.usesPacedBottleFeeding) }}</span>
                 </div>
-                <div class="info-item">
-                  <strong>Content Type:</strong>
-                  <span>{{ formatValue(getFeedingInfo().bottleDetails.contentType) }}</span>
+                <div class="info-item" *ngIf="getBottleInfo().bottleDetails.bottleContents">
+                  <strong>Bottle Contents:</strong>
+                  <span>{{ getBottleInfo().bottleDetails.bottleContents }}</span>
                 </div>
               </div>
               
               <!-- Pumping Details -->
-              <div class="pumping-details" *ngIf="getFeedingInfo().pumpingDetails">
+              <div class="pumping-details" *ngIf="getPumpInfo().pumpingDetails && getPumpInfo().usesPump">
                 <h4>Pumping Details</h4>
-                <div class="info-item" *ngIf="getFeedingInfo().pumpingDetails.pumpType">
+                <div class="info-item" *ngIf="getPumpInfo().pumpingDetails.pumpBrand">
+                  <strong>Pump Brand:</strong>
+                  <span>{{ getPumpInfo().pumpingDetails.pumpBrand }}{{ getPumpInfo().pumpingDetails.pumpBrandOther ? (' - ' + getPumpInfo().pumpingDetails.pumpBrandOther) : '' }}</span>
+                </div>
+                <div class="info-item" *ngIf="getPumpInfo().pumpingDetails.pumpType">
                   <strong>Pump Type:</strong>
-                  <span>{{ formatValue(getFeedingInfo().pumpingDetails.pumpType) }}</span>
+                  <span>{{ formatValue(getPumpInfo().pumpingDetails.pumpType) }}</span>
                 </div>
-                <div class="info-item" *ngIf="getFeedingInfo().pumpingDetails.sessionsPerDay">
+                <div class="info-item" *ngIf="getPumpInfo().pumpingDetails.pumpsBothBreasts !== undefined">
+                  <strong>Pumps Both Breasts:</strong>
+                  <span>{{ formatBoolean(getPumpInfo().pumpingDetails.pumpsBothBreasts) }}</span>
+                </div>
+                <div class="info-item" *ngIf="getPumpInfo().pumpingDetails.sessionsPerDay">
                   <strong>Sessions Per Day:</strong>
-                  <span>{{ getFeedingInfo().pumpingDetails.sessionsPerDay }}</span>
+                  <span>{{ getPumpInfo().pumpingDetails.sessionsPerDay }}</span>
                 </div>
-                <div class="info-item" *ngIf="getFeedingInfo().pumpingDetails.averageOutput">
-                  <strong>Average Output:</strong>
-                  <span>{{ getFeedingInfo().pumpingDetails.averageOutput }} ml</span>
+                <div class="info-item" *ngIf="getPumpInfo().pumpingDetails.minutesPerSession">
+                  <strong>Minutes Per Session:</strong>
+                  <span>{{ getPumpInfo().pumpingDetails.minutesPerSession }}</span>
                 </div>
-                <div class="info-item" *ngIf="getFeedingInfo().pumpingDetails.pumpingDuration">
-                  <strong>Duration:</strong>
-                  <span>{{ getFeedingInfo().pumpingDetails.pumpingDuration }} minutes</span>
+                <div class="info-item" *ngIf="getPumpInfo().pumpingDetails.averageOutputMl">
+                  <strong>Average Output Per Session:</strong>
+                  <span>{{ getPumpInfo().pumpingDetails.averageOutputMl }}ml</span>
                 </div>
-                <div class="info-item">
-                  <strong>Storage Method:</strong>
-                  <span>{{ formatValue(getFeedingInfo().pumpingDetails.storageMethod) }}</span>
+                <div class="info-item" *ngIf="getPumpInfo().pumpingDetails.totalDailyOutput">
+                  <strong>Total Daily Output:</strong>
+                  <span>{{ getPumpInfo().pumpingDetails.totalDailyOutput }}ml</span>
                 </div>
               </div>
-              
-              <div class="info-item" *ngIf="getFeedingInfo().supplementsDetails">
-                <strong>Supplements Details:</strong>
-                <span>{{ getFeedingInfo().supplementsDetails }}</span>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Challenges & Expectations -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="help-circle"></ion-icon>
+              Current Challenges & Expectations
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="info-grid">
+              <div class="info-item" *ngIf="getPreferencesInfo().currentChallenges?.length">
+                <strong>Current Challenges:</strong>
+                <span>{{ formatValue(getPreferencesInfo().currentChallenges) }}</span>
+              </div>
+              <div class="info-item" *ngIf="getPreferencesInfo().expectationsFromProgram">
+                <strong>Expectations from NariCare Program:</strong>
+                <span>{{ getPreferencesInfo().expectationsFromProgram }}</span>
               </div>
             </div>
           </ion-card-content>
@@ -467,7 +479,7 @@
               </div>
               <div class="info-item">
                 <strong>Family Structure:</strong>
-                <span>{{ formatValue(getSupportInfo().familyStructure) }}</span>
+                <span>{{ formatValue(getSupportInfo().familyStructure, 'family_structure') }}</span>
               </div>
               <div class="info-item">
                 <strong>Education Level:</strong>
@@ -498,14 +510,6 @@
               <div class="info-item">
                 <strong>Program Expectations:</strong>
                 <span>{{ getPreferencesInfo().expectationsFromProgram && getPreferencesInfo().expectationsFromProgram.trim() ? getPreferencesInfo().expectationsFromProgram : 'Not specified' }}</span>
-              </div>
-              <div class="info-item">
-                <strong>Milk Supply Goals:</strong>
-                <span>{{ getPreferencesInfo().milkSupplyGoals && getPreferencesInfo().milkSupplyGoals.trim() ? getPreferencesInfo().milkSupplyGoals : 'Not specified' }}</span>
-              </div>
-              <div class="info-item">
-                <strong>Topics of Interest:</strong>
-                <span>{{ getPreferencesInfo().topicsOfInterest?.length ? formatValue(getPreferencesInfo().topicsOfInterest) : 'Not specified' }}</span>
               </div>
             </div>
           </ion-card-content>

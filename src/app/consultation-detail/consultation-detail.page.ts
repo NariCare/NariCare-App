@@ -213,11 +213,37 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
 
   // Helper methods for onboarding data display
   getPersonalInfo(): any {
-    return this.onboardingData?.personalInfo || {};
+    const personalInfo = this.onboardingData?.personalInfo || {};
+    
+    // If name is not available in onboarding data, get it from available sources
+    if (!personalInfo.fullName) {
+      if (this.currentUser?.role === 'expert' && this.consultation) {
+        // Expert viewing patient data - get name from consultation
+        if (this.consultation.user_first_name && this.consultation.user_last_name) {
+          personalInfo.fullName = `${this.consultation.user_first_name} ${this.consultation.user_last_name}`.trim();
+        }
+      } else if (this.currentUser) {
+        // User viewing their own data - get name from current user
+        personalInfo.fullName = `${this.currentUser.firstName} ${this.currentUser.lastName}`.trim();
+      }
+    }
+    
+    return personalInfo;
   }
 
   getBabies(): any[] {
+    // Handle new structure where babies are in pregnancyInfo.babies array
     return this.onboardingData?.pregnancyInfo?.babies || [];
+  }
+  
+  getPrimaryBaby(): any {
+    // Get the primary baby info (first baby or babyInfo)
+    const babies = this.getBabies();
+    if (babies.length > 0) {
+      return babies[0];
+    }
+    // Fallback to single baby info structure
+    return this.onboardingData?.pregnancyInfo?.babyInfo || {};
   }
 
   getPregnancyInfo(): any {
@@ -225,15 +251,73 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
   }
 
   getBreastfeedingInfo(): any {
-    return this.onboardingData?.breastfeedingInfo || {};
+    // Breastfeeding info is now embedded in baby data
+    const primaryBaby = this.getPrimaryBaby();
+    return {
+      experienceLevel: this.onboardingData?.personalInfo?.breastfeedingDuration || 'Not specified',
+      currentlyBreastfeeding: true, // Assume true if they have babies
+      breastfeedingDetails: {
+        directFeedsPerDay: primaryBaby?.directBreastfeedsIn24h || 0,
+        latchQuality: primaryBaby?.latchQuality || 'Not specified',
+        offersBothBreasts: primaryBaby?.offersBothBreastsPerFeeding || false,
+        timePerBreast: primaryBaby?.timePerBreast || 'Not specified',
+        breastfeedingDuration: this.onboardingData?.personalInfo?.breastfeedingDuration || 'Not specified'
+      },
+      babyOutput: {
+        peeCount24h: primaryBaby?.wetDiapersIn24h || 0,
+        poopCount24h: primaryBaby?.dirtyDiapersIn24h || 0
+      }
+    };
   }
 
   getMedicalInfo(): any {
-    return this.onboardingData?.medicalInfo || {};
+    // Medical info is now distributed across personalInfo and baby data
+    const personalInfo = this.getPersonalInfo();
+    const primaryBaby = this.getPrimaryBaby();
+    
+    return {
+      motherMedicalConditions: personalInfo?.motherMedicalConditions || [],
+      allergies: personalInfo?.allergies || '',
+      motherMedicalConditionsOther: personalInfo?.motherMedicalConditionsOther || '',
+      nippleAnatomicalIssues: personalInfo?.hasNippleIssues || false,
+      nippleIssuesDescription: personalInfo?.nippleIssuesDescription || '',
+      babyMedicalConditions: primaryBaby?.medicalConditions || [],
+      babyHospitalized: primaryBaby?.hasBeenHospitalized || false,
+      babyHospitalizationReason: primaryBaby?.hospitalizationReason || ''
+    };
   }
 
   getFeedingInfo(): any {
-    return this.onboardingData?.feedingInfo || {};
+    // Feeding info is now in formulaFeedingInfo from backend
+    return this.onboardingData?.formulaFeedingInfo || {};
+  }
+  
+  getChallengesAndExpectations(): any {
+    return this.onboardingData?.challengesAndExpectationsInfo || {};
+  }
+  
+  getFormulaInfo(): any {
+    const feedingInfo = this.getFeedingInfo();
+    return {
+      usesFormula: feedingInfo?.usesFormula || false,
+      formulaDetails: feedingInfo?.formulaDetails || {}
+    };
+  }
+  
+  getBottleInfo(): any {
+    const feedingInfo = this.getFeedingInfo();
+    return {
+      usesBottles: feedingInfo?.usesBottles || false,
+      bottleDetails: feedingInfo?.bottleDetails || {}
+    };
+  }
+  
+  getPumpInfo(): any {
+    const feedingInfo = this.getFeedingInfo();
+    return {
+      usesPump: feedingInfo?.usesPump || false,
+      pumpingDetails: feedingInfo?.pumpingDetails || {}
+    };
   }
 
   getSupportInfo(): any {
@@ -241,7 +325,12 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
   }
 
   getPreferencesInfo(): any {
-    return this.onboardingData?.preferencesInfo || {};
+    // Preferences info is now in challengesAndExpectationsInfo
+    const challenges = this.getChallengesAndExpectations();
+    return {
+      currentChallenges: challenges?.currentChallenges || [],
+      expectationsFromProgram: challenges?.expectationsFromProgram || ''
+    };
   }
 
   hasExpertNotes(): boolean {
@@ -459,6 +548,16 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
           return `${minutes} minutes`;
         }
         
+        // Special handling for breastfeeding duration
+        if (field === 'breastfeeding_duration') {
+          return this.formatBreastfeedingDuration(value);
+        }
+        
+        // Special handling for family structure  
+        if (field === 'family_structure') {
+          return this.formatFamilyStructure(value);
+        }
+        
         // Special handling for latch quality
         if (value === 'deep' || value === 'shallow' || value === 'varies') {
           return value.charAt(0).toUpperCase() + value.slice(1);
@@ -532,6 +631,33 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
       '3l_6l': '3-6 Lakhs'
     };
     return incomeMap[income] || income.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+  
+  /**
+   * Format breastfeeding duration
+   */
+  private formatBreastfeedingDuration(duration: string): string {
+    const durationMap: {[key: string]: string} = {
+      '6_months': '6 Months',
+      '1_year': '1 Year',
+      '18_months': '18 Months',
+      '2_years': '2 Years',
+      'as_long_as_possible': 'As Long as Possible'
+    };
+    return durationMap[duration] || duration.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+  
+  /**
+   * Format family structure
+   */
+  private formatFamilyStructure(structure: string): string {
+    const structureMap: {[key: string]: string} = {
+      'nuclear': 'Nuclear Family',
+      'extended': 'Extended Family',
+      'single_parent': 'Single Parent',
+      'other': 'Other'
+    };
+    return structureMap[structure] || structure.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
   /**

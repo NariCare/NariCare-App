@@ -788,6 +788,66 @@ ion-chip {
   border: 1px solid #bbf7d0;
 }
 
+// Mobile-first responsive design
+@media (max-width: 767px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+    
+    .form-group.half-width {
+      margin-bottom: 1.5rem;
+      
+      &:last-child {
+        margin-bottom: 1.5rem;
+      }
+    }
+  }
+  
+  .input-item {
+    --min-height: 48px; // Slightly smaller on mobile
+  }
+  
+  // Ensure date inputs and datetime buttons don't overflow
+  ion-input[type="date"] {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  ion-datetime-button {
+    max-width: 100%;
+    overflow: hidden;
+    
+    &::part(native) {
+      max-width: 100%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
+  
+  .datetime-button-full {
+    max-width: 100%;
+    overflow: hidden;
+    
+    &::part(native) {
+      max-width: 100%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
+  
+  .input-item {
+    overflow: hidden;
+    
+    ion-datetime-button,
+    .datetime-button-full {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+}
+
 @media (min-width: 768px) {
   .onboarding-container {
     max-width: 520px;

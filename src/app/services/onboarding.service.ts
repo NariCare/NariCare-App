@@ -3,7 +3,8 @@ import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { OnboardingData, OnboardingProgress, OnboardingStepValidation, OnboardingDataMapping } from '../models/onboarding.model';
 import { ApiService } from './api.service';
-import { AuthService } from './auth.service';
+import { BackendAuthService } from './backend-auth.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class OnboardingService {
   });
 
   private currentStepSubject = new BehaviorSubject<number>(1);
-  private totalSteps = 7;
+  private totalSteps = 5;
 
   public onboardingData$ = this.onboardingDataSubject.asObservable();
   public currentStep$ = this.currentStepSubject.asObservable();
@@ -24,33 +25,166 @@ export class OnboardingService {
     this.onboardingData$,
     this.currentStep$
   ]).pipe(
-    map(([data, currentStep]) => ({
-      totalSteps: this.totalSteps,
-      completedSteps: data.completedSteps?.length || 0,
-      currentStep,
-      percentComplete: ((data.completedSteps?.length || 0) / this.totalSteps) * 100,
-      canProceed: this.canProceedOrComplete(currentStep, data)
-    }))
+    map(([data, currentStep]) => {
+      // Filter completedSteps to only include valid steps (1-5)
+      const validCompletedSteps = (data.completedSteps || []).filter(step => step >= 1 && step <= this.totalSteps);
+      return {
+        totalSteps: this.totalSteps,
+        completedSteps: validCompletedSteps.length,
+        currentStep,
+        percentComplete: (validCompletedSteps.length / this.totalSteps) * 100,
+        canProceed: this.canProceedOrComplete(currentStep, data)
+      };
+    })
   );
+
+  private hasInitialized = false;
+  private currentUserId: string | null = null;
 
   constructor(
     private apiService: ApiService,
-    private authService: AuthService
+    private authService: BackendAuthService
   ) {
-    this.initializeFromStorage();
-    this.prefillExistingData();
+    // Wait for user authentication before initializing data
+    this.authService.currentUser$.subscribe(user => {
+      if (user && user.uid && !user.uid.includes('mock')) {
+        console.log('Real user authenticated, initializing onboarding data for:', user.uid);
+        
+        // Check if we need to switch users or first-time init
+        const userChanged = this.currentUserId !== user.uid;
+        this.currentUserId = user.uid;
+        
+        if (userChanged) {
+          console.log('User changed or first login, reinitializing data');
+          
+          // Clean up any existing mock data immediately
+          this.cleanupMockData();
+          
+          // Migrate any existing mock data
+          this.migrateMockUserData(user.uid);
+          
+          // Initialize with the real user's data
+          this.initializeFromStorage();
+          this.prefillExistingData();
+          this.hasInitialized = true;
+        }
+      } else if (user && user.uid.includes('mock')) {
+        console.warn('Mock user detected, waiting for real authentication:', user.uid);
+        this.currentUserId = null;
+        this.hasInitialized = false;
+      } else {
+        console.log('No user authenticated, clearing onboarding data');
+        this.currentUserId = null;
+        this.hasInitialized = false;
+        // Clear data when no user is logged in
+        this.onboardingDataSubject.next({
+          completedSteps: [],
+          isCompleted: false
+        });
+      }
+    });
   }
 
   // ============================================================================
   // INITIALIZATION & DATA MANAGEMENT
   // ============================================================================
 
+  private getUserSpecificStorageKey(): string {
+    // Use cached user ID if available and valid
+    if (this.currentUserId && !this.currentUserId.includes('mock')) {
+      return `naricare_onboarding_${this.currentUserId}`;
+    }
+    
+    // Fallback to getting current user
+    const currentUser = this.authService.getCurrentUser();
+    const userId = currentUser?.uid;
+    
+    if (!userId) {
+      console.warn('No authenticated user found when accessing onboarding storage');
+      return 'naricare_onboarding_anonymous';
+    }
+    
+    // Reject mock users
+    if (userId.includes('mock')) {
+      console.warn('Rejecting mock user for storage key:', userId);
+      return 'naricare_onboarding_mock_rejected';
+    }
+    
+    return `naricare_onboarding_${userId}`;
+  }
+
+  private isDevelopmentMode(): boolean {
+    return !environment.production || window.location.hostname === 'localhost';
+  }
+
+  private cleanupMockData(): void {
+    try {
+      const allKeys = Object.keys(localStorage);
+      const mockKeys = allKeys.filter(key => 
+        key.includes('mock-user') || 
+        key.includes('mock_user') ||
+        key.includes('naricare_onboarding_mock') || 
+        key.includes('onboarding_form_data_mock')
+      );
+      
+      if (mockKeys.length > 0) {
+        console.log('Cleaning up mock data:', mockKeys);
+        mockKeys.forEach(key => {
+          localStorage.removeItem(key);
+          console.log('Removed mock data key:', key);
+        });
+      }
+    } catch (error) {
+      console.warn('Error cleaning up mock data:', error);
+    }
+  }
+
+  private migrateMockUserData(realUserId: string): void {
+    try {
+      // Look for any mock user data that might need to be migrated
+      const allKeys = Object.keys(localStorage);
+      const mockKeys = allKeys.filter(key => 
+        key.includes('naricare_onboarding_mock') || 
+        key.includes('onboarding_form_data_mock')
+      );
+      
+      if (mockKeys.length > 0) {
+        console.log('Found mock user data to migrate:', mockKeys);
+        
+        // Try to migrate the most recent mock data
+        const realUserKey = `naricare_onboarding_${realUserId}`;
+        const existingRealUserData = localStorage.getItem(realUserKey);
+        
+        // Only migrate if real user doesn't already have data
+        if (!existingRealUserData) {
+          const mockDataKey = mockKeys[0]; // Use first mock key found
+          const mockData = localStorage.getItem(mockDataKey);
+          
+          if (mockData) {
+            localStorage.setItem(realUserKey, mockData);
+            console.log('Migrated mock user data to real user:', realUserId);
+          }
+        }
+        
+        // Clean up mock data
+        mockKeys.forEach(key => {
+          localStorage.removeItem(key);
+          console.log('Cleaned up mock data:', key);
+        });
+      }
+    } catch (error) {
+      console.warn('Error migrating mock user data:', error);
+    }
+  }
+
   private initializeFromStorage(): void {
-    const savedData = localStorage.getItem('naricare_onboarding');
+    const storageKey = this.getUserSpecificStorageKey();
+    const savedData = localStorage.getItem(storageKey);
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
         this.onboardingDataSubject.next(parsedData);
+        console.log('Loaded onboarding data for user:', this.authService.getCurrentUser()?.uid);
       } catch (error) {
         console.error('Error parsing saved onboarding data:', error);
       }
@@ -67,9 +201,10 @@ export class OnboardingService {
         const backendData = { ...onboardingResponse.data };
         // Reset completion status - only set when user explicitly completes
         backendData.isCompleted = false;
+        backendData.completedSteps = []; // Reset completed steps to prevent false progress
         delete backendData.completedAt;
         
-        this.updateOnboardingData(backendData);
+        this.prefillDataWithoutCompletion(backendData);
         console.log('Loaded existing onboarding data from backend (completion status reset):', backendData);
         return;
       }
@@ -87,11 +222,17 @@ export class OnboardingService {
         // Pre-fill personal information
         if (!currentData.personalInfo) {
           currentData.personalInfo = {
-            email: userData.email || '',
-            fullName: `${userData.firstName || ''} ${userData.lastName || ''}`.trim(),
-            phoneNumber: userData.phoneNumber || '',
+            motherAge: userData.motherAge || userData.age || 25,
+            city: userData.city || '',
+            state: userData.state || '',
             employmentStatus: userData.employmentStatus || 'employed',
-            languagesSpoken: userData.languages || []
+            languagesSpoken: userData.languages || [],
+            motherMedicalConditions: userData.medicalConditions || [],
+            motherMedicalConditionsOther: '',
+            allergies: userData.allergies || '',
+            hasNippleIssues: false,
+            nippleIssuesDescription: '',
+            breastfeedingDuration: userData.breastfeedingDuration || '1_year'
           };
         }
 
@@ -101,7 +242,8 @@ export class OnboardingService {
           if (!currentData.pregnancyInfo?.babyInfo) {
             currentData.pregnancyInfo = {
               motherType: 'new_mom',
-              isFirstChild: babiesResponse.data.length === 1,
+              expectedDueDate: '',
+              isFirstChild: userData.isFirstChild !== undefined ? userData.isFirstChild : true,
               babyInfo: {
                 name: baby.name,
                 dateOfBirth: baby.dateOfBirth,
@@ -115,11 +257,28 @@ export class OnboardingService {
           }
         }
 
-        this.updateOnboardingData(currentData);
+        this.prefillDataWithoutCompletion(currentData);
       }
     } catch (error) {
       console.error('Error prefilling onboarding data:', error);
     }
+  }
+
+  private prefillDataWithoutCompletion(data: Partial<OnboardingData>): void {
+    const currentData = this.onboardingDataSubject.value;
+    const updatedData = { 
+      ...currentData, 
+      ...data,
+      // Ensure we don't mark any steps as completed during prefill
+      completedSteps: [],
+      isCompleted: false
+    };
+    
+    // Save to localStorage without triggering completion logic using user-specific key
+    const storageKey = this.getUserSpecificStorageKey();
+    localStorage.setItem(storageKey, JSON.stringify(updatedData));
+    
+    this.onboardingDataSubject.next(updatedData);
   }
 
   // ============================================================================
@@ -127,11 +286,18 @@ export class OnboardingService {
   // ============================================================================
 
   updateOnboardingData(data: Partial<OnboardingData>): void {
+    // Only proceed if we have a real user
+    if (!this.currentUserId || this.currentUserId.includes('mock')) {
+      console.warn('Skipping onboarding data update - no valid user authenticated');
+      return;
+    }
+    
     const currentData = this.onboardingDataSubject.value;
     const updatedData = { ...currentData, ...data };
     
-    // Save to localStorage
-    localStorage.setItem('naricare_onboarding', JSON.stringify(updatedData));
+    // Save to localStorage with user-specific key
+    const storageKey = this.getUserSpecificStorageKey();
+    localStorage.setItem(storageKey, JSON.stringify(updatedData));
     
     this.onboardingDataSubject.next(updatedData);
   }
@@ -148,25 +314,19 @@ export class OnboardingService {
         updatedData.pregnancyInfo = { ...updatedData.pregnancyInfo, ...stepData };
         break;
       case 3:
-        updatedData.breastfeedingInfo = { ...updatedData.breastfeedingInfo, ...stepData };
+        updatedData.formulaFeedingInfo = { ...updatedData.formulaFeedingInfo, ...stepData };
         break;
       case 4:
-        updatedData.medicalInfo = { ...updatedData.medicalInfo, ...stepData };
-        break;
-      case 5:
-        updatedData.feedingInfo = { ...updatedData.feedingInfo, ...stepData };
-        break;
-      case 6:
         updatedData.supportInfo = { ...updatedData.supportInfo, ...stepData };
         break;
-      case 7:
-        updatedData.preferencesInfo = { ...updatedData.preferencesInfo, ...stepData };
+      case 5:
+        updatedData.challengesAndExpectationsInfo = { ...updatedData.challengesAndExpectationsInfo, ...stepData };
         break;
     }
 
-    // Mark step as completed if valid
+    // Mark step as completed if valid and within range
     const validation = this.validateStep(step, updatedData);
-    if (validation.isValid && !updatedData.completedSteps?.includes(step)) {
+    if (validation.isValid && step >= 1 && step <= this.totalSteps && !updatedData.completedSteps?.includes(step)) {
       updatedData.completedSteps = [...(updatedData.completedSteps || []), step];
     }
 
@@ -178,7 +338,7 @@ export class OnboardingService {
 
   private autoSaveToBackend(data: Partial<OnboardingData>): void {
     // Only auto-save if we have meaningful data
-    if (!data.personalInfo && !data.pregnancyInfo && !data.breastfeedingInfo) {
+    if (!data.personalInfo && !data.pregnancyInfo && !data.formulaFeedingInfo) {
       return;
     }
 
@@ -276,20 +436,16 @@ export class OnboardingService {
       case 2:
         return this.validatePregnancyInfo(data.pregnancyInfo, validation);
       case 3:
-        // Skip breastfeeding validation for pregnant mothers
+        // Skip formula feeding validation for pregnant mothers
         if (data.pregnancyInfo?.motherType === 'pregnant') {
           validation.isValid = true;
           return validation;
         }
-        return this.validateBreastfeedingInfo(data.breastfeedingInfo, validation);
+        return this.validateFormulaFeedingInfo(data.formulaFeedingInfo, validation);
       case 4:
-        return this.validateMedicalInfo(data.medicalInfo, validation);
-      case 5:
-        return this.validateFeedingInfo(data.feedingInfo, validation);
-      case 6:
         return this.validateSupportInfo(data.supportInfo, validation);
-      case 7:
-        return this.validatePreferencesInfo(data.preferencesInfo, validation);
+      case 5:
+        return this.validateChallengesAndExpectations(data.challengesAndExpectationsInfo, validation);
     }
 
     return validation;
@@ -300,15 +456,21 @@ export class OnboardingService {
   // ============================================================================
 
   private validatePersonalInfo(data: any, validation: OnboardingStepValidation): OnboardingStepValidation {
-    const required = ['email', 'fullName', 'phoneNumber', 'employmentStatus'];
+    const required = ['motherAge', 'city', 'state', 'employmentStatus', 'languagesSpoken', 'breastfeedingDuration'];
     
     required.forEach(field => {
-      if (!data?.[field]) {
+      if (!data?.[field] && data?.[field] !== false) {
         validation.isValid = false;
         validation.requiredFields.push(field);
         validation.errors[field] = `${field} is required`;
       }
     });
+
+    // Validate conditional fields
+    if (data?.hasNippleIssues && !data?.nippleIssuesDescription) {
+      validation.isValid = false;
+      validation.errors['nippleIssuesDescription'] = 'Please describe the nipple issues';
+    }
 
     return validation;
   }
@@ -319,11 +481,17 @@ export class OnboardingService {
       validation.errors['motherType'] = 'Please select if you are pregnant or a new mother';
     }
 
+    // Validate isFirstChild (this field appears in step 2 UI)
+    if (data?.isFirstChild === undefined || data?.isFirstChild === null) {
+      validation.isValid = false;
+      validation.errors['isFirstChild'] = 'Please indicate if this is your first child';
+    }
+
     // Conditional validation based on mother type
     if (data?.motherType === 'pregnant') {
-      if (!data.dueDate) {
+      if (!data.expectedDueDate) {
         validation.isValid = false;
-        validation.errors['dueDate'] = 'Due date is required';
+        validation.errors['expectedDueDate'] = 'Due date is required';
       }
     }
 
@@ -337,69 +505,24 @@ export class OnboardingService {
       });
     }
 
-    if (data?.isFirstChild === undefined) {
-      validation.isValid = false;
-      validation.errors['isFirstChild'] = 'Please indicate if this is your first child';
-    }
-
     return validation;
   }
 
-  private validateBreastfeedingInfo(data: any, validation: OnboardingStepValidation): OnboardingStepValidation {
-    if (!data?.experienceLevel) {
-      validation.isValid = false;
-      validation.errors['experienceLevel'] = 'Please select your breastfeeding experience level';
-    }
-
-    if (data?.currentlyBreastfeeding === undefined) {
-      validation.isValid = false;
-      validation.errors['currentlyBreastfeeding'] = 'Please indicate if you are currently breastfeeding';
-    }
-
-    // NOTE: Baby-specific breastfeeding details (directFeedsPerDay, latchQuality, offersBothBreasts, 
-    // peeCount24h, poopCount24h) are now validated in step 2 as part of each baby's form.
-    // Step 3 only validates general breastfeeding experience and current status.
-
-    return validation;
-  }
-
-  private validateMedicalInfo(data: any, validation: OnboardingStepValidation): OnboardingStepValidation {
-    // Medical conditions can be "None" so we just check if the field exists
-    if (!data?.motherMedicalConditions || data.motherMedicalConditions.length === 0) {
-      validation.isValid = false;
-      validation.errors['motherMedicalConditions'] = 'Please select your medical conditions or "None"';
-    }
-
-    // Conditional validation for nipple issues
-    if (data?.nippleAnatomicalIssues && !data?.nippleIssuesDescription) {
-      validation.isValid = false;
-      validation.errors['nippleIssuesDescription'] = 'Please describe the nipple anatomical issues';
-    }
-
-    // Conditional validation for baby hospitalization
-    if (data?.babyHospitalized && !data?.babyHospitalizationReason) {
-      validation.isValid = false;
-      validation.errors['babyHospitalizationReason'] = 'Please provide the reason for hospitalization';
-    }
-
-    return validation;
-  }
-
-  private validateFeedingInfo(data: any, validation: OnboardingStepValidation): OnboardingStepValidation {
+  private validateFormulaFeedingInfo(data: any, validation: OnboardingStepValidation): OnboardingStepValidation {
     // Check main feeding method indicators
     if (data?.usesFormula === undefined) {
       validation.isValid = false;
       validation.errors['usesFormula'] = 'Please indicate if you use formula';
     }
 
-    if (data?.usesBottle === undefined) {
+    if (data?.usesBottles === undefined) {
       validation.isValid = false;
-      validation.errors['usesBottle'] = 'Please indicate if you use bottles';
+      validation.errors['usesBottles'] = 'Please indicate if you use bottles';
     }
 
-    if (data?.ownsPump === undefined) {
+    if (data?.usesPump === undefined) {
       validation.isValid = false;
-      validation.errors['ownsPump'] = 'Please indicate if you own a breast pump';
+      validation.errors['usesPump'] = 'Please indicate if you use a breast pump';
     }
 
     // Conditional validations
@@ -408,19 +531,14 @@ export class OnboardingService {
       validation.errors['formulaDetails'] = 'Please provide formula feeding details';
     }
 
-    if (data?.usesBottle && !data?.bottleDetails) {
+    if (data?.usesBottles && !data?.bottleDetails) {
       validation.isValid = false;
       validation.errors['bottleDetails'] = 'Please provide bottle feeding details';
     }
 
-    if (data?.ownsPump && !data?.pumpingDetails) {
+    if (data?.usesPump && !data?.pumpingDetails) {
       validation.isValid = false;
       validation.errors['pumpingDetails'] = 'Please provide pumping details';
-    }
-
-    if (data?.usesBreastmilkSupplements && !data?.supplementsDetails) {
-      validation.isValid = false;
-      validation.errors['supplementsDetails'] = 'Please describe the breastmilk supplements used';
     }
 
     return validation;
@@ -439,7 +557,7 @@ export class OnboardingService {
     return validation;
   }
 
-  private validatePreferencesInfo(data: any, validation: OnboardingStepValidation): OnboardingStepValidation {
+  private validateChallengesAndExpectations(data: any, validation: OnboardingStepValidation): OnboardingStepValidation {
     if (!data?.currentChallenges || data.currentChallenges.length === 0) {
       validation.isValid = false;
       validation.errors['currentChallenges'] = 'Please select at least one current challenge';
@@ -507,7 +625,8 @@ export class OnboardingService {
       this.updateOnboardingData(completedData);
       
       // Clear from localStorage as it's now synced
-      localStorage.removeItem('naricare_onboarding');
+      const storageKey = this.getUserSpecificStorageKey();
+      localStorage.removeItem(storageKey);
 
     } catch (error) {
       console.error('Error completing onboarding:', error);
@@ -547,12 +666,30 @@ export class OnboardingService {
   }
 
   resetOnboarding(): void {
-    localStorage.removeItem('naricare_onboarding');
+    const storageKey = this.getUserSpecificStorageKey();
+    localStorage.removeItem(storageKey);
     this.onboardingDataSubject.next({
       completedSteps: [],
       isCompleted: false
     });
     this.currentStepSubject.next(1);
+  }
+
+  // Clear all onboarding data when user logs out or switches
+  clearAllOnboardingData(): void {
+    // Clear current user's data
+    this.resetOnboarding();
+    
+    // Also clear any orphaned data (optional cleanup)
+    const allKeys = Object.keys(localStorage);
+    const onboardingKeys = allKeys.filter(key => 
+      key.startsWith('naricare_onboarding_') || key.startsWith('onboarding_form_data_')
+    );
+    onboardingKeys.forEach(key => {
+      localStorage.removeItem(key);
+    });
+    
+    console.log('Cleared all onboarding data from localStorage');
   }
 
   getCurrentData(): Partial<OnboardingData> {
@@ -564,6 +701,10 @@ export class OnboardingService {
     const data = this.onboardingDataSubject.value;
     
     switch (step) {
+      case 1:
+        return {
+          requiresNippleDescription: data.personalInfo?.hasNippleIssues === true
+        };
       case 2:
         return {
           requiresDueDate: data.pregnancyInfo?.motherType === 'pregnant',
@@ -571,19 +712,9 @@ export class OnboardingService {
         };
       case 3:
         return {
-          requiresBreastfeedingDetails: data.breastfeedingInfo?.currentlyBreastfeeding === true
-        };
-      case 4:
-        return {
-          requiresNippleDescription: data.medicalInfo?.nippleAnatomicalIssues === true,
-          requiresHospitalizationReason: data.medicalInfo?.babyHospitalized === true
-        };
-      case 5:
-        return {
-          requiresFormulaDetails: data.feedingInfo?.usesFormula === true,
-          requiresBottleDetails: data.feedingInfo?.usesBottle === true,
-          requiresPumpingDetails: data.feedingInfo?.ownsPump === true,
-          requiresSupplementsDetails: data.feedingInfo?.usesBreastmilkSupplements === true
+          requiresFormulaDetails: data.formulaFeedingInfo?.usesFormula === true,
+          requiresBottleDetails: data.formulaFeedingInfo?.usesBottles === true,
+          requiresPumpingDetails: data.formulaFeedingInfo?.usesPump === true
         };
       default:
         return {};

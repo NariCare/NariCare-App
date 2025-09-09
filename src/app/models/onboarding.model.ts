@@ -1,18 +1,24 @@
 export interface OnboardingData {
-  // Step 1: Personal Information
+  // Step 1: Mother's Personal Profile (removed redundant fields from registration)
   personalInfo: {
-    email: string;
-    fullName: string;
-    phoneNumber: string;
+    motherAge: number;
+    city: string;
+    state: string;
     employmentStatus: 'employed' | 'unemployed' | 'maternity_leave' | 'student';
     languagesSpoken: string[];
+    motherMedicalConditions: string[];
+    motherMedicalConditionsOther?: string;
+    allergies: string;
+    hasNippleIssues: boolean;
+    nippleIssuesDescription?: string;
+    breastfeedingDuration: string;
   };
 
-  // Step 2: Pregnancy & Birth Information
+  // Step 2: Pregnancy Status & Baby Information
   pregnancyInfo: {
     motherType: 'pregnant' | 'new_mom';
-    dueDate?: string; // Required if pregnant
-    isFirstChild: boolean;
+    expectedDueDate?: string; // Required if pregnant
+    isFirstChild: boolean; // Moved from personalInfo since it appears in step 2 UI
     
     // Baby information - required if new_mom, supports multiple babies
     babies?: {
@@ -20,11 +26,34 @@ export interface OnboardingData {
       dateOfBirth: string;
       gender: 'male' | 'female' | 'other';
       birthWeight: number; // in kg
+      mostRecentWeight: number; // in kg
+      dateOfMostRecentWeightCheck: string;
       birthHeight: number; // in cm
       deliveryType: 'vaginal' | 'c_section' | 'assisted';
       gestationalAge: number; // in weeks
-      currentWeight?: number; // most recent weight
-      weightCheckDate?: string;
+      
+      // Breastfeeding Details (per baby)
+      directBreastfeedsIn24h: number;
+      latchQuality: 'excellent' | 'good' | 'fair' | 'poor';
+      offersBothBreastsPerFeeding: boolean;
+      timeLatched: string; // time range options
+      
+      // Daily Output (per baby)
+      wetDiapersIn24h: number;
+      dirtyDiapersIn24h: number;
+      
+      // Health Information (per baby)
+      medicalConditions: string;
+      hasBeenHospitalized: boolean;
+      hospitalizationReason?: string;
+      
+      // Formula Feeding Details (per baby)
+      formulaBrand?: string;
+      formulaBrandOther?: string;
+      formulaTimesPerDay?: number;
+      formulaAmountPerFeed?: number;
+      formulaReason?: string;
+      formulaReasonOther?: string;
     }[];
     
     // Keep babyInfo for backward compatibility
@@ -41,79 +70,43 @@ export interface OnboardingData {
     };
   };
 
-  // Step 3: Breastfeeding Details
-  breastfeedingInfo: {
-    experienceLevel: 'first_time' | 'experienced' | 'had_challenges';
-    currentlyBreastfeeding: boolean;
-    
-    // Required if currently breastfeeding
-    breastfeedingDetails?: {
-      directFeedsPerDay: number; // 0-12+
-      latchQuality: 'deep' | 'shallow' | 'varies';
-      offersBothBreasts: boolean;
-      timePerBreast: '5_min' | '10_min' | '15_min' | '20_min' | 'varies';
-      breastfeedingDuration: string; // how long planning to breastfeed
-    };
-
-    // Baby's output tracking
-    babyOutput: {
-      peeCount24h: number;
-      poopCount24h: number;
-    };
-  };
-
-  // Step 4: Medical & Health Information
-  medicalInfo: {
-    motherMedicalConditions: string[]; // Pre-defined list + "Other" option
-    motherMedicalConditionsOther?: string;
-    allergies: string;
-    nippleAnatomicalIssues: boolean;
-    nippleIssuesDescription?: string; // Required if nippleAnatomicalIssues is true
-    
-    // Baby medical info
-    babyMedicalConditions: string;
-    babyHospitalized: boolean;
-    babyHospitalizationReason?: string; // Required if babyHospitalized is true
-  };
-
-  // Step 5: Feeding & Pumping
-  feedingInfo: {
+  // Step 3: Formula & Bottle Feeding Details
+  formulaFeedingInfo: {
     usesFormula: boolean;
     
     // Formula details - required if usesFormula is true
     formulaDetails?: {
-      formulaType: string;
-      amountPerFeed: number;
-      feedsPerDay: number;
+      formulaBrand: string;
+      timesOfferedPerDay: number;
+      amountPerFeed: number; // in ml
       reasonForFormula: string;
     };
-
-    usesBottle: boolean;
     
-    // Bottle details - required if usesBottle is true
+    // Bottle feeding details
+    usesBottles: boolean;
     bottleDetails?: {
-      bottleType: string;
-      amountPerFeed: number;
-      feedsPerDay: number;
-      contentType: 'breast_milk' | 'formula' | 'both';
+      bottleBrand: string;
+      bottleBrandOther?: string; // For "Other" bottle brand
+      feedDuration: string; // time to finish feed
+      usesPacedBottleFeeding: boolean;
+      bottleContents: 'breast_milk' | 'formula' | 'both';
     };
-
-    ownsPump: boolean;
     
-    // Pumping details - required if ownsPump is true
+    // Pumping details
+    usesPump: boolean;
     pumpingDetails?: {
+      pumpBrand: string;
+      pumpBrandOther?: string; // For "Other" pump brand
       pumpType: 'manual' | 'electric_single' | 'electric_double';
+      pumpsBothBreasts: boolean;
       sessionsPerDay: number;
-      averageOutput: number; // ml per session
-      pumpingDuration: number; // minutes per session
-      storageMethod: string[];
+      minutesPerSession: number;
+      averageOutputMl: number;
+      totalDailyOutput: number;
     };
-
-    usesBreastmilkSupplements: boolean;
-    supplementsDetails?: string; // Required if usesBreastmilkSupplements is true
   };
 
-  // Step 6: Support System & Demographics
+  // Step 4: Support System & Demographics
   supportInfo: {
     currentSupportSystem: string;
     familyStructure: 'nuclear' | 'extended' | 'single_parent' | 'other';
@@ -121,23 +114,10 @@ export interface OnboardingData {
     householdIncome: 'under_3l' | '3l_6l' | '6l_10l' | '10l_15l' | '15l_25l' | 'over_25l' | 'prefer_not_to_say';
   };
 
-  // Step 7: Preferences & Goals
-  preferencesInfo: {
+  // Step 5: Current Challenges & Program Expectations
+  challengesAndExpectationsInfo: {
     currentChallenges: string[]; // Multi-select from predefined list
     expectationsFromProgram: string;
-    milkSupplyGoals?: string; // Optional - for mothers with supply concerns
-    
-    // Notification preferences
-    notificationPreferences: {
-      articleUpdates: boolean;
-      consultationReminders: boolean;
-      groupMessages: boolean;
-      growthReminders: boolean;
-      expertMessages: boolean;
-      pumpingReminders: boolean;
-    };
-
-    topicsOfInterest: string[]; // Multi-select from predefined list
   };
 
   // Metadata
@@ -149,8 +129,9 @@ export interface OnboardingData {
 // Predefined options for dropdowns and multi-selects
 export const OnboardingOptions = {
   employmentStatus: [
-    { value: 'employed', label: 'Employed (including maternity leave)' },
+    { value: 'employed', label: 'Employed' },
     { value: 'unemployed', label: 'Unemployed' },
+    { value: 'maternity_leave', label: 'On Maternity Leave' },
     { value: 'student', label: 'Student' },
   ],
 
@@ -180,36 +161,88 @@ export const OnboardingOptions = {
     'Other'
   ],
 
+  indianStates: [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+    'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+    'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Other'
+  ],
+
+  motherMedicalConditions: [
+    'Diabetes', 'Hypertension', 'Thyroid disorders', 'PCOS', 'Depression/Anxiety',
+    'Previous breast surgery', 'Medications affecting milk supply', 'Hormonal imbalances',
+    'Mastitis history', 'IGT (Insufficient Glandular Tissue)', 'None', 'Other'
+  ],
+
+  breastfeedingDuration: [
+    { value: '1_month', label: '1 month' },
+    { value: '3_months', label: '3 months' },
+    { value: '6_months', label: '6 months' },
+    { value: '1_year', label: '1 year' },
+    { value: '18_months', label: '18 months' },
+    { value: '2_years', label: '2 years' },
+    { value: '2_years_plus', label: 'More than 2 years' },
+    { value: 'as_long_as_possible', label: 'As long as possible' }
+  ],
+
   deliveryTypes: [
     { value: 'vaginal', label: 'Vaginal delivery' },
     { value: 'c_section', label: 'Cesarean section' },
     { value: 'assisted', label: 'Assisted delivery (forceps/vacuum)' },
   ],
 
-  experienceLevels: [
-    { value: 'first_time', label: 'This is my first baby' },
-    { value: 'experienced', label: 'I have breastfed before successfully' },
-    { value: 'had_challenges', label: 'I had challenges with previous children' },
-  ],
-
   latchQuality: [
-    { value: 'deep', label: 'Deep latch' },
-    { value: 'shallow', label: 'Shallow latch' },
-    { value: 'varies', label: 'Varies by feeding' },
+    { value: 'excellent', label: 'Excellent' },
+    { value: 'good', label: 'Good' },
+    { value: 'fair', label: 'Fair' },
+    { value: 'poor', label: 'Poor' },
   ],
 
-  timePerBreast: [
+  timeLatched: [
     { value: '5_min', label: '5 minutes or less' },
-    { value: '10_min', label: '10 minutes' },
-    { value: '15_min', label: '15 minutes' },
-    { value: '20_min', label: '20 minutes or more' },
-    { value: 'varies', label: 'Varies by feeding' },
+    { value: '10_min', label: '6-10 minutes' },
+    { value: '15_min', label: '11-15 minutes' },
+    { value: '20_min', label: '16-20 minutes' },
+    { value: '20_plus', label: '20+ minutes' },
   ],
 
-  motherMedicalConditions: [
-    'Diabetes', 'Hypertension', 'Thyroid disorders', 'PCOS', 'Depression/Anxiety',
-    'Previous breast surgery', 'Medications affecting milk supply', 'Hormonal imbalances',
-    'Mastitis history', 'IGT (Insufficient Glandular Tissue)', 'Other'
+  commonFormulaBrands: [
+    'Nestle NAN', 'Enfamil', 'Similac', 'Aptamil', 'Farex', 'Lactogen', 'Other'
+  ],
+
+  formulaReasons: [
+    'Low milk supply', 'Baby not gaining weight', 'Returning to work',
+    'Medical reasons', 'Personal choice', 'Convenience', 'Other'
+  ],
+
+  commonBottleBrands: [
+    'Philips Avent', 'Dr. Brown\'s', 'Tommee Tippee', 'MAM', 'Chicco', 'Medela', 'Other'
+  ],
+
+  bottleContents: [
+    { value: 'breast_milk', label: 'Breast milk only' },
+    { value: 'formula', label: 'Formula only' },
+    { value: 'both', label: 'Both breast milk and formula' }
+  ],
+
+  bottleFeedDuration: [
+    { value: '5_min', label: '5 minutes or less' },
+    { value: '10_min', label: '6-10 minutes' },
+    { value: '15_min', label: '11-15 minutes' },
+    { value: '20_min', label: '16-20 minutes' },
+    { value: '20_plus', label: 'More than 20 minutes' }
+  ],
+
+  commonPumpBrands: [
+    'Medela', 'Spectra', 'Philips Avent', 'Lansinoh', 'Ameda', 'Tommee Tippee', 'Other'
+  ],
+
+  pumpTypes: [
+    { value: 'manual', label: 'Manual pump' },
+    { value: 'electric_single', label: 'Electric single pump' },
+    { value: 'electric_double', label: 'Electric double pump' },
   ],
 
   familyStructure: [
@@ -241,7 +274,34 @@ export const OnboardingOptions = {
     'Latching difficulties', 'Low milk supply', 'Oversupply', 'Sore/cracked nipples',
     'Engorgement', 'Blocked ducts', 'Mastitis', 'Pumping issues', 'Sleep deprivation',
     'Time management', 'Returning to work', 'Partner support', 'Family pressure',
-    'Public breastfeeding confidence', 'Pain while feeding', 'Baby weight concerns'
+    'Public breastfeeding confidence', 'Pain while feeding', 'Baby weight concerns',
+    'None - everything is going well'
+  ],
+
+  babyMedicalConditions: [
+    'Jaundice', 'Tongue tie', 'Lip tie', 'Reflux', 'Colic', 'Low birth weight',
+    'Premature birth', 'Breathing difficulties', 'Feeding difficulties', 
+    'Heart conditions', 'Allergies', 'None', 'Other'
+  ],
+
+  // Legacy options still referenced in HTML (will be updated later)
+  timePerBreast: [
+    { value: '5_min', label: '5 minutes or less' },
+    { value: '10_min', label: '6-10 minutes' },
+    { value: '15_min', label: '11-15 minutes' },
+    { value: '20_min', label: '16-20 minutes' },
+    { value: '20_plus', label: '20+ minutes' },
+  ],
+
+  experienceLevels: [
+    { value: 'first_time', label: 'This is my first baby' },
+    { value: 'experienced', label: 'I have breastfed before successfully' },
+    { value: 'had_challenges', label: 'I had challenges with previous children' },
+  ],
+
+  storageMethod: [
+    'Refrigerator (fresh milk)', 'Freezer bags', 'Storage bottles', 
+    'Ice packs for transport', 'Freezer stash'
   ],
 
   topicsOfInterest: [
@@ -249,17 +309,6 @@ export const OnboardingOptions = {
     'Pumping and storage', 'Returning to work', 'Baby development milestones',
     'Maternal mental health', 'Partner involvement', 'Weaning guidance',
     'Milk supply optimization', 'Dealing with growth spurts', 'Travel with baby'
-  ],
-
-  pumpTypes: [
-    { value: 'manual', label: 'Manual pump' },
-    { value: 'electric_single', label: 'Electric single pump' },
-    { value: 'electric_double', label: 'Electric double pump' },
-  ],
-
-  storageMethod: [
-    'Refrigerator (fresh milk)', 'Freezer bags', 'Storage bottles', 
-    'Ice packs for transport', 'Freezer stash'
   ]
 };
 
@@ -290,6 +339,9 @@ export interface OnboardingDataMapping {
     languages: string[];
     medicalConditions: string[];
     allergies: string;
+    motherAge: number;
+    city: string;
+    state: string;
   };
 
   babyProfile: {
@@ -300,6 +352,8 @@ export interface OnboardingDataMapping {
     birthHeight: number;
     deliveryType: string;
     gestationalAge: number;
+    currentWeight: number;
+    weightCheckDate: Date;
   };
 
   growthRecords: {
@@ -313,9 +367,5 @@ export interface OnboardingDataMapping {
     breastfeedingGoals: string;
     pumpingSchedule: any;
     formulaPreferences: any;
-  };
-
-  notificationSettings: {
-    [key: string]: boolean;
   };
 }

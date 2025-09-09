@@ -18,7 +18,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
   onboardingForm: FormGroup;
   currentUser: User | null = null;
   progress: OnboardingProgress = {
-    totalSteps: 7,
+    totalSteps: 5,
     completedSteps: 0,
     currentStep: 1,
     percentComplete: 0,
@@ -42,6 +42,23 @@ export class OnboardingPage implements OnInit, OnDestroy {
   private readonly ONBOARDING_STORAGE_KEY = 'onboarding_form_data';
   
   private subscriptions: Subscription[] = [];
+
+  private getUserSpecificStorageKey(): string {
+    const currentUser = this.authService.getCurrentUser();
+    const userId = currentUser?.uid;
+    
+    if (!userId) {
+      console.warn('No authenticated user found when accessing onboarding component storage');
+      return `${this.ONBOARDING_STORAGE_KEY}_anonymous`;
+    }
+    
+    // Log if we're using a mock user (for debugging)
+    if (userId.includes('mock')) {
+      console.log('Using mock user for onboarding storage:', userId);
+    }
+    
+    return `${this.ONBOARDING_STORAGE_KEY}_${userId}`;
+  }
 
   constructor(
     private formBuilder: FormBuilder,
@@ -82,19 +99,35 @@ export class OnboardingPage implements OnInit, OnDestroy {
     // Subscribe to onboarding data changes to update form
     this.subscriptions.push(
       this.onboardingService.onboardingData$.subscribe(data => {
-        this.updateFormFromData(data);
+        // Only update from service if we don't have newer localStorage data
+        const savedData = this.loadFormDataFromLocalStorage();
+        if (!savedData || !savedData.timestamp) {
+          this.updateFormFromData(data);
+        }
       })
     );
 
-    // Subscribe to form value changes to update progress
+    // Subscribe to form value changes to update progress and save to localStorage
     this.subscriptions.push(
       this.onboardingForm.valueChanges.subscribe(() => {
         this.updateProgressState();
+        this.saveFormDataToLocalStorage();
       })
     );
 
-    // Initial progress state update
-    setTimeout(() => this.updateProgressState(), 200);
+    // Force reset if we detect invalid step state
+    const savedData = this.loadFormDataFromLocalStorage();
+    if (savedData?.progress?.currentStep > 5) {
+      console.warn('Clearing corrupted localStorage data');
+      this.clearLocalStorageData();
+      this.onboardingService.resetOnboarding();
+    }
+    
+    // Load localStorage form data immediately after subscriptions are set up
+    this.loadAndRestoreFormData();
+    setTimeout(() => {
+      this.updateProgressState();
+    }, 100);
   }
 
   ngOnDestroy() {
@@ -130,25 +163,29 @@ export class OnboardingPage implements OnInit, OnDestroy {
       gender: baby.gender,
       dateOfBirth: this.formatDateForInput(baby.dateOfBirth || baby.date_of_birth || baby.birth_date),
       birthWeight: baby.birthWeight || baby.birth_weight || baby.weight_at_birth,
+      mostRecentWeight: baby.currentWeight || baby.current_weight || baby.latest_weight || baby.mostRecentWeight,
+      dateOfMostRecentWeightCheck: this.formatDateForInput(baby.weightCheckDate || baby.weight_check_date || baby.last_weight_date || baby.dateOfMostRecentWeightCheck) || new Date().toISOString().split('T')[0],
       birthHeight: baby.birthHeight || baby.birth_height || baby.height_at_birth,
       deliveryType: baby.deliveryType || baby.delivery_type || baby.type_of_delivery,
       gestationalAge: baby.gestationalAge || baby.gestational_age || baby.gestational_weeks || 40,
-      currentWeight: baby.currentWeight || baby.current_weight || baby.latest_weight,
-      weightCheckDate: this.formatDateForInput(baby.weightCheckDate || baby.weight_check_date || baby.last_weight_date),
       
-      // Breastfeeding details (if available from previous data)
-      directFeedsPerDay: baby.directFeedsPerDay || baby.direct_feeds_per_day || baby.breastfeeds_per_day || 0,
-      peeCount24h: baby.peeCount24h || baby.pee_count_24h || baby.wet_diapers || 0,
-      poopCount24h: baby.poopCount24h || baby.poop_count_24h || baby.soiled_diapers || 0,
+      // Breastfeeding details (updated field names)
+      directBreastfeedsIn24h: baby.directFeedsPerDay || baby.direct_feeds_per_day || baby.breastfeeds_per_day || baby.directBreastfeedsIn24h || 0,
       latchQuality: baby.latchQuality || baby.latch_quality || '',
-      offersBothBreasts: baby.offersBothBreasts !== undefined ? baby.offersBothBreasts : 
-                        (baby.offers_both_breasts !== undefined ? baby.offers_both_breasts : null),
-      timePerBreast: baby.timePerBreast || baby.time_per_breast || '',
+      offersBothBreastsPerFeeding: baby.offersBothBreasts !== undefined ? baby.offersBothBreasts : 
+                        (baby.offers_both_breasts !== undefined ? baby.offers_both_breasts : 
+                        (baby.offersBothBreastsPerFeeding !== undefined ? baby.offersBothBreastsPerFeeding : false)),
+      timePerBreast: baby.timePerBreast || baby.time_per_breast || baby.timeLatched || '',
       
-      // Medical information (if available)
-      medicalConditions: baby.medicalConditions || baby.medical_conditions || baby.health_conditions || '',
+      // Daily Output (updated field names)
+      wetDiapersIn24h: baby.peeCount24h || baby.pee_count_24h || baby.wet_diapers || baby.wetDiapersIn24h || 0,
+      dirtyDiapersIn24h: baby.poopCount24h || baby.poop_count_24h || baby.soiled_diapers || baby.dirtyDiapersIn24h || 0,
+      
+      // Medical information (updated field names)
+      medicalConditions: baby.medicalConditions || baby.medical_conditions || baby.health_conditions || [],
+      medicalConditionsOther: baby.medicalConditionsOther || '',
       hasBeenHospitalized: baby.hasBeenHospitalized !== undefined ? baby.hasBeenHospitalized : 
-                           (baby.has_been_hospitalized !== undefined ? baby.has_been_hospitalized : null),
+                           (baby.has_been_hospitalized !== undefined ? baby.has_been_hospitalized : false),
       hospitalizationReason: baby.hospitalizationReason || baby.hospitalization_reason || '',
       
       // Formula feeding (if available)
@@ -199,15 +236,6 @@ export class OnboardingPage implements OnInit, OnDestroy {
     }
   }
 
-  shouldShowFormulaQuestions(): boolean {
-    // Show formula questions if user selected they use formula in step 5
-    return this.onboardingForm.get('usesFormula')?.value === true;
-  }
-
-  shouldShowBottleQuestions(): boolean {
-    // Show bottle questions if user selected they use bottles in step 5
-    return this.onboardingForm.get('usesBottle')?.value === true;
-  }
 
   formatDateForInput(dateString: string): string {
     if (!dateString) return new Date().toISOString();
@@ -317,7 +345,12 @@ export class OnboardingPage implements OnInit, OnDestroy {
         progress: this.progress,
         timestamp: new Date().toISOString()
       };
-      localStorage.setItem(this.ONBOARDING_STORAGE_KEY, JSON.stringify(formData));
+      console.log('Saving form data to localStorage:', formData.formValues);
+      if (formData.formValues.babies) {
+        console.log('Saving babies data:', formData.formValues.babies);
+      }
+      const storageKey = this.getUserSpecificStorageKey();
+      localStorage.setItem(storageKey, JSON.stringify(formData));
     } catch (error) {
       console.warn('Failed to save form data to local storage:', error);
     }
@@ -325,7 +358,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   private loadFormDataFromLocalStorage(): any {
     try {
-      const savedData = localStorage.getItem(this.ONBOARDING_STORAGE_KEY);
+      const storageKey = this.getUserSpecificStorageKey();
+      const savedData = localStorage.getItem(storageKey);
       if (savedData) {
         const parsedData = JSON.parse(savedData);
         
@@ -349,7 +383,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   private clearLocalStorageData(): void {
     try {
-      localStorage.removeItem(this.ONBOARDING_STORAGE_KEY);
+      const storageKey = this.getUserSpecificStorageKey();
+      localStorage.removeItem(storageKey);
     } catch (error) {
       console.warn('Failed to clear local storage:', error);
     }
@@ -362,7 +397,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
     this.onboardingForm.reset();
     // Reset progress
     this.progress = {
-      totalSteps: 7,
+      totalSteps: 5,
       completedSteps: 0,
       currentStep: 1,
       percentComplete: 0,
@@ -380,66 +415,54 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   private initializeForm(): void {
     this.onboardingForm = this.formBuilder.group({
-      // Step 1: Personal Information
-      email: ['', [Validators.required, Validators.email]],
-      fullName: ['', [Validators.required]],
-      phoneNumber: ['', [Validators.required]],
+      // Step 1: Mother's Personal Profile
+      motherAge: [null, [Validators.required, Validators.min(15), Validators.max(50)]],
+      city: ['', [Validators.required]],
+      state: ['', [Validators.required]],
       employmentStatus: ['', [Validators.required]],
-      languagesSpoken: [[]],
-      
-      // Step 2: Pregnancy & Birth Information
-      motherType: ['', [Validators.required]],
-      dueDate: [new Date().toISOString()],
-      isFirstChild: [null],
-      numberOfBabies: [1],
-      babies: this.formBuilder.array([]),
-      
-      // Step 3: Breastfeeding Details
-      experienceLevel: ['', [Validators.required]],
-      currentlyBreastfeeding: [null],
-      breastfeedingDuration: [''],
-      
-      // Step 4: Medical & Health Information
+      languagesSpoken: [[], [Validators.required]],
       motherMedicalConditions: [[]],
       motherMedicalConditionsOther: [''],
       allergies: [''],
-      nippleAnatomicalIssues: [false],
+      hasNippleIssues: [false],
       nippleIssuesDescription: [''],
-      babyMedicalConditions: [''],
-      babyHospitalized: [false],
-      babyHospitalizationReason: [''],
+      isFirstChild: [null, [Validators.required]],
+      breastfeedingDuration: ['', [Validators.required]],
       
-      // Step 5: Feeding & Pumping
+      // Step 2: Pregnancy & Baby Information
+      motherType: ['', [Validators.required]],
+      expectedDueDate: [new Date().toISOString()],
+      numberOfBabies: [1],
+      babies: this.formBuilder.array([]),
+      
+      // Step 3: Formula & Feeding Methods
       usesFormula: [null],
-      formulaType: [''],
-      formulaAmountPerFeed: [null],
-      formulaFeedsPerDay: [null],
-      formulaReason: [''],
-      usesBottle: [null],
-      bottleType: [''],
-      bottleAmountPerFeed: [null],
-      bottleFeedsPerDay: [null],
-      bottleContentType: [''],
-      ownsPump: [null],
+      // Formula details are now per baby in the babies FormArray
+      usesBottles: [null],
+      bottleBrand: [''],
+      bottleBrandOther: [''], // For "Other" bottle brand
+      bottleFeedDuration: [''],
+      usesPacedBottleFeeding: [null],
+      bottleContents: [''],
+      usesPump: [null],
+      pumpBrand: [''],
+      pumpBrandOther: [''], // For "Other" pump brand
       pumpType: [''],
-      pumpSessionsPerDay: [null],
-      pumpAverageOutput: [null],
-      pumpSessionDuration: [null],
-      storageMethod: [[]],
-      usesBreastmilkSupplements: [false],
-      supplementsDetails: [''],
+      pumpsBothBreasts: [null],
+      pumpSessionsPerDay: [3], // Default 3 sessions per day
+      pumpMinutesPerSession: [15], // Default 15 minutes per session
+      pumpAverageOutput: [50], // Default 50ml per session
+      pumpTotalDailyOutput: [200], // Default 200ml total daily
       
-      // Step 6: Support System & Demographics
+      // Step 4: Support System & Demographics
       currentSupportSystem: ['', [Validators.required]],
       familyStructure: ['', [Validators.required]],
       educationLevel: ['', [Validators.required]],
       householdIncome: [''],
       
-      // Step 7: Preferences & Goals
-      currentChallenges: [[]],
-      expectationsFromProgram: ['', [Validators.required]],
-      milkSupplyGoals: [''],
-      topicsOfInterest: [[]]
+      // Step 5: Current Challenges & Expectations
+      currentChallenges: [[], [Validators.required]],
+      expectationsFromProgram: ['', [Validators.required]]
     });
 
     // Initialize with one baby by default
@@ -459,15 +482,21 @@ export class OnboardingPage implements OnInit, OnDestroy {
   private loadAndRestoreFormData(): void {
     const savedData = this.loadFormDataFromLocalStorage();
     if (savedData && savedData.formValues) {
+      console.log('Loading form data from localStorage:', savedData.formValues);
+      console.log('Current progress from localStorage:', savedData.progress);
+      
       // First restore babies FormArray if it exists
       if (savedData.formValues.babies && Array.isArray(savedData.formValues.babies)) {
+        console.log('Restoring babies data:', savedData.formValues.babies);
+        
         // Clear existing babies
         while (this.babiesFormArray.length !== 0) {
           this.babiesFormArray.removeAt(0);
         }
         
         // Add saved babies
-        savedData.formValues.babies.forEach((babyData: any) => {
+        savedData.formValues.babies.forEach((babyData: any, index: number) => {
+          console.log(`Restoring baby ${index + 1}:`, babyData);
           const babyForm = this.createBabyForm();
           babyForm.patchValue(babyData, { emitEvent: false });
           this.babiesFormArray.push(babyForm);
@@ -478,17 +507,57 @@ export class OnboardingPage implements OnInit, OnDestroy {
       const { babies, ...otherFormValues } = savedData.formValues;
       this.onboardingForm.patchValue(otherFormValues, { emitEvent: false });
       
-      // Restore progress if available
+      // Restore progress if available, but validate currentStep
       if (savedData.progress) {
         this.progress = savedData.progress;
+        // Ensure currentStep is within valid range (1-5)
+        if (this.progress.currentStep > 5) {
+          console.warn('Detected invalid currentStep:', this.progress.currentStep, 'Clearing localStorage and resetting to step 1');
+          this.clearLocalStorageData();
+          this.progress.currentStep = 1;
+          this.progress.completedSteps = 0;
+          this.onboardingService.resetOnboarding();
+          return; // Exit early to prevent further processing of corrupted data
+        }
+        if (this.progress.currentStep < 1) {
+          this.progress.currentStep = 1;
+          console.log('Reset invalid currentStep to 1');
+        }
       }
       
       // Update the onboarding service with restored data to synchronize validation state
-      // Extract and save all step data to ensure service state matches form state
-      for (let step = 1; step <= this.progress.totalSteps; step++) {
-        const stepData = this.extractStepData(step, savedData.formValues);
-        this.onboardingService.updateStepData(step, stepData);
+      // Only process steps that have actual data to avoid marking empty steps as completed
+      console.log('Saved form values:', savedData.formValues);
+      
+      // Only validate/update steps that have meaningful data
+      if (savedData.formValues.motherAge || savedData.formValues.city) {
+        const stepData = this.extractStepData(1, savedData.formValues);
+        this.onboardingService.updateStepData(1, stepData);
       }
+      
+      if (savedData.formValues.motherType || savedData.formValues.babies?.length) {
+        const stepData = this.extractStepData(2, savedData.formValues);
+        this.onboardingService.updateStepData(2, stepData);
+      }
+      
+      if (savedData.formValues.usesFormula !== null || savedData.formValues.usesBottles !== null || savedData.formValues.usesPump !== null) {
+        const stepData = this.extractStepData(3, savedData.formValues);
+        this.onboardingService.updateStepData(3, stepData);
+      }
+      
+      if (savedData.formValues.currentSupportSystem || savedData.formValues.familyStructure) {
+        const stepData = this.extractStepData(4, savedData.formValues);
+        this.onboardingService.updateStepData(4, stepData);
+      }
+      
+      if (savedData.formValues.currentChallenges?.length || savedData.formValues.expectationsFromProgram) {
+        const stepData = this.extractStepData(5, savedData.formValues);
+        this.onboardingService.updateStepData(5, stepData);
+      }
+      
+      // Synchronize the current step with the service (ensure it's valid)
+      const validCurrentStep = Math.min(Math.max(1, this.progress.currentStep), 5);
+      this.onboardingService.goToStep(validCurrentStep);
       
       console.log('Restored onboarding form data from local storage and synchronized service state');
     }
@@ -572,33 +641,25 @@ export class OnboardingPage implements OnInit, OnDestroy {
     // Update form with current data
     const formUpdate: any = {};
     
-    // Personal Info
+    // Personal Info (new structure)
     if (data.personalInfo) {
-      formUpdate.email = data.personalInfo.email || this.currentUser?.email;
-      formUpdate.fullName = data.personalInfo.fullName || 
-        (this.currentUser?.firstName && this.currentUser?.lastName ? 
-         `${this.currentUser.firstName} ${this.currentUser.lastName}`.trim() : 
-         this.currentUser?.firstName);
-      formUpdate.phoneNumber = data.personalInfo.phoneNumber || this.currentUser?.phoneNumber;
+      formUpdate.motherAge = data.personalInfo.motherAge;
+      formUpdate.city = data.personalInfo.city;
+      formUpdate.state = data.personalInfo.state;
       formUpdate.employmentStatus = data.personalInfo.employmentStatus;
       formUpdate.languagesSpoken = data.personalInfo.languagesSpoken;
-    } else if (this.currentUser) {
-      // If personalInfo doesn't exist, prefill from current user
-      formUpdate.email = this.currentUser.email;
-      if (this.currentUser.firstName && this.currentUser.lastName) {
-        formUpdate.fullName = `${this.currentUser.firstName} ${this.currentUser.lastName}`.trim();
-      } else if (this.currentUser.firstName) {
-        formUpdate.fullName = this.currentUser.firstName;
-      }
-      if (this.currentUser.phoneNumber) {
-        formUpdate.phoneNumber = this.currentUser.phoneNumber;
-      }
+      formUpdate.motherMedicalConditions = data.personalInfo.motherMedicalConditions;
+      formUpdate.motherMedicalConditionsOther = data.personalInfo.motherMedicalConditionsOther;
+      formUpdate.allergies = data.personalInfo.allergies;
+      formUpdate.hasNippleIssues = data.personalInfo.hasNippleIssues;
+      formUpdate.nippleIssuesDescription = data.personalInfo.nippleIssuesDescription;
+      formUpdate.breastfeedingDuration = data.personalInfo.breastfeedingDuration;
     }
     
     // Pregnancy Info
     if (data.pregnancyInfo) {
       formUpdate.motherType = data.pregnancyInfo.motherType;
-      formUpdate.dueDate = data.pregnancyInfo.dueDate;
+      formUpdate.expectedDueDate = data.pregnancyInfo.expectedDueDate;
       formUpdate.isFirstChild = data.pregnancyInfo.isFirstChild;
       
       // Handle babies array (multiple babies support)
@@ -617,11 +678,35 @@ export class OnboardingPage implements OnInit, OnDestroy {
             dateOfBirth: baby.dateOfBirth ? new Date(baby.dateOfBirth).toISOString().split('T')[0] : '',
             gender: baby.gender || 'male',
             birthWeight: baby.birthWeight || '',
+            mostRecentWeight: baby.mostRecentWeight || baby.currentWeight || '',
+            dateOfMostRecentWeightCheck: baby.dateOfMostRecentWeightCheck ? new Date(baby.dateOfMostRecentWeightCheck).toISOString().split('T')[0] : (baby.weightCheckDate ? new Date(baby.weightCheckDate).toISOString().split('T')[0] : ''),
             birthHeight: baby.birthHeight || '',
             deliveryType: baby.deliveryType || '',
             gestationalAge: baby.gestationalAge || '',
-            currentWeight: baby.currentWeight || '',
-            weightCheckDate: baby.weightCheckDate ? new Date(baby.weightCheckDate).toISOString().split('T')[0] : ''
+            
+            // Breastfeeding Details
+            directBreastfeedsIn24h: baby.directBreastfeedsIn24h || 0,
+            latchQuality: baby.latchQuality || '',
+            offersBothBreastsPerFeeding: baby.offersBothBreastsPerFeeding,
+            timePerBreast: baby.timePerBreast || baby.timeLatched || '',
+            
+            // Daily Output
+            wetDiapersIn24h: baby.wetDiapersIn24h || 0,
+            dirtyDiapersIn24h: baby.dirtyDiapersIn24h || 0,
+            
+            // Health Information
+            medicalConditions: baby.medicalConditions || [],
+            medicalConditionsOther: baby.medicalConditionsOther || '',
+            hasBeenHospitalized: baby.hasBeenHospitalized,
+            hospitalizationReason: baby.hospitalizationReason || '',
+            
+            // Formula Feeding Details (per baby)
+            formulaBrand: baby.formulaBrand || '',
+            formulaBrandOther: baby.formulaBrandOther || '',
+            formulaTimesPerDay: baby.formulaTimesPerDay || 0,
+            formulaAmountPerFeed: baby.formulaAmountPerFeed || 10,
+            formulaReason: baby.formulaReason || '',
+            formulaReasonOther: baby.formulaReasonOther || ''
           }, { emitEvent: false });
           
           // Store additional baby data that might not be in the form
@@ -641,16 +726,43 @@ export class OnboardingPage implements OnInit, OnDestroy {
         }
         
         const babyForm = this.createBabyForm();
+        const extendedBaby = baby as any; // Type assertion to access new fields
         babyForm.patchValue({
           name: baby.name || '',
           dateOfBirth: baby.dateOfBirth ? new Date(baby.dateOfBirth).toISOString().split('T')[0] : '',
           gender: baby.gender || 'male',
           birthWeight: baby.birthWeight || '',
+          mostRecentWeight: baby.currentWeight || extendedBaby.mostRecentWeight || '',
+          dateOfMostRecentWeightCheck: baby.weightCheckDate ? new Date(baby.weightCheckDate).toISOString().split('T')[0] : 
+            (extendedBaby.dateOfMostRecentWeightCheck ? new Date(extendedBaby.dateOfMostRecentWeightCheck).toISOString().split('T')[0] : 
+            new Date().toISOString().split('T')[0]),
           birthHeight: baby.birthHeight || '',
           deliveryType: baby.deliveryType || '',
           gestationalAge: baby.gestationalAge || '',
-          currentWeight: baby.currentWeight || '',
-          weightCheckDate: baby.weightCheckDate ? new Date(baby.weightCheckDate).toISOString().split('T')[0] : ''
+          
+          // Breastfeeding Details
+          directBreastfeedsIn24h: extendedBaby.directBreastfeedsIn24h || 0,
+          latchQuality: extendedBaby.latchQuality || '',
+          offersBothBreastsPerFeeding: extendedBaby.offersBothBreastsPerFeeding || false,
+          timePerBreast: extendedBaby.timePerBreast || extendedBaby.timeLatched || '',
+          
+          // Daily Output
+          wetDiapersIn24h: extendedBaby.wetDiapersIn24h || 0,
+          dirtyDiapersIn24h: extendedBaby.dirtyDiapersIn24h || 0,
+          
+          // Health Information
+          medicalConditions: extendedBaby.medicalConditions || [],
+          medicalConditionsOther: extendedBaby.medicalConditionsOther || '',
+          hasBeenHospitalized: extendedBaby.hasBeenHospitalized || false,
+          hospitalizationReason: extendedBaby.hospitalizationReason || '',
+          
+          // Formula Feeding Details (per baby)
+          formulaBrand: extendedBaby.formulaBrand || '',
+          formulaBrandOther: extendedBaby.formulaBrandOther || '',
+          formulaTimesPerDay: extendedBaby.formulaTimesPerDay || 0,
+          formulaAmountPerFeed: extendedBaby.formulaAmountPerFeed || 10,
+          formulaReason: extendedBaby.formulaReason || '',
+          formulaReasonOther: extendedBaby.formulaReasonOther || ''
         }, { emitEvent: false });
         
         // Store additional baby data that might not be in the form
@@ -661,67 +773,34 @@ export class OnboardingPage implements OnInit, OnDestroy {
       }
     }
     
-    // Breastfeeding Info
-    if (data.breastfeedingInfo) {
-      formUpdate.experienceLevel = data.breastfeedingInfo.experienceLevel;
-      formUpdate.currentlyBreastfeeding = data.breastfeedingInfo.currentlyBreastfeeding;
-      formUpdate.breastfeedingDuration = (data.breastfeedingInfo as any).breastfeedingDuration;
+    // Formula Feeding Info (new structure)
+    if (data.formulaFeedingInfo) {
+      formUpdate.usesFormula = data.formulaFeedingInfo.usesFormula;
+      formUpdate.usesBottles = data.formulaFeedingInfo.usesBottles;
+      formUpdate.usesPump = data.formulaFeedingInfo.usesPump;
       
-      if (data.breastfeedingInfo.breastfeedingDetails) {
-        formUpdate.latchQuality = data.breastfeedingInfo.breastfeedingDetails.latchQuality;
-        formUpdate.timePerBreast = data.breastfeedingInfo.breastfeedingDetails.timePerBreast;
-        formUpdate.directFeedsPerDay = data.breastfeedingInfo.breastfeedingDetails.directFeedsPerDay;
-        formUpdate.offersBothBreasts = data.breastfeedingInfo.breastfeedingDetails.offersBothBreasts;
+      // Formula details are now stored per baby, not in formulaDetails
+      
+      if (data.formulaFeedingInfo.bottleDetails) {
+        formUpdate.bottleBrand = data.formulaFeedingInfo.bottleDetails.bottleBrand;
+        formUpdate.bottleBrandOther = data.formulaFeedingInfo.bottleDetails.bottleBrandOther;
+        formUpdate.bottleFeedDuration = data.formulaFeedingInfo.bottleDetails.feedDuration;
+        formUpdate.usesPacedBottleFeeding = data.formulaFeedingInfo.bottleDetails.usesPacedBottleFeeding;
+        formUpdate.bottleContents = data.formulaFeedingInfo.bottleDetails.bottleContents;
       }
       
-      if (data.breastfeedingInfo.babyOutput) {
-        formUpdate.peeCount24h = data.breastfeedingInfo.babyOutput.peeCount24h;
-        formUpdate.poopCount24h = data.breastfeedingInfo.babyOutput.poopCount24h;
+      if (data.formulaFeedingInfo.pumpingDetails) {
+        formUpdate.pumpBrand = data.formulaFeedingInfo.pumpingDetails.pumpBrand;
+        formUpdate.pumpBrandOther = data.formulaFeedingInfo.pumpingDetails.pumpBrandOther;
+        formUpdate.pumpType = data.formulaFeedingInfo.pumpingDetails.pumpType;
+        formUpdate.pumpsBothBreasts = data.formulaFeedingInfo.pumpingDetails.pumpsBothBreasts;
+        formUpdate.pumpSessionsPerDay = data.formulaFeedingInfo.pumpingDetails.sessionsPerDay;
+        formUpdate.pumpMinutesPerSession = data.formulaFeedingInfo.pumpingDetails.minutesPerSession;
+        formUpdate.pumpAverageOutput = data.formulaFeedingInfo.pumpingDetails.averageOutputMl;
+        formUpdate.pumpTotalDailyOutput = data.formulaFeedingInfo.pumpingDetails.totalDailyOutput;
       }
     }
     
-    // Medical Info
-    if (data.medicalInfo) {
-      formUpdate.motherMedicalConditions = data.medicalInfo.motherMedicalConditions;
-      formUpdate.motherMedicalConditionsOther = data.medicalInfo.motherMedicalConditionsOther;
-      formUpdate.nippleAnatomicalIssues = data.medicalInfo.nippleAnatomicalIssues;
-      formUpdate.nippleIssuesDescription = data.medicalInfo.nippleIssuesDescription;
-      formUpdate.allergies = data.medicalInfo.allergies;
-      formUpdate.babyMedicalConditions = data.medicalInfo.babyMedicalConditions;
-      formUpdate.babyHospitalized = data.medicalInfo.babyHospitalized;
-      formUpdate.babyHospitalizationReason = data.medicalInfo.babyHospitalizationReason;
-    }
-    
-    // Feeding Info
-    if (data.feedingInfo) {
-      formUpdate.usesFormula = data.feedingInfo.usesFormula;
-      formUpdate.usesBottle = data.feedingInfo.usesBottle;
-      formUpdate.ownsPump = data.feedingInfo.ownsPump;
-      formUpdate.usesBreastmilkSupplements = data.feedingInfo.usesBreastmilkSupplements;
-      formUpdate.supplementsDetails = data.feedingInfo.supplementsDetails;
-      
-      if (data.feedingInfo.formulaDetails) {
-        formUpdate.formulaType = data.feedingInfo.formulaDetails.formulaType;
-        formUpdate.formulaFeedsPerDay = data.feedingInfo.formulaDetails.feedsPerDay;
-        formUpdate.formulaAmountPerFeed = data.feedingInfo.formulaDetails.amountPerFeed;
-        formUpdate.reasonForFormula = data.feedingInfo.formulaDetails.reasonForFormula;
-      }
-      
-      if (data.feedingInfo.bottleDetails) {
-        formUpdate.bottleType = data.feedingInfo.bottleDetails.bottleType;
-        formUpdate.bottleContentType = data.feedingInfo.bottleDetails.contentType;
-        formUpdate.bottleFeedsPerDay = data.feedingInfo.bottleDetails.feedsPerDay;
-        formUpdate.bottleAmountPerFeed = data.feedingInfo.bottleDetails.amountPerFeed;
-      }
-      
-      if (data.feedingInfo.pumpingDetails) {
-        formUpdate.pumpType = data.feedingInfo.pumpingDetails.pumpType;
-        formUpdate.pumpingSessionsPerDay = data.feedingInfo.pumpingDetails.sessionsPerDay;
-        formUpdate.pumpingDuration = data.feedingInfo.pumpingDetails.pumpingDuration;
-        formUpdate.averageOutput = data.feedingInfo.pumpingDetails.averageOutput;
-        formUpdate.storageMethod = data.feedingInfo.pumpingDetails.storageMethod;
-      }
-    }
     
     // Support Info
     if (data.supportInfo) {
@@ -731,21 +810,10 @@ export class OnboardingPage implements OnInit, OnDestroy {
       formUpdate.currentSupportSystem = data.supportInfo.currentSupportSystem;
     }
     
-    // Preferences Info
-    if (data.preferencesInfo) {
-      formUpdate.milkSupplyGoals = data.preferencesInfo.milkSupplyGoals;
-      formUpdate.topicsOfInterest = data.preferencesInfo.topicsOfInterest;
-      formUpdate.currentChallenges = data.preferencesInfo.currentChallenges;
-      formUpdate.expectationsFromProgram = data.preferencesInfo.expectationsFromProgram;
-      
-      if (data.preferencesInfo.notificationPreferences) {
-        formUpdate.groupMessages = data.preferencesInfo.notificationPreferences.groupMessages;
-        formUpdate.articleUpdates = data.preferencesInfo.notificationPreferences.articleUpdates;
-        formUpdate.expertMessages = data.preferencesInfo.notificationPreferences.expertMessages;
-        formUpdate.growthReminders = data.preferencesInfo.notificationPreferences.growthReminders;
-        formUpdate.pumpingReminders = data.preferencesInfo.notificationPreferences.pumpingReminders;
-        formUpdate.consultationReminders = data.preferencesInfo.notificationPreferences.consultationReminders;
-      }
+    // Challenges and Expectations Info (new structure)
+    if (data.challengesAndExpectationsInfo) {
+      formUpdate.currentChallenges = data.challengesAndExpectationsInfo.currentChallenges;
+      formUpdate.expectationsFromProgram = data.challengesAndExpectationsInfo.expectationsFromProgram;
     }
     
     this.onboardingForm.patchValue(formUpdate, { emitEvent: false });
@@ -769,41 +837,154 @@ export class OnboardingPage implements OnInit, OnDestroy {
     const formValue = this.onboardingForm.value;
 
     switch (step) {
-      case 1: // Personal Information
-        return !!(formValue.firstName && formValue.lastName && formValue.email && formValue.languagesSpoken?.length);
+      case 1: // Mother's Personal Profile
+        return !!(formValue.motherAge && formValue.city && formValue.state && 
+                 formValue.employmentStatus && formValue.languagesSpoken?.length && 
+                 formValue.breastfeedingDuration);
       
-      case 2: // Pregnancy & Birth Information
+      case 2: // Pregnancy & Baby Information
         if (formValue.motherType === 'pregnant') {
-          return !!(formValue.motherType && formValue.dueDate);
+          return !!(formValue.motherType && formValue.expectedDueDate && formValue.isFirstChild !== null);
         } else if (formValue.motherType === 'new_mom') {
-          return !!(formValue.motherType && formValue.birthDate && formValue.gender && 
-                   formValue.birthWeight && formValue.birthHeight);
+          return !!(formValue.motherType && formValue.isFirstChild !== null && 
+                   this.babiesFormArray.length > 0 && this.validateAllBabies());
         }
         return false;
       
-      case 3: // Breastfeeding Assessment (only for new mothers)
-        if (formValue.motherType === 'new_mom') {
-          return !!(formValue.experienceLevel && 
-                   (formValue.currentlyBreastfeeding !== null && formValue.currentlyBreastfeeding !== undefined));
+      case 3: // Formula & Feeding Methods (skip for pregnant mothers)
+        if (formValue.motherType === 'pregnant') {
+          return true; // Skip validation for pregnant mothers
         }
-        return true; // Skip validation for pregnant mothers
+        return !!(formValue.usesFormula !== null && formValue.usesBottles !== null && formValue.usesPump !== null);
       
-      case 4: // Health Information
-        return !!(formValue.motherMedicalConditions?.length || formValue.motherMedicalConditions?.length === 0) && 
-               !!(formValue.babyMedicalConditions?.length || formValue.babyMedicalConditions?.length === 0);
+      case 4: // Support System & Demographics
+        return !!(formValue.currentSupportSystem && formValue.familyStructure && formValue.educationLevel);
       
-      case 5: // Feeding Methods
-        return true; // This step is mostly optional selections
-      
-      case 6: // Social & Economic Background
-        return !!(formValue.familyStructure && formValue.educationLevel);
-      
-      case 7: // Goals & Expectations
-        return !!(formValue.expectationsFromProgram?.length && formValue.topicsOfInterest?.length);
+      case 5: // Current Challenges & Expectations
+        return !!(formValue.currentChallenges?.length && formValue.expectationsFromProgram?.trim());
       
       default:
         return false;
     }
+  }
+
+  private validateAllBabies(): boolean {
+    for (let i = 0; i < this.babiesFormArray.length; i++) {
+      const baby = this.babiesFormArray.at(i).value;
+      if (!baby.name || !baby.dateOfBirth || !baby.gender || !baby.birthWeight || 
+          !baby.mostRecentWeight || !baby.birthHeight || !baby.deliveryType || 
+          !baby.gestationalAge || baby.directBreastfeedsIn24h === null || 
+          !baby.latchQuality || baby.offersBothBreastsPerFeeding === null || 
+          !baby.timePerBreast || baby.wetDiapersIn24h === null || 
+          baby.dirtyDiapersIn24h === null || baby.hasBeenHospitalized === null) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private updateBabiesFormulaData(formValue: any): void {
+    // Update baby formula data when step 3 form changes
+    // In step 3, each baby has individual formula fields within their baby form group
+    // We need to ensure the babies array is properly maintained with their formula data
+    console.log('Updating babies formula data from form value:', formValue);
+    
+    if (formValue.babies && formValue.babies.length > 0) {
+      const babiesArray = this.babiesFormArray;
+      
+      // Ensure form array matches the data structure
+      for (let i = 0; i < babiesArray.length && i < formValue.babies.length; i++) {
+        const babyControl = babiesArray.at(i);
+        const babyData = formValue.babies[i];
+        
+        if (babyData && babyControl) {
+          // Update the baby form control with the current baby data to maintain sync
+          const currentValue = babyControl.value;
+          const updatedValue = {
+            ...currentValue,
+            // Keep all baby formula data as-is since it comes from step 3 baby forms
+            formulaBrand: babyData.formulaBrand || currentValue.formulaBrand || '',
+            formulaBrandOther: babyData.formulaBrandOther || currentValue.formulaBrandOther || '',
+            formulaTimesPerDay: babyData.formulaTimesPerDay !== undefined ? babyData.formulaTimesPerDay : currentValue.formulaTimesPerDay,
+            formulaAmountPerFeed: babyData.formulaAmountPerFeed !== undefined ? babyData.formulaAmountPerFeed : currentValue.formulaAmountPerFeed,
+            formulaReason: babyData.formulaReason || currentValue.formulaReason || '',
+            formulaReasonOther: babyData.formulaReasonOther || currentValue.formulaReasonOther || ''
+          };
+          
+          // Only update if there are changes to prevent unnecessary form events
+          if (JSON.stringify(currentValue) !== JSON.stringify(updatedValue)) {
+            console.log(`Updating baby ${i + 1} formula data:`, updatedValue);
+            babyControl.patchValue(updatedValue, { emitEvent: false });
+          }
+        }
+      }
+    }
+  }
+
+  private getFormulaDetailsFromBabies(babies: any[]): any {
+    // Get formula details from babies that have formula information
+    // This consolidates individual baby formula data into step 3 format for the service
+    if (babies && babies.length > 0) {
+      console.log('Extracting formula details from babies:', babies);
+      
+      // Find the first baby that has meaningful formula data
+      const babyWithFormula = babies.find(baby => 
+        baby && (
+          baby.formulaBrand || 
+          (baby.formulaTimesPerDay !== undefined && baby.formulaTimesPerDay > 0) ||
+          (baby.formulaAmountPerFeed !== undefined && baby.formulaAmountPerFeed > 0) ||
+          baby.formulaReason
+        )
+      );
+      
+      if (babyWithFormula) {
+        const formulaDetails = {
+          formulaBrand: babyWithFormula.formulaBrand || '',
+          formulaBrandOther: babyWithFormula.formulaBrandOther || '',
+          timesOfferedPerDay: babyWithFormula.formulaTimesPerDay || 0,
+          amountPerFeed: babyWithFormula.formulaAmountPerFeed || 0,
+          reasonForFormula: babyWithFormula.formulaReason || '',
+          reasonForFormulaOther: babyWithFormula.formulaReasonOther || ''
+        };
+        
+        console.log('Extracted formula details:', formulaDetails);
+        return formulaDetails;
+      }
+    }
+    
+    console.log('No formula details found in babies');
+    return null;
+  }
+  
+  private hasFormulaInBabies(babies: any[]): boolean {
+    if (!babies || babies.length === 0) return false;
+    return babies.some(baby => 
+      baby.formulaBrand || 
+      (baby.formulaTimesPerDay && baby.formulaTimesPerDay > 0) ||
+      (baby.formulaAmountPerFeed && baby.formulaAmountPerFeed > 0)
+    );
+  }
+  
+  private hasBottlesInBabies(babies: any[]): boolean {
+    if (!babies || babies.length === 0) return false;
+    return babies.some(baby => 
+      baby.bottleBrand || 
+      baby.bottleFeedDuration ||
+      baby.bottleContents ||
+      baby.usesPacedBottleFeeding !== null
+    );
+  }
+  
+  private hasPumpInBabies(babies: any[]): boolean {
+    if (!babies || babies.length === 0) return false;
+    return babies.some(baby => 
+      baby.pumpBrand || 
+      baby.pumpType ||
+      (baby.pumpSessionsPerDay && baby.pumpSessionsPerDay > 0) ||
+      (baby.pumpMinutesPerSession && baby.pumpMinutesPerSession > 0) ||
+      (baby.pumpAverageOutput && baby.pumpAverageOutput > 0) ||
+      (baby.pumpTotalDailyOutput && baby.pumpTotalDailyOutput > 0)
+    );
   }
 
   // ============================================================================
@@ -850,112 +1031,136 @@ export class OnboardingPage implements OnInit, OnDestroy {
   private saveCurrentStepData(): void {
     const formValue = this.onboardingForm.value;
     const stepData = this.extractStepData(this.progress.currentStep, formValue);
-    this.onboardingService.updateStepData(this.progress.currentStep, stepData);
+    
+    // Only save step data if it contains meaningful information
+    if (this.hasStepData(this.progress.currentStep, formValue)) {
+      this.onboardingService.updateStepData(this.progress.currentStep, stepData);
+    }
+  }
+  
+  private hasStepData(step: number, formValue: any): boolean {
+    switch (step) {
+      case 1: // Personal Info
+        return !!(formValue.motherAge || formValue.city || formValue.state || 
+                 formValue.employmentStatus || formValue.languagesSpoken?.length);
+      case 2: // Pregnancy Info
+        return !!(formValue.motherType || formValue.isFirstChild !== null || formValue.babies?.length);
+      case 3: // Feeding Methods
+        // Check if user answered feeding questions OR if we can auto-detect from baby data
+        const hasFormDirectAnswers = !!(formValue.usesFormula !== null || formValue.usesBottles !== null || formValue.usesPump !== null);
+        const hasFormBabyData = !!(this.hasFormulaInBabies(formValue.babies) || this.hasBottlesInBabies(formValue.babies) || this.hasPumpInBabies(formValue.babies));
+        return hasFormDirectAnswers || hasFormBabyData;
+      case 4: // Support & Demographics
+        return !!(formValue.currentSupportSystem || formValue.familyStructure || formValue.educationLevel);
+      case 5: // Challenges & Expectations
+        return !!(formValue.currentChallenges?.length || formValue.expectationsFromProgram?.trim());
+      default:
+        return false;
+    }
   }
 
   private saveAllFormDataToService(): void {
     const formValue = this.onboardingForm.value;
-    // Save all steps to ensure service has complete data
+    // Save all steps that have meaningful data to ensure service has complete data
     for (let step = 1; step <= this.progress.totalSteps; step++) {
-      const stepData = this.extractStepData(step, formValue);
-      this.onboardingService.updateStepData(step, stepData);
+      if (this.hasStepData(step, formValue)) {
+        const stepData = this.extractStepData(step, formValue);
+        this.onboardingService.updateStepData(step, stepData);
+      }
     }
-    console.log('Saved all form data to onboarding service');
+    console.log('Saved meaningful form data to onboarding service');
   }
 
   private extractStepData(step: number, formValue: any): any {
     switch (step) {
       case 1:
         return {
-          email: formValue.email,
-          fullName: formValue.fullName,
-          phoneNumber: formValue.phoneNumber,
+          motherAge: formValue.motherAge,
+          city: formValue.city,
+          state: formValue.state,
           employmentStatus: formValue.employmentStatus,
-          languagesSpoken: formValue.languagesSpoken
+          languagesSpoken: formValue.languagesSpoken,
+          motherMedicalConditions: formValue.motherMedicalConditions,
+          motherMedicalConditionsOther: formValue.motherMedicalConditionsOther,
+          allergies: formValue.allergies,
+          hasNippleIssues: formValue.hasNippleIssues,
+          nippleIssuesDescription: formValue.nippleIssuesDescription,
+          breastfeedingDuration: formValue.breastfeedingDuration
         };
       case 2:
         return {
           motherType: formValue.motherType,
-          dueDate: formValue.dueDate,
+          expectedDueDate: formValue.expectedDueDate,
           isFirstChild: formValue.isFirstChild,
           ...(formValue.motherType === 'new_mom' && {
-            babies: formValue.babies || [],
-            // Keep babyInfo for backward compatibility (use first baby)
-            babyInfo: formValue.babies && formValue.babies.length > 0 ? formValue.babies[0] : null
+            babies: formValue.babies || []
           })
         };
       case 3:
-        // For pregnant mothers, return empty breastfeeding data
+        // For pregnant mothers, return empty feeding data
         if (formValue.motherType === 'pregnant') {
           return {
-            experienceLevel: null,
-            currentlyBreastfeeding: false,
-            breastfeedingDuration: null
+            usesFormula: false,
+            usesBottles: false,
+            usesPump: false
           };
         }
         
-        return {
-          experienceLevel: formValue.experienceLevel,
-          currentlyBreastfeeding: formValue.currentlyBreastfeeding,
-          breastfeedingDuration: formValue.breastfeedingDuration
+        // Auto-detect feeding methods from baby data if not explicitly set
+        const autoDetectedFormula = this.hasFormulaInBabies(formValue.babies);
+        const autoDetectedBottles = this.hasBottlesInBabies(formValue.babies);
+        const autoDetectedPump = this.hasPumpInBabies(formValue.babies);
+        
+        let stepData: any = {
+          usesFormula: formValue.usesFormula !== null ? formValue.usesFormula : autoDetectedFormula,
+          usesBottles: formValue.usesBottles !== null ? formValue.usesBottles : autoDetectedBottles,
+          usesPump: formValue.usesPump !== null ? formValue.usesPump : autoDetectedPump
         };
-      case 4:
-        return {
-          motherMedicalConditions: formValue.motherMedicalConditions,
-          motherMedicalConditionsOther: formValue.motherMedicalConditionsOther,
-          allergies: formValue.allergies,
-          nippleAnatomicalIssues: formValue.nippleAnatomicalIssues,
-          nippleIssuesDescription: formValue.nippleIssuesDescription,
-          babyMedicalConditions: formValue.babyMedicalConditions,
-          babyHospitalized: formValue.babyHospitalized,
-          babyHospitalizationReason: formValue.babyHospitalizationReason
-        };
-      case 5:
-        return {
-          usesFormula: formValue.usesFormula,
-          ...(formValue.usesFormula && {
-            formulaDetails: {
-              formulaType: formValue.formulaType,
-              amountPerFeed: formValue.formulaAmountPerFeed,
-              feedsPerDay: formValue.formulaFeedsPerDay,
-              reasonForFormula: formValue.formulaReason
-            }
-          }),
-          usesBottle: formValue.usesBottle,
-          ...(formValue.usesBottle && {
+        
+        // Handle formula details - update all babies with current formula info from step 3
+        if (stepData.usesFormula) {
+          this.updateBabiesFormulaData(formValue);
+          stepData.formulaDetails = this.getFormulaDetailsFromBabies(formValue.babies);
+        }
+
+        stepData = {
+          ...stepData,
+          ...(formValue.usesBottles && {
             bottleDetails: {
-              bottleType: formValue.bottleType,
-              amountPerFeed: formValue.bottleAmountPerFeed,
-              feedsPerDay: formValue.bottleFeedsPerDay,
-              contentType: formValue.bottleContentType
+              bottleBrand: formValue.bottleBrand,
+              bottleBrandOther: formValue.bottleBrandOther,
+              feedDuration: formValue.bottleFeedDuration,
+              usesPacedBottleFeeding: formValue.usesPacedBottleFeeding,
+              bottleContents: formValue.bottleContents
             }
           }),
-          ownsPump: formValue.ownsPump,
-          ...(formValue.ownsPump && {
+          usesPump: formValue.usesPump,
+          ...(formValue.usesPump && {
             pumpingDetails: {
+              pumpBrand: formValue.pumpBrand,
+              pumpBrandOther: formValue.pumpBrandOther,
               pumpType: formValue.pumpType,
+              pumpsBothBreasts: formValue.pumpsBothBreasts,
               sessionsPerDay: formValue.pumpSessionsPerDay,
-              averageOutput: formValue.pumpAverageOutput,
-              pumpingDuration: formValue.pumpSessionDuration,
-              storageMethod: formValue.storageMethod
+              minutesPerSession: formValue.pumpMinutesPerSession,
+              averageOutputMl: formValue.pumpAverageOutput,
+              totalDailyOutput: formValue.pumpTotalDailyOutput
             }
-          }),
-          usesBreastmilkSupplements: formValue.usesBreastmilkSupplements,
-          supplementsDetails: formValue.supplementsDetails
+          })
         };
-      case 6:
+
+        return stepData;
+      case 4:
         return {
           currentSupportSystem: formValue.currentSupportSystem,
           familyStructure: formValue.familyStructure,
           educationLevel: formValue.educationLevel,
           householdIncome: formValue.householdIncome
         };
-      case 7:
+      case 5:
         return {
           currentChallenges: formValue.currentChallenges,
-          expectationsFromProgram: formValue.expectationsFromProgram,
-          milkSupplyGoals: formValue.milkSupplyGoals,
-          topicsOfInterest: formValue.topicsOfInterest
+          expectationsFromProgram: formValue.expectationsFromProgram
         };
       default:
         return {};
@@ -1023,7 +1228,33 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
   private async showValidationErrors(): Promise<void> {
-    const validation = this.onboardingService.validateStep(this.progress.currentStep, this.onboardingService.getCurrentData());
+    // Get current form data instead of relying on service data which might be outdated
+    const formValue = this.onboardingForm.value;
+    const currentData = {
+      ...this.onboardingService.getCurrentData(),
+      personalInfo: {
+        ...this.onboardingService.getCurrentData().personalInfo,
+        ...this.extractStepData(1, formValue)
+      },
+      pregnancyInfo: {
+        ...this.onboardingService.getCurrentData().pregnancyInfo,
+        ...this.extractStepData(2, formValue)
+      },
+      formulaFeedingInfo: {
+        ...this.onboardingService.getCurrentData().formulaFeedingInfo,
+        ...this.extractStepData(3, formValue)
+      },
+      supportInfo: {
+        ...this.onboardingService.getCurrentData().supportInfo,
+        ...this.extractStepData(4, formValue)
+      },
+      challengesAndExpectationsInfo: {
+        ...this.onboardingService.getCurrentData().challengesAndExpectationsInfo,
+        ...this.extractStepData(5, formValue)
+      }
+    };
+    
+    const validation = this.onboardingService.validateStep(this.progress.currentStep, currentData);
     
     if (!validation.isValid) {
       const alert = await this.alertController.create({
@@ -1071,28 +1302,76 @@ export class OnboardingPage implements OnInit, OnDestroy {
   // Conditional field visibility helpers
   shouldShowField(fieldName: string): boolean {
     switch (fieldName) {
-      case 'dueDate':
+      case 'nippleIssuesDescription':
+        return this.onboardingForm.get('hasNippleIssues')?.value === true;
+      case 'expectedDueDate':
         return this.onboardingForm.get('motherType')?.value === 'pregnant';
       case 'babyInfo':
         return this.onboardingForm.get('motherType')?.value === 'new_mom';
-      case 'breastfeedingDetails':
-        return this.onboardingForm.get('currentlyBreastfeeding')?.value === true;
-      case 'nippleIssuesDescription':
-        return this.onboardingForm.get('nippleAnatomicalIssues')?.value === true;
-      case 'babyHospitalizationReason':
-        return this.onboardingForm.get('babyHospitalized')?.value === true;
       case 'formulaDetails':
         return this.onboardingForm.get('usesFormula')?.value === true;
       case 'bottleDetails':
-        return this.onboardingForm.get('usesBottle')?.value === true;
+        return this.onboardingForm.get('usesBottles')?.value === true;
       case 'pumpingDetails':
-        return this.onboardingForm.get('ownsPump')?.value === true;
-      case 'supplementsDetails':
-        return this.onboardingForm.get('usesBreastmilkSupplements')?.value === true;
+        return this.onboardingForm.get('usesPump')?.value === true;
       case 'motherMedicalConditionsOther':
         return this.isValueSelected('motherMedicalConditions', 'Other');
+      case 'hospitalizationReason':
+        return true; // Will be handled per baby in template
       default:
         return true;
+    }
+  }
+
+  shouldShowFormulaQuestions(): boolean {
+    return this.onboardingForm.get('usesFormula')?.value === true;
+  }
+
+  shouldShowBottleQuestions(): boolean {
+    return this.onboardingForm.get('usesBottles')?.value === true;
+  }
+
+  shouldShowPumpingQuestions(): boolean {
+    return this.onboardingForm.get('usesPump')?.value === true;
+  }
+
+  shouldShowBabyHospitalizationReason(babyIndex: number): boolean {
+    const baby = this.babiesFormArray.at(babyIndex);
+    return baby?.get('hasBeenHospitalized')?.value === true;
+  }
+
+  // Helper methods for baby-specific array value handling
+  isBabyValueSelected(babyIndex: number, fieldName: string, value: string): boolean {
+    const baby = this.babiesFormArray.at(babyIndex);
+    const fieldValue = baby?.get(fieldName)?.value;
+    if (Array.isArray(fieldValue)) {
+      return fieldValue.includes(value);
+    }
+    return fieldValue === value;
+  }
+
+  toggleBabyArrayValue(babyIndex: number, fieldName: string, value: string): void {
+    const baby = this.babiesFormArray.at(babyIndex);
+    const currentValue = baby?.get(fieldName)?.value || [];
+    
+    let newValue: string[];
+    if (currentValue.includes(value)) {
+      // Remove value
+      newValue = currentValue.filter((item: string) => item !== value);
+    } else {
+      // Add value
+      newValue = [...currentValue, value];
+    }
+    
+    baby?.get(fieldName)?.setValue(newValue);
+    
+    // If "None" is selected, clear all other selections
+    if (value === 'None' && newValue.includes('None')) {
+      baby?.get(fieldName)?.setValue(['None']);
+    } else if (newValue.includes('None') && value !== 'None') {
+      // If something else is selected when "None" was already selected, remove "None"
+      newValue = newValue.filter(item => item !== 'None');
+      baby?.get(fieldName)?.setValue(newValue);
     }
   }
 
@@ -1132,13 +1411,11 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   getStepTitle(step: number): string {
     const titles = {
-      1: 'Personal Information',
-      2: 'Pregnancy & Birth Details',
-      3: 'Breastfeeding Assessment', 
-      4: 'Medical History',
-      5: 'Feeding Methods',
-      6: 'Support & Demographics',
-      7: 'Goals & Preferences'
+      1: `${this.currentUser?.firstName || 'Your'}'s Info`,
+      2: 'Pregnancy & Baby Information',
+      3: 'Feeding Methods', 
+      4: 'Support & Demographics',
+      5: 'Challenges & Expectations'
     };
     return titles[step as keyof typeof titles] || `Step ${step}`;
   }
@@ -1169,36 +1446,59 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
   createBabyForm(): FormGroup {
+    const today = new Date().toISOString().split('T')[0]; // Format as YYYY-MM-DD for date input
+    
     return this.formBuilder.group({
       name: ['', Validators.required],
-      dateOfBirth: [new Date().toISOString(), Validators.required],
+      dateOfBirth: ['', Validators.required],
       gender: ['', Validators.required],
       birthWeight: [null, [Validators.required, Validators.min(0.5)]],
+      mostRecentWeight: [null, [Validators.required, Validators.min(0.5)]],
+      dateOfMostRecentWeightCheck: [today, Validators.required], // Default to current date
       birthHeight: [null, [Validators.required, Validators.min(30)]],
       deliveryType: ['', Validators.required],
       gestationalAge: [40, [Validators.required, Validators.min(20)]],
-      currentWeight: [null],
-      weightCheckDate: [new Date().toISOString()],
       
-      // Baby-specific breastfeeding and health questions
-      directFeedsPerDay: [0],
-      peeCount24h: [0],
-      poopCount24h: [0],
+      // Breastfeeding Details (per baby)
+      directBreastfeedsIn24h: [0, [Validators.required, Validators.min(0)]],
       latchQuality: ['', Validators.required],
-      offersBothBreasts: [null, Validators.required],
-      timePerBreast: ['', Validators.required],
-      medicalConditions: [''],
+      offersBothBreastsPerFeeding: [null, Validators.required],
+      timePerBreast: ['', Validators.required], // Changed from timeLatched to match HTML
+      
+      // Daily Output (per baby)
+      wetDiapersIn24h: [0, [Validators.required, Validators.min(0)]],
+      dirtyDiapersIn24h: [0, [Validators.required, Validators.min(0)]],
+      
+      // Health Information (per baby)
+      medicalConditions: [[]], // Array for multiple conditions
+      medicalConditionsOther: [''], // Text field for "Other" conditions
       hasBeenHospitalized: [null, Validators.required],
       hospitalizationReason: [''],
       
-      // Formula feeding questions (if applicable)
-      formulaTimesPerDay: [0],
-      formulaAmountPerFeed: [10],
+      // Formula Feeding Details (per baby)
+      formulaBrand: [''],
+      formulaBrandOther: [''], // For "Other" formula brand
+      formulaTimesPerDay: [0, [Validators.min(0)]],
+      formulaAmountPerFeed: [10, [Validators.min(10)]],
+      formulaReason: [''],
+      formulaReasonOther: [''], // For "Other" formula reason
       
-      // Bottle feeding questions (if applicable)
-      bottleFeedDuration: [''],
+      // Bottle Feeding Details (per baby)
       bottleBrand: [''],
-      pacedBottleFeeding: [null],
+      bottleBrandOther: [''], // For "Other" bottle brand
+      bottleFeedDuration: [''],
+      usesPacedBottleFeeding: [null],
+      bottleContents: [''],
+      
+      // Pumping Details (per baby)
+      pumpBrand: [''],
+      pumpBrandOther: [''], // For "Other" pump brand
+      pumpType: [''],
+      pumpsBothBreasts: [null],
+      pumpSessionsPerDay: [3, [Validators.min(1)]],
+      pumpMinutesPerSession: [15, [Validators.min(5)]],
+      pumpAverageOutput: [50, [Validators.min(10)]],
+      pumpTotalDailyOutput: [200, [Validators.min(50)]],
       
       existingBabyId: [null] // Track if this is an existing baby
     });
