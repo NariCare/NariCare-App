@@ -219,6 +219,24 @@
   }
 }
 
+// Unit suffix styling
+.weight-input,
+.height-input {
+  .unit-suffix {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #8383ed;
+    background: rgba(131, 131, 237, 0.1);
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    margin-left: 0.5rem;
+    border: 1px solid rgba(131, 131, 237, 0.2);
+    min-width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+}
+
 @media (min-width: 768px) {
   .baby-edit-container {
     max-width: 480px;

@@ -93,15 +93,16 @@
         
         <div class="form-row">
           <div class="form-group half-width">
-            <ion-item lines="none" class="input-item">
+            <ion-item lines="none" class="input-item weight-input">
               <ion-icon name="scale-outline" slot="start" class="input-icon"></ion-icon>
               <ion-input
                 formControlName="birthWeight"
                 type="number"
                 step="0.1"
-                placeholder="Weight (kg)"
+                placeholder="Birth Weight"
                 [class.error]="babyForm.get('birthWeight')?.invalid && babyForm.get('birthWeight')?.touched">
               </ion-input>
+              <span class="unit-suffix">kg</span>
             </ion-item>
             <div class="error-message" *ngIf="babyForm.get('birthWeight')?.invalid && babyForm.get('birthWeight')?.touched">
               {{ getErrorMessage('birthWeight') }}
@@ -109,15 +110,16 @@
           </div>
 
           <div class="form-group half-width">
-            <ion-item lines="none" class="input-item">
+            <ion-item lines="none" class="input-item height-input">
               <ion-icon name="resize-outline" slot="start" class="input-icon"></ion-icon>
               <ion-input
                 formControlName="birthHeight"
                 type="number"
                 step="0.1"
-                placeholder="Height (cm)"
+                placeholder="Birth Height"
                 [class.error]="babyForm.get('birthHeight')?.invalid && babyForm.get('birthHeight')?.touched">
               </ion-input>
+              <span class="unit-suffix">cm</span>
             </ion-item>
             <div class="error-message" *ngIf="babyForm.get('birthHeight')?.invalid && babyForm.get('birthHeight')?.touched">
               {{ getErrorMessage('birthHeight') }}

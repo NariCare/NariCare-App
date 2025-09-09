@@ -55,7 +55,7 @@ export class BabyCreationModalComponent implements OnInit {
         });
       }
       
-      console.log('Defaulted DOB from existing baby:', firstBaby.dateOfBirth);
+      console.log('Defaulted DOB and units from existing baby:', firstBaby.dateOfBirth);
     }
   }
 
@@ -73,8 +73,8 @@ export class BabyCreationModalComponent implements OnInit {
           name: formValue.name,
           dateOfBirth: this.formatDateForApi(formValue.dateOfBirth),
           gender: formValue.gender,
-          birthWeight: parseFloat(formValue.birthWeight),
-          birthHeight: parseFloat(formValue.birthHeight)
+          birthWeight: parseFloat(formValue.birthWeight), // Always in kg
+          birthHeight: parseFloat(formValue.birthHeight)  // Always in cm
         };
 
         const response = await this.apiService.createBaby(babyData).toPromise();
@@ -194,4 +194,5 @@ export class BabyCreationModalComponent implements OnInit {
     // ion-input with type="date" returns YYYY-MM-DD format, which is perfect for API
     return dateValue;
   }
+  
 }
