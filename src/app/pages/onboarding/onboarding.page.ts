@@ -1252,10 +1252,40 @@ export class OnboardingPage implements OnInit, OnDestroy {
     const currentValues = this.onboardingForm.get(formControlName)?.value || [];
     const index = currentValues.indexOf(value);
     
-    if (index > -1) {
-      currentValues.splice(index, 1);
+    // Special handling for currentChallenges with "None - everything is going well"
+    if (formControlName === 'currentChallenges') {
+      if (value === 'None - everything is going well') {
+        if (index > -1) {
+          // Deselecting "None" - just remove it
+          currentValues.splice(index, 1);
+        } else {
+          // Selecting "None" - clear all other options and set only "None"
+          currentValues.length = 0;
+          currentValues.push(value);
+        }
+      } else {
+        // Selecting any other challenge
+        const noneIndex = currentValues.indexOf('None - everything is going well');
+        if (noneIndex > -1) {
+          // Remove "None" first since user is selecting a specific challenge
+          currentValues.splice(noneIndex, 1);
+        }
+        
+        if (index > -1) {
+          // Deselecting this challenge
+          currentValues.splice(index, 1);
+        } else {
+          // Selecting this challenge
+          currentValues.push(value);
+        }
+      }
     } else {
-      currentValues.push(value);
+      // Default behavior for all other form controls
+      if (index > -1) {
+        currentValues.splice(index, 1);
+      } else {
+        currentValues.push(value);
+      }
     }
     
     this.onboardingForm.patchValue({ [formControlName]: currentValues });

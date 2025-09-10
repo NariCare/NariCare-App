@@ -173,7 +173,7 @@ export const OnboardingOptions = {
   motherMedicalConditions: [
     'Diabetes', 'Hypertension', 'Thyroid disorders', 'PCOS', 'Depression/Anxiety',
     'Previous breast surgery', 'Medications affecting milk supply', 'Hormonal imbalances',
-    'Mastitis history', 'IGT (Insufficient Glandular Tissue)', 'None', 'Other'
+    'Mastitis history', 'IGT (Insufficient Glandular Tissue)', 'Other'
   ],
 
   breastfeedingDuration: [
@@ -281,7 +281,7 @@ export const OnboardingOptions = {
   babyMedicalConditions: [
     'Jaundice', 'Tongue tie', 'Lip tie', 'Reflux', 'Colic', 'Low birth weight',
     'Premature birth', 'Breathing difficulties', 'Feeding difficulties', 
-    'Heart conditions', 'Allergies', 'None', 'Other'
+    'Heart conditions', 'Allergies', 'Other'
   ],
 
   // Legacy options still referenced in HTML (will be updated later)
