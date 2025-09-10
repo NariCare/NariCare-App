@@ -415,7 +415,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       
       // Step 2: Pregnancy & Baby Information
       motherType: ['', [Validators.required]],
-      expectedDueDate: [new Date().toISOString()],
+      expectedDueDate: [''],
       numberOfBabies: [1],
       babies: this.formBuilder.array([]),
       
@@ -600,9 +600,25 @@ export class OnboardingPage implements OnInit, OnDestroy {
       
       // Auto-fill due date for pregnant mothers if available and not already set
       const userDueDate = user.dueDate || (user as any).due_date;
-      if (!currentFormValue.dueDate && userDueDate && (currentFormValue.motherType === 'pregnant' || updates.motherType === 'pregnant')) {
-        updates.dueDate = new Date(userDueDate).toISOString();
-        console.log('Auto-filling due date from profile:', userDueDate);
+      console.log('Checking due date auto-fill:', {
+        currentFormExpectedDueDate: currentFormValue.expectedDueDate,
+        userDueDate: userDueDate,
+        motherType: currentFormValue.motherType || updates.motherType,
+        formHasEmptyOrDefaultDate: !currentFormValue.expectedDueDate,
+        shouldAutoFill: userDueDate && (currentFormValue.motherType === 'pregnant' || updates.motherType === 'pregnant')
+      });
+      
+      // Check if expectedDueDate is empty or set to today's date (default)
+      const todayString = new Date().toISOString().split('T')[0];
+      const formHasEmptyOrDefaultDate = !currentFormValue.expectedDueDate || 
+                                        currentFormValue.expectedDueDate === todayString ||
+                                        currentFormValue.expectedDueDate.includes(new Date().toISOString().split('T')[0]);
+      
+      if (formHasEmptyOrDefaultDate && userDueDate && (currentFormValue.motherType === 'pregnant' || updates.motherType === 'pregnant')) {
+        // Format the date properly for the HTML input
+        const dueDateFormatted = new Date(userDueDate).toISOString().split('T')[0];
+        updates.expectedDueDate = dueDateFormatted;
+        console.log('Auto-filling expected due date from profile:', userDueDate, '-> formatted:', dueDateFormatted);
       }
       
       // Apply updates if any
@@ -643,7 +659,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
     // Pregnancy Info
     if (data.pregnancyInfo) {
       formUpdate.motherType = data.pregnancyInfo.motherType;
-      formUpdate.expectedDueDate = data.pregnancyInfo.expectedDueDate;
+      if (data.pregnancyInfo.expectedDueDate) {
+        formUpdate.expectedDueDate = data.pregnancyInfo.expectedDueDate;
+      }
       formUpdate.isFirstChild = data.pregnancyInfo.isFirstChild;
       
       // Handle babies array (multiple babies support)
@@ -987,6 +1005,12 @@ export class OnboardingPage implements OnInit, OnDestroy {
         if (this.progress.currentStep === this.progress.totalSteps) {
           this.saveAllFormDataToService();
         }
+        
+        // If we just moved to step 2, try to prefill user information
+        if (this.progress.currentStep === 2 && this.currentUser) {
+          this.prefillUserInformation(this.currentUser);
+        }
+        
         this.updateProgressState(); // Update progress state after navigation
       }, 100);
     }
