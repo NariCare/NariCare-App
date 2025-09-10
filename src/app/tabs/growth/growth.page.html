@@ -189,18 +189,53 @@
               <h4 class="activities-title">Recent Feeds</h4>
               <div class="activities-list">
                 <div *ngFor="let record of recentRecords | slice:0:3" class="activity-item feed-item">
-                  <div class="activity-time-badge">{{ record.directFeedDetails?.startTime || '--' }}</div>
-                  <div class="activity-info">
-                    <div class="activity-details">
-                      <ion-icon name="ellipse" *ngIf="record.directFeedDetails?.breastSide === 'both'"></ion-icon>
-                      <ion-icon name="radio-button-on" *ngIf="record.directFeedDetails?.breastSide !== 'both'"></ion-icon>
-                      <span>{{ record.directFeedDetails?.breastSide | titlecase }}</span>
+                  
+                  <!-- Direct Feed -->
+                  <div *ngIf="record.directFeedDetails" class="feed-record direct-feed">
+                    <div class="activity-time-badge">{{ record.directFeedDetails.startTime || '--' }}</div>
+                    <div class="activity-info">
+                      <div class="activity-details">
+                        <ion-icon name="ellipse" *ngIf="record.directFeedDetails.breastSide === 'both'"></ion-icon>
+                        <ion-icon name="radio-button-on" *ngIf="record.directFeedDetails.breastSide !== 'both'"></ion-icon>
+                        <span>{{ record.directFeedDetails.breastSide | titlecase }}</span>
+                      </div>
+                      <div class="pain-indicator">
+                        <span class="pain-level">{{ record.directFeedDetails.painLevel || 0 }}/10</span>
+                      </div>
                     </div>
-                    <div class="pain-indicator">
-                      <span class="pain-level">{{ record.directFeedDetails?.painLevel || 0 }}/10</span>
-                    </div>
+                    <div class="activity-date">{{ formatDate(record.date) }}</div>
                   </div>
-                  <div class="activity-date">{{ formatDate(record.date) }}</div>
+
+                  <!-- Expressed Milk Feed -->
+                  <div *ngIf="record.expressedMilkDetails" class="feed-record expressed-feed">
+                    <div class="activity-time-badge">{{ formatTime(record.date) }}</div>
+                    <div class="activity-info">
+                      <div class="activity-details">
+                        <ion-icon name="water"></ion-icon>
+                        <span>Expressed Milk</span>
+                      </div>
+                      <div class="volume-indicator">
+                        <span class="volume-amount">{{ record.expressedMilkDetails.quantity || 0 }}ml</span>
+                      </div>
+                    </div>
+                    <div class="activity-date">{{ formatDate(record.date) }}</div>
+                  </div>
+
+                  <!-- Formula Feed -->
+                  <div *ngIf="record.formulaDetails" class="feed-record formula-feed">
+                    <div class="activity-time-badge">{{ formatTime(record.date) }}</div>
+                    <div class="activity-info">
+                      <div class="activity-details">
+                        <ion-icon name="nutrition"></ion-icon>
+                        <span>Formula</span>
+                      </div>
+                      <div class="volume-indicator">
+                        <span class="volume-amount">{{ record.formulaDetails.quantity || 0 }}ml</span>
+                      </div>
+                    </div>
+                    <div class="activity-date">{{ formatDate(record.date) }}</div>
+                  </div>
+
                 </div>
               </div>
             </div>

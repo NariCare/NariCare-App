@@ -1130,7 +1130,14 @@ export class GrowthPage implements OnInit {
   }
 
   getDailySummaryTracks(): number {
-    return this.dailySummary?.totalDirectFeeds || 0;
+    if (!this.dailySummary) return 0;
+    
+    // Include all feed types: direct, expressed, and formula feeds
+    const directFeeds = this.dailySummary.totalDirectFeeds || 0;
+    const expressedFeeds = this.dailySummary.totalExpressedFeeds || 0;
+    const formulaFeeds = this.dailySummary.totalFormulaFeeds || 0;
+    
+    return directFeeds + expressedFeeds + formulaFeeds;
   }
 
   getDailySummaryPain(): number {
@@ -1429,5 +1436,15 @@ export class GrowthPage implements OnInit {
 
   getBabyIconUrl(gender: string): string {
     return gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg';
+  }
+
+  formatTime(date: Date): string {
+    if (!date) return '--';
+    const dateObj = new Date(date);
+    return dateObj.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: false 
+    });
   }
 }
