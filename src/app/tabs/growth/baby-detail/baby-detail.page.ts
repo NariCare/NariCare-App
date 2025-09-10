@@ -139,8 +139,15 @@ export class BabyDetailPage implements OnInit {
       console.log('Baby Detail Page - Route param baby ID:', this.babyId);
       
       // Validate that we have a proper baby ID and this is the correct route
+      // Special case: if someone accidentally navigated here with 'personal-info', redirect properly
+      if (this.babyId === 'personal-info') {
+        console.warn('Baby Detail Page - Detected personal-info route, redirecting to correct page');
+        this.router.navigate(['/personal-info'], { replaceUrl: true });
+        return;
+      }
+      
       if (!this.babyId || this.babyId === 'undefined' || this.babyId === 'null') {
-        console.warn('Baby Detail Page - Invalid baby ID, redirecting to growth page');
+        console.warn('Baby Detail Page - Invalid baby ID detected, redirecting to growth page:', this.babyId);
         this.router.navigate(['/tabs/growth'], { replaceUrl: true });
         return;
       }
@@ -174,7 +181,12 @@ export class BabyDetailPage implements OnInit {
           }
         } else {
           console.warn('Baby Detail Page - User has no babies array or it\'s not an array');
-          this.showToast('No babies found. Please add a baby first.', 'warning');
+          // Check if user is expecting mother
+          const isExpectingMother = user && user.motherType === 'pregnant';
+          const message = isExpectingMother 
+            ? 'Baby tracking will be available after your little one arrives!'
+            : 'No babies found. Please add a baby first.';
+          this.showToast(message, 'info');
           setTimeout(() => {
             this.router.navigate(['/tabs/growth'], { replaceUrl: true });
           }, 2000);

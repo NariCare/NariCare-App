@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { LoadingController, ToastController, AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { BackendAuthService } from '../../services/backend-auth.service';
@@ -30,6 +30,7 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private loadingController: LoadingController,
     private toastController: ToastController,
     private alertController: AlertController,
@@ -49,6 +50,8 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     console.log('Personal Info Page - Initializing...');
+    console.log('Personal Info Page - Current URL:', window.location.href);
+    console.log('Personal Info Page - Route params:', this.activatedRoute.snapshot.queryParams);
     
     // Refresh user profile to ensure latest data is loaded
     try {

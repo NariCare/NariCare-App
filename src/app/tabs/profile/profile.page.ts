@@ -61,6 +61,7 @@ export class ProfilePage implements OnInit {
   }
 
   private updateProfileSections() {
+    console.log('Profile Page - updateProfileSections called for user:', this.user);
     const accountItems: any[] = [
       { label: 'Personal Information', icon: 'person-outline', action: 'editProfile' }
     ];
@@ -126,6 +127,8 @@ export class ProfilePage implements OnInit {
   }
 
   handleAction(action: string, item?: any) {
+    console.log('Profile Page - handleAction called with:', { action, item });
+    console.log('Profile Page - Current profileSections:', this.profileSections);
     switch (action) {
       case 'editProfile':
         this.editProfile();
@@ -233,8 +236,28 @@ export class ProfilePage implements OnInit {
   }
 
   private editProfile() {
+    console.log('Profile Page - editProfile method called');
+    console.log('Profile Page - Current user:', this.user);
+    console.log('Profile Page - Current route:', this.router.url);
     console.log('Profile Page - Navigating to personal-info');
-    this.router.navigate(['/personal-info'], { replaceUrl: false });
+    
+    // Simple direct navigation first
+    console.log('Profile Page - Attempting direct navigation to /personal-info');
+    this.router.navigateByUrl('/personal-info').then(success => {
+      console.log('Profile Page - Direct navigation result:', success);
+      if (!success) {
+        console.error('Profile Page - Direct navigation failed, trying alternative');
+        // Alternative approach with manual URL change
+        setTimeout(() => {
+          console.log('Profile Page - Forcing navigation with location.href');
+          window.location.href = '/personal-info';
+        }, 100);
+      }
+    }).catch(error => {
+      console.error('Profile Page - Navigation error:', error);
+      // Force navigation
+      window.location.href = '/personal-info';
+    });
   }
 
   private async editBaby() {
