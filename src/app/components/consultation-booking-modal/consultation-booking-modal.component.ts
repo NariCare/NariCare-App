@@ -2,10 +2,11 @@ import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ModalController, ToastController, LoadingController } from '@ionic/angular';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, switchMap, map } from 'rxjs/operators';
 import { ConsultationService } from '../../services/consultation.service';
 import { AuthService } from '../../services/auth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { BackendConsultationService } from '../../services/backend-consultation.service';
 import { Expert, Consultation } from '../../models/consultation.model';
 import { User, Baby } from '../../models/user.model';
 import { v4 as uuidv4 } from 'uuid';
@@ -36,6 +37,10 @@ export class ConsultationBookingModalComponent implements OnInit {
   // Edit mode properties
   @Input() consultation: Consultation | null = null;
   isEditMode = false;
+  
+  // Available time slots
+  availableTimeSlots: string[] = [];
+  loadingTimeSlots = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -43,6 +48,7 @@ export class ConsultationBookingModalComponent implements OnInit {
     private consultationService: ConsultationService,
     private authService: AuthService,
     private backendAuthService: BackendAuthService,
+    private backendConsultationService: BackendConsultationService,
     private toastController: ToastController,
     private loadingController: LoadingController
   ) {
@@ -89,6 +95,13 @@ export class ConsultationBookingModalComponent implements OnInit {
         }
       }
     });
+    
+    // Listen for date changes to reload available time slots
+    this.bookingForm.get('scheduledDate')?.valueChanges.subscribe(() => {
+      if (this.selectedExpert) {
+        this.loadAvailableTimeSlots();
+      }
+    });
 
     // Subscribe to experts to update loading states
     this.experts$.subscribe(experts => {
@@ -102,6 +115,11 @@ export class ConsultationBookingModalComponent implements OnInit {
       if (this.isEditMode && this.consultation) {
         const expertId = this.consultation.expertId || this.consultation.expert_id;
         this.selectedExpert = experts.find(expert => expert.id === expertId) || null;
+        
+        // Load available time slots for the selected expert
+        if (this.selectedExpert) {
+          this.loadAvailableTimeSlots();
+        }
       }
     });
   }
@@ -178,6 +196,96 @@ export class ConsultationBookingModalComponent implements OnInit {
   selectExpert(expert: Expert) {
     this.selectedExpert = expert;
     this.bookingForm.patchValue({ expertId: expert.id });
+    
+    // Load available time slots for the selected expert
+    this.loadAvailableTimeSlots();
+  }
+  
+  private loadAvailableTimeSlots() {
+    if (!this.selectedExpert) {
+      this.availableTimeSlots = [];
+      return;
+    }
+    
+    this.loadingTimeSlots = true;
+    const selectedDate = new Date(this.bookingForm.get('scheduledDate')?.value || new Date());
+    
+    // Fetch available time slots from the backend
+    this.backendConsultationService.getExpertAvailability(this.selectedExpert.id, selectedDate).subscribe({
+      next: (availability) => {
+        if (availability && Array.isArray(availability)) {
+          // Convert availability data to time slot strings
+          this.availableTimeSlots = this.convertAvailabilityToTimeSlots(availability);
+        } else {
+          // Fallback to default slots if no availability data
+          this.availableTimeSlots = this.getDefaultTimeSlots();
+        }
+        this.loadingTimeSlots = false;
+      },
+      error: (error) => {
+        console.error('Error loading time slots:', error);
+        // Use default time slots on error
+        this.availableTimeSlots = this.getDefaultTimeSlots();
+        this.loadingTimeSlots = false;
+      }
+    });
+  }
+  
+  private convertAvailabilityToTimeSlots(availability: any[]): string[] {
+    const timeSlots: string[] = [];
+    
+    // Parse the availability data to extract time slots
+    availability.forEach(slot => {
+      if (slot.is_available || slot.isAvailable) {
+        const startTime = slot.start_time || slot.startTime;
+        const endTime = slot.end_time || slot.endTime;
+        
+        if (startTime && endTime) {
+          // Generate 30-minute slots within the available range
+          const slots = this.generateTimeSlotsInRange(startTime, endTime);
+          timeSlots.push(...slots);
+        }
+      }
+    });
+    
+    // Remove duplicates and sort
+    return [...new Set(timeSlots)].sort();
+  }
+  
+  private generateTimeSlotsInRange(startTime: string, endTime: string): string[] {
+    const slots: string[] = [];
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+    
+    const startDate = new Date();
+    startDate.setHours(startHour, startMinute, 0, 0);
+    
+    const endDate = new Date();
+    endDate.setHours(endHour, endMinute, 0, 0);
+    
+    // Generate 30-minute slots
+    const currentDate = new Date(startDate);
+    while (currentDate < endDate) {
+      const slotStart = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
+      currentDate.setMinutes(currentDate.getMinutes() + 30);
+      
+      // Only add if there's room for a 30-minute session
+      if (currentDate <= endDate) {
+        const slotEnd = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
+        slots.push(`${slotStart} - ${slotEnd}`);
+      }
+    }
+    
+    return slots;
+  }
+  
+  private getDefaultTimeSlots(): string[] {
+    // Return default time slots as fallback
+    // Using the LC's typical schedule: 12:00 PM - 4:00 PM
+    return [
+      '12:00 - 12:30', '12:30 - 13:00', '13:00 - 13:30', '13:30 - 14:00',
+      '14:00 - 14:30', '14:30 - 15:00', '15:00 - 15:30', '15:30 - 16:00'
+    ];
   }
 
   getExpertImage(expert: Expert): string {
@@ -353,28 +461,8 @@ export class ConsultationBookingModalComponent implements OnInit {
   }
 
   getAvailableTimeSlots(): string[] {
-    if (!this.selectedExpert) return [];
-    
-    // Generate time slots based on expert availability
-    // For demo purposes, return common consultation times with 30-minute duration
-    const startTimes = [
-      '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-      '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
-      '17:00', '17:30', '18:00', '18:30'
-    ];
-    
-    // Convert start times to time ranges (start - end)
-    return startTimes.map(startTime => {
-      const [hours, minutes] = startTime.split(':').map(Number);
-      const startDate = new Date();
-      startDate.setHours(hours, minutes);
-      
-      // Add 30 minutes for end time
-      const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
-      const endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`;
-      
-      return `${startTime} - ${endTime}`;
-    });
+    // Return the dynamically loaded time slots
+    return this.availableTimeSlots;
   }
 
   formatExpertSpecialties(specialties: string[]): string {

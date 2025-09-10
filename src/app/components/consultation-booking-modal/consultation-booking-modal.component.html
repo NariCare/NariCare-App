@@ -153,10 +153,12 @@
           <label class="field-label">⏰ Consultation Time</label>
           <ion-item lines="none" class="input-item">
             <ion-icon name="time-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-spinner *ngIf="loadingTimeSlots" name="crescent" slot="end"></ion-spinner>
             <ion-select 
               formControlName="scheduledTime"
-              placeholder="Select Time"
-              interface="popover">
+              [placeholder]="loadingTimeSlots ? 'Loading available times...' : 'Select Time'"
+              interface="popover"
+              [disabled]="loadingTimeSlots || getAvailableTimeSlots().length === 0">
               <ion-select-option 
                 *ngFor="let time of getAvailableTimeSlots()" 
                 [value]="time">
@@ -164,6 +166,9 @@
               </ion-select-option>
             </ion-select>
           </ion-item>
+          <div class="helper-text" *ngIf="!loadingTimeSlots && getAvailableTimeSlots().length === 0">
+            No available time slots for the selected date. Please choose another date.
+          </div>
           <div class="error-message" *ngIf="bookingForm.get('scheduledTime')?.invalid && bookingForm.get('scheduledTime')?.touched">
             {{ getErrorMessage('scheduledTime') }}
           </div>
