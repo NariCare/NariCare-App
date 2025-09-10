@@ -577,9 +577,22 @@ export class OnboardingService {
   }
 
   private validateChallengesAndExpectations(data: any, validation: OnboardingStepValidation): OnboardingStepValidation {
-    if (!data?.currentChallenges || data.currentChallenges.length === 0) {
-      validation.isValid = false;
-      validation.errors['currentChallenges'] = 'Please select at least one current challenge';
+    // Get current onboarding data to check mother type
+    const currentData = this.onboardingDataSubject.value;
+    const motherType = currentData?.pregnancyInfo?.motherType;
+    
+    // For expecting mothers, require breastfeeding goals instead of current challenges
+    if (motherType === 'pregnant') {
+      if (!data?.breastfeedingGoals || data.breastfeedingGoals.length === 0) {
+        validation.isValid = false;
+        validation.errors['breastfeedingGoals'] = 'Please select at least one breastfeeding goal';
+      }
+    } else {
+      // For new mothers, require current challenges
+      if (!data?.currentChallenges || data.currentChallenges.length === 0) {
+        validation.isValid = false;
+        validation.errors['currentChallenges'] = 'Please select at least one current challenge';
+      }
     }
 
     if (!data?.expectationsFromProgram?.trim()) {

@@ -274,6 +274,14 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
   async createNewBabiesViaAPI(): Promise<void> {
+    const motherType = this.onboardingForm.get('motherType')?.value;
+    
+    // Skip baby creation for expecting mothers
+    if (motherType === 'pregnant') {
+      console.log('Skipping baby creation for expecting mother');
+      return;
+    }
+    
     console.log('Creating new babies via API...');
     const babyPromises: Promise<any>[] = [];
     
