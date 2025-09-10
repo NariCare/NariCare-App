@@ -38,6 +38,7 @@ export class FeedLogModalComponent implements OnInit {
   selectedBreastSide: 'left' | 'right' | 'both' | null = null;
   selectedPainLevel: number | null = null;
   selectedPredefinedNotes: string[] = []; // Track selected predefined notes
+  isSubmitting = false; // Track submission state
 
   // Options
   feedTypeOptions: FeedTypeOption[] = [
@@ -287,7 +288,9 @@ export class FeedLogModalComponent implements OnInit {
 
   // Form submission
   async saveFeedLog() {
-    if (this.feedForm.valid && this.user && this.selectedBaby) {
+    if (this.feedForm.valid && this.user && this.selectedBaby && !this.isSubmitting) {
+      this.isSubmitting = true; // Prevent multiple submissions
+      
       try {
         const formValue = this.feedForm.value;
         
@@ -333,6 +336,7 @@ export class FeedLogModalComponent implements OnInit {
 
       } catch (error: any) {
         console.error('Error saving feed log:', error);
+        this.isSubmitting = false; // Re-enable submission on error
         
         let errorMessage = 'Failed to save feed log. Please try again.';
         if (error?.message) {

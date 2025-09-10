@@ -199,10 +199,11 @@
           </ion-button>
           <ion-button 
             (click)="saveEmotionCheckin()" 
-            [disabled]="!canSave()"
+            [disabled]="!canSave() || isSubmitting"
             class="save-button">
-            <ion-icon name="heart" slot="start"></ion-icon>
-            Save Check-in
+            <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
+            <ion-icon name="heart" slot="start" *ngIf="!isSubmitting"></ion-icon>
+            {{ isSubmitting ? 'Saving...' : 'Save Check-in' }}
           </ion-button>
         </div>
       </div>

@@ -30,6 +30,7 @@ export class PumpingLogModalComponent implements OnInit {
   timerInterval: any;
   elapsedTime = 0;
   selectedPredefinedNotes: string[] = []; // Track selected predefined notes
+  isSubmitting = false; // Track submission state
 
   // Options
   pumpingSideOptions: PumpingSide[] = [];
@@ -215,7 +216,9 @@ export class PumpingLogModalComponent implements OnInit {
 
   // Form submission
   async savePumpingLog() {
-    if (this.pumpingForm.valid && this.user && this.selectedPumpingSide) {
+    if (this.pumpingForm.valid && this.user && this.selectedPumpingSide && !this.isSubmitting) {
+      this.isSubmitting = true; // Prevent multiple submissions
+      
       try {
         const formValue = this.pumpingForm.value;
         
@@ -277,6 +280,8 @@ export class PumpingLogModalComponent implements OnInit {
 
       } catch (error) {
         console.error('Error saving pumping log:', error);
+        this.isSubmitting = false; // Re-enable submission on error
+        
         const toast = await this.toastController.create({
           message: 'Failed to save pumping log. Please try again.',
           duration: 3000,

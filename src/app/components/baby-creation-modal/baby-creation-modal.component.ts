@@ -13,6 +13,7 @@ export class BabyCreationModalComponent implements OnInit {
   @Input() existingBabies: any[] = []; // Pass existing babies for DOB defaulting
   
   babyForm: FormGroup;
+  isSubmitting = false; // Track submission state
 
   constructor(
     private formBuilder: FormBuilder,
@@ -60,7 +61,9 @@ export class BabyCreationModalComponent implements OnInit {
   }
 
   async onSubmit() {
-    if (this.babyForm.valid) {
+    if (this.babyForm.valid && !this.isSubmitting) {
+      this.isSubmitting = true; // Prevent multiple submissions
+      
       const loading = await this.loadingController.create({
         message: 'Adding baby...',
         translucent: true
@@ -99,6 +102,7 @@ export class BabyCreationModalComponent implements OnInit {
         }
       } catch (error: any) {
         await loading.dismiss();
+        this.isSubmitting = false; // Re-enable submission on error
         const toast = await this.toastController.create({
           message: error.message || 'Failed to add baby. Please try again.',
           duration: 3000,

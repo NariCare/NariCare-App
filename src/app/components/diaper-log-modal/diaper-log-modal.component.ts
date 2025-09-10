@@ -30,6 +30,7 @@ export class DiaperLogModalComponent implements OnInit {
   selectedChangeType: 'pee' | 'poop' | 'both' | null = null;
   selectedWetness: 'light' | 'medium' | 'heavy' | null = null;
   selectedPredefinedNotes: string[] = []; // Track selected predefined notes
+  isSubmitting = false; // Track submission state
 
   changeTypeOptions: ChangeTypeOptions[] = [
     { value: 'pee', label: 'Pee', icon: '💦', description: 'Wet diaper only' },
@@ -128,7 +129,9 @@ export class DiaperLogModalComponent implements OnInit {
 
   // Form submission
   async saveDiaperLog() {
-    if (this.diaperForm.valid && this.user && this.selectedBabyLocal && this.selectedChangeType) {
+    if (this.diaperForm.valid && this.user && this.selectedBabyLocal && this.selectedChangeType && !this.isSubmitting) {
+      this.isSubmitting = true; // Prevent multiple submissions
+      
       try {
         const formValue = this.diaperForm.value;
         
@@ -175,6 +178,7 @@ export class DiaperLogModalComponent implements OnInit {
 
       } catch (error: any) {
         console.error('Error saving diaper log:', error);
+        this.isSubmitting = false; // Re-enable submission on error
         
         let errorMessage = 'Failed to save diaper log. Please try again.';
         if (error?.message) {

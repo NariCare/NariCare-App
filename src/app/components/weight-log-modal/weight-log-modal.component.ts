@@ -28,6 +28,7 @@ export class WeightLogModalComponent implements OnInit {
   user: User | null = null;
   selectedWeightBaby: Baby | null = null;
   selectedPredefinedWeightNotes: string[] = [];
+  isSubmitting = false; // Track submission state
 
   weightPredefinedNotes: PredefinedWeightNote[] = [
     { id: '1', text: 'Growth spurt period', indicator: 'yellow' },
@@ -234,9 +235,12 @@ export class WeightLogModalComponent implements OnInit {
   }
 
   async saveWeightRecord() {
-    if (this.weightForm.valid && this.user) {
+    if (this.weightForm.valid && this.user && !this.isSubmitting) {
+      this.isSubmitting = true; // Prevent multiple submissions
+      
       const selectedBaby = this.getSelectedWeightBaby();
       if (!selectedBaby) {
+        this.isSubmitting = false;
         return;
       }
 
@@ -275,6 +279,7 @@ export class WeightLogModalComponent implements OnInit {
 
       } catch (error: any) {
         console.error('Error saving weight record:', error);
+        this.isSubmitting = false; // Re-enable submission on error
         
         let errorMessage = 'Failed to save weight record. Please try again.';
         if (error?.message) {

@@ -34,6 +34,7 @@ export class EmotionCheckinModalComponent implements OnInit {
   
   // Show crisis alert
   showCrisisAlert = false;
+  isSubmitting = false; // Track submission state
   
   // Settings
   isInSettings = false;
@@ -482,7 +483,9 @@ export class EmotionCheckinModalComponent implements OnInit {
 
   // Form submission
   async saveEmotionCheckin() {
-    if (this.user) {
+    if (this.user && !this.isSubmitting) {
+      this.isSubmitting = true; // Prevent multiple submissions
+      
       try {
         const formValue = this.emotionForm.value;
         
@@ -540,6 +543,8 @@ export class EmotionCheckinModalComponent implements OnInit {
 
       } catch (error) {
         console.error('Error saving emotion check-in:', error);
+        this.isSubmitting = false; // Re-enable submission on error
+        
         const toast = await this.toastController.create({
           message: 'Failed to save emotion check-in. Please try again.',
           duration: 3000,

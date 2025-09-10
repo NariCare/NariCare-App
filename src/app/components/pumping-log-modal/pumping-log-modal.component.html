@@ -202,9 +202,11 @@
         <ion-button 
           expand="block"
           (click)="savePumpingLog()" 
-          [disabled]="!canSave()"
+          [disabled]="!canSave() || isSubmitting"
           class="save-button">
-          Log
+          <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
+          <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
+          {{ isSubmitting ? 'Saving...' : 'Log' }}
         </ion-button>
       </div>
     </form>

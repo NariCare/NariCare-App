@@ -136,9 +136,11 @@
         <ion-button 
           expand="block"
           (click)="saveDiaperLog()" 
-          [disabled]="!canSave()"
+          [disabled]="!canSave() || isSubmitting"
           class="save-button">
-          Save Diaper Change
+          <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
+          <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
+          {{ isSubmitting ? 'Saving...' : 'Save Diaper Change' }}
         </ion-button>
       </div>
     </form>

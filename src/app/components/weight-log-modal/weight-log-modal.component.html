@@ -165,9 +165,11 @@
         <ion-button 
           expand="block" 
           (click)="saveWeightRecord()"
-          [disabled]="!canSave()"
+          [disabled]="!canSave() || isSubmitting"
           class="save-button">
-          Save Weight Record
+          <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
+          <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
+          {{ isSubmitting ? 'Saving...' : 'Save Weight Record' }}
         </ion-button>
       </div>
 

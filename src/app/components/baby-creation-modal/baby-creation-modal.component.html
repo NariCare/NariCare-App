@@ -132,10 +132,11 @@
       <ion-button 
         expand="block"
         type="submit" 
-        [disabled]="!babyForm.valid"
+        [disabled]="!babyForm.valid || isSubmitting"
         class="add-baby-button">
-        <ion-icon name="add-outline" slot="start"></ion-icon>
-        Add Baby
+        <ion-icon name="add-outline" slot="start" *ngIf="!isSubmitting"></ion-icon>
+        <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
+        {{ isSubmitting ? 'Adding Baby...' : 'Add Baby' }}
       </ion-button>
     </form>
   </div>

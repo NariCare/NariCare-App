@@ -297,10 +297,11 @@
         <ion-button 
           expand="block"
           (click)="saveFeedLog()" 
-          [disabled]="!canSave()"
+          [disabled]="!canSave() || isSubmitting"
           class="save-button">
-          <!-- <ion-icon name="save" slot="start"></ion-icon> -->
-          Log Feed
+          <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
+          <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
+          {{ isSubmitting ? 'Saving...' : 'Log Feed' }}
         </ion-button>
       </div>
     </form>
