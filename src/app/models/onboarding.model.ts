@@ -108,7 +108,8 @@ export interface OnboardingData {
 
   // Step 4: Support System & Demographics
   supportInfo: {
-    currentSupportSystem: string;
+    currentSupportSystem: string[]; // Changed to array for multi-select
+    currentSupportSystemOther?: string; // Optional field for "Other" input
     familyStructure: 'nuclear' | 'extended' | 'single_parent' | 'other';
     educationLevel: 'high_school' | 'some_college' | 'bachelors' | 'masters' | 'doctorate';
     householdIncome: 'under_3l' | '3l_6l' | '6l_10l' | '10l_15l' | '15l_25l' | 'over_25l' | 'prefer_not_to_say';
@@ -276,6 +277,13 @@ export const OnboardingOptions = {
     'Time management', 'Returning to work', 'Partner support', 'Family pressure',
     'Public breastfeeding confidence', 'Pain while feeding', 'Baby weight concerns',
     'None - everything is going well'
+  ],
+
+  supportSystem: [
+    'Parents/In-Laws',
+    'Nanny/Jhapa', 
+    'Minimal or No Help',
+    'Other'
   ],
 
   babyMedicalConditions: [

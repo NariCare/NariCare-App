@@ -1105,18 +1105,29 @@
         <p class="step-description">This helps us understand your support network and background</p>
         
         <div class="form-group">
-          <label class="input-label">Describe your current support system</label>
-          <ion-item lines="none" class="input-item" [class.error]="isFieldInvalid('currentSupportSystem')">
-            <ion-textarea
-              formControlName="currentSupportSystem"
-              placeholder="Family, friends, partners, etc."
-              rows="3"
-              fill="outline">
-            </ion-textarea>
-          </ion-item>
-          <div class="error-message" *ngIf="isFieldInvalid('currentSupportSystem')">
-            {{ getFieldError('currentSupportSystem') }}
+          <label class="input-label">What is your current support system?</label>
+          <div class="chip-options">
+            <ion-chip 
+              *ngFor="let option of options.supportSystem"
+              [class.selected]="isSupportSystemSelected(option)"
+              (click)="toggleSupportSystemValue(option)">
+              {{ option }}
+            </ion-chip>
           </div>
+          <div class="error-message" *ngIf="isFieldInvalid('currentSupportSystem')">
+            Please select at least one support system option
+          </div>
+        </div>
+
+        <!-- Other input field for support system -->
+        <div class="form-group" *ngIf="shouldShowSupportSystemOther()">
+          <label class="input-label">Please specify other support system</label>
+          <ion-item lines="none" class="input-item">
+            <ion-input
+              formControlName="currentSupportSystemOther"
+              placeholder="Describe your other support system">
+            </ion-input>
+          </ion-item>
         </div>
 
         <div class="form-group">

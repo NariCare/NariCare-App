@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
 import { OnboardingService } from '../../services/onboarding.service';
@@ -439,7 +439,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
       pumpTotalDailyOutput: [200], // Default 200ml total daily
       
       // Step 4: Support System & Demographics
-      currentSupportSystem: ['', [Validators.required]],
+      currentSupportSystem: [[], [Validators.required, this.arrayNotEmptyValidator]],
+      currentSupportSystemOther: [''],
       familyStructure: ['', [Validators.required]],
       educationLevel: ['', [Validators.required]],
       householdIncome: [''],
@@ -809,7 +810,12 @@ export class OnboardingPage implements OnInit, OnDestroy {
       formUpdate.educationLevel = data.supportInfo.educationLevel;
       formUpdate.familyStructure = data.supportInfo.familyStructure;
       formUpdate.householdIncome = data.supportInfo.householdIncome;
-      formUpdate.currentSupportSystem = data.supportInfo.currentSupportSystem;
+      formUpdate.currentSupportSystem = Array.isArray(data.supportInfo.currentSupportSystem) 
+        ? data.supportInfo.currentSupportSystem 
+        : (data.supportInfo.currentSupportSystem ? [data.supportInfo.currentSupportSystem] : []);
+      if (data.supportInfo.currentSupportSystemOther) {
+        formUpdate.currentSupportSystemOther = data.supportInfo.currentSupportSystemOther;
+      }
     }
     
     // Challenges and Expectations Info (new structure)
@@ -860,7 +866,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
         return !!(formValue.usesFormula !== null && formValue.usesBottles !== null && formValue.usesPump !== null);
       
       case 4: // Support System & Demographics
-        return !!(formValue.currentSupportSystem && formValue.familyStructure && formValue.educationLevel);
+        return !!(formValue.currentSupportSystem?.length && formValue.familyStructure && formValue.educationLevel);
       
       case 5: // Current Challenges & Expectations
         return !!(formValue.currentChallenges?.length && formValue.expectationsFromProgram?.trim());
@@ -1059,7 +1065,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
         const hasFormBabyData = !!(this.hasFormulaInBabies(formValue.babies) || this.hasBottlesInBabies(formValue.babies) || this.hasPumpInBabies(formValue.babies));
         return hasFormDirectAnswers || hasFormBabyData;
       case 4: // Support & Demographics
-        return !!(formValue.currentSupportSystem || formValue.familyStructure || formValue.educationLevel);
+        return !!(formValue.currentSupportSystem?.length || formValue.familyStructure || formValue.educationLevel);
       case 5: // Challenges & Expectations
         return !!(formValue.currentChallenges?.length || formValue.expectationsFromProgram?.trim());
       default:
@@ -1169,6 +1175,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       case 4:
         return {
           currentSupportSystem: formValue.currentSupportSystem,
+          currentSupportSystemOther: formValue.currentSupportSystemOther,
           familyStructure: formValue.familyStructure,
           educationLevel: formValue.educationLevel,
           householdIncome: formValue.householdIncome
@@ -1418,6 +1425,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
     if (field?.hasError('required')) {
       return 'This field is required';
     }
+    if (field?.hasError('arrayEmpty')) {
+      return 'Please select at least one option';
+    }
     if (field?.hasError('email')) {
       return 'Please enter a valid email address';
     }
@@ -1583,6 +1593,40 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   goBack(): void {
     this.router.navigate(['/tabs/dashboard']);
+  }
+
+  // Custom validator for array not empty
+  arrayNotEmptyValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value || !Array.isArray(value) || value.length === 0) {
+      return { arrayEmpty: true };
+    }
+    return null;
+  }
+
+  // Support system toggle methods
+  toggleSupportSystemValue(value: string): void {
+    const currentValues: string[] = this.onboardingForm.get('currentSupportSystem')?.value || [];
+    const index = currentValues.indexOf(value);
+    
+    if (index > -1) {
+      // Remove if already selected
+      currentValues.splice(index, 1);
+    } else {
+      // Add if not selected
+      currentValues.push(value);
+    }
+    
+    this.onboardingForm.get('currentSupportSystem')?.setValue([...currentValues]);
+  }
+
+  isSupportSystemSelected(value: string): boolean {
+    const currentValues: string[] = this.onboardingForm.get('currentSupportSystem')?.value || [];
+    return currentValues.includes(value);
+  }
+
+  shouldShowSupportSystemOther(): boolean {
+    return this.isSupportSystemSelected('Other');
   }
 
 }
