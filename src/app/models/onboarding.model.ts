@@ -117,7 +117,9 @@ export interface OnboardingData {
 
   // Step 5: Current Challenges & Program Expectations
   challengesAndExpectationsInfo: {
-    currentChallenges: string[]; // Multi-select from predefined list
+    currentChallenges: string[]; // Multi-select from predefined list (for new mothers)
+    breastfeedingGoals: string[]; // Multi-select from predefined list (for expecting mothers)
+    breastfeedingGoalsOther?: string; // Optional field for "Other" input
     expectationsFromProgram: string;
   };
 
@@ -281,6 +283,14 @@ export const OnboardingOptions = {
     'Parents/In-Laws',
     'Nanny/Jhapa', 
     'Minimal or No Help',
+    'Other'
+  ],
+
+  breastfeedingGoals: [
+    'Get breastfeeding education from a leading lactation expert',
+    'Would like to achieve exclusive breastfeeding',
+    'Would like to replace some formula feeds and come to largely breastfeeding',
+    'Feel Confident and have a smooth breastfeeding journey',
     'Other'
   ],
 

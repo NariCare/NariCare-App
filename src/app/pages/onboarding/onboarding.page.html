@@ -1191,7 +1191,8 @@
         <h2 class="step-title">Challenges & Expectations</h2>
         <p class="step-description">Tell us about your current challenges and goals</p>
         
-        <div class="form-group">
+        <!-- Current Challenges for New Mothers -->
+        <div class="form-group" *ngIf="onboardingForm.get('motherType')?.value === 'new_mom'">
           <label class="input-label">Current Challenges (Select all that apply)</label>
           <div class="chip-options">
             <ion-chip 
@@ -1200,6 +1201,28 @@
               (click)="toggleArrayValue('currentChallenges', challenge)">
               {{ challenge }}
             </ion-chip>
+          </div>
+        </div>
+
+        <!-- Breastfeeding Goals for Expecting Mothers -->
+        <div class="form-group" *ngIf="onboardingForm.get('motherType')?.value === 'pregnant'">
+          <label class="input-label">What are your breastfeeding goals? (Select ALL that apply) *</label>
+          <div class="chip-options">
+            <ion-chip 
+              *ngFor="let goal of options.breastfeedingGoals"
+              [class.selected]="isValueSelected('breastfeedingGoals', goal)"
+              (click)="toggleArrayValue('breastfeedingGoals', goal)">
+              {{ goal }}
+            </ion-chip>
+          </div>
+          <div class="form-group" *ngIf="shouldShowField('breastfeedingGoalsOther')">
+            <ion-item lines="none" class="input-item">
+              <ion-input
+                formControlName="breastfeedingGoalsOther"
+                placeholder="Please specify your other breastfeeding goals"
+                fill="outline">
+              </ion-input>
+            </ion-item>
           </div>
         </div>
 

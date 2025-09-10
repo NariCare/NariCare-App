@@ -446,7 +446,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
       householdIncome: [''],
       
       // Step 5: Current Challenges & Expectations
-      currentChallenges: [[], [Validators.required]],
+      currentChallenges: [[]],
+      breastfeedingGoals: [[]],
+      breastfeedingGoalsOther: [''],
       expectationsFromProgram: ['', [Validators.required]]
     });
 
@@ -535,7 +537,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
         this.onboardingService.updateStepData(4, stepData);
       }
       
-      if (savedData.formValues.currentChallenges?.length || savedData.formValues.expectationsFromProgram) {
+      if (savedData.formValues.currentChallenges?.length || savedData.formValues.breastfeedingGoals?.length || savedData.formValues.expectationsFromProgram) {
         const stepData = this.extractStepData(5, savedData.formValues);
         this.onboardingService.updateStepData(5, stepData);
       }
@@ -869,7 +871,18 @@ export class OnboardingPage implements OnInit, OnDestroy {
         return !!(formValue.currentSupportSystem?.length && formValue.familyStructure && formValue.educationLevel);
       
       case 5: // Current Challenges & Expectations
-        return !!(formValue.currentChallenges?.length && formValue.expectationsFromProgram?.trim());
+        const isPregnant = formValue.motherType === 'pregnant';
+        const isNewMom = formValue.motherType === 'new_mom';
+        const hasExpectations = formValue.expectationsFromProgram?.trim();
+        
+        if (isPregnant) {
+          // For expecting mothers: require breastfeeding goals + expectations
+          return !!(formValue.breastfeedingGoals?.length && hasExpectations);
+        } else if (isNewMom) {
+          // For new mothers: require current challenges + expectations
+          return !!(formValue.currentChallenges?.length && hasExpectations);
+        }
+        return false;
       
       default:
         return false;
@@ -1067,7 +1080,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       case 4: // Support & Demographics
         return !!(formValue.currentSupportSystem?.length || formValue.familyStructure || formValue.educationLevel);
       case 5: // Challenges & Expectations
-        return !!(formValue.currentChallenges?.length || formValue.expectationsFromProgram?.trim());
+        return !!(formValue.currentChallenges?.length || formValue.breastfeedingGoals?.length || formValue.expectationsFromProgram?.trim());
       default:
         return false;
     }
@@ -1183,6 +1196,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
       case 5:
         return {
           currentChallenges: formValue.currentChallenges,
+          breastfeedingGoals: formValue.breastfeedingGoals,
+          breastfeedingGoalsOther: formValue.breastfeedingGoalsOther,
           expectationsFromProgram: formValue.expectationsFromProgram
         };
       default:
@@ -1355,6 +1370,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
         return this.onboardingForm.get('usesPump')?.value === true;
       case 'motherMedicalConditionsOther':
         return this.isValueSelected('motherMedicalConditions', 'Other');
+      case 'breastfeedingGoalsOther':
+        return this.isValueSelected('breastfeedingGoals', 'Other');
       case 'hospitalizationReason':
         return true; // Will be handled per baby in template
       default:
