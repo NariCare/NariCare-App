@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ModalController, ToastController, LoadingController } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
@@ -24,7 +24,7 @@ export class BabyCreationModalComponent implements OnInit {
   ) {
     this.babyForm = this.formBuilder.group({
       name: ['', [Validators.required, Validators.minLength(1)]],
-      dateOfBirth: ['', [Validators.required]],
+      dateOfBirth: ['', [Validators.required, this.noFutureDateValidator]],
       gender: ['', [Validators.required]],
       birthWeight: ['', [Validators.required, Validators.min(0.5), Validators.max(10)]],
       birthHeight: ['', [Validators.required, Validators.min(20), Validators.max(80)]]
@@ -161,6 +161,9 @@ export class BabyCreationModalComponent implements OnInit {
     if (control?.hasError('required')) {
       return `${this.getFieldLabel(field)} is required`;
     }
+    if (control?.hasError('futureDate')) {
+      return 'Birth date cannot be in the future';
+    }
     if (control?.hasError('minlength')) {
       return `${this.getFieldLabel(field)} must be at least 1 character`;
     }
@@ -188,6 +191,23 @@ export class BabyCreationModalComponent implements OnInit {
 
   getTodayDate(): string {
     return new Date().toISOString().split('T')[0];
+  }
+
+  // Custom validator to prevent future dates
+  noFutureDateValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) {
+      return null; // Let required validator handle empty values
+    }
+    
+    const selectedDate = new Date(control.value);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
+    
+    if (selectedDate > today) {
+      return { futureDate: { message: 'Birth date cannot be in the future' } };
+    }
+    
+    return null;
   }
 
   private formatDateForApi(dateValue: string): string {

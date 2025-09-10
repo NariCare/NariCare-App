@@ -352,14 +352,18 @@
 
               <div class="form-group">
                 <label class="input-label">Date of Birth</label>
-                <ion-item lines="none" class="input-item">
+                <ion-item lines="none" class="input-item" [class.error]="baby.get('dateOfBirth')?.invalid && baby.get('dateOfBirth')?.touched">
                   <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
                   <ion-input
                     formControlName="dateOfBirth"
                     type="date"
+                    [max]="getTodayDate()"
                     placeholder="Select date of birth">
                   </ion-input>
                 </ion-item>
+                <div class="error-message" *ngIf="baby.get('dateOfBirth')?.invalid && baby.get('dateOfBirth')?.touched">
+                  {{ getBabyFieldError(i, 'dateOfBirth') }}
+                </div>
               </div>
 
               <div class="form-row">

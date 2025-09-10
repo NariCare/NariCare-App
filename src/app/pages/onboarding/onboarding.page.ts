@@ -236,6 +236,27 @@ export class OnboardingPage implements OnInit, OnDestroy {
     return date.toISOString();
   }
 
+  getTodayDate(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  // Custom validator to prevent future dates
+  noFutureDateValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) {
+      return null; // Let required validator handle empty values
+    }
+    
+    const selectedDate = new Date(control.value);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
+    
+    if (selectedDate > today) {
+      return { futureDate: { message: 'Birth date cannot be in the future' } };
+    }
+    
+    return null;
+  }
+
   private parseFormulaValue(value: any, defaultValue: number): number {
     if (value === null || value === undefined) return defaultValue;
     
@@ -1450,11 +1471,32 @@ export class OnboardingPage implements OnInit, OnDestroy {
     if (field?.hasError('required')) {
       return 'This field is required';
     }
+    if (field?.hasError('futureDate')) {
+      return 'Birth date cannot be in the future';
+    }
     if (field?.hasError('arrayEmpty')) {
       return 'Please select at least one option';
     }
     if (field?.hasError('email')) {
       return 'Please enter a valid email address';
+    }
+    if (field?.hasError('min')) {
+      return 'Value is too low';
+    }
+    if (field?.hasError('max')) {
+      return 'Value is too high';
+    }
+    return '';
+  }
+
+  getBabyFieldError(babyIndex: number, fieldName: string): string {
+    const baby = this.babiesFormArray.at(babyIndex);
+    const field = baby?.get(fieldName);
+    if (field?.hasError('required')) {
+      return 'This field is required';
+    }
+    if (field?.hasError('futureDate')) {
+      return 'Birth date cannot be in the future';
     }
     if (field?.hasError('min')) {
       return 'Value is too low';
@@ -1517,7 +1559,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
     
     return this.formBuilder.group({
       name: ['', Validators.required],
-      dateOfBirth: ['', Validators.required],
+      dateOfBirth: ['', [Validators.required, this.noFutureDateValidator]],
       gender: ['', Validators.required],
       birthWeight: [null, [Validators.required, Validators.min(0.5)]],
       mostRecentWeight: [null, [Validators.required, Validators.min(0.5)]],
