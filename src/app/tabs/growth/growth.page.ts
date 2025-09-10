@@ -1283,8 +1283,38 @@ export class GrowthPage implements OnInit {
   }
 
   getEmotionCheckinMood(record: any): string {
-    // Try to get overall mood or return default
-    return record.overall_mood || record.overallMood || 'Neutral';
+    // First try to get overall mood if it exists
+    if (record.overall_mood || record.overallMood) {
+      return record.overall_mood || record.overallMood;
+    }
+
+    // If no overall mood, analyze the selected emotions to determine mood
+    const struggles = record.struggles || record.selectedStruggles || [];
+    const positiveMoments = record.positive_moments || record.selectedPositiveMoments || [];
+    const concerningThoughts = record.concerning_thoughts || record.selectedConcerningThoughts || [];
+
+    // Critical/high severity concerning thoughts take priority
+    if (concerningThoughts && concerningThoughts.length > 0) {
+      return 'Concerning';
+    }
+
+    // If there are struggles but also positive moments, it's mixed
+    if (struggles.length > 0 && positiveMoments.length > 0) {
+      return 'Mixed';
+    }
+
+    // Only struggles without positive moments
+    if (struggles.length > 0) {
+      return 'Struggling';
+    }
+
+    // Only positive moments
+    if (positiveMoments.length > 0) {
+      return 'Positive';
+    }
+
+    // No emotions selected
+    return 'Neutral';
   }
 
   getEmotionCheckinDate(record: any): string {

@@ -410,6 +410,7 @@ export class EmotionCheckinModalComponent implements OnInit {
   }
 
   private async showCrisisSupport() {
+    return;
     const alert = await this.alertController.create({
       header: 'Immediate Support Recommended',
       message: 'Your responses indicate you may be experiencing thoughts that require immediate attention. Please know you are not alone, and help is available. Reaching out is a sign of incredible strength.',
