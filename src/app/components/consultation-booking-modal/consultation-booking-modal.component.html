@@ -194,14 +194,18 @@
             <p><strong>Date:</strong> {{ bookingForm.get('scheduledDate')?.value | date:'fullDate' }}</p>
             <p><strong>Time:</strong> {{ bookingForm.get('scheduledTime')?.value }}</p>
             <p><strong>Duration:</strong> 30 minutes</p>
-            <p *ngIf="selectedBaby"><strong>Baby:</strong> {{ selectedBaby.name }} ({{ getBabyAge(selectedBaby) }})</p>
+            <p *ngIf="selectedBabies.length > 0"><strong>Babies:</strong> 
+              <span *ngFor="let baby of selectedBabies; let last = last">
+                {{ baby.name }} ({{ getBabyAge(baby) }})<span *ngIf="!last">, </span>
+              </span>
+            </p>
           </div>
         </div>
 
         <!-- Baby Selection -->
         <div class="form-group" *ngIf="babies && babies.length > 0">
-          <label class="field-label">👶 Select Baby for Consultation</label>
-          <p class="field-description">Which baby is this consultation about?</p>
+          <label class="field-label">👶 Select Baby(s) for Consultation</label>
+          <p class="field-description">Which baby(s) is this consultation about? You can select multiple babies.</p>
           
           <!-- Single baby - auto-selected -->
           <div *ngIf="babies.length === 1" class="single-baby-info">
@@ -220,19 +224,19 @@
             <div 
               *ngFor="let baby of babies"
               class="baby-card"
-              [class.selected]="selectedBaby?.id === baby.id"
+              [class.selected]="isBabySelected(baby)"
               (click)="selectBaby(baby)">
               <img [src]="getBabyIcon(baby)" [alt]="baby.name" class="baby-avatar">
               <div class="baby-info">
                 <h4>{{ baby.name }}</h4>
                 <p>{{ getBabyAge(baby) }}</p>
               </div>
-              <ion-icon name="checkmark-circle" class="selected-icon" *ngIf="selectedBaby?.id === baby.id"></ion-icon>
+              <ion-icon name="checkmark-circle" class="selected-icon" *ngIf="isBabySelected(baby)"></ion-icon>
             </div>
           </div>
           
-          <div class="error-message" *ngIf="bookingForm.get('babyId')?.invalid && bookingForm.get('babyId')?.touched">
-            Please select which baby this consultation is for
+          <div class="error-message" *ngIf="bookingForm.get('babyIds')?.invalid && bookingForm.get('babyIds')?.touched">
+            Please select at least one baby for this consultation
           </div>
         </div>
 
@@ -301,7 +305,7 @@
           </ion-button>
           <ion-button 
             (click)="bookConsultation()" 
-            [disabled]="!bookingForm.valid || !selectedBaby || (babies && babies.length === 0)"
+            [disabled]="!bookingForm.valid || selectedBabies.length === 0 || (babies && babies.length === 0)"
             class="book-button">
             <ion-icon name="calendar" slot="start"></ion-icon>
             {{ isEditMode ? 'Update Consultation' : 'Book Consultation' }}

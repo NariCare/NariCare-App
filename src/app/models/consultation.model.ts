@@ -2,7 +2,8 @@ export interface Consultation {
   id: string;
   user_id: string;
   expert_id: string;
-  baby_id?: string; // Add baby_id field
+  baby_id?: string; // Legacy single baby field
+  baby_ids?: string[]; // Multiple baby IDs field
   consultation_type: 'scheduled' | 'on-demand';
   status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
   scheduled_at: string;
@@ -33,6 +34,7 @@ export interface Consultation {
   userId?: string; // For backward compatibility
   expertId?: string; // For backward compatibility
   babyId?: string; // For backward compatibility
+  babyIds?: string[]; // For backward compatibility with multi-baby support
   type?: 'scheduled' | 'on-demand'; // For backward compatibility
   scheduledAt?: Date; // For backward compatibility
   duration?: number; // For backward compatibility

@@ -21,6 +21,7 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
   consultation: Consultation | null = null;
   onboardingData: any = null;
   currentUser: User | null = null;
+  expertData: any = null;
   selectedTab: 'onboarding' | 'report' = 'onboarding';
   loading = false;
   
@@ -80,6 +81,9 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
         
         // Load onboarding data for the user in this consultation
         await this.loadOnboardingData();
+        
+        // Load expert data for better name display
+        await this.loadExpertData();
       } else {
         throw new Error('Failed to load consultation details');
       }
@@ -146,6 +150,23 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
     }
   }
 
+  private async loadExpertData() {
+    if (!this.consultation) return;
+
+    try {
+      const expertId = this.consultation.expert_id || this.consultation.expertId;
+      if (expertId) {
+        // Load expert details from consultation service
+        const expertsResponse = await this.consultationService.getExperts().toPromise();
+        if (expertsResponse && Array.isArray(expertsResponse)) {
+          this.expertData = expertsResponse.find(expert => expert.id === expertId);
+        }
+      }
+    } catch (error) {
+      console.warn('Could not load expert data:', error);
+    }
+  }
+
   selectTab(tab: 'onboarding' | 'report') {
     this.selectedTab = tab;
   }
@@ -194,6 +215,17 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
   getExpertName(): string {
     if (!this.consultation) return 'Expert';
     
+    // First, try to get name from loaded expert data
+    if (this.expertData) {
+      if (this.expertData.name) {
+        return this.expertData.name; // Legacy field
+      }
+      if (this.expertData.first_name && this.expertData.last_name) {
+        return `${this.expertData.first_name} ${this.expertData.last_name}`;
+      }
+    }
+    
+    // Fallback to consultation embedded expert data
     if (this.consultation.expert_first_name && this.consultation.expert_last_name) {
       return `${this.consultation.expert_first_name} ${this.consultation.expert_last_name}`;
     }

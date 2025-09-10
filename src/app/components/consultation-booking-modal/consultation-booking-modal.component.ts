@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ModalController, ToastController, LoadingController } from '@ionic/angular';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -21,7 +21,7 @@ export class ConsultationBookingModalComponent implements OnInit {
   experts$: Observable<Expert[]>;
   user: User | null = null;
   selectedExpert: Expert | null = null;
-  selectedBaby: Baby | null = null;
+  selectedBabies: Baby[] = [];
   babies: Baby[] = [];
   currentStep = 1;
   totalSteps = 3;
@@ -63,7 +63,7 @@ export class ConsultationBookingModalComponent implements OnInit {
       scheduledTime: ['', [Validators.required]],
       topic: ['', [Validators.required]],
       notes: [''],
-      babyId: ['', [Validators.required]]
+      babyIds: [[], [Validators.required, this.arrayNotEmptyValidator]]
     });
   }
 
@@ -79,8 +79,8 @@ export class ConsultationBookingModalComponent implements OnInit {
         
         // Auto-select baby if only one exists
         if (this.babies.length === 1) {
-          this.selectedBaby = this.babies[0];
-          this.bookingForm.patchValue({ babyId: this.babies[0].id });
+          this.selectedBabies = [this.babies[0]];
+          this.bookingForm.patchValue({ babyIds: [this.babies[0].id] });
         }
         
         // Initialize form with consultation data if editing
@@ -214,7 +214,7 @@ export class ConsultationBookingModalComponent implements OnInit {
   }
 
   async bookConsultation() {
-    if (this.bookingForm.valid && this.user && this.selectedExpert && this.selectedBaby) {
+    if (this.bookingForm.valid && this.user && this.selectedExpert && this.selectedBabies.length > 0) {
       const loading = await this.loadingController.create({
         message: this.isEditMode ? 'Updating your consultation...' : 'Booking your consultation...',
         translucent: true
@@ -235,7 +235,7 @@ export class ConsultationBookingModalComponent implements OnInit {
           // Update existing consultation
           const updates = {
             expert_id: this.selectedExpert.id,
-            baby_id: formValue.babyId, // Add baby ID
+            baby_ids: formValue.babyIds, // Add baby IDs
             scheduled_at: scheduledDateTime.toISOString(),
             topic: formValue.topic,
             notes: formValue.notes,
@@ -266,7 +266,7 @@ export class ConsultationBookingModalComponent implements OnInit {
           const consultation: Omit<Consultation, 'id'> = {
             user_id: this.user.uid,
             expert_id: this.selectedExpert.id,
-            baby_id: formValue.babyId, // Add baby ID
+            baby_ids: formValue.babyIds, // Add baby IDs
             consultation_type: 'scheduled',
             status: 'scheduled',
             scheduled_at: scheduledDateTime.toISOString(),
@@ -279,7 +279,7 @@ export class ConsultationBookingModalComponent implements OnInit {
             // Legacy compatibility fields
             userId: this.user.uid,
             expertId: this.selectedExpert.id,
-            babyId: formValue.babyId, // Add baby ID for legacy compatibility
+            babyIds: formValue.babyIds, // Add baby IDs for legacy compatibility
             type: 'scheduled',
             scheduledAt: scheduledDateTime,
             duration: 30,
@@ -414,8 +414,19 @@ export class ConsultationBookingModalComponent implements OnInit {
 
   // Baby selection methods
   selectBaby(baby: Baby) {
-    this.selectedBaby = baby;
-    this.bookingForm.patchValue({ babyId: baby.id });
+    const index = this.selectedBabies.findIndex(b => b.id === baby.id);
+    if (index > -1) {
+      // Remove if already selected
+      this.selectedBabies.splice(index, 1);
+    } else {
+      // Add if not selected
+      this.selectedBabies.push(baby);
+    }
+    this.bookingForm.patchValue({ babyIds: this.selectedBabies.map(b => b.id) });
+  }
+
+  isBabySelected(baby: Baby): boolean {
+    return this.selectedBabies.some(b => b.id === baby.id);
   }
 
   getBabyAge(baby: Baby): string {
@@ -425,5 +436,14 @@ export class ConsultationBookingModalComponent implements OnInit {
 
   getBabyIcon(baby: Baby): string {
     return baby.gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg';
+  }
+
+  // Custom validator for array not empty
+  arrayNotEmptyValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (!value || !Array.isArray(value) || value.length === 0) {
+      return { arrayEmpty: true };
+    }
+    return null;
   }
 }
