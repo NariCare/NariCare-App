@@ -254,20 +254,18 @@ export const OnboardingOptions = {
   ],
 
   educationLevels: [
-    { value: 'high_school', label: 'High school or equivalent' },
-    { value: 'some_college', label: 'Some college' },
-    { value: 'bachelors', label: "Bachelor's degree" },
-    { value: 'masters', label: "Master's degree" },
-    { value: 'doctorate', label: 'Doctorate degree' },
+    { value: 'high_school', label: 'High School' },
+    { value: 'bachelors', label: "Bachelor's" },
+    { value: 'masters', label: "Master's" },
+    { value: 'doctoral', label: 'Doctoral Degree' },
   ],
 
   householdIncomes: [
-    { value: 'under_3l', label: 'Under ₹3 lakhs' },
-    { value: '3l_6l', label: '₹3 - 6 lakhs' },
-    { value: '6l_10l', label: '₹6 - 10 lakhs' },
-    { value: '10l_15l', label: '₹10 - 15 lakhs' },
-    { value: '15l_25l', label: '₹15 - 25 lakhs' },
-    { value: 'over_25l', label: 'Over ₹25 lakhs' },
+    { value: '0_10l', label: '0-10 Lakhs' },
+    { value: '10_25l', label: '10-25 Lakhs' },
+    { value: '25_35l', label: '25-35 Lakhs' },
+    { value: '35_50l', label: '35-50 Lakhs' },
+    { value: '50plus_l', label: '50+ Lakhs' },
     { value: 'prefer_not_to_say', label: 'Prefer not to say' },
   ],
 
