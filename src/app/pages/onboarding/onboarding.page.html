@@ -271,7 +271,10 @@
         <div class="baby-info-section" *ngIf="shouldShowField('babyInfo')">
           <div class="babies-header">
             <h3 class="subsection-title">Baby Information</h3>
-            <p class="twins-helper-text">Add other babies also, if you had twins or triplets</p>
+            <div class="twins-alert">
+              <ion-icon name="alert-circle" color="warning"></ion-icon>
+              <p class="twins-helper-text"><strong>Important:</strong> If you have twins, triplets, or multiple babies, please add ALL of them now. This ensures each baby gets personalized tracking and consultation support.</p>
+            </div>
             <div class="baby-action-buttons">
               <ion-button 
                 fill="outline" 
@@ -646,6 +649,31 @@
 
               </div>
             </div>
+          </div>
+          
+          <!-- Twins/Multiple Babies Reminder -->
+          <div class="twins-reminder-section">
+            <ion-card class="reminder-card">
+              <ion-card-content>
+                <div class="reminder-content">
+                  <ion-icon name="information-circle" color="primary"></ion-icon>
+                  <div class="reminder-text">
+                    <h5>Have twins or multiple babies?</h5>
+                    <p>Don't forget to add all your babies now! You can click the "Add New Baby" button above to add details for each baby. This is important for tracking their individual feeding patterns and growth.</p>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+            
+            <ion-button 
+              fill="solid" 
+              expand="block"
+              (click)="addBaby()" 
+              class="add-another-baby-button"
+              color="secondary">
+              <ion-icon name="add-circle" slot="start"></ion-icon>
+              Add Another Baby
+            </ion-button>
           </div>
         </div>
 

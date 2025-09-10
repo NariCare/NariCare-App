@@ -369,15 +369,33 @@ ion-datetime-button {
     margin: 0 0 0.5rem 0;
   }
   
-  .twins-helper-text {
+  .twins-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
     margin: 0 0 1rem 0;
-    font-size: 0.85rem;
-    color: #8383ed;
-    font-style: italic;
-    background: rgba(131, 131, 237, 0.1);
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    border-left: 3px solid #8383ed;
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #fbbf24;
+    
+    ion-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+    }
+  }
+  
+  .twins-helper-text {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #92400e;
+    line-height: 1.5;
+    
+    strong {
+      font-weight: 600;
+      color: #78350f;
+    }
   }
   
   .baby-action-buttons {
@@ -844,6 +862,69 @@ ion-chip {
     .datetime-button-full {
       width: 100%;
       max-width: 100%;
+    }
+  }
+}
+
+// Twins Reminder Section Styles
+.twins-reminder-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px dashed #e2e8f0;
+  
+  .reminder-card {
+    --background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border: 1px solid #7dd3fc;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .reminder-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    
+    ion-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+      color: #0284c7;
+      margin-top: 0.25rem;
+    }
+    
+    .reminder-text {
+      flex: 1;
+      
+      h5 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #0c4a6e;
+      }
+      
+      p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #075985;
+        line-height: 1.5;
+      }
+    }
+  }
+  
+  .add-another-baby-button {
+    --background: #8383ed;
+    --background-hover: #7676d1;
+    --border-radius: 12px;
+    --color: #ffffff;
+    height: 52px;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.025em;
+    margin-top: 0.5rem;
+    
+    ion-icon {
+      font-size: 1.3rem;
+      margin-right: 0.5rem;
     }
   }
 }
