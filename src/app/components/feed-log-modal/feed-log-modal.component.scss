@@ -758,7 +758,7 @@
 .predefined-notes-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0rem;
 }
 
 .predefined-note-chip {
@@ -767,7 +767,7 @@
   --border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 2px solid transparent;
+  border: 1px solid #e2e8f0;
   position: relative;
   display: flex;
   align-items: center;
