@@ -253,11 +253,16 @@ export class GrowthPage implements OnInit {
       // Use backend service - require at least one baby from API
       const firstBaby = this.user?.babies?.[0];
       if (firstBaby?.id) {
-        this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(firstBaby.id).pipe(
-          map(response => {
-            const records = response.records || [];
-            this.pumpingRecords = records; // Store records for synchronous access
+        this.pumpingRecords$ = this.backendPumpingService.getRecentPumpingRecords(firstBaby.id, 10).pipe(
+          map(records => {
+            console.log('Recent pumping records:', records);
+            this.pumpingRecords = records || []; // Store records for synchronous access
             return records;
+          }),
+          catchError(error => {
+            console.error('Error loading pumping records:', error);
+            this.pumpingRecords = [];
+            return of([]);
           })
         );
         // Subscribe to update local records
