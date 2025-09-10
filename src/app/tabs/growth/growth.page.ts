@@ -389,6 +389,11 @@ export class GrowthPage implements OnInit {
   }
 
   async onWeightSize() {
+    if (!this.user?.babies || this.user.babies.length === 0) {
+      this.showToast('Please add a baby first to start tracking growth and feeding.', 'warning');
+      return;
+    }
+
     const modal = await this.modalController.create({
       component: WeightLogModalComponent,
       componentProps: {
@@ -1297,8 +1302,8 @@ export class GrowthPage implements OnInit {
   }
 
   async openFeedLogModal(isFastFeed: boolean = false) {
-    if (!this.selectedBaby) {
-      this.showToast('Please select a baby first', 'warning');
+    if (!this.user?.babies || this.user.babies.length === 0) {
+      this.showToast('Please add a baby first to start tracking growth and feeding.', 'warning');
       return;
     }
 
@@ -1321,10 +1326,10 @@ export class GrowthPage implements OnInit {
   }
 
   async openDiaperLogModal() {
-    // if (!this.selectedBaby) {
-    //   this.showToast('Please select a baby first', 'warning');
-    //   return;
-    // }
+    if (!this.user?.babies || this.user.babies.length === 0) {
+      this.showToast('Please add a baby first to start tracking growth and feeding.', 'warning');
+      return;
+    }
 
     const modal = await this.modalController.create({
       component: DiaperLogModalComponent,
@@ -1344,6 +1349,10 @@ export class GrowthPage implements OnInit {
   }
 
   async openPumpLogModal() {
+    if (!this.user?.babies || this.user.babies.length === 0) {
+      this.showToast('Please add a baby first to start tracking growth and feeding.', 'warning');
+      return;
+    }
 
     const modal = await this.modalController.create({
       component: PumpingLogModalComponent,
