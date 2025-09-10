@@ -247,10 +247,10 @@ export const OnboardingOptions = {
   ],
 
   familyStructure: [
-    { value: 'nuclear', label: 'Nuclear family (partner + children)' },
-    { value: 'extended', label: 'Extended family (grandparents, relatives)' },
-    { value: 'single_parent', label: 'Single parent' },
-    { value: 'other', label: 'Other family structure' },
+    { value: 'nuclear_same_city', label: 'Nuclear, family in same city' },
+    { value: 'nuclear_different_city', label: 'Nuclear, family in different city' },
+    { value: 'nuclear_different_country', label: 'Nuclear, family in different country' },
+    { value: 'joint_family', label: 'Joint Family' },
   ],
 
   educationLevels: [
