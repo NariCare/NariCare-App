@@ -1227,12 +1227,13 @@
         </div>
 
         <div class="form-group">
-          <label class="input-label">What are your expectations from the NariCare program?</label>
+          <label class="input-label" *ngIf="onboardingForm.get('motherType')?.value === 'pregnant'">What your expectations from NariCare's Breastfeeding Program</label>
+          <label class="input-label" *ngIf="onboardingForm.get('motherType')?.value === 'new_mom'">What are your expectations from the NariCare program?</label>
           <ion-item lines="none" class="input-item" [class.error]="isFieldInvalid('expectationsFromProgram')">
             <ion-textarea
               formControlName="expectationsFromProgram"
-              placeholder="What do you hope to achieve?"
-              rows="4"
+              [placeholder]="'Ex: I would like to receive evidence based knowledge about breastfeeding and have a support system who will guide me whenever I face an issue and keep me motivated in following the guidelines given to me to help me reach my breastfeeding goals'"
+              rows="8"
               fill="outline">
             </ion-textarea>
           </ion-item>
