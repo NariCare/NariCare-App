@@ -270,6 +270,11 @@ export class ConsultationService {
       expert_credentials: consultationResponse.expert_credentials,
       expert_rating: consultationResponse.expert_rating,
       expert_user_id: consultationResponse.expert_user_id,
+      // Timezone fields from API
+      user_timezone: consultationResponse.user_timezone,
+      expert_timezone: consultationResponse.expert_timezone,
+      user_current_timezone: consultationResponse.user_current_timezone,
+      expert_current_timezone: consultationResponse.expert_current_timezone,
       // Legacy compatibility fields
       userId: consultationResponse.user_id,
       expertId: consultationResponse.expert_id,

@@ -541,7 +541,8 @@ export class BackendAuthService {
       phone_number: apiUser.phone_number,
       whatsapp_number: apiUser.whatsapp_number,
       due_date: apiUser.due_date,
-      mother_type: apiUser.mother_type
+      mother_type: apiUser.mother_type,
+      timezone: apiUser.timezone // Add timezone to debug log
     });
     
     return {
@@ -582,7 +583,8 @@ export class BackendAuthService {
           currentWeight: baby.currentWeight || baby.current_weight || 0,
           currentHeight: baby.currentHeight || baby.current_height || 0
         })) : [],
-      socialProvider: apiUser.socialProvider || apiUser.social_provider
+      socialProvider: apiUser.socialProvider || apiUser.social_provider,
+      timezone: apiUser.timezone // Add timezone mapping
     };
   }
 

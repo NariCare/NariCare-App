@@ -4,6 +4,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { LoadingController, ToastController, AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { TimezoneService, TimezoneOption } from '../../services/timezone.service';
 import { User } from '../../models/user.model';
 
 @Component({
@@ -15,6 +16,10 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
   personalInfoForm: FormGroup;
   user: User | null = null;
   private subscriptions = new Subscription();
+  
+  // Timezone properties
+  timezoneOptions: TimezoneOption[] = [];
+  detectedTimezone: string = '';
   
   motherTypes = [
     { value: 'pregnant', label: 'Expecting Mother' },
@@ -34,7 +39,8 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     private loadingController: LoadingController,
     private toastController: ToastController,
     private alertController: AlertController,
-    private backendAuthService: BackendAuthService
+    private backendAuthService: BackendAuthService,
+    private timezoneService: TimezoneService
   ) {
     this.personalInfoForm = this.formBuilder.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -44,7 +50,8 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       whatsappNumber: ['', [Validators.pattern(/^[\+]?[1-9][\d]{0,15}$/)]],
       motherType: [''],
       dueDate: [''],
-      tierType: ['basic']
+      tierType: ['basic'],
+      timezone: ['']
     });
   }
 
@@ -52,6 +59,9 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     console.log('Personal Info Page - Initializing...');
     console.log('Personal Info Page - Current URL:', window.location.href);
     console.log('Personal Info Page - Route params:', this.activatedRoute.snapshot.queryParams);
+    
+    // Initialize timezone settings
+    this.initializeTimezoneSettings();
     
     // Refresh user profile to ensure latest data is loaded
     try {
@@ -79,12 +89,15 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
   }
   
   private populateForm(user: User) {
-    console.log('Populating form with user data:', {
+    console.log('Personal Info - Populating form with user data:', {
       phoneNumber: user.phoneNumber,
       whatsappNumber: user.whatsappNumber,
       dueDate: user.dueDate,
-      motherType: user.motherType
+      motherType: user.motherType,
+      timezone: user.timezone
     });
+    
+    console.log('Personal Info - Full user object:', user);
     
     // Handle due date more safely
     let formattedDueDate = '';
@@ -107,14 +120,16 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       whatsappNumber: user.whatsappNumber || '',
       motherType: user.motherType || '',
       dueDate: formattedDueDate,
-      tierType: user.tier?.type || 'basic'
+      tierType: user.tier?.type || 'basic',
+      timezone: user.timezone || this.detectedTimezone
     });
     
     console.log('Form values after patching:', {
       phoneNumber: this.personalInfoForm.get('phoneNumber')?.value,
       whatsappNumber: this.personalInfoForm.get('whatsappNumber')?.value,
       dueDate: this.personalInfoForm.get('dueDate')?.value,
-      motherType: this.personalInfoForm.get('motherType')?.value
+      motherType: this.personalInfoForm.get('motherType')?.value,
+      timezone: this.personalInfoForm.get('timezone')?.value
     });
     
     // Reset the form's dirty state after populating with saved data
@@ -138,11 +153,17 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
           phoneNumber: formValue.phoneNumber,
           whatsappNumber: formValue.whatsappNumber,
           motherType: formValue.motherType,
-          dueDate: formValue.dueDate ? new Date(formValue.dueDate) : undefined
+          dueDate: formValue.dueDate ? new Date(formValue.dueDate) : undefined,
+          timezone: formValue.timezone
         };
         
         await this.backendAuthService.updateUserProfile(updateData);
         await loading.dismiss();
+        
+        // If timezone was updated, clear the auto-update flag
+        if (updateData.timezone) {
+          localStorage.removeItem('timezone_auto_updated');
+        }
         
         // Reset form dirty state after successful save
         this.personalInfoForm.markAsPristine();
@@ -258,5 +279,60 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       default:
         console.log('Unknown action:', action);
     }
+  }
+
+  // Timezone-related methods
+  private initializeTimezoneSettings() {
+    // Get common timezones
+    this.timezoneOptions = this.timezoneService.getCommonTimezones();
+    
+    // Detect user's timezone
+    this.detectedTimezone = this.timezoneService.getUserTimezone();
+    
+    console.log('Detected timezone:', this.detectedTimezone);
+    console.log('Available timezones:', this.timezoneOptions.length);
+  }
+
+  useDetectedTimezone() {
+    this.personalInfoForm.patchValue({ timezone: this.detectedTimezone });
+    this.personalInfoForm.markAsDirty();
+    
+    // Clear the auto-update flag so future timezone changes can be detected
+    localStorage.removeItem('timezone_auto_updated');
+  }
+
+  compareTimezones(tz1: string, tz2: string): boolean {
+    return tz1 === tz2;
+  }
+
+  getTimezoneDisplayName(timezone: string): string {
+    return this.timezoneService.getTimezoneDisplayName(timezone);
+  }
+
+  getCurrentTimezoneDisplay(): string {
+    const selectedTimezone = this.personalInfoForm.get('timezone')?.value;
+    if (!selectedTimezone) return '';
+    
+    const timezoneOption = this.timezoneOptions.find(tz => tz.value === selectedTimezone);
+    if (timezoneOption) {
+      const now = new Date();
+      const timeInTimezone = this.timezoneService.formatTime(now, selectedTimezone, {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+      return `${timezoneOption.label} - Current time: ${timeInTimezone}`;
+    }
+    return this.timezoneService.getTimezoneDisplayName(selectedTimezone);
+  }
+
+  shouldShowDetectedTimezone(): boolean {
+    const currentTimezone = this.personalInfoForm.get('timezone')?.value;
+    
+    // Only show if we have a detected timezone and it's different from the current one
+    if (!this.detectedTimezone) return false;
+    
+    // Use the new equivalent comparison method
+    return !this.timezoneService.areTimezonesEquivalent(this.detectedTimezone, currentTimezone);
   }
 }

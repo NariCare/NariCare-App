@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BackendAuthService } from './services/backend-auth.service';
 import { NotificationService } from './services/notification.service';
 import { PushNotificationService } from './services/push-notification.service';
+import { TimezoneService } from './services/timezone.service';
 
 @Component({
   selector: 'app-root',
@@ -11,12 +12,15 @@ import { PushNotificationService } from './services/push-notification.service';
   styleUrls: ['app.component.scss'],
 })
 export class AppComponent implements OnInit {
+  private lastUserTimezone: string | null = null;
+
   constructor(
     private platform: Platform,
     private router: Router,
     private backendAuthService: BackendAuthService,
     private notificationService: NotificationService,
-    private pushNotificationService: PushNotificationService
+    private pushNotificationService: PushNotificationService,
+    private timezoneService: TimezoneService
   ) {
     this.initializeApp();
   }
@@ -25,13 +29,64 @@ export class AppComponent implements OnInit {
     // Initialize push notification service when app starts
     this.pushNotificationService.initializePushNotifications();
     
+    // Initialize timezone detection
+    this.initializeTimezone();
+    
     // Initialize notification service when user is authenticated
     this.backendAuthService.currentUser$.subscribe(user => {
       if (user) {
         this.notificationService.requestPermission();
         this.notificationService.receiveMessage();
+        
+        // Update user's timezone if not set or if it's different from detected
+        this.updateUserTimezoneIfNeeded(user);
       }
     });
+  }
+
+  private initializeTimezone() {
+    // Detect and log user's timezone on app start
+    const detectedTimezone = this.timezoneService.getUserTimezone();
+    console.log('App initialized with timezone:', detectedTimezone);
+    
+    // Store detected timezone in localStorage for quick access
+    localStorage.setItem('detected_timezone', detectedTimezone);
+  }
+
+  private async updateUserTimezoneIfNeeded(user: any) {
+    const detectedTimezone = this.timezoneService.getUserTimezone();
+    
+    // Prevent duplicate calls for the same user timezone state
+    if (this.lastUserTimezone === (user.timezone || 'undefined')) {
+      return;
+    }
+    
+    this.lastUserTimezone = user.timezone || 'undefined';
+    
+    // Only auto-update timezone if:
+    // 1. User doesn't have a timezone set at all AND
+    // 2. We haven't already attempted an auto-update in this session AND
+    // 3. User is not currently on the personal-info page (to avoid conflicts)
+    const hasAttemptedUpdate = localStorage.getItem('timezone_auto_updated') === 'true';
+    const currentUrl = this.router.url;
+    const isOnPersonalInfoPage = currentUrl.includes('/personal-info');
+    
+    if (!user.timezone && !hasAttemptedUpdate && !isOnPersonalInfoPage) {
+      try {
+        console.log('Auto-updating user timezone to:', detectedTimezone);
+        await this.backendAuthService.updateUserProfile({ 
+          timezone: detectedTimezone 
+        });
+        console.log('User timezone auto-updated successfully');
+        
+        // Mark that we've attempted an auto-update to prevent repeated calls
+        localStorage.setItem('timezone_auto_updated', 'true');
+      } catch (error) {
+        console.warn('Failed to auto-update user timezone:', error);
+        // Still mark as attempted to avoid retrying repeatedly
+        localStorage.setItem('timezone_auto_updated', 'true');
+      }
+    }
   }
 
   async initializeApp() {

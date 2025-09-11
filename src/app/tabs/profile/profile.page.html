@@ -41,7 +41,10 @@
           <div class="consultation-info">
             <h4>{{ consultation.topic | titlecase }}</h4>
             <p class="expert-name">with {{ getExpertName(consultation.expertId) }}</p>
-            <p class="consultation-time">{{ consultation.scheduledAt | date:'MMM d, y - h:mm a' }}</p>
+            <p class="consultation-time">{{ formatConsultationTime(consultation) }}</p>
+            <p class="consultation-timezone-context" *ngIf="formatConsultationTimeWithContext(consultation).expertTime">
+              <small>{{ formatConsultationTimeWithContext(consultation).display }}</small>
+            </p>
           </div>
           <ion-button 
             fill="outline" 

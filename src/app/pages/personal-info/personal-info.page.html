@@ -120,6 +120,62 @@
         </div>
       </div>
       
+      <!-- Timezone Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <ion-icon name="time-outline"></ion-icon>
+          Timezone Settings
+        </h3>
+        
+        <div class="form-group">
+          <label class="form-label">Your Timezone</label>
+          
+          <!-- Auto-detected timezone suggestion -->
+          <div class="detected-timezone-card" *ngIf="shouldShowDetectedTimezone()">
+            <div class="detected-info">
+              <ion-icon name="location-outline" color="primary"></ion-icon>
+              <div class="detected-text">
+                <strong>Auto-detected:</strong> {{ getTimezoneDisplayName(detectedTimezone) }}
+              </div>
+            </div>
+            <ion-button 
+              fill="clear" 
+              size="small" 
+              color="primary"
+              (click)="useDetectedTimezone()"
+              class="use-detected-button">
+              <ion-icon name="checkmark" slot="start"></ion-icon>
+              Use this
+            </ion-button>
+          </div>
+
+          <!-- Timezone selector -->
+          <ion-item lines="none" class="select-item timezone-select">
+            <ion-icon name="globe-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-select 
+              formControlName="timezone" 
+              placeholder="Select your timezone"
+              interface="action-sheet"
+              [compareWith]="compareTimezones">
+              <ion-select-option *ngFor="let timezone of timezoneOptions" [value]="timezone.value">
+                {{ timezone.label }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+          
+          <!-- Current selection display -->
+          <div class="current-timezone" *ngIf="personalInfoForm.get('timezone')?.value">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ getCurrentTimezoneDisplay() }}</span>
+          </div>
+          
+          <div class="info-message">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            We'll show appointment times in your local timezone to avoid confusion.
+          </div>
+        </div>
+      </div>
+      
       <!-- Motherhood Information Section -->
       <div class="form-section">
         <h3 class="section-title">

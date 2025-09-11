@@ -7,6 +7,7 @@ import { ConsultationService } from '../../services/consultation.service';
 import { AuthService } from '../../services/auth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { BackendConsultationService } from '../../services/backend-consultation.service';
+import { TimezoneService } from '../../services/timezone.service';
 import { Expert, Consultation } from '../../models/consultation.model';
 import { User, Baby } from '../../models/user.model';
 import { v4 as uuidv4 } from 'uuid';
@@ -49,6 +50,7 @@ export class ConsultationBookingModalComponent implements OnInit {
     private authService: AuthService,
     private backendAuthService: BackendAuthService,
     private backendConsultationService: BackendConsultationService,
+    private timezoneService: TimezoneService,
     private toastController: ToastController,
     private loadingController: LoadingController
   ) {
@@ -332,21 +334,28 @@ export class ConsultationBookingModalComponent implements OnInit {
       try {
         const formValue = this.bookingForm.value;
         
-        // Combine date and time
+        // Get user's timezone
+        const userTimezone = this.user.timezone || this.timezoneService.getUserTimezone();
+        
+        // Combine date and time in user's local timezone
         const scheduledDateTime = new Date(formValue.scheduledDate);
         // Extract start time from "HH:mm - HH:mm" format
         const startTime = formValue.scheduledTime.split(' - ')[0];
         const [hours, minutes] = startTime.split(':');
         scheduledDateTime.setHours(parseInt(hours), parseInt(minutes));
+        
+        // Convert to UTC for storage
+        const utcDateTime = this.timezoneService.convertToUTC(scheduledDateTime.toISOString(), userTimezone);
 
         if (this.isEditMode && this.consultation) {
           // Update existing consultation
           const updates = {
             expert_id: this.selectedExpert.id,
             baby_ids: formValue.babyIds, // Add baby IDs
-            scheduled_at: scheduledDateTime.toISOString(),
+            scheduled_at: utcDateTime.toISOString(),
             topic: formValue.topic,
             notes: formValue.notes,
+            timezone: userTimezone, // Add user's timezone
             updated_at: new Date().toISOString()
           };
 
@@ -377,9 +386,10 @@ export class ConsultationBookingModalComponent implements OnInit {
             baby_ids: formValue.babyIds, // Add baby IDs
             consultation_type: 'scheduled',
             status: 'scheduled',
-            scheduled_at: scheduledDateTime.toISOString(),
+            scheduled_at: utcDateTime.toISOString(),
             topic: formValue.topic,
             notes: formValue.notes,
+            timezone: userTimezone, // Add user's timezone
             follow_up_required: false,
             meeting_link: meetingLink,
             created_at: new Date().toISOString(),
@@ -389,7 +399,7 @@ export class ConsultationBookingModalComponent implements OnInit {
             expertId: this.selectedExpert.id,
             babyIds: formValue.babyIds, // Add baby IDs for legacy compatibility
             type: 'scheduled',
-            scheduledAt: scheduledDateTime,
+            scheduledAt: utcDateTime,
             duration: 30,
             followUpRequired: false,
             reminderSent: false

@@ -17,6 +17,11 @@ export interface Consultation {
   user_rating?: number;
   user_feedback?: string;
   follow_up_required: boolean;
+  timezone?: string; // User's timezone when booking
+  user_timezone?: string; // User's timezone at time of booking
+  expert_timezone?: string; // Expert's timezone at time of booking
+  user_current_timezone?: string; // User's current timezone
+  expert_current_timezone?: string; // Expert's current timezone
   created_at: string;
   updated_at: string;
   // User information
@@ -78,6 +83,7 @@ export interface AvailabilitySlot {
   is_available: boolean;
   is_booked: boolean;
   consultation_id?: string;
+  expert_timezone?: string; // Expert's timezone for this availability slot
   created_at: string;
   updated_at: string;
   // Legacy compatibility fields

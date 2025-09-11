@@ -4,6 +4,7 @@ import { AlertController, ToastController, ModalController } from '@ionic/angula
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { ConsultationService } from '../../services/consultation.service';
 import { NotificationService } from '../../services/notification.service';
+import { TimezoneService } from '../../services/timezone.service';
 import { User } from '../../models/user.model';
 import { Consultation, Expert } from '../../models/consultation.model';
 import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
@@ -32,7 +33,8 @@ export class ProfilePage implements OnInit {
     private toastController: ToastController,
     private modalController: ModalController,
     private consultationService: ConsultationService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private timezoneService: TimezoneService
   ) {}
 
   ngOnInit() {
@@ -110,12 +112,13 @@ export class ProfilePage implements OnInit {
 
   private loadUpcomingConsultations() {
     if (this.user) {
-      this.consultationService.getUserConsultations(this.user.uid).subscribe(consultations => {
+      this.consultationService.getUserConsultations(this.user.uid, 'scheduled', true).subscribe(consultations => {
         // Filter for upcoming consultations only
         const now = new Date();
-        this.upcomingConsultations = consultations.filter(consultation => 
-          consultation.scheduledAt > now && consultation.status === 'scheduled'
-        );
+        this.upcomingConsultations = consultations.filter(consultation => {
+          const scheduledTime = new Date(consultation.scheduled_at || consultation.scheduledAt);
+          return scheduledTime > now && consultation.status === 'scheduled';
+        });
       });
     }
   }
@@ -219,7 +222,7 @@ export class ProfilePage implements OnInit {
 
   isConsultationReady(consultation: Consultation): boolean {
     const now = new Date();
-    const consultationTime = new Date(consultation.scheduledAt);
+    const consultationTime = new Date(consultation.scheduled_at || consultation.scheduledAt);
     const timeDiff = consultationTime.getTime() - now.getTime();
     const minutesDiff = timeDiff / (1000 * 60);
     
@@ -450,5 +453,107 @@ export class ProfilePage implements OnInit {
       year: 'numeric',
       month: 'long'
     });
+  }
+
+  // Timezone-aware time display methods
+  formatConsultationTime(consultation: Consultation): string {
+    const utcTime = consultation.scheduled_at || consultation.scheduledAt;
+    if (!utcTime) return '';
+    
+    const userTimezone = this.user?.timezone || this.timezoneService.getUserTimezone();
+    return this.timezoneService.formatDateTime(utcTime, userTimezone, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+  }
+
+  formatConsultationTimeWithContext(consultation: Consultation): {
+    userTime: string;
+    expertTime?: string;
+    display: string;
+  } {
+    const utcTime = consultation.scheduled_at || consultation.scheduledAt;
+    if (!utcTime) {
+      return {
+        userTime: '',
+        display: ''
+      };
+    }
+    
+    const userTimezone = this.user?.timezone || this.timezoneService.getUserTimezone();
+    const expertTimezone = consultation.expert_timezone; // From backend response
+    
+    return this.timezoneService.formatConsultationTime(utcTime, userTimezone, expertTimezone);
+  }
+
+  formatConsultationDate(consultation: Consultation): string {
+    const utcTime = consultation.scheduled_at || consultation.scheduledAt;
+    if (!utcTime) return '';
+    
+    const userTimezone = this.user?.timezone || this.timezoneService.getUserTimezone();
+    return this.timezoneService.formatDate(utcTime, userTimezone, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  formatConsultationTimeOnly(consultation: Consultation): string {
+    const utcTime = consultation.scheduled_at || consultation.scheduledAt;
+    if (!utcTime) return '';
+    
+    const userTimezone = this.user?.timezone || this.timezoneService.getUserTimezone();
+    return this.timezoneService.formatTime(utcTime, userTimezone, {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+  }
+
+  getConsultationStatus(consultation: Consultation): {
+    text: string;
+    color: string;
+    canJoin: boolean;
+  } {
+    const now = new Date();
+    const utcTime = consultation.scheduled_at || consultation.scheduledAt;
+    const consultationTime = new Date(utcTime);
+    const timeDiff = consultationTime.getTime() - now.getTime();
+    const minutesDiff = timeDiff / (1000 * 60);
+    
+    if (minutesDiff <= 15 && minutesDiff >= -30) {
+      return {
+        text: 'Ready to join',
+        color: 'success',
+        canJoin: true
+      };
+    } else if (minutesDiff > 15) {
+      const hours = Math.floor(minutesDiff / 60);
+      const minutes = Math.floor(minutesDiff % 60);
+      
+      if (hours > 0) {
+        return {
+          text: `Starts in ${hours}h ${minutes}m`,
+          color: 'primary',
+          canJoin: false
+        };
+      } else {
+        return {
+          text: `Starts in ${Math.floor(minutesDiff)}m`,
+          color: 'primary',
+          canJoin: false
+        };
+      }
+    } else {
+      return {
+        text: 'Ended',
+        color: 'medium',
+        canJoin: false
+      };
+    }
   }
 }

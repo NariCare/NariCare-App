@@ -208,6 +208,11 @@ export interface ConsultationResponse {
   follow_up_required: boolean;
   created_at: string;
   updated_at: string;
+  // Timezone information
+  user_timezone?: string;
+  expert_timezone?: string;
+  user_current_timezone?: string;
+  expert_current_timezone?: string;
   // User information
   user_first_name?: string;
   user_last_name?: string;

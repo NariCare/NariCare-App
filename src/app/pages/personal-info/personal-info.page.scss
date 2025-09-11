@@ -155,6 +155,105 @@
       ion-icon {
         font-size: 1rem;
       }
+
+      .detected-timezone {
+        display: block;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        background: rgba(131, 131, 237, 0.1);
+        border-radius: 8px;
+        color: #8383ed;
+        font-weight: 500;
+
+        .use-detected-button {
+          --color: #8383ed;
+          --padding-start: 8px;
+          --padding-end: 8px;
+          margin-left: 0.5rem;
+          font-size: 0.8rem;
+        }
+      }
+    }
+
+    // Enhanced timezone styling
+    .detected-timezone-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, rgba(131, 131, 237, 0.1), rgba(131, 131, 237, 0.05));
+      border: 1px solid rgba(131, 131, 237, 0.2);
+      border-radius: 12px;
+      
+      .detected-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        
+        ion-icon {
+          font-size: 1.2rem;
+        }
+        
+        .detected-text {
+          font-size: 0.9rem;
+          color: #2d3748;
+          
+          strong {
+            color: #8383ed;
+          }
+        }
+      }
+      
+      .use-detected-button {
+        --color: #8383ed;
+        --padding-start: 12px;
+        --padding-end: 12px;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+    }
+
+    .timezone-select {
+      margin-bottom: 0.75rem;
+      
+      ion-select {
+        font-size: 0.95rem;
+      }
+    }
+
+    .current-timezone {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 0.5rem;
+      background: rgba(34, 197, 94, 0.1);
+      border-radius: 8px;
+      color: #059669;
+      font-size: 0.85rem;
+      
+      ion-icon {
+        font-size: 1rem;
+      }
+      
+      span {
+        font-weight: 500;
+      }
+    }
+  }
+
+  // Timezone select styling
+  .select-item {
+    ion-select {
+      max-width: 100%;
+    }
+
+    .timezone-offset {
+      color: #64748b;
+      font-size: 0.9rem;
+      font-weight: 400;
     }
   }
 }

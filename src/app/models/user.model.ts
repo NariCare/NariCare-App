@@ -15,6 +15,7 @@ export interface User {
   notificationPreferences: NotificationPreferences;
   babies: Baby[];
   socialProvider?: string;
+  timezone?: string; // User's timezone (e.g., 'Asia/Kolkata')
 }
 
 export interface Baby {

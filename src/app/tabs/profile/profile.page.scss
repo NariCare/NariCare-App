@@ -274,6 +274,16 @@
     font-size: 0.8rem;
     color: #94a3b8;
   }
+
+  .consultation-timezone-context {
+    margin: 0.25rem 0 0 0;
+    
+    small {
+      font-size: 0.75rem;
+      color: #64748b;
+      font-style: italic;
+    }
+  }
 }
 
 .join-button {
