@@ -336,6 +336,16 @@ export class BabyDetailPage implements OnInit {
       if (result.data?.updated) {
         // Baby info was updated, reload user data will refresh the baby info
         this.loadBabyData();
+        
+        // If weight log was created, also reload weight records to show in the chart
+        if (result.data?.weightLogCreated) {
+          this.loadBabyData();
+          // Show additional toast for weight log
+          setTimeout(() => {
+            this.showToast('Growth chart updated with new measurement', 'success');
+          }, 1500);
+        }
+        
         this.showToast('Baby information updated successfully!', 'success');
       } else if (result.data?.deleted) {
         // Baby was deleted, redirect to growth page

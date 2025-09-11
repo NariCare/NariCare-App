@@ -13,6 +13,10 @@ import { Baby } from '../../models/user.model';
 export class BabyEditModalComponent implements OnInit {
   @Input() baby: Baby | null = null;
   babyForm: FormGroup;
+  
+  // Track original weight to detect changes
+  originalWeight: number | null = null;
+  originalHeight: number | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -30,8 +34,18 @@ export class BabyEditModalComponent implements OnInit {
       birthWeight: ['', [Validators.required, Validators.min(0.5), Validators.max(10)]],
       birthHeight: ['', [Validators.required, Validators.min(20), Validators.max(80)]],
       currentWeight: ['', [Validators.min(0.5), Validators.max(50)]],
-      currentHeight: ['', [Validators.min(20), Validators.max(150)]]
+      currentHeight: ['', [Validators.min(20), Validators.max(150)]],
+      // New fields for weight log tracking
+      weightDate: [new Date().toISOString().split('T')[0]], // Today's date in YYYY-MM-DD format
+      weightTime: [this.getCurrentTime()]
     });
+  }
+  
+  private getCurrentTime(): string {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   }
 
   ngOnInit() {
@@ -42,11 +56,20 @@ export class BabyEditModalComponent implements OnInit {
 
   private populateForm() {
     if (this.baby) {
-      const birthDate = this.baby.dateOfBirth 
-        ? (this.baby.dateOfBirth instanceof Date 
-          ? this.baby.dateOfBirth.toISOString() 
-          : new Date(this.baby.dateOfBirth).toISOString())
-        : '';
+      // Format birth date for HTML date input (YYYY-MM-DD)
+      let birthDate = '';
+      if (this.baby.dateOfBirth) {
+        const date = this.baby.dateOfBirth instanceof Date 
+          ? this.baby.dateOfBirth 
+          : new Date(this.baby.dateOfBirth);
+        
+        // Format as YYYY-MM-DD for HTML date input
+        birthDate = date.toISOString().split('T')[0];
+      }
+
+      // Store original values to detect changes
+      this.originalWeight = this.baby.currentWeight || null;
+      this.originalHeight = this.baby.currentHeight || null;
 
       this.babyForm.patchValue({
         name: this.baby.name || '',
@@ -55,7 +78,10 @@ export class BabyEditModalComponent implements OnInit {
         birthWeight: this.baby.birthWeight || '',
         birthHeight: this.baby.birthHeight || '',
         currentWeight: this.baby.currentWeight || '',
-        currentHeight: this.baby.currentHeight || ''
+        currentHeight: this.baby.currentHeight || '',
+        // Initialize date/time for potential weight log
+        weightDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+        weightTime: this.getCurrentTime()
       });
     }
   }
@@ -90,6 +116,47 @@ export class BabyEditModalComponent implements OnInit {
         const response = await this.apiService.updateBaby(this.baby.id, babyData).toPromise();
         
         if (response?.success) {
+          // Check if weight or height has changed and create a weight log entry
+          const newWeight = formValue.currentWeight ? parseFloat(formValue.currentWeight) : null;
+          const newHeight = formValue.currentHeight ? parseFloat(formValue.currentHeight) : null;
+          
+          const weightChanged = newWeight !== null && newWeight !== this.originalWeight;
+          const heightChanged = newHeight !== null && newHeight !== this.originalHeight;
+          
+          if (weightChanged || heightChanged) {
+            try {
+              // Combine date and time for the weight log
+              const weightDateTime = new Date(formValue.weightDate);
+              if (formValue.weightTime) {
+                const [hours, minutes] = formValue.weightTime.split(':');
+                weightDateTime.setHours(parseInt(hours), parseInt(minutes));
+              }
+              
+              // Create weight record
+              const weightRecord = {
+                babyId: this.baby.id,
+                weight: newWeight || this.originalWeight || 0,
+                height: newHeight || this.originalHeight,
+                notes: '', // Keep notes empty as requested
+                date: weightDateTime.toISOString()
+              };
+              
+              await this.apiService.createWeightRecord(weightRecord).toPromise();
+              
+              // Show additional success message for weight log
+              const weightToast = await this.toastController.create({
+                message: '📊 Weight record has been added to growth tracking',
+                duration: 2000,
+                color: 'success',
+                position: 'top'
+              });
+              setTimeout(() => weightToast.present(), 1000);
+            } catch (error) {
+              console.warn('Failed to create weight log entry:', error);
+              // Don't fail the main operation if weight log fails
+            }
+          }
+          
           await loading.dismiss();
           
           const toast = await this.toastController.create({
@@ -103,7 +170,7 @@ export class BabyEditModalComponent implements OnInit {
           // Refresh user data to include updated baby
           await this.refreshUserData();
 
-          this.modalController.dismiss({ updated: true, baby: response.data });
+          this.modalController.dismiss({ updated: true, baby: response.data, weightLogCreated: weightChanged || heightChanged });
         } else {
           throw new Error(response?.message || 'Failed to update baby information');
         }

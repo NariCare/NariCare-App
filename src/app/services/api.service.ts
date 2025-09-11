@@ -77,6 +77,7 @@ export interface WeightRecordRequest {
   weight: number;
   height?: number;
   notes?: string;
+  date?: string; // ISO date string for when the measurement was taken
 }
 
 export interface StoolRecordRequest {

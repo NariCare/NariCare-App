@@ -131,7 +131,7 @@
       <!-- Current Measurements -->
       <div class="measurements-section">
         <h3>Current Measurements</h3>
-        <p class="section-note">Update these fields if you have more recent measurements</p>
+        <p class="section-note">Update these fields if you have more recent measurements. Changes will be recorded in growth tracking.</p>
         
         <div class="form-row">
           <div class="form-group half-width">
@@ -166,6 +166,32 @@
             <div class="error-message" *ngIf="babyForm.get('currentHeight')?.invalid && babyForm.get('currentHeight')?.touched">
               {{ getErrorMessage('currentHeight') }}
             </div>
+          </div>
+        </div>
+        
+        <!-- Date and Time for Weight Log Entry -->
+        <div class="weight-log-datetime">
+          <div class="form-group">
+            <ion-item lines="none" class="input-item">
+              <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+              <ion-input
+                formControlName="weightDate"
+                type="date"
+                placeholder="Measurement date"
+                [max]="getTodayDate()">
+              </ion-input>
+            </ion-item>
+          </div>
+          
+          <div class="form-group">
+            <ion-item lines="none" class="input-item">
+              <ion-icon name="time-outline" slot="start" class="input-icon"></ion-icon>
+              <ion-input
+                formControlName="weightTime"
+                type="time"
+                placeholder="Measurement time">
+              </ion-input>
+            </ion-item>
           </div>
         </div>
       </div>
