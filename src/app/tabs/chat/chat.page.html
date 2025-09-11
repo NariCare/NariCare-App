@@ -140,11 +140,18 @@
       </div>
 
       <!-- Medical Disclaimer -->
-      <div class="medical-disclaimer">
+      <div class="medical-disclaimer" *ngIf="showDisclaimer">
         <ion-icon name="warning" color="warning"></ion-icon>
         <div class="disclaimer-text">
           <strong>Medical Disclaimer:</strong> This AI provides educational information only. Always consult with a lactation consultant, pediatrician, or healthcare provider for personalized medical advice and concerns.
         </div>
+        <ion-button 
+          fill="clear" 
+          size="small"
+          (click)="hideDisclaimer()"
+          class="close-disclaimer-button">
+          <ion-icon name="close" slot="icon-only"></ion-icon>
+        </ion-button>
       </div>
 
       <!-- Voice Settings Panel -->

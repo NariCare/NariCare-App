@@ -39,6 +39,7 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   selectedVoiceIndex = 0;
   isInitializing = false;
   expertBannerDismissed = false;
+  showDisclaimer = true;
   
   // Expert notes integration
   showQuickAccess = false;
@@ -63,6 +64,12 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
   }
 
   ngOnInit() {
+    // Check if disclaimer was previously hidden
+    const disclaimerHidden = localStorage.getItem('naricare_disclaimer_hidden');
+    if (disclaimerHidden === 'true') {
+      this.showDisclaimer = false;
+    }
+
     // Subscribe to both auth services - prefer backend auth if available
     const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
     
@@ -414,6 +421,12 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
 
   dismissExpertBanner() {
     this.expertBannerDismissed = true;
+  }
+
+  hideDisclaimer() {
+    this.showDisclaimer = false;
+    // Save preference to localStorage so it stays hidden
+    localStorage.setItem('naricare_disclaimer_hidden', 'true');
   }
 
   shouldShowExpertBanner(): boolean {
