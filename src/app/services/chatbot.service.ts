@@ -277,7 +277,9 @@ export class ChatbotService {
           const welcomeMessage: ChatbotMessageUI = {
             id: this.generateId(),
             conversation_id: conversationResponse.data.id,
-            content: `Hi! I'm NariCare AI, your personal breastfeeding support assistant. ${babyAgeWeeks ? `I see your baby is ${babyAgeWeeks} weeks old.` : ''} What can I help you with today?`,
+            content: `Hi! I'm NariCare AI, your personal breastfeeding support assistant. ${babyAgeWeeks ? `I see your baby is ${babyAgeWeeks} weeks old.` : ''} What can I help you with today?
+
+⚠️ **Medical Disclaimer**: This chatbot provides educational information only and is not a substitute for professional medical advice. Always consult with a lactation consultant, pediatrician, or healthcare provider for personalized guidance and medical concerns.`,
             sender: 'bot',
             created_at: new Date().toISOString(),
             timestamp: new Date(),
@@ -391,7 +393,9 @@ export class ChatbotService {
     const welcomeMessage: ChatbotMessageUI = {
       id: this.generateId(),
       conversation_id: '',
-      content: `Hi! I'm here to help you with breastfeeding and baby care questions. ${babyAge ? `I see your baby is ${babyAge} weeks old.` : ''} What would you like to know about today?`,
+      content: `Hi! I'm here to help you with breastfeeding and baby care questions. ${babyAge ? `I see your baby is ${babyAge} weeks old.` : ''} What would you like to know about today?
+
+⚠️ **Medical Disclaimer**: This chatbot provides educational information only and is not a substitute for professional medical advice. Always consult with a lactation consultant, pediatrician, or healthcare provider for personalized guidance and medical concerns.`,
       sender: 'bot',
       created_at: new Date().toISOString(),
       timestamp: new Date()
@@ -559,6 +563,9 @@ export class ChatbotService {
           role: 'system',
           content: `You are a supportive AI assistant specialized in breastfeeding and infant care. 
           
+          IMPORTANT: Always include this disclaimer at the end of your responses:
+          "⚠️ This information is for educational purposes only. Always consult with a lactation consultant, pediatrician, or healthcare provider for personalized medical advice."
+          
           RESPONSE FORMAT REQUIREMENTS:
           - Structure your response in clear, digestible sections
           - Use bullet points for lists and tips
@@ -567,6 +574,7 @@ export class ChatbotService {
           - Include practical, actionable advice
           - Always be empathetic and encouraging
           - Recommend consulting healthcare professionals for serious concerns
+          - Always end with the medical disclaimer above
           
           If the response is long, break it into sections with clear headings.`
         },
@@ -651,7 +659,7 @@ export class ChatbotService {
   private getMockResponse(userQuery: string): any {
     const mockResponses = {
       'latch': {
-        text: `**Getting a Good Latch**\n\nA proper latch is essential for comfortable breastfeeding. Here are the key steps:\n\n**Positioning Tips:**\n- Support your baby's neck and shoulders\n- Bring baby to breast, not breast to baby\n- Wait for baby to open mouth wide\n- Ensure baby takes good portion of areola\n\n**Signs of Good Latch:**\n- No pain after initial few seconds\n- You can hear swallowing sounds\n- Baby's lips are flanged outward\n\nIf you're experiencing persistent pain, please consult a lactation consultant.`,
+        text: `**Getting a Good Latch**\n\nA proper latch is essential for comfortable breastfeeding. Here are the key steps:\n\n**Positioning Tips:**\n- Support your baby's neck and shoulders\n- Bring baby to breast, not breast to baby\n- Wait for baby to open mouth wide\n- Ensure baby takes good portion of areola\n\n**Signs of Good Latch:**\n- No pain after initial few seconds\n- You can hear swallowing sounds\n- Baby's lips are flanged outward\n\nIf you're experiencing persistent pain, please consult a lactation consultant.\n\n⚠️ This information is for educational purposes only. Always consult with a lactation consultant, pediatrician, or healthcare provider for personalized medical advice.`,
         formatting: {
           hasBulletPoints: true,
           hasBoldText: true,
@@ -675,7 +683,7 @@ export class ChatbotService {
         }
       },
       'supply': {
-        text: `**Increasing Milk Supply**\n\nMilk supply concerns are common. Here's how to boost production:\n\n**Natural Ways to Increase Supply:**\n- Nurse frequently (8-12 times per day)\n- Ensure proper latch and positioning\n- Stay hydrated and eat nutritious meals\n- Get adequate rest when possible\n- Try skin-to-skin contact\n\n**When to Seek Help:**\n- Baby isn't gaining weight appropriately\n- Fewer than 6 wet diapers per day after day 5\n- You're concerned about supply\n\nRemember, most mothers produce enough milk for their babies. Trust your body!`,
+        text: `**Increasing Milk Supply**\n\nMilk supply concerns are common. Here's how to boost production:\n\n**Natural Ways to Increase Supply:**\n- Nurse frequently (8-12 times per day)\n- Ensure proper latch and positioning\n- Stay hydrated and eat nutritious meals\n- Get adequate rest when possible\n- Try skin-to-skin contact\n\n**When to Seek Help:**\n- Baby isn't gaining weight appropriately\n- Fewer than 6 wet diapers per day after day 5\n- You're concerned about supply\n\nRemember, most mothers produce enough milk for their babies. Trust your body!\n\n⚠️ This information is for educational purposes only. Always consult with a lactation consultant, pediatrician, or healthcare provider for personalized medical advice.`,
         formatting: {
           hasBulletPoints: true,
           hasBoldText: true,
@@ -705,7 +713,7 @@ export class ChatbotService {
 
     // Default response
     return {
-      text: `Thank you for your question about "${userQuery}". I'm here to help with breastfeeding and baby care concerns.\n\n**Common Topics I Can Help With:**\n- Latching and positioning\n- Milk supply concerns\n- Feeding schedules\n- Common challenges\n- Baby's growth and development\n\nPlease feel free to ask me anything specific, and I'll provide detailed, helpful guidance.`,
+      text: `Thank you for your question about "${userQuery}". I'm here to help with breastfeeding and baby care concerns.\n\n**Common Topics I Can Help With:**\n- Latching and positioning\n- Milk supply concerns\n- Feeding schedules\n- Common challenges\n- Baby's growth and development\n\nPlease feel free to ask me anything specific, and I'll provide detailed, helpful guidance.\n\n⚠️ This information is for educational purposes only. Always consult with a lactation consultant, pediatrician, or healthcare provider for personalized medical advice.`,
       formatting: {
         hasBulletPoints: true,
         hasBoldText: true
@@ -804,7 +812,7 @@ export class ChatbotService {
     const welcomeMessage: ChatbotMessageUI = {
       id: this.generateId(),
       conversation_id: this.currentConversationSubject.value?.id || '',
-      content: "Voice mode activated! I'm listening. You can speak naturally and I'll respond with voice. Say 'stop voice mode' to exit.",
+      content: "Voice mode activated! I'm listening. You can speak naturally and I'll respond with voice. Say 'stop voice mode' to exit.\n\n⚠️ Remember: This is for educational purposes only. Always consult healthcare professionals for medical advice.",
       sender: 'bot',
       created_at: new Date().toISOString(),
       timestamp: new Date(),
