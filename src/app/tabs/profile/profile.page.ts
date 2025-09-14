@@ -68,30 +68,52 @@ export class ProfilePage implements OnInit {
       { label: 'Personal Information', icon: 'person-outline', action: 'editProfile' }
     ];
 
-    // Add individual baby entries
-    if (this.user?.babies && this.user.babies.length > 0) {
-      this.user.babies.forEach((baby, index) => {
-        accountItems.push({
-          label: `${baby.name}'s Information`,
-          icon: 'baby-outline',
-          customIcon: baby.gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg',
-          action: 'editSpecificBaby',
-          babyId: baby.id,
-          babyIndex: index,
-          babyGender: baby.gender
+    // Check if user is an expert
+    const isExpert = this.user?.role === 'expert' || this.user?.role === 'admin';
+
+    // Only add baby-related items for non-expert users
+    if (!isExpert) {
+      // Add individual baby entries
+      if (this.user?.babies && this.user.babies.length > 0) {
+        this.user.babies.forEach((baby, index) => {
+          accountItems.push({
+            label: `${baby.name}'s Information`,
+            icon: 'baby-outline',
+            customIcon: baby.gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg',
+            action: 'editSpecificBaby',
+            babyId: baby.id,
+            babyIndex: index,
+            babyGender: baby.gender
+          });
         });
-      });
+      }
+
+      // Determine the add baby label based on existing babies
+      const addBabyLabel = (this.user?.babies && this.user.babies.length > 0) 
+        ? 'Add Another Baby' 
+        : 'Add New Baby';
+
+      accountItems.push({ label: addBabyLabel, icon: 'add-circle-outline', action: 'addBaby' });
     }
 
-    // Determine the add baby label based on existing babies
-    const addBabyLabel = (this.user?.babies && this.user.babies.length > 0) 
-      ? 'Add Another Baby' 
-      : 'Add New Baby';
-
+    // Add notifications for all users
     accountItems.push(
-      { label: addBabyLabel, icon: 'add-circle-outline', action: 'addBaby' },
       { label: 'Notifications', icon: 'notifications-outline', action: 'viewNotifications', badge: this.unreadNotificationCount }
     );
+
+    // Create support items based on user role
+    const supportItems: any[] = [
+      { label: 'Contact Support', icon: 'mail-outline', action: 'contact' },
+      { label: 'Privacy Policy', icon: 'shield-outline', action: 'privacy' }
+    ];
+
+    // Only add help center and book consultation for non-expert users
+    if (!isExpert) {
+      supportItems.unshift(
+        { label: 'Help Center', icon: 'help-circle-outline', action: 'help' },
+        { label: 'Book Expert Consultation', icon: 'videocam-outline', action: 'bookConsultation' }
+      );
+    }
 
     this.profileSections = [
       {
@@ -100,12 +122,7 @@ export class ProfilePage implements OnInit {
       },
       {
         title: 'Support',
-        items: [
-          { label: 'Help Center', icon: 'help-circle-outline', action: 'help' },
-          { label: 'Book Expert Consultation', icon: 'videocam-outline', action: 'bookConsultation' },
-          { label: 'Contact Support', icon: 'mail-outline', action: 'contact' },
-          { label: 'Privacy Policy', icon: 'shield-outline', action: 'privacy' }
-        ]
+        items: supportItems
       }
     ];
   }
