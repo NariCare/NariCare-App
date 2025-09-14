@@ -56,7 +56,7 @@
       <div class="tab-actions-section">
         <ion-button expand="block" fill="solid" class="see-charts-button" (click)='openWeightChartModal()'>
           <ion-icon name="stats-chart" slot="start"></ion-icon>
-          SEE CHARTS
+          {{ baby?.name || 'Baby' }}'s Growth Chart
         </ion-button>
         <ion-button expand="block" fill="outline" class="add-record-button" (click)='onAddRecordClick()'>
           <ion-icon name="add" slot="start"></ion-icon>
