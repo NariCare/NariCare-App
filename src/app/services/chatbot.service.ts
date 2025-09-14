@@ -821,14 +821,21 @@ export class ChatbotService {
     
     this.messagesSubject.next([...this.messagesSubject.value, welcomeMessage]);
     
-    // Speak the welcome message
+    // Speak the welcome message only if auto-speak is enabled
     setTimeout(() => {
-      this.speakMessage(welcomeMessage.id, welcomeMessage.content).then(() => {
-        // Start listening after welcome message is spoken
+      if (this.autoSpeakEnabled) {
+        this.speakMessage(welcomeMessage.id, welcomeMessage.content).then(() => {
+          // Start listening after welcome message is spoken
+          setTimeout(() => {
+            this.startListening();
+          }, 1000);
+        });
+      } else {
+        // If auto-speak is disabled, just start listening after a brief delay
         setTimeout(() => {
           this.startListening();
         }, 1000);
-      });
+      }
     }, 500);
   }
   
