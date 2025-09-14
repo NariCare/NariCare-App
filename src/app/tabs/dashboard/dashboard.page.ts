@@ -120,7 +120,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       
       if (user && user.babies && user.babies.length > 0) {
         this.loadTimelineData(user.babies[0].dateOfBirth);
-        this.loadTodaysInsights(user.babies[0]);
+        this.loadTodaysInsights(user.babies); // Pass all babies instead of just the first
         this.loadLearningData();
         this.loadUpcomingConsultations();
       } else if (user) {
@@ -339,20 +339,31 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  private loadTodaysInsights(baby: any) {
-    if (!baby || !baby.name || !baby.dateOfBirth) {
+  private loadTodaysInsights(babies: any[]) {
+    if (!babies || babies.length === 0) {
+      console.warn('No baby data available for insights generation');
+      return;
+    }
+
+    // Filter babies with complete data and convert to required format
+    const validBabies = babies.filter(baby => baby && baby.name && baby.dateOfBirth)
+      .map(baby => ({
+        name: baby.name,
+        birthDate: baby.dateOfBirth
+      }));
+
+    if (validBabies.length === 0) {
       console.warn('Baby data incomplete for insights generation');
       return;
     }
 
     this.insightsService.getTodaysInsights(
-      baby.name,
-      baby.dateOfBirth,
+      validBabies,
       null // TODO: Pass last growth entry when available
     ).subscribe({
       next: (insights) => {
         this.todaysInsights = insights;
-        console.log('Loaded insights:', insights);
+        console.log('Loaded insights for', validBabies.length, 'babies:', insights);
       },
       error: (error) => {
         console.error('Error loading insights:', error);
@@ -973,7 +984,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
    */
   refreshInsights() {
     if (this.user && this.user.babies && this.user.babies.length > 0) {
-      this.loadTodaysInsights(this.user.babies[0]);
+      this.loadTodaysInsights(this.user.babies);
     }
   }
 

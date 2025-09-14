@@ -136,8 +136,30 @@ export class InsightsService {
 
   /**
    * Generate baby progress insight based on age and growth data
+   * Supports both single babies and twins
    */
-  private getBabyProgress(babyName: string, birthDate: Date, lastGrowthEntry?: any): BabyProgress {
+  private getBabyProgress(babies: Array<{name: string, birthDate: Date}>, lastGrowthEntry?: any): BabyProgress {
+    if (babies.length === 0) {
+      return {
+        insight: 'No baby data available for insights.',
+        action: 'Add baby information to get personalized insights',
+        type: 'general'
+      };
+    }
+
+    // For single baby, use existing logic
+    if (babies.length === 1) {
+      return this.getSingleBabyProgress(babies[0].name, babies[0].birthDate, lastGrowthEntry);
+    }
+
+    // For multiple babies (twins+), generate combined insights
+    return this.getMultipleBabiesProgress(babies, lastGrowthEntry);
+  }
+
+  /**
+   * Generate insights for a single baby
+   */
+  private getSingleBabyProgress(babyName: string, birthDate: Date, lastGrowthEntry?: any): BabyProgress {
     const weekAge = this.calculateBabyAgeInWeeks(birthDate);
     
     // Age-based progress insights
@@ -190,17 +212,119 @@ export class InsightsService {
   }
 
   /**
-   * Get today's insights for a specific baby
+   * Generate combined insights for multiple babies (twins+)
    */
-  getTodaysInsights(babyName: string, babyBirthDate: Date, lastGrowthEntry?: any): Observable<TodaysInsights> {
+  private getMultipleBabiesProgress(babies: Array<{name: string, birthDate: Date}>, lastGrowthEntry?: any): BabyProgress {
+    // Check if all babies are in similar age groups
+    const weekAges = babies.map(baby => this.calculateBabyAgeInWeeks(baby.birthDate));
+    const minAge = Math.min(...weekAges);
+    const maxAge = Math.max(...weekAges);
+    
+    // If babies are within 2 weeks of each other, treat as twins with combined insight
+    if (maxAge - minAge <= 2) {
+      return this.getTwinProgress(babies, minAge);
+    }
+    
+    // If babies have different ages, provide general advice
+    const babyNames = babies.map(baby => baby.name).join(' and ');
+    return {
+      insight: `${babyNames} are at different developmental stages. Each baby may have unique feeding patterns and needs.`,
+      action: 'Track each baby individually',
+      type: 'general'
+    };
+  }
+
+  /**
+   * Generate insights for twins (babies of similar age)
+   */
+  private getTwinProgress(babies: Array<{name: string, birthDate: Date}>, averageWeekAge: number): BabyProgress {
+    const babyNames = babies.map(baby => baby.name).join(' and ');
+    
+    // Age-based progress insights for twins
+    if (averageWeekAge <= 2) {
+      return {
+        insight: `${babyNames} are in their critical early establishment period. Focus on frequent feeding to build your milk supply for both babies.`,
+        action: 'Track feeding sessions for both babies today',
+        type: 'feeding'
+      };
+    }
+    
+    if (averageWeekAge <= 8) {
+      return {
+        insight: `${babyNames} are growing rapidly! Growth spurts are common around 6 weeks - extra feeding is normal for twins.`,
+        action: 'Monitor feeding patterns for both babies',
+        type: 'growth'
+      };
+    }
+    
+    if (averageWeekAge <= 24) {
+      return {
+        insight: `${babyNames} are becoming more efficient at nursing. Your milk supply is likely well-established for both babies now.`,
+        action: 'Continue responsive feeding for both',
+        type: 'feeding'
+      };
+    }
+    
+    if (averageWeekAge <= 32) {
+      return {
+        insight: `${babyNames} may be starting solid foods soon. Breast milk remains the primary nutrition source for both.`,
+        action: 'Prepare for complementary feeding',
+        type: 'milestone'
+      };
+    }
+    
+    if (averageWeekAge <= 52) {
+      return {
+        insight: `${babyNames} are exploring solid foods while continuing to nurse. This combination supports healthy development for both.`,
+        action: 'Balance solids and breastfeeding for both babies',
+        type: 'milestone'
+      };
+    }
+    
+    // Toddler stage
+    return {
+      insight: `${babyNames} continue to benefit from breastfeeding beyond the first year. You're providing ongoing nutrition and comfort to both.`,
+      action: 'Celebrate this milestone',
+      type: 'milestone'
+    };
+  }
+
+  /**
+   * Get today's insights for babies (supports single baby or twins)
+   */
+  getTodaysInsights(babies: Array<{name: string, birthDate: Date}>, lastGrowthEntry?: any): Observable<TodaysInsights> {
+    // If called with old signature (single baby), convert to new format
+    if (!Array.isArray(babies)) {
+      console.warn('getTodaysInsights called with deprecated signature. Please pass babies as array.');
+      return of({
+        babyProgress: {
+          insight: 'Unable to generate insights with current parameters.',
+          action: 'Please update to use new insights API',
+          type: 'general'
+        },
+        dailyTip: {
+          id: 'fallback_001',
+          category: 'support',
+          title: 'Stay Connected',
+          content: 'Remember that every breastfeeding journey is unique. Trust yourself and seek support when needed.',
+          source: 'General',
+          evidenceLevel: 'Best practice'
+        },
+        lastUpdated: new Date()
+      });
+    }
+
+    // Use the first baby's birth date for tip selection (they should be similar age for twins)
+    const primaryBirthDate = babies.length > 0 ? babies[0].birthDate : new Date();
+
     // Wait for tips data to load if not already loaded
     if (!this.tipsData) {
       return new Observable(observer => {
         const checkData = () => {
           if (this.tipsData) {
             const insights: TodaysInsights = {
-              babyProgress: this.getBabyProgress(babyName, babyBirthDate, lastGrowthEntry),
-              dailyTip: this.getDailyTip(babyBirthDate),
+              babyProgress: this.getBabyProgress(babies, lastGrowthEntry),
+              dailyTip: this.getDailyTip(primaryBirthDate),
               lastUpdated: new Date()
             };
             observer.next(insights);
@@ -214,8 +338,8 @@ export class InsightsService {
     }
 
     const insights: TodaysInsights = {
-      babyProgress: this.getBabyProgress(babyName, babyBirthDate, lastGrowthEntry),
-      dailyTip: this.getDailyTip(babyBirthDate),
+      babyProgress: this.getBabyProgress(babies, lastGrowthEntry),
+      dailyTip: this.getDailyTip(primaryBirthDate),
       lastUpdated: new Date()
     };
 
@@ -233,10 +357,10 @@ export class InsightsService {
   /**
    * Force refresh insights (useful for testing or manual refresh)
    */
-  refreshInsights(babyName: string, babyBirthDate: Date, lastGrowthEntry?: any): Observable<TodaysInsights> {
+  refreshInsights(babies: Array<{name: string, birthDate: Date}>, lastGrowthEntry?: any): Observable<TodaysInsights> {
     // Clear recent tips to allow getting different content
     this.recentlyShownTips.clear();
-    return this.getTodaysInsights(babyName, babyBirthDate, lastGrowthEntry);
+    return this.getTodaysInsights(babies, lastGrowthEntry);
   }
 
   /**
