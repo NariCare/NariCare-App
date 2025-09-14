@@ -377,7 +377,12 @@ export class ProfilePage implements OnInit {
   }
 
   private contactSupport() {
-    console.log('Contact support');
+    // Redirect to NariCare WhatsApp business number
+    const whatsappNumber = '918142144762';
+    const message = encodeURIComponent('Hello, I need support with NariCare app');
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
+    
+    window.open(whatsappUrl, '_blank');
   }
 
   private viewPrivacyPolicy() {
