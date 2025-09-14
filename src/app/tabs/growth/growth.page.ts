@@ -1233,6 +1233,10 @@ export class GrowthPage implements OnInit {
     return record.duration_minutes || record.duration || 0;
   }
 
+  getPumpingNotes(record: any): string {
+    return record.notes || '';
+  }
+
   getEmotionCheckinsCount(): number {
     // Calculate current week's emotion check-ins
     const today = new Date();

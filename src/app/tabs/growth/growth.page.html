@@ -297,19 +297,27 @@
               <h4 class="activities-title">Recent Sessions</h4>
               <div class="activities-list">
                 <div *ngFor="let record of pumpingRecords | slice:0:3" class="activity-item pump-item">
-                  <div class="activity-time-badge">{{ getPumpingTime(record) }}</div>
-                  <div class="activity-info">
-                    <div class="activity-details">
+                  <div class="pump-session-header">
+                    <div class="session-time">{{ getPumpingTime(record) }}</div>
+                    <div class="session-date">{{ getPumpingDate(record) }}</div>
+                  </div>
+                  
+                  <div class="session-details">
+                    <div class="pump-info">
                       <ion-icon name="ellipse" *ngIf="getPumpingSide(record) === 'both'"></ion-icon>
                       <ion-icon name="radio-button-on" *ngIf="getPumpingSide(record) !== 'both'"></ion-icon>
-                      <span>{{ getPumpingSide(record) | titlecase }}</span>
-                    </div>
-                    <div class="output-info">
-                      <ion-icon name="water"></ion-icon>
-                      <span>{{ getPumpingOutput(record) }}ml</span>
+                      <span class="pump-side">{{ getPumpingSide(record) | titlecase }} breast</span>
+                      <div class="pump-output">
+                        <ion-icon name="water"></ion-icon>
+                        <span>{{ getPumpingOutput(record) }}ml</span>
+                      </div>
                     </div>
                   </div>
-                  <div class="activity-date">{{ getPumpingDate(record) }}</div>
+                  
+                  <div class="pump-notes" *ngIf="getPumpingNotes(record)">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <span>{{ getPumpingNotes(record) }}</span>
+                  </div>
                 </div>
               </div>
             </div>
