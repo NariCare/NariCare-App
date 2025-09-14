@@ -98,10 +98,11 @@ export class ChatPage implements OnInit, AfterViewChecked, OnDestroy {
       }
     });
 
-    // Initialize speech rate from service
+    // Initialize speech settings from service
     this.speechRate = this.chatbotService.getSpeechRate();
     this.speechPitch = this.chatbotService.getSpeechPitch();
     this.naturalSpeechEnabled = this.chatbotService.getNaturalSpeechEnabled();
+    this.autoSpeakEnabled = this.chatbotService.getAutoSpeakEnabled();
     
     // Load available voices
     this.loadAvailableVoices();

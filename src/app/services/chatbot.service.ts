@@ -120,6 +120,10 @@ export class ChatbotService {
     const savedAutoSpeak = localStorage.getItem('autoSpeakEnabled');
     if (savedAutoSpeak !== null) {
       this.autoSpeakEnabled = savedAutoSpeak === 'true';
+    } else {
+      // For new users, explicitly set auto-speak to OFF by default
+      this.autoSpeakEnabled = false;
+      localStorage.setItem('autoSpeakEnabled', 'false');
     }
   }
 
