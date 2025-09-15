@@ -45,7 +45,7 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     this.personalInfoForm = this.formBuilder.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.required, this.emailValidator]],
       phoneNumber: ['', [this.phoneNumberValidator]],
       whatsappNumber: ['', [this.phoneNumberValidator]],
       motherType: [''],
@@ -53,6 +53,46 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       tierType: ['basic'],
       timezone: ['']
     });
+  }
+
+  emailValidator(control: any) {
+    const value = control.value;
+    if (!value) return null;
+    
+    // Comprehensive email validation pattern
+    // This pattern ensures:
+    // - Valid characters before @
+    // - @ symbol
+    // - Valid domain name
+    // - At least one dot after domain
+    // - Valid top-level domain (2-4 characters)
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+    if (!emailPattern.test(value)) {
+      return { invalidEmail: true };
+    }
+    
+    // Additional check: ensure domain has at least one dot and proper TLD
+    const parts = value.split('@');
+    if (parts.length !== 2) {
+      return { invalidEmail: true };
+    }
+    
+    const domain = parts[1];
+    const domainParts = domain.split('.');
+    
+    // Domain must have at least 2 parts (domain.tld)
+    if (domainParts.length < 2) {
+      return { invalidEmail: true };
+    }
+    
+    // Last part (TLD) must be at least 2 characters
+    const tld = domainParts[domainParts.length - 1];
+    if (tld.length < 2) {
+      return { invalidEmail: true };
+    }
+    
+    return null; // Valid
   }
 
   phoneNumberValidator(control: any) {
@@ -260,6 +300,9 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     }
     if (control?.hasError('email')) {
       return 'Please enter a valid email address';
+    }
+    if (control?.hasError('invalidEmail')) {
+      return 'Please enter a valid email address with proper domain (e.g., user@example.com)';
     }
     if (control?.hasError('minlength')) {
       return `${this.getFieldLabel(field)} must be at least 2 characters`;
