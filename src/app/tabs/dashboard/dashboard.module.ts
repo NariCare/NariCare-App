@@ -6,6 +6,7 @@ import { DashboardPageRoutingModule } from './dashboard-routing.module';
 import { DashboardPage } from './dashboard.page';
 import { SharedModule } from '../../shared/shared.module';
 import { ExpertConsultationsPageModule } from '../../components/expert-consultations/expert-consultations.module';
+import { ConsultationReportModalComponent } from '../../components/consultation-report-modal/consultation-report-modal.component';
 
 @NgModule({
   imports: [
@@ -17,7 +18,8 @@ import { ExpertConsultationsPageModule } from '../../components/expert-consultat
     ExpertConsultationsPageModule
   ],
   declarations: [
-    DashboardPage
+    DashboardPage,
+    ConsultationReportModalComponent
   ],
   providers: []
 })

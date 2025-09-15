@@ -18,6 +18,7 @@ import { TimelineModalComponent } from '../../components/timeline-modal/timeline
 import { SpecificWeekModalComponent } from '../../components/specific-week-modal/specific-week-modal.component';
 import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
 import { AvailabilitySchedulerModalComponent } from '../../components/availability-scheduler-modal/availability-scheduler-modal.component';
+import { ConsultationReportModalComponent } from '../../components/consultation-report-modal/consultation-report-modal.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -1142,5 +1143,40 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
     
     return 'Start your learning journey';
+  }
+
+  /**
+   * Check if consultation has expert notes
+   */
+  hasExpertNotes(consultation: Consultation): boolean {
+    return !!(consultation.expert_notes && consultation.expert_notes.trim());
+  }
+
+  /**
+   * View consultation report/summary
+   */
+  async viewConsultationReport(consultation: Consultation) {
+    if (!this.hasExpertNotes(consultation)) {
+      const toast = await this.toastController.create({
+        message: 'No expert report available for this consultation.',
+        duration: 3000,
+        color: 'warning'
+      });
+      await toast.present();
+      return;
+    }
+
+    const expertName = this.getExpertName(consultation.expertId || consultation.expert_id);
+    
+    const modal = await this.modalController.create({
+      component: ConsultationReportModalComponent,
+      componentProps: {
+        consultation: consultation,
+        expertName: expertName
+      },
+      cssClass: 'consultation-report-modal'
+    });
+
+    await modal.present();
   }
 }

@@ -758,6 +758,20 @@
     --color: #ef4444;
     --border-color: #ef4444;
   }
+  
+  .view-report-button {
+    --background: #059669;
+    --background-hover: #047857;
+    --border-radius: 8px;
+    --color: #ffffff;
+    height: 32px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    
+    &:hover {
+      transform: translateY(-1px);
+    }
+  }
 }
 
 .view-all-button {
@@ -1224,5 +1238,13 @@
 
 .priority-action {
   order: -1; // Show first in grid
+}
+
+// Consultation report modal styling
+:host ::ng-deep .consultation-report-modal {
+  --width: 90%;
+  --max-width: 900px;
+  --height: 90%;
+  --max-height: 90%;
 }
 

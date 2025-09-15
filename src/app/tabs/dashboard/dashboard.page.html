@@ -316,6 +316,17 @@
                 Rated {{ consultation.user_rating }}/5
               </ion-button>
               
+              <!-- View Report Button for Completed Consultations with Expert Notes -->
+              <ion-button 
+                *ngIf="consultation.status === 'completed' && hasExpertNotes(consultation) && user?.role !== 'expert'"
+                fill="solid" 
+                size="small"
+                (click)="viewConsultationReport(consultation); $event.stopPropagation()"
+                class="view-report-button">
+                <ion-icon name="document-text" slot="start"></ion-icon>
+                View Report
+              </ion-button>
+              
               <ion-button 
                 *ngIf="consultation.status === 'cancelled'"
                 fill="outline" 
