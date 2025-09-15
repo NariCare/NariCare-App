@@ -259,6 +259,7 @@
                 [class.selected]="isPredefinedNoteSelected(note)"
                 (click)="appendPredefinedNote(note)"
                 class="predefined-note-chip baby-note">
+                <img src="assets/Baby_notes.svg" alt="Baby note" class="note-icon">
                 <ion-icon name="checkmark-circle" class="note-selected-icon" *ngIf="isPredefinedNoteSelected(note)"></ion-icon>
                 {{ note.text }}
               </ion-chip>
@@ -280,6 +281,7 @@
                 [class.selected]="isPredefinedNoteSelected(note)"
                 (click)="appendPredefinedNote(note)"
                 class="predefined-note-chip mother-note">
+                <img src="assets/Mother_icon.svg" alt="Mother note" class="note-icon">
                 <ion-icon name="checkmark-circle" class="note-selected-icon" *ngIf="isPredefinedNoteSelected(note)"></ion-icon>
                 {{ note.text }}
               </ion-chip>

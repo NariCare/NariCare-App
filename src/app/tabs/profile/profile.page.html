@@ -10,7 +10,7 @@
     <!-- Profile Header -->
     <div class="profile-header" *ngIf="user">
       <div class="profile-avatar">
-        <ion-icon name="person" *ngIf="!user.profileImage"></ion-icon>
+        <img src="assets/Profile icon.svg" alt="Profile" class="profile-icon" *ngIf="!user.profileImage">
         <img [src]="user.profileImage" [alt]="user.firstName" *ngIf="user.profileImage">
       </div>
       <div class="profile-info">

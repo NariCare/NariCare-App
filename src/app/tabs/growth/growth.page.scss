@@ -627,18 +627,24 @@
         font-size: 1.2rem;
         color: #ffffff;
       }
+
+      .stat-svg-icon {
+        width: 32px;
+        height: 32px;
+        // Remove filter since SVGs have their own colors
+      }
     }
 
     &.breastfeeding-stat .stat-icon {
-      background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+      background: #FFF0DE; // Consistent peach background like designer's suggestion
     }
 
     &.pumping-stat .stat-icon {
-      background: linear-gradient(135deg, #26a69a, #4db6ac);
+      background: #FFF0DE; // Consistent peach background like designer's suggestion
     }
 
     &.emotion-stat .stat-icon {
-      background: linear-gradient(135deg, #8383ed, #8383ed);
+      background: #FFF0DE; // Consistent peach background like designer's suggestion
     }
 
     .stat-content {
