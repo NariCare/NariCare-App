@@ -283,6 +283,45 @@
     opacity: 0.8;
   }
 
+  .history-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .patient-info-button {
+    --background: #ffffff;
+    --color: #3b82f6;
+    --border-color: #3b82f6;
+    --border-radius: 8px;
+    height: 36px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    flex: 1;
+
+    &:hover {
+      transform: translateY(-1px);
+      --background: #eff6ff;
+    }
+  }
+
+  .summary-report-button {
+    --background: #ffffff;
+    --color: #059669;
+    --border-color: #059669;
+    --border-radius: 8px;
+    height: 36px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    flex: 1;
+
+    &:hover {
+      transform: translateY(-1px);
+      --background: #ecfdf5;
+    }
+  }
+
   .empty-state {
     text-align: center;
     padding: 3rem 1rem;

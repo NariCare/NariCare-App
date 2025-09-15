@@ -992,9 +992,23 @@ export class ApiService {
     }).pipe(catchError(this.handleError));
   }
 
-  updateConsultationStatus(consultationId: string, status: 'in-progress' | 'completed'): Observable<ApiResponse<ConsultationResponse>> {
-    return this.http.put<ApiResponse<ConsultationResponse>>(`${this.baseUrl}/consultations/${consultationId}/status`, 
-      { status }, 
+  // Start consultation - changes status from scheduled to in_progress
+  startConsultation(consultationId: string): Observable<ApiResponse<ConsultationResponse>> {
+    return this.http.put<ApiResponse<ConsultationResponse>>(`${this.baseUrl}/consultations/${consultationId}/start`, 
+      {}, 
+      {
+        headers: this.getAuthHeaders()
+      }
+    ).pipe(catchError(this.handleError));
+  }
+
+  // Complete consultation - changes status from in_progress to completed
+  completeConsultation(consultationId: string, expertNotes: string, followUpRequired: boolean): Observable<ApiResponse<ConsultationResponse>> {
+    return this.http.put<ApiResponse<ConsultationResponse>>(`${this.baseUrl}/consultations/${consultationId}/complete`, 
+      { 
+        expertNotes: expertNotes,
+        followUpRequired: followUpRequired
+      }, 
       {
         headers: this.getAuthHeaders()
       }

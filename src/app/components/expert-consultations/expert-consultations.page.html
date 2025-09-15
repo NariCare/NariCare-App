@@ -80,9 +80,9 @@
         </div>
         
         <div class="consultation-actions">
-          <!-- Experts can join at any time -->
+          <!-- Upcoming consultations: Show Join Call -->
           <ion-button 
-            *ngIf="consultation.status === 'scheduled' || consultation.status === 'in-progress'"
+            *ngIf="selectedTab === 'upcoming' && (consultation.status === 'scheduled' || consultation.status === 'in-progress')"
             fill="solid" 
             size="small"
             (click)="joinConsultation(consultation); $event.stopPropagation()"
@@ -91,25 +91,26 @@
             Join Call
           </ion-button>
           
-          <ion-button 
-            *ngIf="consultation.status === 'completed'"
-            fill="outline" 
-            size="small"
-            disabled
-            class="completed-button">
-            <ion-icon name="checkmark-circle" slot="start"></ion-icon>
-            Completed
-          </ion-button>
-          
-          <ion-button 
-            *ngIf="consultation.status === 'cancelled'"
-            fill="outline" 
-            size="small"
-            disabled
-            class="cancelled-button">
-            <ion-icon name="close-circle" slot="start"></ion-icon>
-            Cancelled
-          </ion-button>
+          <!-- History consultations: Show patient info and report buttons -->
+          <div *ngIf="selectedTab === 'history'" class="history-actions">
+            <ion-button 
+              fill="outline" 
+              size="small"
+              (click)="viewPatientInformation(consultation); $event.stopPropagation()"
+              class="patient-info-button">
+              <ion-icon name="person" slot="start"></ion-icon>
+              View Patient Information
+            </ion-button>
+            
+            <ion-button 
+              fill="outline" 
+              size="small"
+              (click)="addSummaryReport(consultation); $event.stopPropagation()"
+              class="summary-report-button">
+              <ion-icon name="document-text" slot="start"></ion-icon>
+              Add Summary/Report
+            </ion-button>
+          </div>
         </div>
       </div>
     </div>

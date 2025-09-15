@@ -79,38 +79,46 @@ export class ExpertConsultationsPage implements OnInit, OnDestroy {
           const safeConsultations = Array.isArray(consultations) ? consultations : [];
           const now = new Date();
           
-          // Filter upcoming consultations - keep in upcoming until 30 minutes after scheduled time
+          // Filter upcoming consultations
           this.upcomingConsultations = safeConsultations.filter(consultation => {
-            if (!consultation.scheduledAt && !consultation.scheduled_at) {
-              console.log('Consultation missing date:', consultation);
-              return false;
+            // Always show in-progress consultations in upcoming, regardless of time
+            if (consultation.status === 'in-progress') {
+              return true;
             }
             
-            try {
-              const consultationDate = consultation.scheduledAt 
-                ? new Date(consultation.scheduledAt)
-                : new Date(consultation.scheduled_at);
+            // For scheduled consultations, check if they're within the time window
+            if (consultation.status === 'scheduled') {
+              if (!consultation.scheduledAt && !consultation.scheduled_at) {
+                console.log('Consultation missing date:', consultation);
+                return false;
+              }
               
-              // Add 30 minutes to consultation time
-              const consultationEndTime = new Date(consultationDate.getTime() + 30 * 60 * 1000);
-              
-              console.log('Checking consultation for upcoming:', {
-                id: consultation.id,
-                status: consultation.status,
-                consultationDate: consultationDate,
-                consultationEndTime: consultationEndTime,
-                now: now,
-                isStillUpcoming: now <= consultationEndTime,
-                isScheduled: consultation.status === 'scheduled'
-              });
-              
-              // Show in upcoming if current time is before consultation end time (scheduled time + 30 mins)
-              // and status is scheduled or in-progress
-              return now <= consultationEndTime && (consultation.status === 'scheduled' || consultation.status === 'in-progress');
-            } catch (error) {
-              console.error('Error processing consultation date:', error, consultation);
-              return false;
+              try {
+                const consultationDate = consultation.scheduledAt 
+                  ? new Date(consultation.scheduledAt)
+                  : new Date(consultation.scheduled_at);
+                
+                // Add 30 minutes to consultation time
+                const consultationEndTime = new Date(consultationDate.getTime() + 30 * 60 * 1000);
+                
+                console.log('Checking consultation for upcoming:', {
+                  id: consultation.id,
+                  status: consultation.status,
+                  consultationDate: consultationDate,
+                  consultationEndTime: consultationEndTime,
+                  now: now,
+                  isStillUpcoming: now <= consultationEndTime
+                });
+                
+                // Show scheduled consultations if current time is before consultation end time
+                return now <= consultationEndTime;
+              } catch (error) {
+                console.error('Error processing consultation date:', error, consultation);
+                return false;
+              }
             }
+            
+            return false;
           });
           
           // Filter completed consultations
@@ -241,7 +249,7 @@ export class ExpertConsultationsPage implements OnInit, OnDestroy {
       // Update consultation status to in-progress if it's scheduled
       if (consultation.status === 'scheduled') {
         try {
-          await this.consultationService.updateConsultationStatus(consultation.id, 'in-progress');
+          await this.consultationService.startConsultation(consultation.id);
           console.log('Consultation marked as in-progress');
           this.loadExpertConsultations();
         } catch (error) {
@@ -309,4 +317,23 @@ export class ExpertConsultationsPage implements OnInit, OnDestroy {
   openConsultationDetail(consultation: Consultation) {
     this.router.navigate(['/consultation-detail', consultation.id]);
   }
+
+  /**
+   * View patient information for history consultations
+   */
+  viewPatientInformation(consultation: Consultation) {
+    // Navigate to consultation detail page
+    this.router.navigate(['/consultation-detail', consultation.id]);
+  }
+
+  /**
+   * Add summary/report for history consultations
+   */
+  addSummaryReport(consultation: Consultation) {
+    // Navigate to consultation detail page with report tab
+    this.router.navigate(['/consultation-detail', consultation.id], {
+      queryParams: { tab: 'report' }
+    });
+  }
+
 }

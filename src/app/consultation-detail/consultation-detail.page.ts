@@ -50,6 +50,12 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
     // Get consultation ID from route params
     this.consultationId = this.route.snapshot.paramMap.get('id') || '';
     
+    // Check for tab query parameter
+    const tabParam = this.route.snapshot.queryParamMap.get('tab');
+    if (tabParam === 'report') {
+      this.selectedTab = 'report';
+    }
+    
     // Subscribe to current user
     this.subscriptions.push(
       this.authService.currentUser$.subscribe(user => {
@@ -711,5 +717,142 @@ export class ConsultationDetailPage implements OnInit, OnDestroy {
     };
     
     return `${level}/10 (${descriptions[level] || 'Moderate'})`;
+  }
+
+  /**
+   * Start consultation (scheduled -> in-progress)
+   */
+  async startConsultation() {
+    if (this.currentUser?.role !== 'expert' || !this.consultation) return;
+
+    const loading = await this.loadingController.create({
+      message: 'Starting consultation...'
+    });
+    await loading.present();
+
+    try {
+      await this.consultationService.startConsultation(this.consultation.id);
+      
+      // Update local consultation data
+      this.consultation.status = 'in-progress';
+      this.consultation.actual_start_time = new Date().toISOString();
+
+      const toast = await this.toastController.create({
+        message: 'Consultation started successfully',
+        duration: 3000,
+        color: 'success'
+      });
+      await toast.present();
+
+    } catch (error) {
+      console.error('Error starting consultation:', error);
+      const toast = await this.toastController.create({
+        message: 'Failed to start consultation. Please try again.',
+        duration: 3000,
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  /**
+   * Show complete consultation modal
+   */
+  async showCompleteModal() {
+    if (this.currentUser?.role !== 'expert' || !this.consultation) return;
+
+    const currentNotes = this.getExpertNotes();
+
+    const alert = await this.alertController.create({
+      header: 'Complete Consultation',
+      message: 'Add your expert notes and specify if follow-up is required:',
+      inputs: [
+        {
+          name: 'expertNotes',
+          type: 'textarea',
+          placeholder: 'Expert notes and assessment...',
+          value: currentNotes,
+          attributes: {
+            rows: 4
+          }
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'No Follow-up',
+          handler: (data) => {
+            this.completeConsultation(data.expertNotes || '', false);
+            return true;
+          }
+        },
+        {
+          text: 'Requires Follow-up',
+          handler: (data) => {
+            this.completeConsultation(data.expertNotes || '', true);
+            return true;
+          }
+        }
+      ],
+      cssClass: 'complete-consultation-alert'
+    });
+
+    await alert.present();
+  }
+
+  /**
+   * Complete consultation (in-progress -> completed)
+   */
+  async completeConsultation(expertNotes: string, followUpRequired: boolean) {
+    if (!this.consultation) return;
+
+    const loading = await this.loadingController.create({
+      message: 'Completing consultation...'
+    });
+    await loading.present();
+
+    try {
+      await this.consultationService.completeConsultation(
+        this.consultation.id, 
+        expertNotes, 
+        followUpRequired
+      );
+      
+      // Update local consultation data
+      this.consultation.status = 'completed';
+      this.consultation.actual_end_time = new Date().toISOString();
+      this.consultation.expert_notes = expertNotes;
+      this.consultation.follow_up_required = followUpRequired;
+
+      // Update onboarding data expert notes if available
+      if (this.onboardingData) {
+        this.onboardingData.expertNotes = expertNotes;
+        this.onboardingData.expertNotesUpdatedAt = new Date().toISOString();
+        this.onboardingData.expertNotesUpdatedBy = `${this.currentUser?.firstName} ${this.currentUser?.lastName}`;
+      }
+
+      const toast = await this.toastController.create({
+        message: `Consultation completed ${followUpRequired ? 'with follow-up required' : 'successfully'}`,
+        duration: 3000,
+        color: 'success'
+      });
+      await toast.present();
+
+    } catch (error) {
+      console.error('Error completing consultation:', error);
+      const toast = await this.toastController.create({
+        message: 'Failed to complete consultation. Please try again.',
+        duration: 3000,
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      await loading.dismiss();
+    }
   }
 }

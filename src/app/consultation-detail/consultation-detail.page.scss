@@ -449,6 +449,30 @@ ion-header {
   }
 }
 
+// Status action buttons styling
+.status-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.status-action-button {
+  --border-radius: 6px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  height: 36px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  
+  ion-icon {
+    font-size: 0.9rem;
+  }
+  
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;

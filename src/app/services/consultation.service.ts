@@ -352,13 +352,26 @@ export class ConsultationService {
     );
   }
 
-  async updateConsultationStatus(id: string, status: 'in-progress' | 'completed'): Promise<void> {
+  async startConsultation(id: string): Promise<void> {
     try {
-      const response = await this.apiService.updateConsultationStatus(id, status).toPromise();
+      const response = await this.apiService.startConsultation(id).toPromise();
       if (response?.success) {
-        console.log('Consultation status updated successfully:', response.data);
+        console.log('Consultation started successfully:', response.data);
       } else {
-        throw new Error(response?.error || 'Failed to update consultation status');
+        throw new Error(response?.error || 'Failed to start consultation');
+      }
+    } catch (error: any) {
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  async completeConsultation(id: string, expertNotes: string, followUpRequired: boolean): Promise<void> {
+    try {
+      const response = await this.apiService.completeConsultation(id, expertNotes, followUpRequired).toPromise();
+      if (response?.success) {
+        console.log('Consultation completed successfully:', response.data);
+      } else {
+        throw new Error(response?.error || 'Failed to complete consultation');
       }
     } catch (error: any) {
       throw new Error(this.getErrorMessage(error));

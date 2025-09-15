@@ -795,7 +795,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         if (statusInfo.canStart && consultation.status === 'scheduled') {
           // Expert can start the consultation - update status to in-progress
           try {
-            await this.consultationService.updateConsultationStatus(consultation.id, 'in-progress');
+            await this.consultationService.startConsultation(consultation.id);
             console.log('Consultation marked as in-progress');
             // Refresh consultations to show updated status
             this.loadUpcomingConsultations();

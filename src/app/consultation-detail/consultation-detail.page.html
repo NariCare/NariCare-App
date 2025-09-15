@@ -548,6 +548,32 @@
                 <ion-chip [color]="getConsultationStatusColor()">
                   <ion-label>{{ getConsultationStatusText() }}</ion-label>
                 </ion-chip>
+                <!-- Status Action Buttons for Experts Only -->
+                <div *ngIf="currentUser?.role === 'expert'" class="status-actions">
+                  <!-- Start Consultation Button -->
+                  <ion-button 
+                    *ngIf="consultation.status === 'scheduled'" 
+                    fill="solid" 
+                    size="small" 
+                    (click)="startConsultation()"
+                    color="primary"
+                    class="status-action-button">
+                    <ion-icon name="play" slot="start"></ion-icon>
+                    Start Consultation
+                  </ion-button>
+                  
+                  <!-- Complete Consultation Button -->
+                  <ion-button 
+                    *ngIf="consultation.status === 'in-progress'" 
+                    fill="solid" 
+                    size="small" 
+                    (click)="showCompleteModal()"
+                    color="success"
+                    class="status-action-button">
+                    <ion-icon name="checkmark" slot="start"></ion-icon>
+                    Complete Consultation
+                  </ion-button>
+                </div>
               </div>
               <div class="info-item">
                 <strong>Scheduled:</strong>
