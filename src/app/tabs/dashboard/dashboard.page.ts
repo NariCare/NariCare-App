@@ -60,6 +60,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   // Header collapse state
   isHeaderCollapsed = false;
   private lastScrollTop = 0;
+  private scrollTimeout: any = null;
 
   baseQuickActions = [
     {
@@ -139,21 +140,40 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
+    // Clean up scroll timeout to prevent memory leaks
+    if (this.scrollTimeout) {
+      clearTimeout(this.scrollTimeout);
+    }
   }
 
   onContentScroll(event: any) {
+    // Throttle scroll events to prevent excessive processing
+    if (this.scrollTimeout) {
+      return;
+    }
+    
+    this.scrollTimeout = setTimeout(() => {
+      this.handleScroll(event);
+      this.scrollTimeout = null;
+    }, 16); // ~60fps throttling
+  }
+  
+  private handleScroll(event: any) {
     const scrollTop = event.detail.scrollTop;
-    const scrollThreshold = 30; // Reduced threshold for quicker response
+    const scrollThreshold = 50; // Increased threshold to prevent rapid state changes
+    const hysteresis = 15; // Increased hysteresis to prevent flickering
     
-    console.log('Scroll event:', { scrollTop, lastScrollTop: this.lastScrollTop, isCollapsed: this.isHeaderCollapsed });
+    // Add a minimum scroll difference to prevent micro-movements from triggering changes
+    const scrollDifference = Math.abs(scrollTop - this.lastScrollTop);
+    if (scrollDifference < 8) {
+      return; // Ignore very small scroll movements
+    }
     
-    if (scrollTop > scrollThreshold && scrollTop > this.lastScrollTop && !this.isHeaderCollapsed) {
+    if (scrollTop > scrollThreshold + hysteresis && scrollTop > this.lastScrollTop && !this.isHeaderCollapsed) {
       // Scrolling down - collapse header
-      console.log('Collapsing header');
       this.isHeaderCollapsed = true;
-    } else if ((scrollTop < this.lastScrollTop || scrollTop <= scrollThreshold) && this.isHeaderCollapsed) {
+    } else if ((scrollTop < this.lastScrollTop || scrollTop <= scrollThreshold - hysteresis) && this.isHeaderCollapsed) {
       // Scrolling up or near top - expand header
-      console.log('Expanding header');
       this.isHeaderCollapsed = false;
     }
     

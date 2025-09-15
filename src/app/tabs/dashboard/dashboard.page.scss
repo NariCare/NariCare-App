@@ -1,7 +1,8 @@
 .dashboard-header {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   overflow: hidden;
+  will-change: transform; // Optimize for animations
   
   ion-toolbar {
     --background: linear-gradient(135deg, #8383ed 0%, #7070db 50%, #8383ed 100%);
@@ -10,8 +11,9 @@
     --min-height: 140px;
     --padding-start: 16px;
     --padding-end: 16px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
+    will-change: min-height; // Optimize for height changes
   }
   
   // Collapsed state
@@ -60,9 +62,10 @@
   width: 100%;
   padding: 1.25rem 1rem 2rem 1rem;
   text-align: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   z-index: 2;
+  will-change: padding; // Optimize for padding changes
 }
 
 // Floating background decoration
