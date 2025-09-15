@@ -197,10 +197,9 @@ export const OnboardingOptions = {
   ],
 
   latchQuality: [
-    { value: 'excellent', label: 'Excellent' },
-    { value: 'good', label: 'Good' },
-    { value: 'fair', label: 'Fair' },
-    { value: 'poor', label: 'Poor' },
+    { value: 'deep', label: 'Deep latch, no pain' },
+    { value: 'shallow', label: 'Shallow latch, causes pain' },
+    { value: 'not_latching', label: 'Not latching at all' },
   ],
 
   timeLatched: [
@@ -302,6 +301,7 @@ export const OnboardingOptions = {
 
   // Legacy options still referenced in HTML (will be updated later)
   timePerBreast: [
+    { value: '0_min', label: '0 min' },
     { value: '5_min', label: '5 minutes or less' },
     { value: '10_min', label: '6-10 minutes' },
     { value: '15_min', label: '11-15 minutes' },

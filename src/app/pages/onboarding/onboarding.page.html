@@ -479,7 +479,8 @@
                       snaps="true"
                       ticks="false"
                       color="primary"
-                      class="breastfeed-slider">
+                      class="breastfeed-slider"
+                      (ionChange)="onDirectBreastfeedsChange($event, i)">
                       <ion-label slot="start">0</ion-label>
                       <ion-label slot="end">12+</ion-label>
                     </ion-range>
@@ -491,26 +492,16 @@
                   <label class="input-label">Latch Quality</label>
                   <div class="horizontal-chip-selection">
                     <ion-chip 
-                      [class.selected]="baby.get('latchQuality')?.value === 'deep'"
-                      (click)="baby.get('latchQuality')?.setValue('deep')"
+                      *ngFor="let latch of options.latchQuality"
+                      [class.selected]="baby.get('latchQuality')?.value === latch.value"
+                      (click)="baby.get('latchQuality')?.setValue(latch.value)"
                       class="selection-chip">
                       <ion-icon 
-                        *ngIf="baby.get('latchQuality')?.value === 'deep'" 
+                        *ngIf="baby.get('latchQuality')?.value === latch.value" 
                         name="checkmark" 
                         class="chip-selected-icon">
                       </ion-icon>
-                      Deep latch, no pain
-                    </ion-chip>
-                    <ion-chip 
-                      [class.selected]="baby.get('latchQuality')?.value === 'shallow'"
-                      (click)="baby.get('latchQuality')?.setValue('shallow')"
-                      class="selection-chip">
-                      <ion-icon 
-                        *ngIf="baby.get('latchQuality')?.value === 'shallow'" 
-                        name="checkmark" 
-                        class="chip-selected-icon">
-                      </ion-icon>
-                      Shallow latch, causes pain
+                      {{ latch.label }}
                     </ion-chip>
                   </div>
                 </div>

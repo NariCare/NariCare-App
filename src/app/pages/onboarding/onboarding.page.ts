@@ -1651,6 +1651,37 @@ export class OnboardingPage implements OnInit, OnDestroy {
     return `Baby ${index + 1} Information`;
   }
 
+  /**
+   * Handle changes to direct breastfeeds slider and auto-select related fields
+   */
+  onDirectBreastfeedsChange(event: any, babyIndex: number): void {
+    const value = event.detail.value;
+    const babyForm = this.babies[babyIndex];
+    
+    if (value === 0) {
+      // Auto-select appropriate values when no direct breastfeeds
+      babyForm.get('latchQuality')?.setValue('not_latching');
+      babyForm.get('timePerBreast')?.setValue('0_min');
+      babyForm.get('offersBothBreastsPerFeeding')?.setValue(false);
+      
+      console.log(`Auto-selected values for Baby ${babyIndex + 1} (no direct breastfeeds):`, {
+        latchQuality: 'not_latching',
+        timePerBreast: '0_min',
+        offersBothBreastsPerFeeding: false
+      });
+    } else if (babyForm.get('latchQuality')?.value === 'not_latching') {
+      // Clear auto-selected values when user changes from 0 to > 0 feeds
+      // Only clear if they were previously set to the auto-selected values
+      if (babyForm.get('timePerBreast')?.value === '0_min') {
+        babyForm.get('latchQuality')?.setValue('');
+        babyForm.get('timePerBreast')?.setValue('');
+        babyForm.get('offersBothBreastsPerFeeding')?.setValue(null);
+        
+        console.log(`Cleared auto-selected values for Baby ${babyIndex + 1} (has direct breastfeeds)`);
+      }
+    }
+  }
+
   updateBabyFormControl(babyIndex: number, controlName: string, value: any): void {
     const babyFormGroup = this.babiesFormArray.at(babyIndex) as FormGroup;
     if (babyFormGroup && babyFormGroup.get(controlName)) {
