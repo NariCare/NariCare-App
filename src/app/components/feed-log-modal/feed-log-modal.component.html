@@ -56,7 +56,6 @@
         <!-- Feed Type Selection -->
         <div class="section-group">
           <h2 class="section-title">🍼 Feed Type</h2>
-          <p class="section-description">What type of feeding occurred? You can select multiple options.</p>
           
           <div class="feed-type-grid">
             <div 
@@ -79,7 +78,6 @@
         <!-- Feed Details Section -->
         <div class="section-group" *ngIf="selectedFeedTypes.length > 0">
           <h2 class="section-title">📝 Feed Details</h2>
-          <p class="section-description">Provide details for each selected feed type</p>
           
           <!-- Direct Feeding Section -->
           <div class="conditional-section direct-feeding" *ngIf="isFeedTypeSelected('direct')">
@@ -231,16 +229,14 @@
 
       <!-- Notes Section - Separate Card -->
       <div class="form-section notes-section">
-        <h2 class="section-title">📝 Notes</h2>
-        <p class="section-description">Add any additional notes about this feeding session (optional)</p>
+        <h2 class="section-title">📝 Notes (optional)</h2>
 
         <div class="form-group">
-          <label class="field-label">Your Notes</label>
           <ion-item lines="none" class="input-item notes-input">
             <ion-textarea
               formControlName="notes"
-              placeholder="Write any additional details about the feeding session..."
-              rows="4"
+              placeholder="Quick notes about this feeding..."
+              rows="2"
               autoGrow="true">
             </ion-textarea>
           </ion-item>

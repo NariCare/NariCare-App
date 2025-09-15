@@ -1,24 +1,24 @@
 .feed-log-container {
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 /* Single form styles */
 .single-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .form-section {
   // background: #ffffff;
   // border-radius: 16px;
-  padding: 0 1.5rem;
+  padding: 0 0.75rem;
   // border: 1px solid #f1f5f9;
 }
 
 .section-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #2d3748;
   text-align: left;
@@ -26,10 +26,10 @@
 }
 
 .section-description {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 0.75rem 0;
   color: #7a73a9;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.85rem;
+  line-height: 1.4;
   font-family: 'Poppins', sans-serif;
 }
 
@@ -37,7 +37,7 @@
 .selected-baby-info {
   background: linear-gradient(135deg, #f0f9ff, #ffffff);
   border: 2px solid #bae6fd;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
 }
 
 .selected-baby-display {
@@ -49,8 +49,8 @@
 /* Main feed card styling */
 .main-feed-card {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 2rem 1.5rem;
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
   border: 1px solid #f1f5f9;
 }
 
@@ -65,15 +65,16 @@
   /* Add subtle separator between section groups */
   &:not(:last-child) {
     border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 2rem;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
   }
 }
 
 /* Notes section as separate card */
 .notes-section {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1rem;
   border: 1px solid #f1f5f9;
 }
 
@@ -82,7 +83,7 @@
   // background: linear-gradient(135deg, #f0fdf4, #ffffff);
   // border: 2px solid #bbf7d0;
   text-align: center;
-  padding: 2rem 1.5rem;
+  padding: 1rem 0.75rem;
 }
 
 .save-section .save-button {
@@ -114,16 +115,16 @@
 .baby-selection-grid {
   display: flex;
   flex-direction: row;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
 }
 
 .baby-option {
   background: #fffcf9; // Light coral background matching feed type
-  border-radius: 16px;
-  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -132,7 +133,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  min-width: 110px;
+  min-width: 90px;
   flex: 1;
   font-family: 'Poppins', sans-serif;
   
@@ -149,14 +150,14 @@
 }
 
 .baby-avatar {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   flex-shrink: 0;
   
   ion-icon {
@@ -203,16 +204,16 @@
 .feed-type-grid {
   display: flex;
   flex-direction: row;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
 }
 
 .feed-type-option {
   background: #fffcf9; // Light coral background matching Figma
-  border-radius: 16px;
-  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -221,7 +222,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  min-width: 110px;
+  min-width: 90px;
   flex: 1;
   font-family: 'Poppins', sans-serif;
   
@@ -238,14 +239,14 @@
 }
 
 .feed-type-icon {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   flex-shrink: 0;
   
   ion-icon {
@@ -409,7 +410,7 @@
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   
   &:last-child {
     margin-bottom: 0;
@@ -418,8 +419,8 @@
 
 .field-label {
   display: block;
-  margin-bottom: 0.75rem;
-  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #2d3748;
   font-family: 'Poppins', sans-serif;
@@ -427,11 +428,11 @@
 
 .input-item {
   --background: #f8fafc;
-  --border-radius: 12px;
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --min-height: 52px;
-  margin-bottom: 0.5rem;
+  --border-radius: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --min-height: 44px;
+  margin-bottom: 0.25rem;
 
   &.time-input {
     text-align: center;
@@ -537,22 +538,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 0.75rem;
+  padding: 0.75rem;
   background: #f8fafc;
-  border-radius: 12px;
+  border-radius: 8px;
 }
 
 .quantity-display {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: #8383ed;
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 700;
   font-family: 'Poppins', sans-serif;
 }
@@ -573,12 +574,12 @@
 }
 
 .preset-button {
-  --border-radius: 20px;
+  --border-radius: 16px;
   --border-color: #ff9e88;
   --color: #ff9e88;
-  height: 36px;
-  font-size: 0.85rem;
-  min-width: 65px;
+  height: 32px;
+  font-size: 0.8rem;
+  min-width: 55px;
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
   

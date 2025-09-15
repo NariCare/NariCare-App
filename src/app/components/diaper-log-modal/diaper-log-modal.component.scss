@@ -1,24 +1,24 @@
 .feed-log-container {
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 /* Single form styles */
 .single-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .form-section {
   // background: #ffffff;
   // border-radius: 16px;
-  padding: 0 1.5rem;
+  padding: 0 0.75rem;
   // border: 1px solid #f1f5f9;
 }
 
 .section-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
+  margin: 0 0 0.25rem 0;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #2d3748;
   text-align: left;
@@ -26,10 +26,10 @@
 }
 
 .section-description {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 0.75rem 0;
   color: #7a73a9;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.85rem;
+  line-height: 1.4;
   font-family: 'Poppins', sans-serif;
 }
 
@@ -37,14 +37,14 @@
 .selected-baby-info {
   background: linear-gradient(135deg, #f0f9ff, #ffffff);
   border: 2px solid #bae6fd;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
 }
 
 /* Main diaper card styling */
 .main-diaper-card {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 2rem 1.5rem;
+  border-radius: 12px;
+  padding: 1rem 0.75rem;
   border: 1px solid #f1f5f9;
 }
 
