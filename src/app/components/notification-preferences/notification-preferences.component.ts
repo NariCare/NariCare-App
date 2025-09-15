@@ -3,6 +3,7 @@ import { LoadingController, ModalController } from '@ionic/angular';
 import { NotificationService } from '../../services/notification.service';
 import { PushNotificationService } from '../../services/push-notification.service';
 import { NotificationPreferences } from '../../services/backend-notification.service';
+import { BackendAuthService } from '../../services/backend-auth.service';
 
 @Component({
   selector: 'app-notification-preferences',
@@ -20,17 +21,24 @@ export class NotificationPreferencesComponent implements OnInit {
 
   isLoading = false;
   tokenStatus: any = {};
+  user: any = null;
 
   constructor(
     private notificationService: NotificationService,
     private pushNotificationService: PushNotificationService,
     private modalController: ModalController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private authService: BackendAuthService
   ) {}
 
   ngOnInit() {
+    this.loadUserData();
     this.loadPreferences();
     this.loadTokenStatus();
+  }
+
+  private loadUserData() {
+    this.user = this.authService.getCurrentUser();
   }
 
   private loadPreferences() {
@@ -132,5 +140,15 @@ export class NotificationPreferencesComponent implements OnInit {
     };
 
     return titles[key] || key;
+  }
+
+  shouldShowNotificationOption(key: keyof NotificationPreferences): boolean {
+    // For experts, only show relevant notifications
+    if (this.user?.role === 'expert') {
+      return key === 'callReminders' || key === 'groupMessages';
+    }
+    
+    // For non-experts (users), show all notifications
+    return true;
   }
 }

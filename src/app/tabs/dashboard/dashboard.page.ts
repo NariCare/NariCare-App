@@ -1179,4 +1179,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     await modal.present();
   }
+
+  viewConsultationDetails(consultation: Consultation) {
+    // Navigate to consultation detail page with consultation ID as route parameter
+    this.router.navigate(['/consultation-detail', consultation.id]);
+  }
 }

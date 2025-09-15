@@ -759,6 +759,19 @@
     --border-color: #ef4444;
   }
   
+  .view-details-button {
+    --border-color: #6b7280;
+    --color: #6b7280;
+    --border-radius: 8px;
+    height: 32px;
+    font-size: 0.8rem;
+    
+    &:hover {
+      --color: #374151;
+      --border-color: #374151;
+    }
+  }
+
   .view-report-button {
     --background: #059669;
     --background-hover: #047857;
@@ -1247,4 +1260,5 @@
   --height: 90%;
   --max-height: 90%;
 }
+
 

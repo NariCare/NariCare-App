@@ -316,6 +316,17 @@
                 Rated {{ consultation.user_rating }}/5
               </ion-button>
               
+              <!-- View Details Button - Always visible for users -->
+              <ion-button 
+                *ngIf="user?.role !== 'expert'"
+                fill="outline" 
+                size="small"
+                (click)="viewConsultationDetails(consultation); $event.stopPropagation()"
+                class="view-details-button">
+                <ion-icon name="information-circle" slot="start"></ion-icon>
+                View Details
+              </ion-button>
+
               <!-- View Report Button for Completed Consultations with Expert Notes -->
               <ion-button 
                 *ngIf="consultation.status === 'completed' && hasExpertNotes(consultation) && user?.role !== 'expert'"

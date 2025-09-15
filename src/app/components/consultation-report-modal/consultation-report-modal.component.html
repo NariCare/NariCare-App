@@ -1,116 +1,104 @@
-<ion-header>
-  <ion-toolbar>
+<ion-header [translucent]="true" class="report-header">
+  <ion-toolbar color="primary">
     <ion-title>Consultation Report</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">
-        <ion-icon name="close"></ion-icon>
+      <ion-button fill="clear" (click)="dismiss()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="consultation-report-content">
-  <div class="report-container">
+<ion-content [fullscreen]="true" class="report-content">
+  
+  <!-- Medical Report Card -->
+  <div class="report-card">
     
-    <!-- Report Header -->
-    <div class="report-header">
-      <div class="clinic-info">
-        <h1>NariCare</h1>
-        <p class="clinic-subtitle">Lactation Consultation Services</p>
+    <!-- Header Section -->
+    <div class="card-header">
+      <div class="provider-info">
+        <div class="provider-badge">
+          <ion-icon name="medical"></ion-icon>
+        </div>
+        <div class="provider-details">
+          <h2>{{ expertName }}</h2>
+          <p>Lactation Consultant</p>
+          <span class="credentials">IBCLC, RN</span>
+        </div>
       </div>
-      <div class="report-type">
-        <h2>CONSULTATION REPORT</h2>
+      <div class="report-date">
+        <span class="date-label">Report Generated</span>
+        <span class="date-value">{{ formatDate(consultation.actual_end_time || consultation.updated_at) }}</span>
       </div>
     </div>
 
-    <!-- Patient & Consultation Info -->
-    <div class="info-section">
-      <div class="info-row">
-        <div class="info-item">
-          <label>Report Date:</label>
-          <span>{{ formatDate(consultation.actual_end_time || consultation.updated_at) }}</span>
-        </div>
-        <div class="info-item">
-          <label>Consultation ID:</label>
-          <span>{{ consultation.id.substring(0, 8).toUpperCase() }}</span>
-        </div>
-      </div>
+    <!-- Consultation Overview -->
+    <div class="overview-section">
+      <h3 class="section-title">
+        <ion-icon name="calendar-outline"></ion-icon>
+        Consultation Overview
+      </h3>
       
-      <div class="info-row">
-        <div class="info-item">
-          <label>Consultation Date:</label>
-          <span>{{ formatDate(consultation.scheduledAt || consultation.scheduled_at) }}</span>
+      <div class="overview-grid">
+        <div class="overview-item">
+          <span class="item-label">Consultation Type</span>
+          <span class="item-value">{{ formatTopic(consultation.topic) }}</span>
         </div>
-        <div class="info-item">
-          <label>Time:</label>
-          <span>{{ formatTime(consultation.scheduledAt || consultation.scheduled_at) }}</span>
+        
+        <div class="overview-item">
+          <span class="item-label">Date & Time</span>
+          <span class="item-value">
+            {{ formatDate(consultation.scheduledAt || consultation.scheduled_at) }}<br>
+            <small>{{ formatTime(consultation.scheduledAt || consultation.scheduled_at) }}</small>
+          </span>
         </div>
-      </div>
-      
-      <div class="info-row">
-        <div class="info-item">
-          <label>Consultation Type:</label>
-          <span>{{ formatTopic(consultation.topic) }}</span>
+        
+        <div class="overview-item">
+          <span class="item-label">Session Duration</span>
+          <span class="item-value">30 minutes</span>
         </div>
-        <div class="info-item">
-          <label>Duration:</label>
-          <span>30 minutes</span>
-        </div>
-      </div>
-      
-      <div class="info-row">
-        <div class="info-item">
-          <label>Lactation Consultant:</label>
-          <span>{{ expertName }}</span>
-        </div>
-        <div class="info-item">
-          <label>Follow-up Required:</label>
-          <span class="follow-up-badge" [class.required]="consultation.follow_up_required">
-            {{ consultation.follow_up_required ? 'Yes' : 'No' }}
+        
+        <div class="overview-item">
+          <span class="item-label">Follow-up Required</span>
+          <span class="item-value">
+            <ion-chip [color]="consultation.follow_up_required ? 'warning' : 'success'" outline>
+              <ion-icon [name]="consultation.follow_up_required ? 'time-outline' : 'checkmark-circle-outline'"></ion-icon>
+              <ion-label>{{ consultation.follow_up_required ? 'Yes' : 'No' }}</ion-label>
+            </ion-chip>
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Assessment Section -->
+    <!-- Assessment & Recommendations -->
     <div class="assessment-section">
-      <h3>
-        <ion-icon name="document-text"></ion-icon>
-        Expert Assessment & Recommendations
+      <h3 class="section-title">
+        <ion-icon name="document-text-outline"></ion-icon>
+        Assessment & Recommendations
       </h3>
-      <div class="assessment-content" [innerHTML]="getFormattedNotes()"></div>
+      
+      <div class="assessment-content">
+        <div class="notes-container" [innerHTML]="getFormattedNotes()"></div>
+      </div>
     </div>
 
-    <!-- Footer -->
-    <div class="report-footer">
+    <!-- Professional Footer -->
+    <div class="professional-footer">
       <div class="signature-section">
-        <div class="signature-line">
+        <div class="signature-line"></div>
+        <div class="signature-details">
           <p class="signature-name">{{ expertName }}</p>
-          <p class="signature-title">International Board Certified Lactation Consultant (IBCLC)</p>
-          <p class="signature-credentials">Registered Nurse, MSN</p>
+          <p class="signature-title">International Board Certified Lactation Consultant</p>
         </div>
       </div>
       
-      <div class="disclaimer">
-        <p><strong>Important:</strong> This report contains recommendations based on our consultation. 
-        Please consult with your pediatrician for any medical concerns. For urgent issues, contact your healthcare provider immediately.</p>
+      <div class="disclaimer-box">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <div class="disclaimer-text">
+          <p><strong>Medical Disclaimer:</strong> This consultation report contains professional recommendations based on our session. Please consult with your pediatrician for medical concerns or if symptoms persist.</p>
+        </div>
       </div>
     </div>
 
   </div>
 </ion-content>
-
-<ion-footer>
-  <ion-toolbar>
-    <div class="footer-actions">
-      <ion-button fill="clear" (click)="dismiss()">
-        <ion-icon name="close" slot="start"></ion-icon>
-        Close
-      </ion-button>
-      <ion-button fill="solid" color="primary" (click)="dismiss()">
-        <ion-icon name="checkmark" slot="start"></ion-icon>
-        Done
-      </ion-button>
-    </div>
-  </ion-toolbar>
-</ion-footer>
