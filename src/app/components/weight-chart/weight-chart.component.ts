@@ -101,6 +101,198 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     }
   }
 
+  /**
+   * Get smart X-axis configuration based on baby's current age
+   */
+  private getSmartXAxisConfig(): any {
+    const currentAgeInWeeks = this.getCurrentBabyAgeInWeeks();
+    
+    // Determine smart zoom level based on age
+    let minAge: number, maxAge: number, tickInterval: number;
+    let timeUnit: 'weeks' | 'months';
+    
+    if (currentAgeInWeeks <= 8) {
+      // Newborn phase (0-8 weeks): Show weekly view
+      minAge = 0;
+      maxAge = Math.max(12, currentAgeInWeeks + 4);
+      tickInterval = 1;
+      timeUnit = 'weeks';
+    } else if (currentAgeInWeeks <= 26) {
+      // Infant phase (2-6 months): Show monthly view
+      minAge = 0;
+      maxAge = Math.max(30, currentAgeInWeeks + 8);
+      tickInterval = 4; // Every month (4 weeks)
+      timeUnit = 'months';
+    } else if (currentAgeInWeeks <= 52) {
+      // Baby phase (6-12 months): Show 2-month intervals
+      minAge = 0;
+      maxAge = Math.max(60, currentAgeInWeeks + 12);
+      tickInterval = 8; // Every 2 months
+      timeUnit = 'months';
+    } else {
+      // Toddler phase (12+ months): Show 3-month intervals
+      minAge = 0;
+      maxAge = Math.max(104, currentAgeInWeeks + 16);
+      tickInterval = 12; // Every 3 months
+      timeUnit = 'months';
+    }
+
+    // Capture timeUnit in closure for formatter
+    const selectedTimeUnit = timeUnit;
+
+    return {
+      title: { 
+        text: selectedTimeUnit === 'weeks' ? 'Baby\'s Age (weeks)' : 'Baby\'s Age (months)',
+        style: { color: '#64748b', fontWeight: '500' }
+      },
+      min: minAge,
+      max: maxAge,
+      tickInterval: tickInterval,
+      gridLineWidth: 1,
+      gridLineColor: '#f1f5f9',
+      labels: {
+        style: { color: '#64748b', fontSize: '12px' },
+        formatter: function() {
+          const weeks = this.value as number;
+          
+          if (weeks === 0) return 'Birth';
+          
+          if (selectedTimeUnit === 'weeks') {
+            // Show numbered weeks: 1, 2, 3, 4...
+            return weeks.toString();
+          } else {
+            // Show numbered months: 1, 2, 3, 4...
+            const months = Math.floor(weeks / 4);
+            if (months === 0) return 'Birth';
+            return months.toString();
+          }
+        }
+      }
+    };
+  }
+
+  /**
+   * Get smart Y-axis configuration based on baby's age and weight data
+   */
+  private getSmartYAxisConfig(): any {
+    const currentAgeInWeeks = this.getCurrentBabyAgeInWeeks();
+    const babyGrowthPoints = this.convertToGrowthPoints();
+    
+    // Get WHO chart data for age-appropriate weight range
+    const chartData = this.whoService.getWeightChart(this.babyGender);
+    const ageRange = this.getSmartXAxisConfig();
+    
+    // Smart weight range and tick intervals based on age
+    let minWeight: number, maxWeight: number, tickInterval: number;
+    
+    if (currentAgeInWeeks <= 8) {
+      // Newborn phase (0-8 weeks): Focus on smaller weight changes
+      minWeight = 2.0;
+      maxWeight = 6.0;
+      tickInterval = 0.5; // Every 500g
+    } else if (currentAgeInWeeks <= 26) {
+      // Infant phase (2-6 months): Rapid growth period
+      minWeight = 3.0;
+      maxWeight = 9.0;
+      tickInterval = 1.0; // Every 1kg
+    } else if (currentAgeInWeeks <= 52) {
+      // Baby phase (6-12 months): Steady growth
+      minWeight = 5.0;
+      maxWeight = 12.0;
+      tickInterval = 1.0; // Every 1kg
+    } else {
+      // Toddler phase (12+ months): Broader range
+      minWeight = 7.0;
+      maxWeight = 15.0;
+      tickInterval = 2.0; // Every 2kg
+    }
+    
+    // Refine based on WHO data for the visible age range
+    if (chartData && chartData.data) {
+      const relevantData = chartData.data.filter(point => 
+        point.ageInWeeks >= ageRange.min && point.ageInWeeks <= ageRange.max
+      );
+      
+      if (relevantData.length > 0) {
+        // Use 5th and 95th percentiles for a focused view
+        const minWeights = relevantData.map(p => p.p5);
+        const maxWeights = relevantData.map(p => p.p95);
+        
+        const whoMinWeight = Math.min(...minWeights);
+        const whoMaxWeight = Math.max(...maxWeights);
+        
+        // Adjust range based on WHO data with smart padding
+        const padding = currentAgeInWeeks <= 8 ? 0.3 : 
+                       currentAgeInWeeks <= 26 ? 0.5 : 1.0;
+        
+        minWeight = Math.min(minWeight, whoMinWeight - padding);
+        maxWeight = Math.max(maxWeight, whoMaxWeight + padding);
+        
+        // Include baby's actual weights if available
+        if (babyGrowthPoints.length > 0) {
+          const babyWeights = babyGrowthPoints.map(p => p.value);
+          const babyMinWeight = Math.min(...babyWeights);
+          const babyMaxWeight = Math.max(...babyWeights);
+          
+          // Ensure baby's data is visible with extra padding
+          minWeight = Math.min(minWeight, babyMinWeight - padding);
+          maxWeight = Math.max(maxWeight, babyMaxWeight + padding);
+        }
+        
+        // Round to appropriate intervals based on age
+        if (currentAgeInWeeks <= 8) {
+          // Round to 0.2kg for newborns (more precision)
+          minWeight = Math.max(1.5, Math.floor(minWeight * 5) / 5);
+          maxWeight = Math.min(8.0, Math.ceil(maxWeight * 5) / 5);
+        } else if (currentAgeInWeeks <= 26) {
+          // Round to 0.5kg for infants
+          minWeight = Math.max(2.0, Math.floor(minWeight * 2) / 2);
+          maxWeight = Math.min(12.0, Math.ceil(maxWeight * 2) / 2);
+        } else {
+          // Round to 1kg for older babies
+          minWeight = Math.max(3.0, Math.floor(minWeight));
+          maxWeight = Math.min(20.0, Math.ceil(maxWeight));
+        }
+      }
+    }
+
+    return {
+      title: { 
+        text: 'Weight (kg)',
+        style: { color: '#64748b', fontWeight: '500' }
+      },
+      min: minWeight,
+      max: maxWeight,
+      tickInterval: tickInterval,
+      gridLineWidth: 1,
+      gridLineColor: '#f1f5f9',
+      labels: {
+        style: { color: '#64748b', fontSize: '12px' },
+        formatter: function() {
+          const weight = this.value as number;
+          // Smart formatting based on weight range
+          if (weight < 10) {
+            return `${weight.toFixed(1)}kg`; // Show 1 decimal for weights under 10kg
+          } else {
+            return `${Math.round(weight)}kg`; // Show whole numbers for larger weights
+          }
+        }
+      }
+    };
+  }
+
+  /**
+   * Calculate baby's current age in weeks
+   */
+  private getCurrentBabyAgeInWeeks(): number {
+    if (!this.babyBirthDate) return 0;
+    
+    const now = new Date();
+    const birthDate = new Date(this.babyBirthDate);
+    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+  }
+
   private createChart() {
     console.log('Creating weight chart...');
     
@@ -153,42 +345,8 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
             fontFamily: 'Inter, sans-serif'
           }
         },
-        xAxis: {
-          title: { 
-            text: 'Baby\'s Age (weeks)',
-            style: { color: '#64748b', fontWeight: '500' }
-          },
-          min: 0,
-          max: 52,
-          gridLineWidth: 1,
-          gridLineColor: '#f1f5f9',
-          labels: {
-            style: { color: '#64748b', fontSize: '12px' },
-            formatter: function() {
-              const weeks = this.value as number;
-              if (weeks === 0) return 'Birth';
-              if (weeks <= 4) return `${weeks}w`;
-              if (weeks <= 52) return `${Math.floor(weeks/4)}m`;
-              return `${weeks}w`;
-            }
-          }
-        },
-        yAxis: {
-          title: { 
-            text: 'Weight (kg)',
-            style: { color: '#64748b', fontWeight: '500' }
-          },
-          min: 2,
-          max: 15,
-          gridLineWidth: 1,
-          gridLineColor: '#f1f5f9',
-          labels: {
-            style: { color: '#64748b', fontSize: '12px' },
-            formatter: function() {
-              return `${this.value}kg`;
-            }
-          }
-        },
+        xAxis: this.getSmartXAxisConfig(),
+        yAxis: this.getSmartYAxisConfig(),
         legend: {
           enabled: true,
           align: 'center',
@@ -226,14 +384,25 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
           borderRadius: 8,
           shadow: true,
           formatter: function() {
-            if ((this as any).series.name === 'Baby\'s Weight') {
+            if ((this as any).series.name === 'Your Baby\'s Weight') {
               const weeks = (this as any).x;
               const weight = (this as any).y;
               const percentile = (this as any).point.percentile || 50;
               
-              let ageText = weeks === 0 ? 'At birth' : 
-                           weeks <= 4 ? `${weeks} weeks old` :
-                           `${Math.floor(weeks/4)} months old`;
+              // Smart age display based on current age
+              const currentAge = that.getCurrentBabyAgeInWeeks();
+              let ageText: string;
+              
+              if (weeks === 0) {
+                ageText = 'At birth';
+              } else if (currentAge <= 8) {
+                // Show weeks for newborns
+                ageText = `${weeks} week${weeks === 1 ? '' : 's'} old`;
+              } else {
+                // Show months for older babies
+                const months = Math.floor(weeks / 4);
+                ageText = months === 0 ? 'Birth' : `${months} month${months === 1 ? '' : 's'} old`;
+              }
               
               let percentileText = that.getPercentileMessage(percentile);
               
@@ -257,12 +426,18 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
         colors: ['#fecaca', '#fed7aa', '#fde68a', '#d9f99d', '#10b981', '#7dd3fc', '#a78bfa', '#f9a8d4', '#fca5a5']
       };
 
-      // Add WHO percentile curves
+      // Add WHO percentile curves (filtered to visible age range)
       const percentiles = [10, 25, 50, 75, 90]; // Simplified to key percentiles
+      const xAxisConfig = this.getSmartXAxisConfig();
       
       percentiles.forEach(percentile => {
-        const seriesData = chartData.data.map(point => [point.ageInWeeks, (point as any)[`p${percentile}`]]);
-        console.log(`Percentile ${percentile} data:`, seriesData.slice(0, 3)); // Log first 3 points
+        // Filter data to only include visible age range for better performance and clarity
+        const relevantData = chartData.data.filter(point => 
+          point.ageInWeeks >= xAxisConfig.min && point.ageInWeeks <= xAxisConfig.max
+        );
+        
+        const seriesData = relevantData.map(point => [point.ageInWeeks, (point as any)[`p${percentile}`]]);
+        console.log(`Percentile ${percentile} data (filtered):`, seriesData.slice(0, 3)); // Log first 3 points
         
         const series: Highcharts.SeriesLineOptions = {
           name: this.getMotherFriendlyPercentileName(percentile),
