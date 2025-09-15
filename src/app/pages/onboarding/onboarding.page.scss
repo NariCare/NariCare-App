@@ -929,6 +929,74 @@ ion-chip {
   }
 }
 
+// State auto-suggest styles
+.autocomplete-container {
+  position: relative;
+}
+
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.suggestions-list {
+  margin: 0;
+  padding: 8px 0;
+  
+  ion-item {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --min-height: 48px;
+    --background: transparent;
+    
+    &:hover {
+      --background: #f8fafc;
+    }
+    
+    &:active {
+      --background: #e2e8f0;
+    }
+  }
+}
+
+.suggestion-item {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  ion-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #2d3748;
+  }
+}
+
+.suggestion-icon {
+  color: #8383ed;
+  font-size: 1.1rem;
+  opacity: 0.7;
+}
+
+// Add a subtle highlight for matching text
+.suggestion-item:hover {
+  .suggestion-icon {
+    opacity: 1;
+  }
+  
+  ion-label {
+    color: #8383ed;
+  }
+}
+
 @media (min-width: 768px) {
   .onboarding-container {
     max-width: 520px;

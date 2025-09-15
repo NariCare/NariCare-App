@@ -86,15 +86,34 @@
         <!-- State -->
         <div class="form-group">
           <label class="input-label">State</label>
-          <ion-item lines="none" class="input-item" [class.error]="isFieldInvalid('state')">
-            <ion-select formControlName="state" placeholder="Select State" fill="outline">
-              <ion-select-option 
-                *ngFor="let state of options.indianStates" 
-                [value]="state">
-                {{ state }}
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
+          <div class="autocomplete-container">
+            <ion-item lines="none" class="input-item" [class.error]="isFieldInvalid('state')">
+              <ion-icon name="location-outline" slot="start" class="input-icon"></ion-icon>
+              <ion-input
+                formControlName="state"
+                placeholder="Type to search states..."
+                fill="outline"
+                (ionInput)="onStateInput($event)"
+                (ionFocus)="showStateSuggestions = true"
+                (ionBlur)="hideStateSuggestions()"
+                autocomplete="off">
+              </ion-input>
+            </ion-item>
+            
+            <!-- Auto-suggest dropdown -->
+            <div class="suggestions-dropdown" *ngIf="showStateSuggestions && filteredStates.length > 0">
+              <ion-list class="suggestions-list">
+                <ion-item 
+                  *ngFor="let state of filteredStates" 
+                  button 
+                  (click)="selectState(state)"
+                  class="suggestion-item">
+                  <ion-icon name="location" slot="start" class="suggestion-icon"></ion-icon>
+                  <ion-label>{{ state }}</ion-label>
+                </ion-item>
+              </ion-list>
+            </div>
+          </div>
           <div class="error-message" *ngIf="isFieldInvalid('state')">
             {{ getFieldError('state') }}
           </div>

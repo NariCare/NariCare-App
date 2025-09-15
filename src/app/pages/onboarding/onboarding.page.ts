@@ -39,6 +39,10 @@ export class OnboardingPage implements OnInit, OnDestroy {
   maxDate = '2026-12-31';
   minBirthDate = '2020-01-01';
   
+  // State auto-suggest properties
+  filteredStates: string[] = [];
+  showStateSuggestions = false;
+  
   // Local storage key for onboarding data
   private readonly ONBOARDING_STORAGE_KEY = 'onboarding_form_data';
   
@@ -129,6 +133,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
     setTimeout(() => {
       this.updateProgressState();
     }, 100);
+    
+    // Initialize state auto-suggest
+    this.filteredStates = [...this.options.indianStates];
   }
 
   ngOnDestroy() {
@@ -1725,6 +1732,35 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
   shouldShowSupportSystemOther(): boolean {
     return this.isSupportSystemSelected('Other');
+  }
+
+  // State auto-suggest methods
+  onStateInput(event: any): void {
+    const query = event.detail.value.toLowerCase().trim();
+    
+    if (query.length === 0) {
+      this.filteredStates = [...this.options.indianStates];
+      this.showStateSuggestions = true;
+    } else {
+      this.filteredStates = this.options.indianStates.filter(state =>
+        state.toLowerCase().includes(query)
+      );
+      this.showStateSuggestions = this.filteredStates.length > 0;
+    }
+  }
+
+  selectState(state: string): void {
+    this.onboardingForm.get('state')?.setValue(state);
+    this.showStateSuggestions = false;
+    this.filteredStates = [];
+  }
+
+  // Hide suggestions when clicking outside
+  hideStateSuggestions(): void {
+    // Add a small delay to allow click events on suggestions to process
+    setTimeout(() => {
+      this.showStateSuggestions = false;
+    }, 200);
   }
 
 }
