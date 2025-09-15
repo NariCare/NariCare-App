@@ -37,13 +37,18 @@
             *ngFor="let article of categoryGroup.articles"
             class="article-card grid-item"
             [style.background]="getRandomGradient(article.id)"
+            [style.border]="'2px solid ' + getBorderColor(article.id)"
             (click)="onArticleSelect(article)">
             <div class="article-image" *ngIf="article.imageUrl">
               <img [src]="article.imageUrl" [alt]="article.title">
             </div>
             <div class="article-content">
               <div class="article-meta">
-                <ion-chip [color]="getDifficultyColor(article.difficulty)" size="small">
+                <ion-chip 
+                  size="small"
+                  [style.background]="getChipStyle(article.id).background"
+                  [style.color]="getChipStyle(article.id).color"
+                  [style.border]="getChipStyle(article.id).border">
                   {{ article.difficulty }}
                 </ion-chip>
               </div>

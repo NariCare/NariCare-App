@@ -108,16 +108,18 @@ export class KnowledgePage implements OnInit {
 
   getRandomGradient(articleId: string): string {
     const gradients = [
-      'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-      'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-      'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-      'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-      'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-      'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-      'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)',
-      'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
-      'linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%)'
+      // Set 1: Pink - #FFEDF4 with border #FFCADF
+      '#FFEDF4',
+      '#FFEDF4',
+      // Set 2: Light Purple - #E3E2FF with border #B0B1FF  
+      '#E3E2FF',
+      '#E3E2FF',
+      // Set 3: Purple - #F6EDFF with border #DCBAFF
+      '#F6EDFF',
+      '#F6EDFF',
+      // Set 4: Yellow - #FFFAED with border #FFE8AD
+      '#FFFAED',
+      '#FFFAED'
     ];
     
     // Use article ID to generate consistent random index
@@ -130,5 +132,61 @@ export class KnowledgePage implements OnInit {
     
     const index = Math.abs(hash) % gradients.length;
     return gradients[index];
+  }
+
+  getBorderColor(articleId: string): string {
+    const borderColors = [
+      // Set 1: Pink border
+      '#FFCADF',
+      '#FFCADF',
+      // Set 2: Light Purple border
+      '#B0B1FF',
+      '#B0B1FF',
+      // Set 3: Purple border  
+      '#DCBAFF',
+      '#DCBAFF',
+      // Set 4: Yellow border
+      '#FFE8AD',
+      '#FFE8AD'
+    ];
+    
+    // Use same hash logic as gradient to ensure matching colors
+    let hash = 0;
+    for (let i = 0; i < articleId.length; i++) {
+      const char = articleId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    const index = Math.abs(hash) % borderColors.length;
+    return borderColors[index];
+  }
+
+  getChipStyle(articleId: string): { background: string, color: string, border: string } {
+    const chipStyles = [
+      // Set 1: Pink - slightly darker pink for chip
+      { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
+      { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
+      // Set 2: Light Purple - darker purple for chip
+      { background: 'rgba(176, 177, 255, 0.8)', color: '#4338CA', border: '1px solid rgba(176, 177, 255, 0.6)' },
+      { background: 'rgba(176, 177, 255, 0.8)', color: '#4338CA', border: '1px solid rgba(176, 177, 255, 0.6)' },
+      // Set 3: Purple - darker purple for chip
+      { background: 'rgba(220, 186, 255, 0.8)', color: '#7C3AED', border: '1px solid rgba(220, 186, 255, 0.6)' },
+      { background: 'rgba(220, 186, 255, 0.8)', color: '#7C3AED', border: '1px solid rgba(220, 186, 255, 0.6)' },
+      // Set 4: Yellow - darker yellow/orange for chip
+      { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' },
+      { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' }
+    ];
+    
+    // Use same hash logic to ensure matching colors
+    let hash = 0;
+    for (let i = 0; i < articleId.length; i++) {
+      const char = articleId.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    const index = Math.abs(hash) % chipStyles.length;
+    return chipStyles[index];
   }
 }
