@@ -29,7 +29,7 @@
       
       <!-- Baby Selection (only if multiple babies and no baby pre-selected) -->
       <div class="form-section baby-selection" *ngIf="shouldShowBabySelection()">
-        <h2 class="section-title">👶 Select Baby</h2>
+        <h2 class="section-title">Select Baby</h2>
         <p class="section-description">Which baby are you logging this feed for?</p>
         
         <div class="baby-selection-grid">
@@ -55,7 +55,7 @@
         
         <!-- Feed Type Selection -->
         <div class="section-group">
-          <h2 class="section-title">🍼 Feed Type</h2>
+          <h2 class="section-title">Feed Type</h2>
           
           <div class="feed-type-grid">
             <div 
@@ -77,17 +77,17 @@
 
         <!-- Feed Details Section -->
         <div class="section-group" *ngIf="selectedFeedTypes.length > 0">
-          <h2 class="section-title">📝 Feed Details</h2>
+          <h2 class="section-title">Feed Details</h2>
           
           <!-- Direct Feeding Section -->
           <div class="conditional-section direct-feeding" *ngIf="isFeedTypeSelected('direct')">
             <div class="section-header">
-              <ion-icon name="body"></ion-icon>
+              <!-- <ion-icon name="body"></ion-icon> -->
               <h3>Breastfeeding</h3>
             </div>
             
             <div class="form-group">
-              <label class="field-label">🕒 Start Time</label>
+              <label class="field-label">Start Time</label>
               <ion-item lines="none" class="input-item time-input">
                 <ion-input
                   formControlName="startTime"
@@ -97,7 +97,7 @@
             </div>
 
             <div class="form-group">
-              <label class="field-label">➡️ Breast Side</label>
+              <label class="field-label">Breast Side</label>
               <div class="selection-grid breast-side-grid">
                 <div 
                   *ngFor="let side of breastSideOptions"
@@ -113,7 +113,7 @@
             </div>
 
             <div class="form-group">
-              <label class="field-label">⏳ Duration (minutes)</label>
+              <label class="field-label">Duration (minutes)</label>
               <div class="quantity-container">
                 <div class="quantity-display">{{ feedForm.get('duration')?.value || 0 }} min</div>
                 <ion-range
@@ -140,7 +140,7 @@
             </div>
 
             <div class="form-group">
-              <label class="field-label">😖 Pain while feeding? (optional)</label>
+              <label class="field-label">Pain while feeding? (optional)</label>
               <div class="selection-grid pain-level-grid">
                 <div 
                   *ngFor="let pain of painLevelOptions"
@@ -157,12 +157,12 @@
           <!-- Expressed Milk Section -->
           <div class="conditional-section expressed-milk" *ngIf="isFeedTypeSelected('expressed')">
             <div class="section-header">
-              <ion-icon name="water"></ion-icon>
+              <!-- <ion-icon name="water"></ion-icon> -->
               <h3>Expressed Milk</h3>
             </div>
             
             <div class="form-group">
-              <label class="field-label">🍼 EBM Quantity Given</label>
+              <label class="field-label">EBM Quantity Given</label>
               <div class="quantity-container">
                 <div class="quantity-display">{{ feedForm.get('ebmQuantity')?.value || 0 }}ml</div>
                 <ion-range
@@ -192,12 +192,12 @@
           <!-- Formula Section -->
           <div class="conditional-section formula" *ngIf="isFeedTypeSelected('formula')">
             <div class="section-header">
-              <ion-icon name="nutrition"></ion-icon>
+              <!-- <ion-icon name="nutrition"></ion-icon> -->
               <h3>Formula</h3>
             </div>
             
             <div class="form-group">
-              <label class="field-label">🍼 Formula Quantity Given</label>
+              <label class="field-label">Formula Quantity Given</label>
               <div class="quantity-container">
                 <div class="quantity-display">{{ feedForm.get('formulaQuantity')?.value || 0 }}ml</div>
                 <ion-range
@@ -229,7 +229,7 @@
 
       <!-- Notes Section - Separate Card -->
       <div class="form-section notes-section">
-        <h2 class="section-title">📝 Notes (optional)</h2>
+        <h2 class="section-title">Notes (optional)</h2>
 
         <div class="form-group">
           <ion-item lines="none" class="input-item notes-input">

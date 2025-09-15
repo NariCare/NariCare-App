@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>💩 Diaper Change Log</ion-title>
+    <ion-title>Diaper Change Log</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="closeModal()">
         <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -29,7 +29,7 @@
       
       <!-- Baby Selection (only if multiple babies and no baby pre-selected) -->
       <div class="form-section baby-selection" *ngIf="shouldShowBabySelection()">
-        <h2 class="section-title">👶 Select Baby</h2>
+        <h2 class="section-title">Select Baby</h2>
         <p class="section-description">Which baby are you logging this diaper change for?</p>
         
         <div class="baby-selection-grid">
@@ -55,7 +55,7 @@
         
         <!-- Change Type Selection -->
         <div class="section-group">
-          <h2 class="section-title">💩 Change Type</h2>
+          <h2 class="section-title">Change Type</h2>
           <p class="section-description">What type of diaper change was it?</p>
           
           <div class="feed-type-grid">
@@ -78,7 +78,7 @@
 
         <!-- Wetness Level (only for pee or both) -->
         <div class="section-group" *ngIf="shouldShowWetnessStep() && selectedChangeType">
-          <h2 class="section-title">💦 Wetness Level</h2>
+          <h2 class="section-title">Wetness Level</h2>
           <p class="section-description">How wet was the diaper?</p>
           
           <div class="selection-grid wetness-level-grid">
@@ -99,7 +99,7 @@
 
       <!-- Notes Section - Separate Card -->
       <div class="form-section notes-section">
-        <h2 class="section-title">📝 Notes</h2>
+        <h2 class="section-title">Notes</h2>
         <p class="section-description">Add any additional details about the diaper change (optional)</p>
 
         <div class="form-group">
