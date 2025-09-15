@@ -67,6 +67,7 @@
             placeholder="Phone Number"
             class="custom-input"
             fill="outline"
+            (ionInput)="formatPhoneNumber($event, 'phoneNumber')"
             [class.error]="registerForm.get('phoneNumber')?.invalid && registerForm.get('phoneNumber')?.touched">
           </ion-input>
           <div class="error-message" *ngIf="registerForm.get('phoneNumber')?.invalid && registerForm.get('phoneNumber')?.touched">
@@ -90,6 +91,7 @@
               placeholder="WhatsApp Phone Number"
               class="custom-input whatsapp-input"
               fill="outline"
+              (ionInput)="formatPhoneNumber($event, 'whatsappNumber')"
               [class.error]="registerForm.get('whatsappNumber')?.invalid && registerForm.get('whatsappNumber')?.touched">
             </ion-input>
           </div>

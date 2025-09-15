@@ -46,13 +46,37 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      phoneNumber: ['', [Validators.pattern(/^[\+]?[1-9][\d]{0,15}$/)]],
-      whatsappNumber: ['', [Validators.pattern(/^[\+]?[1-9][\d]{0,15}$/)]],
+      phoneNumber: ['', [this.phoneNumberValidator]],
+      whatsappNumber: ['', [this.phoneNumberValidator]],
       motherType: [''],
       dueDate: [''],
       tierType: ['basic'],
       timezone: ['']
     });
+  }
+
+  phoneNumberValidator(control: any) {
+    const value = control.value;
+    if (!value) return null; // Allow empty for optional fields
+    
+    // Remove any non-digit characters for validation
+    const digitsOnly = value.replace(/\D/g, '');
+    
+    // Check if it contains only digits (after cleaning)
+    if (!/^\d+$/.test(digitsOnly)) {
+      return { invalidFormat: true };
+    }
+    
+    // Check length (10 digits for most phone numbers)
+    if (digitsOnly.length < 10) {
+      return { tooShort: true };
+    }
+    
+    if (digitsOnly.length > 15) { // International standard max length
+      return { tooLong: true };
+    }
+    
+    return null; // Valid
   }
 
   async ngOnInit() {
@@ -243,6 +267,15 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     if (control?.hasError('pattern')) {
       return 'Please enter a valid phone number';
     }
+    if (control?.hasError('invalidFormat')) {
+      return 'Phone number must contain only digits';
+    }
+    if (control?.hasError('tooShort')) {
+      return 'Phone number must be at least 10 digits';
+    }
+    if (control?.hasError('tooLong')) {
+      return 'Phone number cannot exceed 15 digits';
+    }
     return '';
   }
   
@@ -334,5 +367,19 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     
     // Use the new equivalent comparison method
     return !this.timezoneService.areTimezonesEquivalent(this.detectedTimezone, currentTimezone);
+  }
+
+  formatPhoneNumber(event: any, fieldName: string) {
+    let value = event.detail.value;
+    
+    // Remove all non-digit characters
+    const digitsOnly = value.replace(/\D/g, '');
+    
+    // Limit to 15 digits (international standard)
+    const limitedDigits = digitsOnly.substring(0, 15);
+    
+    // Update the form control with digits only (no formatting for now)
+    // This ensures the backend receives clean phone numbers
+    this.personalInfoForm.get(fieldName)?.setValue(limitedDigits, { emitEvent: false });
   }
 }

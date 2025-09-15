@@ -25,9 +25,9 @@ export class RegisterPage implements OnInit {
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      phoneNumber: ['', [Validators.required]],
+      phoneNumber: ['', [Validators.required, this.phoneNumberValidator]],
       whatsappSameAsPhone: [true], // Checkbox for WhatsApp same as phone
-      whatsappNumber: [''], // Conditional WhatsApp number field
+      whatsappNumber: ['', [this.phoneNumberValidator]], // Conditional WhatsApp number field
       motherType: [''], // Optional
       dueDate: [''], // Conditional - required for pregnant mothers
       password: ['', [Validators.required, Validators.minLength(6), this.passwordStrengthValidator]],
@@ -81,6 +81,30 @@ export class RegisterPage implements OnInit {
         this.registerForm.get('whatsappNumber')?.setValue('');
       }
     });
+  }
+
+  phoneNumberValidator(control: any) {
+    const value = control.value;
+    if (!value) return null; // Allow empty for optional fields
+    
+    // Remove any non-digit characters for validation
+    const digitsOnly = value.replace(/\D/g, '');
+    
+    // Check if it contains only digits (after cleaning)
+    if (!/^\d+$/.test(digitsOnly)) {
+      return { invalidFormat: true };
+    }
+    
+    // Check length (10 digits for most phone numbers)
+    if (digitsOnly.length < 10) {
+      return { tooShort: true };
+    }
+    
+    if (digitsOnly.length > 15) { // International standard max length
+      return { tooLong: true };
+    }
+    
+    return null; // Valid
   }
 
   passwordStrengthValidator(control: any) {
@@ -312,6 +336,15 @@ export class RegisterPage implements OnInit {
     if (control?.hasError('mismatch')) {
       return 'Passwords do not match';
     }
+    if (control?.hasError('invalidFormat')) {
+      return 'Phone number must contain only digits';
+    }
+    if (control?.hasError('tooShort')) {
+      return 'Phone number must be at least 10 digits';
+    }
+    if (control?.hasError('tooLong')) {
+      return 'Phone number cannot exceed 15 digits';
+    }
     return '';
   }
 
@@ -321,6 +354,7 @@ export class RegisterPage implements OnInit {
       lastName: 'Last name',
       email: 'Email',
       phoneNumber: 'Phone number',
+      whatsappNumber: 'WhatsApp number',
       motherType: 'Mother type',
       dueDate: 'Due date',
       password: 'Password',
@@ -329,6 +363,20 @@ export class RegisterPage implements OnInit {
       agreeToTerms: 'Terms agreement'
     };
     return labels[field] || field;
+  }
+
+  formatPhoneNumber(event: any, fieldName: string) {
+    let value = event.detail.value;
+    
+    // Remove all non-digit characters
+    const digitsOnly = value.replace(/\D/g, '');
+    
+    // Limit to 15 digits (international standard)
+    const limitedDigits = digitsOnly.substring(0, 15);
+    
+    // Update the form control with digits only (no formatting for now)
+    // This ensures the backend receives clean phone numbers
+    this.registerForm.get(fieldName)?.setValue(limitedDigits, { emitEvent: false });
   }
 
   getTodayDate(): string {

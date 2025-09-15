@@ -95,6 +95,7 @@
               formControlName="phoneNumber"
               type="tel"
               placeholder="Enter your phone number"
+              (ionInput)="formatPhoneNumber($event, 'phoneNumber')"
               [class.error]="personalInfoForm.get('phoneNumber')?.invalid && personalInfoForm.get('phoneNumber')?.touched">
             </ion-input>
           </ion-item>
@@ -111,6 +112,7 @@
               formControlName="whatsappNumber"
               type="tel"
               placeholder="Enter your WhatsApp number"
+              (ionInput)="formatPhoneNumber($event, 'whatsappNumber')"
               [class.error]="personalInfoForm.get('whatsappNumber')?.invalid && personalInfoForm.get('whatsappNumber')?.touched">
             </ion-input>
           </ion-item>
