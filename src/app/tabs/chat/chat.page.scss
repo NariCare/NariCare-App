@@ -1346,13 +1346,27 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 800;
+    z-index: 1000;
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
     
-    // Better mobile keyboard handling
+    // Enhanced mobile keyboard handling
     @supports (height: 100dvh) {
       bottom: env(keyboard-inset-height, 0);
+    }
+    
+    // iOS keyboard handling
+    @supports (-webkit-touch-callout: none) {
+      position: absolute;
+      bottom: 0;
+      transform: translateY(0);
+      transition: transform 0.3s ease-out;
+    }
+    
+    // Android keyboard handling
+    @media screen and (max-height: 600px) and (orientation: portrait) {
+      position: absolute;
+      bottom: 0;
     }
   }
 }
@@ -1361,10 +1375,17 @@
   display: flex;
   align-items: flex-end;
   background: #f8fafc;
-  border-radius: 24px;
-  padding: 0.5rem;
-  border: 1px solid #e2e8f0;
-  gap: 0.5rem;
+  border-radius: 28px;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  gap: 0.75rem;
+  min-height: 56px;
+  transition: all 0.2s ease;
+  
+  &:focus-within {
+    border-color: #8383ed;
+    box-shadow: 0 0 0 3px rgba(131, 131, 237, 0.1);
+  }
 }
 
 .message-textarea {

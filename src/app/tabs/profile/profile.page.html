@@ -100,7 +100,7 @@
     <div class="app-info">
       <div class="version-info" *ngIf="versionInfo">
         <span class="version-text">
-          V{{ versionInfo.version }} (Powered By Claude)
+          V{{ versionInfo.version }} (Build By Claude)
         </span>
         <span class="beta-badge" *ngIf="versionInfo.isBeta">Beta</span>
         <div class="build-info" *ngIf="versionInfo.buildNumber">
@@ -111,7 +111,7 @@
         </div> -->
       </div>
       <div class="version-info" *ngIf="!versionInfo">
-        <span class="version-text">V1.0.0 (Claude-Powered)</span>
+        <span class="version-text">V1.0.0 (Build By Claude)</span>
       </div>
       
       <div class="update-message" *ngIf="versionInfo?.updateMessage">
