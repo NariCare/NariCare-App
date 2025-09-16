@@ -731,6 +731,34 @@ export class BabyDetailPage implements OnInit {
     return null;
   }
 
+  getExpressedVolume(record: any): number | null {
+    // Handle transformed API data
+    if (record.expressedMilkDetails?.quantity !== undefined) {
+      return record.expressedMilkDetails.quantity;
+    }
+
+    // Handle raw API data
+    if (record.expressed_milk_quantity !== undefined) {
+      return record.expressed_milk_quantity;
+    }
+
+    return null;
+  }
+
+  getFormulaVolume(record: any): number | null {
+    // Handle transformed API data
+    if (record.formulaDetails?.quantity !== undefined) {
+      return record.formulaDetails.quantity;
+    }
+
+    // Handle raw API data
+    if (record.formula_quantity !== undefined) {
+      return record.formula_quantity;
+    }
+
+    return null;
+  }
+
   getBreastSide(record: any): string | null {
     // Handle transformed API data
     if (record.directFeedDetails?.breastSide) {

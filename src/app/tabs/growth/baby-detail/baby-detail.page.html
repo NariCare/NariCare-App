@@ -136,45 +136,74 @@
       
       <div class="records-section">
         <h3 class="section-title">Recent Feed Records</h3>
-        <div class="records-list" *ngIf="growthRecords$ | async as growthRecords; else noFeedRecords">
-          <div *ngFor="let record of growthRecords | slice:0:10" class="record-item feed-record">
-            <div class="record-time">{{ getRecordTime(record) }}</div>
-            <div class="record-date">{{ getRecordDate(record) }}</div>
-            <div class="record-details">
-              <!-- Feed Types Indicator -->
-              <div class="feed-types-indicator">
-                <span *ngFor="let feedType of getFeedTypes(record)" class="feed-type-badge" [class]="'feed-type-' + feedType">
-                  <ion-icon name="body" *ngIf="feedType === 'direct'"></ion-icon>
-                  <ion-icon name="water" *ngIf="feedType === 'expressed'"></ion-icon>
-                  <ion-icon name="nutrition" *ngIf="feedType === 'formula'"></ion-icon>
-                  {{ feedType === 'direct' ? 'Direct' : feedType === 'expressed' ? 'EBM' : 'Formula' }}
-                </span>
-              </div>
-              
-              <!-- Breast Side Indicator (only for direct feeds) -->
-              <div class="breast-side-indicator" *ngIf="getFeedTypes(record).includes('direct') && getBreastSide(record)">
-                <ion-icon name="ellipse" *ngIf="getBreastSide(record) === 'both'"></ion-icon>
-                <ion-icon name="radio-button-on" *ngIf="getBreastSide(record) !== 'both'"></ion-icon>
-                <span>{{ getBreastSide(record) | titlecase }}</span>
-              </div>
-              
-              <!-- Duration Indicator -->
-              <div class="duration-indicator" *ngIf="getFeedDuration(record)">
-                <ion-icon name="time"></ion-icon>
-                <span>{{ getFeedDuration(record) }}min</span>
-              </div>
-              
-              <!-- Pain Level Indicator -->
-              <div class="pain-indicator" *ngIf="getFeedPainLevel(record) !== null">
-                <span class="pain-level">{{ getFeedPainLevel(record) }}</span>
-                <span class="pain-label">Pain</span>
+        <div class="recent-feeds-list" *ngIf="growthRecords$ | async as growthRecords; else noFeedRecords">
+          <ng-container *ngFor="let record of growthRecords | slice:0:10">
+            
+            <!-- Direct Feed (if exists) -->
+            <div *ngIf="getFeedTypes(record).includes('direct')" class="feed-record-wrapper">
+              <div class="feed-record direct-feed">
+                <div class="feed-time-container">
+                  <div class="feed-time">{{ getRecordTime(record) }}</div>
+                </div>
+                <div class="feed-content">
+                  <div class="feed-main-info">
+                    <div class="feed-icon-label">
+                      <ion-icon name="ellipse" *ngIf="getBreastSide(record) === 'both'"></ion-icon>
+                      <ion-icon name="radio-button-on" *ngIf="getBreastSide(record) !== 'both'"></ion-icon>
+                      <span class="feed-type">{{ getBreastSide(record) | titlecase }}</span>
+                    </div>
+                    <div class="feed-metric" *ngIf="getFeedPainLevel(record) !== null">
+                      <span class="pain-value">{{ getFeedPainLevel(record) }}/10</span>
+                    </div>
+                  </div>
+                  <div class="feed-date">{{ getRecordDate(record) }}</div>
+                </div>
               </div>
             </div>
-            <div class="record-notes" *ngIf="record.notes">
-              <span class="notes-emoji">📝</span>
-              <span class="notes-label">Notes</span>
+
+            <!-- Expressed Milk Feed (if exists) -->
+            <div *ngIf="getFeedTypes(record).includes('expressed')" class="feed-record-wrapper">
+              <div class="feed-record expressed-feed">
+                <div class="feed-time-container">
+                  <div class="feed-time">{{ getRecordTime(record) }}</div>
+                </div>
+                <div class="feed-content">
+                  <div class="feed-main-info">
+                    <div class="feed-icon-label">
+                      <ion-icon name="water"></ion-icon>
+                      <span class="feed-type">Expressed Milk</span>
+                    </div>
+                    <div class="feed-metric">
+                      <span class="volume-value">{{ getExpressedVolume(record) || 0 }}ml</span>
+                    </div>
+                  </div>
+                  <div class="feed-date">{{ getRecordDate(record) }}</div>
+                </div>
+              </div>
             </div>
-          </div>
+
+            <!-- Formula Feed (if exists) -->
+            <div *ngIf="getFeedTypes(record).includes('formula')" class="feed-record-wrapper">
+              <div class="feed-record formula-feed">
+                <div class="feed-time-container">
+                  <div class="feed-time">{{ getRecordTime(record) }}</div>
+                </div>
+                <div class="feed-content">
+                  <div class="feed-main-info">
+                    <div class="feed-icon-label">
+                      <ion-icon name="nutrition"></ion-icon>
+                      <span class="feed-type">Formula</span>
+                    </div>
+                    <div class="feed-metric">
+                      <span class="volume-value">{{ getFormulaVolume(record) || 0 }}ml</span>
+                    </div>
+                  </div>
+                  <div class="feed-date">{{ getRecordDate(record) }}</div>
+                </div>
+              </div>
+            </div>
+
+          </ng-container>
         </div>
 
         <ng-template #noFeedRecords>
