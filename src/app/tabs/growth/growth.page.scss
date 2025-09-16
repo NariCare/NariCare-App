@@ -697,6 +697,13 @@
         color: #ffffff;
       }
 
+      .section-svg-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        padding: 0.25rem;
+      }
+
       h3 {
         margin: 0;
         font-size: 1.1rem;
@@ -712,16 +719,31 @@
     }
   }
 
-  &.breastfeeding-section .section-title-icon ion-icon {
-    background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+  &.breastfeeding-section .section-title-icon {
+    ion-icon {
+      background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+    }
+    .section-svg-icon {
+      background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+    }
   }
 
-  &.pumping-section .section-title-icon ion-icon {
-    background: linear-gradient(135deg, #26a69a, #4db6ac);
+  &.pumping-section .section-title-icon {
+    ion-icon {
+      background: linear-gradient(135deg, #26a69a, #4db6ac);
+    }
+    .section-svg-icon {
+      background: linear-gradient(135deg, #26a69a, #4db6ac);
+    }
   }
 
-  &.emotion-section .section-title-icon ion-icon {
-    background: linear-gradient(135deg, #8383ed, #8383ed);
+  &.emotion-section .section-title-icon {
+    ion-icon {
+      background: linear-gradient(135deg, #8383ed, #8383ed);
+    }
+    .section-svg-icon {
+      background: linear-gradient(135deg, #8383ed, #8383ed);
+    }
   }
 }
 
