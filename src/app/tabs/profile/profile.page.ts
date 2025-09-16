@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, ToastController, ModalController } from '@ionic/angular';
+import { HttpClient } from '@angular/common/http';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { ApiService, ApiResponse } from '../../services/api.service';
 import { ConsultationService } from '../../services/consultation.service';
 import { NotificationService } from '../../services/notification.service';
 import { TimezoneService } from '../../services/timezone.service';
@@ -13,6 +15,17 @@ import { NotificationListComponent } from '../../components/notification-list/no
 import { NotificationPreferencesComponent } from '../../components/notification-preferences/notification-preferences.component';
 import { BabySelectionModalComponent } from '../../components/baby-selection-modal/baby-selection-modal.component';
 
+// Version Info Interface
+export interface VersionInfo {
+  version: string;
+  isBeta: boolean;
+  buildNumber: number;
+  releaseDate: string;
+  minSupportedVersion: string;
+  forceUpdate: boolean;
+  updateMessage: string;
+}
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.page.html',
@@ -23,11 +36,14 @@ export class ProfilePage implements OnInit {
   upcomingConsultations: Consultation[] = [];
   experts: Expert[] = [];
   unreadNotificationCount = 0;
+  versionInfo: VersionInfo | null = null;
 
   profileSections: any[] = [];
 
   constructor(
     private backendAuthService: BackendAuthService,
+    private apiService: ApiService,
+    private http: HttpClient,
     private router: Router,
     private alertController: AlertController,
     private toastController: ToastController,
@@ -48,6 +64,7 @@ export class ProfilePage implements OnInit {
     });
     
     this.loadExperts();
+    this.loadVersionInfo();
   }
 
   private initializeNotifications() {
@@ -144,6 +161,125 @@ export class ProfilePage implements OnInit {
     this.consultationService.getExperts().subscribe(experts => {
       this.experts = experts;
     });
+  }
+
+  private loadVersionInfo() {
+    // First, try to get cached version from localStorage
+    const cachedVersionInfo = localStorage.getItem('naricare_version_info');
+    const cachedVersion = cachedVersionInfo ? JSON.parse(cachedVersionInfo) : null;
+
+    // Set initial version (cached or fallback)
+    this.versionInfo = cachedVersion || this.getFallbackVersionInfo();
+
+    // Try to fetch latest version from API
+    const headers = (this.apiService as any).getAuthHeaders();
+    const baseUrl = (this.apiService as any).baseUrl;
+    
+    this.http.get<ApiResponse<VersionInfo>>(`${baseUrl}/version`, {
+      headers
+    }).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          const serverVersionInfo = response.data;
+          
+          // Check if version has changed
+          const currentStoredVersion = localStorage.getItem('naricare_current_version');
+          if (currentStoredVersion && currentStoredVersion !== serverVersionInfo.version) {
+            // Version changed - check if force update is required
+            if (serverVersionInfo.forceUpdate) {
+              this.promptForAppUpdate(serverVersionInfo);
+            } else {
+              // Optional update available
+              this.showUpdateAvailableNotification(serverVersionInfo);
+            }
+          }
+
+          // Update current version and cache the version info
+          this.versionInfo = serverVersionInfo;
+          localStorage.setItem('naricare_version_info', JSON.stringify(serverVersionInfo));
+          localStorage.setItem('naricare_current_version', serverVersionInfo.version);
+        }
+      },
+      error: (error) => {
+        console.log('Could not load version info from API, using cached/fallback data:', error);
+        // Keep using cached or fallback version
+        if (!cachedVersion) {
+          // If no cached version, store the fallback
+          localStorage.setItem('naricare_version_info', JSON.stringify(this.versionInfo));
+          localStorage.setItem('naricare_current_version', this.versionInfo!.version);
+        }
+      }
+    });
+  }
+
+  private getFallbackVersionInfo(): VersionInfo {
+    return {
+      version: '1.0.0',
+      isBeta: true,
+      buildNumber: 1,
+      releaseDate: '2025-01-16',
+      minSupportedVersion: '1.0.0',
+      forceUpdate: false,
+      updateMessage: 'Claude Edition - Made with ❤️ for mothers everywhere'
+    };
+  }
+
+  private async promptForAppUpdate(versionInfo: VersionInfo) {
+    const alert = await this.alertController.create({
+      header: 'App Update Required',
+      message: `A new version (v${versionInfo.version}) is available and required. ${versionInfo.updateMessage || 'Please update your app to continue.'}`,
+      buttons: [
+        {
+          text: 'Update Now',
+          role: 'confirm',
+          handler: () => {
+            // Redirect to app store or refresh for PWA
+            if (this.isPWA()) {
+              window.location.reload();
+            } else {
+              // For native apps, redirect to app store
+              window.open('https://play.google.com/store/apps/details?id=com.naricare.app', '_system');
+            }
+          }
+        }
+      ],
+      backdropDismiss: false
+    });
+
+    await alert.present();
+  }
+
+  private async showUpdateAvailableNotification(versionInfo: VersionInfo) {
+    const toast = await this.toastController.create({
+      message: `New version v${versionInfo.version} available! ${versionInfo.updateMessage || 'Update when convenient.'}`,
+      duration: 5000,
+      position: 'top',
+      color: 'primary',
+      buttons: [
+        {
+          text: 'Update',
+          handler: () => {
+            if (this.isPWA()) {
+              window.location.reload();
+            } else {
+              window.open('https://play.google.com/store/apps/details?id=com.naricare.app', '_system');
+            }
+          }
+        },
+        {
+          text: 'Later',
+          role: 'cancel'
+        }
+      ]
+    });
+
+    await toast.present();
+  }
+
+  private isPWA(): boolean {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           (window.navigator as any).standalone === true ||
+           document.referrer.includes('android-app://');
   }
 
   handleAction(action: string, item?: any) {

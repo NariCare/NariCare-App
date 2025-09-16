@@ -217,6 +217,66 @@
     margin: 0.25rem 0;
     font-size: 0.8rem;
   }
+
+  .version-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+
+    .version-text {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .beta-badge {
+      background: #8383ed;
+      color: #ffffff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.15rem 0.4rem;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .build-info,
+    .release-date {
+      width: 100%;
+      margin-top: 0.25rem;
+
+      small {
+        font-size: 0.7rem;
+        color: #94a3b8;
+      }
+    }
+  }
+
+  .update-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+
+    ion-icon {
+      color: #0ea5e9;
+      font-size: 1rem;
+    }
+
+    small {
+      color: #0c4a6e;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+  }
 }
 
 .consultations-section {

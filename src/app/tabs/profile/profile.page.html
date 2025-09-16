@@ -98,7 +98,28 @@
 
     <!-- App Info -->
     <div class="app-info">
-      <p>NariCare v1.0.0</p>
+      <div class="version-info" *ngIf="versionInfo">
+        <span class="version-text">
+          V{{ versionInfo.version }} (Claude-Powered)
+        </span>
+        <span class="beta-badge" *ngIf="versionInfo.isBeta">Beta</span>
+        <div class="build-info" *ngIf="versionInfo.buildNumber">
+          <small>Build {{ versionInfo.buildNumber }}</small>
+        </div>
+        <!-- <div class="release-date" *ngIf="versionInfo.releaseDate">
+          <small>Released: {{ versionInfo.releaseDate | date:'MMM dd, yyyy' }}</small>
+        </div> -->
+      </div>
+      <div class="version-info" *ngIf="!versionInfo">
+        <span class="version-text">V1.0.0 (Claude-Powered)</span>
+      </div>
+      
+      <div class="update-message" *ngIf="versionInfo?.updateMessage">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <small>{{ versionInfo.updateMessage }}</small>
+      </div>
+      
+      <p>Made with ❤️ for mothers everywhere</p>
       <p>© 2025 NariCare. All rights reserved.</p>
     </div>
 
