@@ -568,7 +568,7 @@
     
     .message-input-container.fixed-bottom {
       padding: 0.75rem 1rem; /* Reduced padding */
-      padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+      padding-bottom: 4px; // calc(0.75rem + env(safe-area-inset-bottom));
     }
   }
 }
@@ -1337,9 +1337,9 @@
 }
 
 .message-input-container {
-  background: #ffffff;
-  border-top: 1px solid #f1f5f9;
-  padding: 1rem;
+  // background: #ffffff;
+  // border-top: 1px solid #f1f5f9;
+  padding: 5px;
   
   &.fixed-bottom {
     position: fixed;
@@ -1347,8 +1347,8 @@
     left: 0;
     right: 0;
     z-index: 800;
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    padding-bottom: 4px; // calc(1rem + env(safe-area-inset-bottom));
+    // box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
     
     // Better mobile keyboard handling
     @supports (height: 100dvh) {
@@ -1362,9 +1362,7 @@
   align-items: flex-end;
   background: #f8fafc;
   border-radius: 24px;
-  padding: 0.5rem;
-  border: 1px solid #e2e8f0;
-  gap: 0.5rem;
+  padding: 5px;
 }
 
 .message-textarea {
@@ -1372,9 +1370,9 @@
   --background: transparent;
   --color: #2d3748;
   --placeholder-color: #94a3b8;
-  --padding-start: 1rem;
+  // --padding-start: 1rem;
   --padding-end: 0.5rem;
-  --padding-top: 0.5rem;
+  --padding-top: 0rem;
   --padding-bottom: 0.5rem;
   font-size: 0.9rem;
   max-height: 120px;
