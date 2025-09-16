@@ -198,8 +198,7 @@
                     <div class="feed-content">
                       <div class="feed-main-info">
                         <div class="feed-icon-label">
-                          <ion-icon name="ellipse" *ngIf="record.directFeedDetails.breastSide === 'both'"></ion-icon>
-                          <ion-icon name="radio-button-on" *ngIf="record.directFeedDetails.breastSide !== 'both'"></ion-icon>
+                          <img src="assets/Fed directly.svg" alt="Direct Feed" class="feed-svg-icon">
                           <span class="feed-type">{{ record.directFeedDetails.breastSide | titlecase }}</span>
                         </div>
                         <div class="feed-metric">
@@ -218,7 +217,7 @@
                     <div class="feed-content">
                       <div class="feed-main-info">
                         <div class="feed-icon-label">
-                          <ion-icon name="water"></ion-icon>
+                          <img src="assets/Pump.svg" alt="Expressed Milk" class="feed-svg-icon">
                           <span class="feed-type">Expressed Milk</span>
                         </div>
                         <div class="feed-metric">
@@ -237,7 +236,7 @@
                     <div class="feed-content">
                       <div class="feed-main-info">
                         <div class="feed-icon-label">
-                          <ion-icon name="nutrition"></ion-icon>
+                          <img src="assets/Formula.svg" alt="Formula" class="feed-svg-icon">
                           <span class="feed-type">Formula</span>
                         </div>
                         <div class="feed-metric">

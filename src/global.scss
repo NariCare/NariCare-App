@@ -743,6 +743,12 @@ ion-button.preset-button {
   font-size: 1rem;
 }
 
+.feed-icon-label .feed-svg-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
 .feed-icon-label .feed-type {
   font-size: 0.9rem;
   font-weight: 600;
