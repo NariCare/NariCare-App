@@ -201,6 +201,9 @@ export class ConsultationBookingModalComponent implements OnInit {
     
     // Load available time slots for the selected expert
     this.loadAvailableTimeSlots();
+    
+    // Automatically proceed to next step
+    this.nextStep();
   }
   
   private loadAvailableTimeSlots() {

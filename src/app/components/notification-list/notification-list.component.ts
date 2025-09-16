@@ -40,9 +40,7 @@ export class NotificationListComponent implements OnInit, OnDestroy {
     this.notificationService.notifications$
       .pipe(takeUntil(this.destroy$))
       .subscribe(notifications => {
-        if (this.currentPage === 1) {
-          this.notifications = notifications;
-        }
+        this.notifications = notifications;
       });
   }
 
@@ -53,12 +51,16 @@ export class NotificationListComponent implements OnInit, OnDestroy {
     this.notificationService.loadNotifications({
       page: this.currentPage,
       limit: this.pageSize
+    }).subscribe({
+      next: (result) => {
+        this.hasMoreNotifications = result.hasMore;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Failed to load notifications:', error);
+        this.isLoading = false;
+      }
     });
-
-    // The subscription will handle updating the notifications array
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 1000);
   }
 
   async refreshNotifications(event?: any) {
@@ -68,40 +70,58 @@ export class NotificationListComponent implements OnInit, OnDestroy {
 
     this.notificationService.loadNotifications({
       page: 1,
-      limit: this.pageSize
-    });
-
-    setTimeout(() => {
-      this.isRefreshing = false;
-      if (event) {
-        event.target.complete();
+      limit: this.pageSize,
+      append: false
+    }).subscribe({
+      next: (result) => {
+        this.hasMoreNotifications = result.hasMore;
+        this.isRefreshing = false;
+        if (event) {
+          event.target.complete();
+        }
+      },
+      error: (error) => {
+        console.error('Failed to refresh notifications:', error);
+        this.isRefreshing = false;
+        if (event) {
+          event.target.complete();
+        }
       }
-    }, 1000);
+    });
   }
 
   loadMoreNotifications(event: any) {
-    if (!this.hasMoreNotifications) {
+    if (!this.hasMoreNotifications || this.isLoading) {
       event.target.complete();
       return;
     }
 
+    this.isLoading = true;
     this.currentPage++;
     
     // Load more notifications and append to existing list
     this.notificationService.loadNotifications({
       page: this.currentPage,
-      limit: this.pageSize
-    });
-
-    // Simulate loading time
-    setTimeout(() => {
-      // In a real implementation, you'd check if there are more notifications
-      // based on the response from the backend
-      if (this.notifications.length >= 100) { // Example limit
-        this.hasMoreNotifications = false;
+      limit: this.pageSize,
+      append: true
+    }).subscribe({
+      next: (result) => {
+        this.hasMoreNotifications = result.hasMore;
+        this.isLoading = false;
+        event.target.complete();
+        
+        // If no new notifications were loaded, show a message
+        if (result.newCount === 0) {
+          console.log('No more notifications to load');
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load more notifications:', error);
+        this.isLoading = false;
+        this.currentPage--; // Reset page on error
+        event.target.complete();
       }
-      event.target.complete();
-    }, 1000);
+    });
   }
 
   getNotificationIcon(type: string): string {

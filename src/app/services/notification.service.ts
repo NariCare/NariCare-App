@@ -34,14 +34,14 @@ export class NotificationService {
       if (notification) {
         this.currentMessage.next(notification);
         // Refresh notifications list when new notification is received
-        this.loadNotifications();
+        this.loadNotifications().subscribe();
       }
     });
 
     // Load initial data when user is authenticated
     this.authService.currentUser$.subscribe(user => {
       if (user) {
-        this.loadNotifications();
+        this.loadNotifications().subscribe();
         this.loadPreferences();
       } else {
         // Clear data when user logs out
@@ -117,19 +117,52 @@ export class NotificationService {
     limit?: number;
     type?: string;
     sent?: boolean;
-  } = {}): void {
-    this.backendNotificationService.getMyNotifications(options).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.notifications.next(response.data);
-          // Count unread notifications (assuming is_sent=true means it was delivered)
-          const unread = response.data.filter(n => n.is_sent && !n.sent_at).length;
-          this.unreadCount.next(unread);
+    append?: boolean;
+  } = {}): Observable<{ hasMore: boolean; newCount: number }> {
+    return new Observable(observer => {
+      this.backendNotificationService.getMyNotifications(options).subscribe({
+        next: (response) => {
+          if (response.success && response.data) {
+            const currentNotifications = this.notifications.value;
+            const limit = options.limit || 20;
+            let hasMore = response.data.length >= limit;
+            let newCount = 0;
+            
+            if (options.page && options.page > 1 && options.append !== false) {
+              // Append new notifications for pagination
+              const existingIds = new Set(currentNotifications.map(n => n.id));
+              const newNotifications = response.data.filter(n => !existingIds.has(n.id));
+              newCount = newNotifications.length;
+              
+              // If we got fewer new notifications than expected, we've reached the end
+              if (newNotifications.length < limit) {
+                hasMore = false;
+              }
+              
+              this.notifications.next([...currentNotifications, ...newNotifications]);
+            } else {
+              // Replace all notifications (for refresh or first load)
+              this.notifications.next(response.data);
+              newCount = response.data.length;
+            }
+            
+            // Count unread notifications (assuming is_sent=true means it was delivered)
+            const allNotifications = this.notifications.value;
+            const unread = allNotifications.filter(n => n.is_sent && !n.sent_at).length;
+            this.unreadCount.next(unread);
+            
+            observer.next({ hasMore, newCount });
+            observer.complete();
+          } else {
+            observer.next({ hasMore: false, newCount: 0 });
+            observer.complete();
+          }
+        },
+        error: (error) => {
+          console.error('Failed to load notifications:', error);
+          observer.error(error);
         }
-      },
-      error: (error) => {
-        console.error('Failed to load notifications:', error);
-      }
+      });
     });
   }
 
