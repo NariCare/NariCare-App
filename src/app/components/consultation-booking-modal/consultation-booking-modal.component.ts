@@ -246,9 +246,12 @@ export class ConsultationBookingModalComponent implements OnInit {
         const endTime = slot.end_time || slot.endTime;
         
         if (startTime && endTime) {
-          // Generate 30-minute slots within the available range
+          // Generate 45-minute slots within the available range
           const slots = this.generateTimeSlotsInRange(startTime, endTime);
-          timeSlots.push(...slots);
+          
+          // Check if this is a single slot in a 1-hour range
+          const simplifiedSlots = this.createSimplifiedTimeSlots(slots, startTime, endTime);
+          timeSlots.push(...simplifiedSlots);
         }
       }
     });
@@ -268,28 +271,107 @@ export class ConsultationBookingModalComponent implements OnInit {
     const endDate = new Date();
     endDate.setHours(endHour, endMinute, 0, 0);
     
-    // Generate 30-minute slots
+    // Generate 45-minute slots
     const currentDate = new Date(startDate);
     while (currentDate < endDate) {
-      const slotStart = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
-      currentDate.setMinutes(currentDate.getMinutes() + 30);
+      const slotStartTime = new Date(currentDate);
+      currentDate.setMinutes(currentDate.getMinutes() + 45);
       
-      // Only add if there's room for a 30-minute session
+      // Only add if there's room for a 45-minute session
       if (currentDate <= endDate) {
-        const slotEnd = `${currentDate.getHours().toString().padStart(2, '0')}:${currentDate.getMinutes().toString().padStart(2, '0')}`;
-        slots.push(`${slotStart} - ${slotEnd}`);
+        const startFormatted = this.formatTimeTo12Hour(slotStartTime);
+        const endFormatted = this.formatTimeTo12Hour(currentDate);
+        slots.push(`${startFormatted} - ${endFormatted}`);
       }
     }
     
     return slots;
   }
+
+  private formatTimeTo12Hour(date: Date): string {
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    
+    const minutesStr = minutes.toString().padStart(2, '0');
+    return `${hours}:${minutesStr} ${ampm}`;
+  }
+
+  private parseTimeString(timeString: string): { hours: number, minutes: number } {
+    // Handle both "H:mm AM/PM" and "HH:mm" formats
+    if (timeString.includes('AM') || timeString.includes('PM')) {
+      const [time, period] = timeString.split(' ');
+      const [hourStr, minuteStr] = time.split(':');
+      let hours = parseInt(hourStr);
+      const minutes = parseInt(minuteStr);
+      
+      if (period === 'PM' && hours !== 12) {
+        hours += 12;
+      } else if (period === 'AM' && hours === 12) {
+        hours = 0;
+      }
+      
+      return { hours, minutes };
+    } else {
+      // 24-hour format
+      const [hourStr, minuteStr] = timeString.split(':');
+      return { hours: parseInt(hourStr), minutes: parseInt(minuteStr) };
+    }
+  }
+
+  private createSimplifiedTimeSlots(slots: string[], startTime: string, endTime: string): string[] {
+    if (slots.length === 0) return [];
+    
+    // Calculate the duration of the availability window
+    const start = this.parseTime24Hour(startTime);
+    const end = this.parseTime24Hour(endTime);
+    const durationInMinutes = this.getTimeDifferenceInMinutes(start, end);
+    
+    // If the availability window is exactly 1 hour (60 minutes) and there's only one slot
+    if (durationInMinutes === 60 && slots.length === 1) {
+      // Extract the start time from the slot and create a simplified label
+      const startTimeOnly = slots[0].split(' - ')[0];
+      return [startTimeOnly]; // Just show "10:00 AM" instead of "10:00 AM - 10:45 AM"
+    }
+    
+    // For ranges longer than 1 hour or multiple slots, return the full range format
+    return slots;
+  }
+
+  private parseTime24Hour(timeString: string): { hours: number, minutes: number } {
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return { hours, minutes };
+  }
+
+  private getTimeDifferenceInMinutes(start: { hours: number, minutes: number }, end: { hours: number, minutes: number }): number {
+    const startMinutes = start.hours * 60 + start.minutes;
+    const endMinutes = end.hours * 60 + end.minutes;
+    return endMinutes - startMinutes;
+  }
+
+  private extractStartTime(timeSlot: string): string {
+    // Handle both formats: "10:00 AM - 10:45 AM" and "10:00 AM"
+    if (timeSlot.includes(' - ')) {
+      return timeSlot.split(' - ')[0];
+    }
+    return timeSlot;
+  }
   
   private getDefaultTimeSlots(): string[] {
     // Return default time slots as fallback
-    // Using the LC's typical schedule: 12:00 PM - 4:00 PM
+    // Mix of full range and simplified single-hour slots
     return [
-      '12:00 - 12:30', '12:30 - 13:00', '13:00 - 13:30', '13:30 - 14:00',
-      '14:00 - 14:30', '14:30 - 15:00', '15:00 - 15:30', '15:30 - 16:00'
+      '9:00 AM',              // Simplified for single-hour slot
+      '10:00 AM - 10:45 AM',  // Full range for longer availability
+      '11:00 AM',             // Simplified for single-hour slot
+      '12:00 PM - 12:45 PM',  // Full range
+      '1:00 PM',              // Simplified for single-hour slot
+      '2:00 PM - 2:45 PM',    // Full range
+      '3:00 PM',              // Simplified for single-hour slot
+      '4:00 PM - 4:45 PM'     // Full range
     ];
   }
 
@@ -342,10 +424,10 @@ export class ConsultationBookingModalComponent implements OnInit {
         
         // Combine date and time in user's local timezone
         const scheduledDateTime = new Date(formValue.scheduledDate);
-        // Extract start time from "HH:mm - HH:mm" format
-        const startTime = formValue.scheduledTime.split(' - ')[0];
-        const [hours, minutes] = startTime.split(':');
-        scheduledDateTime.setHours(parseInt(hours), parseInt(minutes));
+        // Extract start time from either "H:mm AM/PM - H:mm AM/PM" or just "H:mm AM/PM" format
+        const startTime = this.extractStartTime(formValue.scheduledTime);
+        const { hours, minutes } = this.parseTimeString(startTime);
+        scheduledDateTime.setHours(hours, minutes);
         
         // Convert to UTC for storage
         const utcDateTime = this.timezoneService.convertToUTC(scheduledDateTime.toISOString(), userTimezone);
@@ -403,7 +485,7 @@ export class ConsultationBookingModalComponent implements OnInit {
             babyIds: formValue.babyIds, // Add baby IDs for legacy compatibility
             type: 'scheduled',
             scheduledAt: utcDateTime,
-            duration: 30,
+            duration: 45,
             followUpRequired: false,
             reminderSent: false
           };

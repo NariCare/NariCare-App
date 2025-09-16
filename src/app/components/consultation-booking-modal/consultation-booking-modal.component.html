@@ -58,8 +58,7 @@
           <div 
             *ngFor="let expert of experts$ | async"
             class="expert-card"
-            [class.selected]="selectedExpert?.id === expert.id"
-            (click)="selectExpert(expert)">
+            [class.selected]="selectedExpert?.id === expert.id">
             
             <div class="expert-avatar">
               <img [src]="getExpertImage(expert)" [alt]="getExpertName(expert)" *ngIf="getExpertImage(expert)">
@@ -96,7 +95,20 @@
               </div>
             </div>
             
-            <ion-icon name="checkmark-circle" class="selected-icon" *ngIf="selectedExpert?.id === expert.id"></ion-icon>
+            <div class="expert-actions">
+              <ion-button 
+                fill="solid" 
+                size="default"
+                (click)="selectExpert(expert)"
+                [color]="selectedExpert?.id === expert.id ? 'success' : 'primary'"
+                class="select-button">
+                <ion-icon 
+                  [name]="selectedExpert?.id === expert.id ? 'checkmark' : 'arrow-forward'" 
+                  slot="start">
+                </ion-icon>
+                {{ selectedExpert?.id === expert.id ? 'Selected' : 'Select' }}
+              </ion-button>
+            </div>
           </div>
         </div>
 
@@ -191,7 +203,7 @@
             <p><strong>Expert:</strong> {{ getExpertName(selectedExpert) }}</p>
             <p><strong>Date:</strong> {{ bookingForm.get('scheduledDate')?.value | date:'fullDate' }}</p>
             <p><strong>Time:</strong> {{ bookingForm.get('scheduledTime')?.value }}</p>
-            <p><strong>Duration:</strong> 30 minutes</p>
+            <p><strong>Duration:</strong> 45 minutes</p>
             <p *ngIf="selectedBabies.length > 0"><strong>Babies:</strong> 
               <span *ngFor="let baby of selectedBabies; let last = last">
                 {{ baby.name }} ({{ getBabyAge(baby) }})<span *ngIf="!last">, </span>
