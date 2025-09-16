@@ -698,8 +698,8 @@
       }
 
       .section-svg-icon {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
         border-radius: 8px;
         padding: 0.25rem;
       }
@@ -721,28 +721,28 @@
 
   &.breastfeeding-section .section-title-icon {
     ion-icon {
-      background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+      background: none;
     }
     .section-svg-icon {
-      background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+      background: none;
     }
   }
 
   &.pumping-section .section-title-icon {
     ion-icon {
-      background: linear-gradient(135deg, #26a69a, #4db6ac);
+      background: none;
     }
     .section-svg-icon {
-      background: linear-gradient(135deg, #26a69a, #4db6ac);
+      background: none;
     }
   }
 
   &.emotion-section .section-title-icon {
     ion-icon {
-      background: linear-gradient(135deg, #8383ed, #8383ed);
+      background: none;
     }
     .section-svg-icon {
-      background: linear-gradient(135deg, #8383ed, #8383ed);
+      background: none;
     }
   }
 }
