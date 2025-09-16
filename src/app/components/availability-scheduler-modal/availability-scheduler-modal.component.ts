@@ -70,6 +70,23 @@ export class AvailabilitySchedulerModalComponent implements OnInit {
     { value: 'PM', label: 'PM' }
   ];
 
+  quickTimePresets = [
+    { start: '08:00', startPeriod: 'AM', end: '09:00', endPeriod: 'AM', label: '8:00 AM - 9:00 AM' },
+    { start: '09:00', startPeriod: 'AM', end: '10:00', endPeriod: 'AM', label: '9:00 AM - 10:00 AM' },
+    { start: '10:00', startPeriod: 'AM', end: '11:00', endPeriod: 'AM', label: '10:00 AM - 11:00 AM' },
+    { start: '11:00', startPeriod: 'AM', end: '12:00', endPeriod: 'PM', label: '11:00 AM - 12:00 PM' },
+    { start: '12:00', startPeriod: 'PM', end: '01:00', endPeriod: 'PM', label: '12:00 PM - 1:00 PM' },
+    { start: '01:00', startPeriod: 'PM', end: '02:00', endPeriod: 'PM', label: '1:00 PM - 2:00 PM' },
+    { start: '02:00', startPeriod: 'PM', end: '03:00', endPeriod: 'PM', label: '2:00 PM - 3:00 PM' },
+    { start: '03:00', startPeriod: 'PM', end: '04:00', endPeriod: 'PM', label: '3:00 PM - 4:00 PM' },
+    { start: '04:00', startPeriod: 'PM', end: '05:00', endPeriod: 'PM', label: '4:00 PM - 5:00 PM' },
+    { start: '05:00', startPeriod: 'PM', end: '06:00', endPeriod: 'PM', label: '5:00 PM - 6:00 PM' },
+    { start: '06:00', startPeriod: 'PM', end: '07:00', endPeriod: 'PM', label: '6:00 PM - 7:00 PM' },
+    { start: '07:00', startPeriod: 'PM', end: '08:00', endPeriod: 'PM', label: '7:00 PM - 8:00 PM' },
+    { start: '08:00', startPeriod: 'PM', end: '09:00', endPeriod: 'PM', label: '8:00 PM - 9:00 PM' },
+    { start: '09:00', startPeriod: 'PM', end: '10:00', endPeriod: 'PM', label: '9:00 PM - 10:00 PM' }
+  ];
+
   constructor(
     private modalController: ModalController,
     private apiService: ApiService,
@@ -184,6 +201,18 @@ export class AvailabilitySchedulerModalComponent implements OnInit {
       end: '05:00',
       startPeriod: 'AM',
       endPeriod: 'PM',
+      enabled: true
+    });
+    day.enabled = true;
+  }
+
+  addQuickTimeSlot(day: DayAvailability, preset: any) {
+    // Add a preset time slot to the day
+    day.timeSlots.push({
+      start: preset.start,
+      end: preset.end,
+      startPeriod: preset.startPeriod as 'AM' | 'PM',
+      endPeriod: preset.endPeriod as 'AM' | 'PM',
       enabled: true
     });
     day.enabled = true;

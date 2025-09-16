@@ -84,14 +84,47 @@
 
         <!-- Actions -->
         <div class="day-actions">
-          <!-- Add button -->
+          <!-- Quick presets dropdown when user wants to add -->
           <ion-button 
             fill="clear" 
             size="default" 
-            (click)="addTimeSlot(day)"
+            id="preset-trigger-{{dayIndex}}"
             class="add-btn">
             <ion-icon name="add" slot="icon-only"></ion-icon>
           </ion-button>
+          
+          <!-- Popover for quick time presets -->
+          <ion-popover 
+            trigger="preset-trigger-{{dayIndex}}" 
+            trigger-action="click"
+            alignment="center"
+            side="top">
+            <ng-template>
+              <ion-content class="preset-popover">
+                <div class="preset-header">
+                  <h4>Quick Time Slots</h4>
+                </div>
+                <div class="preset-options">
+                  <ion-button 
+                    *ngFor="let preset of quickTimePresets" 
+                    fill="clear" 
+                    size="small"
+                    (click)="addQuickTimeSlot(day, preset)"
+                    class="preset-option">
+                    {{ preset.label }}
+                  </ion-button>
+                  <ion-button 
+                    fill="outline" 
+                    size="small"
+                    (click)="addTimeSlot(day)"
+                    class="custom-option">
+                    <ion-icon name="settings" slot="start"></ion-icon>
+                    Custom Time
+                  </ion-button>
+                </div>
+              </ion-content>
+            </ng-template>
+          </ion-popover>
         </div>
       </div>
     </div>
