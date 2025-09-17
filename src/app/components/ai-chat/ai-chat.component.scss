@@ -447,8 +447,8 @@
     right: 0;
     z-index: 800;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 8px));
-    border-top: 1px solid #f1f5f9;
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+    // border-top: 1px solid #f1f5f9;
+    // box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
     will-change: transform;
     
     @supports (height: 100dvh) {
@@ -493,6 +493,12 @@
     border: none !important;
     box-shadow: none !important;
   }
+  
+  // Attempt to hide iOS keyboard accessory bar
+  textarea {
+    -webkit-appearance: none;
+    appearance: none;
+  }
 }
 
 .attachment-button {
@@ -521,8 +527,7 @@
 }
 
 .send-button {
-  --color: #ffffff;
-  --background: #8383ed;
+  --color: #8383ed;
   --padding-start: 8px;
   --padding-end: 8px;
   --border-radius: 50%;
@@ -533,7 +538,6 @@
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    --background: #7070d9;
     transform: scale(1.05);
   }
 
@@ -818,7 +822,7 @@
 
   .message-input {
     gap: 0.5rem;
-    padding: 0.5rem;
+    padding: 0px;
     min-height: 50px;
   }
 

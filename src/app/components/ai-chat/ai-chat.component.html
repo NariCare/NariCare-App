@@ -234,12 +234,18 @@
       </ion-button>
       <ion-textarea
         [(ngModel)]="messageText"
-        placeholder="Ask about breastfeeding, baby care, or any concerns..."
+        placeholder="How can I support you?"
         rows="1"
         autoGrow="true"
         maxlength="500"
         (keydown)="onKeyDown($event)"
-        class="message-textarea">
+        class="message-textarea"
+        enterkeyhint="send"
+        autocomplete="off"
+        autocorrect="on"
+        autocapitalize="sentences"
+        spellcheck="true"
+        inputmode="text">
       </ion-textarea>
       <ion-button 
         fill="clear" 
