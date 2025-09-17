@@ -199,7 +199,8 @@ export class PumpingLogModalComponent implements OnInit {
 
     if (this.timerStartTime) {
       const endTime = this.getCurrentTime();
-      const durationMinutes = Math.floor(this.elapsedTime / 60);
+      // Round to nearest minute, but ensure minimum of 1 minute for very short sessions
+      const durationMinutes = Math.max(1, Math.round(this.elapsedTime / 60));
       
       this.pumpingForm.patchValue({ 
         endTime,
@@ -241,7 +242,7 @@ export class PumpingLogModalComponent implements OnInit {
             recordTime: formValue.time,
             pumpingSide: this.selectedPumpingSide,
             totalOutput: formValue.totalOutput,
-            durationMinutes: formValue.duration || undefined,
+            durationMinutes: formValue.duration ?? undefined,
             startTime: timeCalculation.startTime,
             endTime: timeCalculation.endTime,
             notes: formValue.notes || undefined,
@@ -258,7 +259,7 @@ export class PumpingLogModalComponent implements OnInit {
             time: formValue.time,
             pumpingSide: this.selectedPumpingSide,
             totalOutput: formValue.totalOutput,
-            duration: formValue.duration || undefined,
+            duration: formValue.duration ?? undefined,
             startTime: formValue.startTime || undefined,
             endTime: formValue.endTime || undefined,
             notes: formValue.notes,
