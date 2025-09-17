@@ -159,12 +159,11 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private adjustInputForKeyboard(keyboardHeight: number) {
     const inputContainer = this.messageInputContainer?.nativeElement;
     if (inputContainer) {
-      // Use a conservative offset - just enough to clear the keyboard
-      const safeOffset = Math.min(keyboardHeight - 60, 240); // Reduced max to 240px
-      
-      // Move input above keyboard with safe offset
-      inputContainer.style.transform = `translateY(-${safeOffset}px)`;
-      inputContainer.style.transition = 'transform 0.25s ease-out';
+      // Simply adjust the bottom position to account for keyboard
+      // The element already has fixed positioning from CSS
+      const keyboardOffset = Math.max(keyboardHeight * 0.8, 260); // Keep input well above keyboard
+      inputContainer.style.bottom = `${keyboardOffset}px`;
+      inputContainer.style.transition = 'bottom 0.25s ease-out';
     }
 
     // Hide expert banner when keyboard is open to prevent overlap
@@ -192,9 +191,9 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private resetInputPosition() {
     const inputContainer = this.messageInputContainer?.nativeElement;
     if (inputContainer) {
-      // Force reset to original position
-      inputContainer.style.transform = 'translateY(0px)';
-      inputContainer.style.transition = 'transform 0.25s ease-out';
+      // Reset bottom position to original CSS value
+      inputContainer.style.bottom = '0';
+      inputContainer.style.transition = 'bottom 0.25s ease-out';
     }
 
     if (this.messagesContainer) {
