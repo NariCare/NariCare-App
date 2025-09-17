@@ -56,7 +56,7 @@ export class PumpingLogModalComponent implements OnInit {
     this.pumpingForm = this.formBuilder.group({
       time: [this.getCurrentTime(), [Validators.required]],
       pumpingSide: ['', [Validators.required]],
-      totalOutput: [0, [Validators.required, Validators.min(1), Validators.max(500)]],
+      totalOutput: [0, [Validators.required, Validators.min(0), Validators.max(500)]],
       duration: [0],
       startTime: [''],
       endTime: [''],
@@ -294,9 +294,10 @@ export class PumpingLogModalComponent implements OnInit {
   }
 
   canSave(): boolean {
+    const totalOutputValue = this.pumpingForm.get('totalOutput')?.value;
     const basicValidation = this.pumpingForm.valid && 
                            !!this.selectedPumpingSide && 
-                           this.pumpingForm.get('totalOutput')?.value > 0;
+                           (totalOutputValue >= 0); // Allow 0ml and above
     
     // For backend users, also check if babies are available
     const isBackendAuth = !!this.backendAuthService.getCurrentUser();
