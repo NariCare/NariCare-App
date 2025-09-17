@@ -408,9 +408,16 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async sendMessage() {
     if (this.messageText.trim()) {
-      await this.chatbotService.sendMessage(this.messageText);
-      this.scrollToBottom();
-      this.messageText = '';
+      const messageToSend = this.messageText.trim();
+      this.messageText = ''; // Clear input immediately
+      
+      try {
+        await this.chatbotService.sendMessage(messageToSend);
+        this.scrollToBottom();
+      } catch (error) {
+        // If there's an error, we could optionally restore the message
+        console.error('Failed to send message:', error);
+      }
     }
   }
 
