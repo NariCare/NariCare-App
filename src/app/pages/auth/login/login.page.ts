@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController, ModalController } from '@ionic/angular';
 import { BackendAuthService } from '../../../services/backend-auth.service';
+import { ApiService } from '../../../services/api.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -16,11 +17,13 @@ export class LoginPage implements OnInit, OnDestroy {
   showPassword = false;
   show2FA = false;
   pendingEmail = '';
+  showBetaTag = false;
   private subscriptions = new Subscription();
 
   constructor(
     private formBuilder: FormBuilder,
     private backendAuthService: BackendAuthService,
+    private apiService: ApiService,
     private router: Router,
     private loadingController: LoadingController,
     private toastController: ToastController,
@@ -49,6 +52,9 @@ export class LoginPage implements OnInit, OnDestroy {
         }
       })
     );
+
+    // Check API version for Beta tag
+    this.checkApiVersion();
   }
 
   private checkAuthenticationStatus() {
@@ -236,6 +242,20 @@ export class LoginPage implements OnInit, OnDestroy {
   private markOTPFormTouched() {
     Object.keys(this.otpForm.controls).forEach(key => {
       this.otpForm.get(key)?.markAsTouched();
+    });
+  }
+
+  private checkApiVersion() {
+    this.apiService.getVersion().subscribe({
+      next: (response) => {
+        if (response.success && response.data?.isBeta) {
+          this.showBetaTag = true;
+        }
+      },
+      error: (error) => {
+        // Silently fail - Beta tag is not critical for login functionality
+        console.log('Could not fetch version info:', error);
+      }
     });
   }
 

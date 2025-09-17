@@ -23,6 +23,7 @@ import { NotificationListComponent } from '../components/notification-list/notif
 import { NotificationPreferencesComponent } from '../components/notification-preferences/notification-preferences.component';
 import { BabySelectionModalComponent } from '../components/baby-selection-modal/baby-selection-modal.component';
 import { BabyEditModalComponent } from '../components/baby-edit-modal/baby-edit-modal.component';
+import { AiChatComponent } from '../components/ai-chat/ai-chat.component';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { BabyEditModalComponent } from '../components/baby-edit-modal/baby-edit-
     NotificationListComponent,
     NotificationPreferencesComponent,
     BabySelectionModalComponent,
-    BabyEditModalComponent
+    BabyEditModalComponent,
+    AiChatComponent
   ],
   imports: [
     CommonModule,
@@ -74,7 +76,8 @@ import { BabyEditModalComponent } from '../components/baby-edit-modal/baby-edit-
     NotificationListComponent,
     NotificationPreferencesComponent,
     BabySelectionModalComponent,
-    BabyEditModalComponent
+    BabyEditModalComponent,
+    AiChatComponent
   ]
 })
 export class SharedModule { }

@@ -11,7 +11,7 @@ export const environment = {
     vapidKey: "BE7j98jUJE3meGBM2cBBxKVYUgGHzA6q3o1Rxj-UGFKiigSZQb4l1KbYy_d6eQQEvjsBQT3IykmwBGUbHUL5qjI" // Replace with actual VAPID key from Firebase Console
   },
   // Development API URL
-  apiUrl: 'http://localhost:3000/api',
+  apiUrl: 'https://beta-api.naricare.com/api',
   
   // Encrypted OpenAI API Key - decrypt using EncryptionService
   encryptedOpenaiApiKey: "PQpfGjUCEwZRRB9XHzA5NBYYJQ9NcSgXbBcHE2RxEC8CGyF2DgISfEdXciZSADoNLCgwDhU1E2xABnJCZWQMCzYtIFgQIAdiAl4mFSYwMAwDDiwScXcXZzJEQW5jIz4BHiwIBhRcWFF8PT9UFDcROy0WTAd7chABak5MTgcMOgMADCckS1tZAhcAIUoLBAA/LFMwZxNuaRRFbGc2FCM/GRkqLX8IRXQ="

@@ -1177,6 +1177,11 @@ export class ApiService {
       .pipe(catchError(this.handleError));
   }
 
+  getVersion(): Observable<ApiResponse<{ version: string; isBeta: boolean; environment: string }>> {
+    return this.http.get<ApiResponse<{ version: string; isBeta: boolean; environment: string }>>(`${this.baseUrl}/version`)
+      .pipe(catchError(this.handleError));
+  }
+
   // ============================================================================
   // PRIVATE HELPER METHODS
   // ============================================================================
