@@ -392,7 +392,7 @@ export class PumpingLogModalComponent implements OnInit {
             durationMinutes: formValue.duration ?? undefined,
             startTime: timeCalculation.startTime,
             endTime: timeCalculation.endTime,
-            notes: formValue.notes || undefined,
+            notes: formValue.notes || '',
             enteredViaVoice: false
           };
 
@@ -409,7 +409,7 @@ export class PumpingLogModalComponent implements OnInit {
             duration: formValue.duration ?? undefined,
             startTime: formValue.startTime || undefined,
             endTime: formValue.endTime || undefined,
-            notes: formValue.notes,
+            notes: formValue.notes || '',
             enteredViaVoice: false
           };
 
