@@ -1419,32 +1419,32 @@ ion-input[type="number"] {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: none;
-  }
-
-  // Dim the content underneath when overlay is active
-  ~ .tracker-cards-container {
-    opacity: 0.8;
-    pointer-events: none;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(2px);
   }
 
   .overlay-content {
     position: relative;
     z-index: 1;
-    max-width: 320px;
-    width: 90%;
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .overlay-card {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.4);
     border-radius: 16px;
     padding: 1.5rem;
     text-align: center;
-    /* box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); */
-    /* border: 2px solid rgba(131, 131, 237, 0.6); */
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
+    // box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    // border: 1px solid rgba(131, 131, 237, 0.3);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    max-width: 320px;
+    margin: 0 1rem;
 
     .overlay-icon {
       font-size: 3rem;

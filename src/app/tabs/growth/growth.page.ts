@@ -130,6 +130,9 @@ export class GrowthPage implements OnInit {
   }
 
   ngOnInit() {
+    // Refresh user profile to ensure latest onboarding status
+    this.refreshUserProfileSafely();
+    
     this.backendAuthService.currentUser$.subscribe(user => {
       this.user = user;
       if (user) {
@@ -1490,5 +1493,17 @@ export class GrowthPage implements OnInit {
       ]
     });
     await alert.present();
+  }
+
+  private async refreshUserProfileSafely() {
+    try {
+      // Only refresh if user is authenticated
+      if (this.backendAuthService.getCurrentUser()) {
+        await this.backendAuthService.refreshUserProfile();
+      }
+    } catch (error) {
+      console.warn('Failed to refresh user profile on growth page:', error);
+      // Continue silently - user data will still be available from local storage/cache
+    }
   }
 }
