@@ -111,13 +111,11 @@ export class KnowledgePage implements OnInit {
       // Set 1: Pink - #FFEDF4 with border #FFCADF
       '#FFEDF4',
       '#FFEDF4',
-      // Set 2: Light Purple - #E3E2FF with border #B0B1FF  
-      '#E3E2FF',
-      '#E3E2FF',
-      // Set 3: Purple - #F6EDFF with border #DCBAFF
-      '#F6EDFF',
-      '#F6EDFF',
-      // Set 4: Yellow - #FFFAED with border #FFE8AD
+      '#FFEDF4',
+      '#FFEDF4',
+      // Set 2: Yellow - #FFFAED with border #FFE8AD
+      '#FFFAED',
+      '#FFFAED',
       '#FFFAED',
       '#FFFAED'
     ];
@@ -139,13 +137,11 @@ export class KnowledgePage implements OnInit {
       // Set 1: Pink border
       '#FFCADF',
       '#FFCADF',
-      // Set 2: Light Purple border
-      '#B0B1FF',
-      '#B0B1FF',
-      // Set 3: Purple border  
-      '#DCBAFF',
-      '#DCBAFF',
-      // Set 4: Yellow border
+      '#FFCADF',
+      '#FFCADF',
+      // Set 2: Yellow border
+      '#FFE8AD',
+      '#FFE8AD',
       '#FFE8AD',
       '#FFE8AD'
     ];
@@ -167,13 +163,11 @@ export class KnowledgePage implements OnInit {
       // Set 1: Pink - slightly darker pink for chip
       { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
       { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
-      // Set 2: Light Purple - darker purple for chip
-      { background: 'rgba(176, 177, 255, 0.8)', color: '#4338CA', border: '1px solid rgba(176, 177, 255, 0.6)' },
-      { background: 'rgba(176, 177, 255, 0.8)', color: '#4338CA', border: '1px solid rgba(176, 177, 255, 0.6)' },
-      // Set 3: Purple - darker purple for chip
-      { background: 'rgba(220, 186, 255, 0.8)', color: '#7C3AED', border: '1px solid rgba(220, 186, 255, 0.6)' },
-      { background: 'rgba(220, 186, 255, 0.8)', color: '#7C3AED', border: '1px solid rgba(220, 186, 255, 0.6)' },
-      // Set 4: Yellow - darker yellow/orange for chip
+      { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
+      { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
+      // Set 2: Yellow - darker yellow/orange for chip
+      { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' },
+      { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' },
       { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' },
       { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' }
     ];
