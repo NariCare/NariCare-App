@@ -70,7 +70,17 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
     // Auto-scroll when new messages arrive
     this.chatbotMessages$.subscribe(messages => {
       if (messages && messages.length > 0) {
+        // Always scroll to bottom for new messages, including typing indicators
         this.scrollToBottom();
+        
+        // If the latest message is a typing indicator, ensure it's visible immediately
+        const latestMessage = messages[messages.length - 1];
+        if (latestMessage?.isTyping) {
+          // Force scroll after a brief delay to ensure DOM is updated
+          setTimeout(() => {
+            this.scrollToBottomImmediate();
+          }, 50);
+        }
       }
     });
 
@@ -424,9 +434,20 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private scrollToBottom() {
     setTimeout(() => {
       if (this.messagesContainer) {
-        this.messagesContainer.nativeElement.scrollTop = this.messagesContainer.nativeElement.scrollHeight;
+        const element = this.messagesContainer.nativeElement;
+        element.scrollTop = element.scrollHeight;
       }
     }, 300);
+  }
+
+  private scrollToBottomImmediate() {
+    if (this.messagesContainer) {
+      const element = this.messagesContainer.nativeElement;
+      element.scrollTop = element.scrollHeight;
+      
+      // Ensure smooth scrolling behavior
+      element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
   }
 
   // Message formatting and utility methods

@@ -326,11 +326,11 @@ export class ChatbotService {
     const currentMessages = this.messagesSubject.value;
     this.messagesSubject.next([...currentMessages, userMessage]);
 
-    // Show typing indicator
+    // Show enhanced typing indicator
     const typingMessage: ChatbotMessageUI = {
       id: 'typing-' + Date.now(),
       conversation_id: currentConversation.id,
-      content: 'Thinking...',
+      content: 'AI is analyzing your question...',
       sender: 'bot',
       created_at: new Date().toISOString(),
       timestamp: new Date(),
@@ -429,13 +429,13 @@ export class ChatbotService {
     const currentMessages = this.messagesSubject.value;
     this.messagesSubject.next([...currentMessages, userMessage]);
 
-    // Show typing indicator only if one doesn't already exist
+    // Show enhanced typing indicator only if one doesn't already exist
     const hasTypingIndicator = this.messagesSubject.value.some(m => m.isTyping);
     if (!hasTypingIndicator) {
       const typingMessage: ChatbotMessageUI = {
         id: 'typing-' + Date.now(),
         conversation_id: '',
-        content: 'Thinking...',
+        content: 'AI is analyzing your question...',
         sender: 'bot',
         created_at: new Date().toISOString(),
         timestamp: new Date(),
@@ -447,30 +447,32 @@ export class ChatbotService {
     try {
       const response = await this.getStructuredAIResponse(content);
       
-      // Remove all typing indicators
-      const messagesWithoutTyping = this.messagesSubject.value.filter(m => !m.isTyping);
-      
-      const botResponse: ChatbotMessageUI = {
-        id: this.generateId(),
-        conversation_id: '',
-        content: response.text,
-        formattedContent: response,
-        sender: 'bot',
-        created_at: new Date().toISOString(),
-        timestamp: new Date(),
-        followUpOptions: this.generateFollowUpOptions(content),
-        isPlaying: false
-      };
+      // Remove all typing indicators with a slight delay for better UX
+      setTimeout(() => {
+        const messagesWithoutTyping = this.messagesSubject.value.filter(m => !m.isTyping);
+        
+        const botResponse: ChatbotMessageUI = {
+          id: this.generateId(),
+          conversation_id: '',
+          content: response.text,
+          formattedContent: response,
+          sender: 'bot',
+          created_at: new Date().toISOString(),
+          timestamp: new Date(),
+          followUpOptions: this.generateFollowUpOptions(content),
+          isPlaying: false
+        };
 
-      this.messagesSubject.next([...messagesWithoutTyping, botResponse]);
-      this.context.previousQueries.push(content);
-      
-      // Auto-speak bot response only if auto-speak is enabled
-      if (this.autoSpeakEnabled) {
-        setTimeout(() => {
-          this.speakMessage(botResponse.id, response.text);
-        }, 800);
-      }
+        this.messagesSubject.next([...messagesWithoutTyping, botResponse]);
+        this.context.previousQueries.push(content);
+        
+        // Auto-speak bot response only if auto-speak is enabled
+        if (this.autoSpeakEnabled) {
+          setTimeout(() => {
+            this.speakMessage(botResponse.id, response.text);
+          }, 800);
+        }
+      }, 800); // Show typing for at least 800ms for better perceived performance
     } catch (error) {
       console.error('Error getting AI response:', error);
       this.handleAIError();
