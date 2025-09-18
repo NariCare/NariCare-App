@@ -92,6 +92,7 @@ export class BackendGrowthTrackingService {
     try {
       const feedData: FeedRecordRequest = {
         babyId: record.babyId,
+        recordDate: record.date ? new Date(record.date).toISOString().split('T')[0] : undefined,
         feedTypes: record.feedTypes || ['direct'],
         directFeedDetails: record.directFeedDetails,
         expressedMilkDetails: record.expressedMilkDetails,

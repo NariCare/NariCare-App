@@ -39,6 +39,12 @@ export class FeedLogModalComponent implements OnInit {
   selectedPainLevel: number | null = null;
   selectedPredefinedNotes: string[] = []; // Track selected predefined notes
   isSubmitting = false; // Track submission state
+  
+  // Date selection
+  selectedDate: Date = new Date();
+  showDatePicker = false;
+  selectedDateOption = 'today';
+  dateOptions: { label: string; value: string }[] = [];
 
   // Options
   feedTypeOptions: FeedTypeOption[] = [
@@ -110,6 +116,7 @@ export class FeedLogModalComponent implements OnInit {
   ) {
     this.feedForm = this.formBuilder.group({
       selectedBaby: ['', [Validators.required]],
+      date: [new Date().toISOString().split('T')[0], [Validators.required]],
       feedTypes: [[], [Validators.required]],
       // Direct feeding fields
       startTime: [this.getCurrentTime()],
@@ -126,6 +133,9 @@ export class FeedLogModalComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Initialize date options
+    this.initializeDateOptions();
+    
     // Try backend auth service first, fallback to legacy auth service
     const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
     
@@ -154,6 +164,142 @@ export class FeedLogModalComponent implements OnInit {
   getCurrentTime(): string {
     const now = new Date();
     return now.toTimeString().slice(0, 5);
+  }
+
+  getCurrentDate(): string {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  }
+
+  getDateLabel(date: Date): string {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dayBefore = new Date(today);
+    dayBefore.setDate(dayBefore.getDate() - 2);
+    
+    if (this.isSameDate(date, today)) {
+      return `Today, ${this.formatDateDisplay(date)}`;
+    } else if (this.isSameDate(date, yesterday)) {
+      return `Yesterday, ${this.formatDateDisplay(date)}`;
+    } else if (this.isSameDate(date, dayBefore)) {
+      return `Day Before, ${this.formatDateDisplay(date)}`;
+    } else {
+      return this.formatDateDisplay(date);
+    }
+  }
+
+  private isSameDate(date1: Date, date2: Date): boolean {
+    return date1.toDateString() === date2.toDateString();
+  }
+
+  private formatDateDisplay(date: Date): string {
+    return date.toLocaleDateString('en-US', { 
+      day: 'numeric', 
+      month: 'short' 
+    });
+  }
+
+  private initializeDateOptions() {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dayBefore = new Date(today);
+    dayBefore.setDate(dayBefore.getDate() - 2);
+    
+    this.dateOptions = [
+      { 
+        label: `Today, ${this.formatDateDisplay(today)}`, 
+        value: 'today' 
+      },
+      { 
+        label: `Yesterday, ${this.formatDateDisplay(yesterday)}`, 
+        value: 'yesterday' 
+      },
+      { 
+        label: `Day Before, ${this.formatDateDisplay(dayBefore)}`, 
+        value: 'dayBefore' 
+      },
+      { 
+        label: 'Other', 
+        value: 'other' 
+      }
+    ];
+  }
+
+  private updateDateOptionsWithCustomDate() {
+    // Find and update the "Other" option to show the selected custom date
+    const otherOptionIndex = this.dateOptions.findIndex(option => option.value === 'other');
+    if (otherOptionIndex !== -1) {
+      this.dateOptions[otherOptionIndex] = {
+        label: this.formatDateDisplay(this.selectedDate),
+        value: 'custom'
+      };
+    }
+  }
+
+  // Date selection methods
+  selectDateOption(option: string) {
+    this.selectedDateOption = option;
+    
+    const today = new Date();
+    let selectedDate: Date;
+    
+    switch (option) {
+      case 'today':
+        selectedDate = new Date(today);
+        break;
+      case 'yesterday':
+        selectedDate = new Date(today);
+        selectedDate.setDate(selectedDate.getDate() - 1);
+        break;
+      case 'dayBefore':
+        selectedDate = new Date(today);
+        selectedDate.setDate(selectedDate.getDate() - 2);
+        break;
+      case 'other':
+        this.showDatePicker = true;
+        // Reset the Other option if it was previously a custom date
+        this.resetOtherOption();
+        return;
+      case 'custom':
+        // If clicking on a custom date option, don't change anything
+        return;
+      default:
+        selectedDate = new Date(today);
+    }
+    
+    this.selectedDate = selectedDate;
+    this.feedForm.patchValue({ 
+      date: selectedDate.toISOString().split('T')[0] 
+    });
+    this.showDatePicker = false;
+  }
+
+  private resetOtherOption() {
+    // Reset the "Other" option back to its original state
+    const customOptionIndex = this.dateOptions.findIndex(option => option.value === 'custom');
+    if (customOptionIndex !== -1) {
+      this.dateOptions[customOptionIndex] = {
+        label: 'Other',
+        value: 'other'
+      };
+    }
+  }
+
+  onDateChange(event: any) {
+    const selectedDateString = event.detail.value;
+    this.selectedDate = new Date(selectedDateString);
+    this.selectedDateOption = 'custom';
+    this.showDatePicker = false;
+    
+    // Update the form with the selected date
+    this.feedForm.patchValue({ 
+      date: selectedDateString.split('T')[0]  // Ensure YYYY-MM-DD format
+    });
+    
+    // Update the "Other" option to show the selected date
+    this.updateDateOptionsWithCustomDate();
   }
 
   private applyPrefilledData() {
@@ -297,7 +443,7 @@ export class FeedLogModalComponent implements OnInit {
         const record: Omit<GrowthRecord, 'id' | 'createdAt' | 'updatedAt'> = {
           babyId: this.selectedBaby.id,
           recordedBy: this.user.uid,
-          date: new Date(),
+          date: new Date(formValue.date),
           feedTypes: this.selectedFeedTypes as ('direct' | 'expressed' | 'formula')[],
           directFeedDetails: this.selectedFeedTypes.includes('direct') ? {
             startTime: formValue.startTime,

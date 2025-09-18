@@ -251,6 +251,49 @@
   }
 }
 
+/* Date Selection */
+.date-selection-container {
+  .date-options-grid {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  
+  .date-option-button {
+    --border-radius: 20px;
+    --border-color: #8383ed;
+    --color: #8383ed;
+    height: 36px;
+    font-size: 0.85rem;
+    min-width: 80px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    
+    &.selected {
+      --background: #8383ed !important;
+      --color: #ffffff !important;
+      --border-color: #8383ed !important;
+      opacity: 1 !important;
+    }
+    
+    &:hover:not(.selected) {
+      --background: rgba(131, 131, 237, 0.1);
+    }
+  }
+  
+  .custom-date-picker {
+    margin-top: 1rem;
+    
+    .date-input {
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 0;
+    }
+  }
+}
+
 /* Duration Mode */
 .duration-mode-selector {
   margin-bottom: 1.5rem;

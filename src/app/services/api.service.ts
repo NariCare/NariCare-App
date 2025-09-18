@@ -56,6 +56,7 @@ export interface ResetPasswordResponse {
 // Growth Tracking Interfaces
 export interface FeedRecordRequest {
   babyId: string;
+  recordDate?: string; // Optional, defaults to today
   feedTypes: ('direct' | 'expressed' | 'formula')[];
   directFeedDetails?: {
     startTime: string;

@@ -20,6 +20,7 @@ export class BackendGrowthService {
       // Transform the frontend growth record to backend feed record format
       const feedData: FeedRecordRequest = {
         babyId: record.babyId,
+        recordDate: record.date ? new Date(record.date).toISOString().split('T')[0] : undefined,
         feedTypes: record.feedTypes as ('direct' | 'expressed' | 'formula')[],
         directFeedDetails: record.directFeedDetails ? {
           startTime: record.directFeedDetails.startTime,

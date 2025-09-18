@@ -53,6 +53,39 @@
       <!-- Main Feed Log Card -->
       <div class="form-section main-feed-card">
         
+        <!-- Date Selection -->
+        <div class="section-group">
+          <h2 class="section-title">Date</h2>
+          <p class="section-description">When did this feeding occur?</p>
+          
+          <div class="date-selection-container">
+            <div class="date-options-grid">
+              <ion-button 
+                *ngFor="let option of dateOptions"
+                fill="outline" 
+                size="small"
+                (click)="selectDateOption(option.value)"
+                [class.selected]="selectedDateOption === option.value"
+                class="date-option-button">
+                {{ option.label }}
+              </ion-button>
+            </div>
+            
+            <!-- Custom Date Picker - Only shown when "Other" is selected -->
+            <div class="custom-date-picker" *ngIf="showDatePicker && selectedDateOption === 'other'">
+              <ion-item lines="none" class="input-item date-input">
+                <ion-label position="stacked">Select Date</ion-label>
+                <ion-datetime
+                  formControlName="date"
+                  presentation="date"
+                  [max]="getCurrentDate()"
+                  (ionChange)="onDateChange($event)">
+                </ion-datetime>
+              </ion-item>
+            </div>
+          </div>
+        </div>
+
         <!-- Feed Type Selection -->
         <div class="section-group">
           <h2 class="section-title">Feed Type</h2>
