@@ -29,9 +29,11 @@ export class BackendGrowthService {
           painLevel: record.directFeedDetails.painLevel
         } : undefined,
         expressedMilkDetails: record.expressedMilkDetails ? {
+          startTime: record.expressedMilkDetails.startTime,
           quantity: record.expressedMilkDetails.quantity
         } : undefined,
         formulaDetails: record.formulaDetails ? {
+          startTime: record.formulaDetails.startTime,
           quantity: record.formulaDetails.quantity
         } : undefined,
         notes: record.notes
@@ -62,6 +64,8 @@ export class BackendGrowthService {
       const response = await this.apiService.createWeightRecord(record).toPromise();
       
       if (response?.success) {
+        // After successfully adding a weight record, refresh baby data to update current weight
+        await this.refreshBabyCurrentWeight(record.babyId);
         return response.data;
       } else {
         throw new Error(response?.message || 'Failed to save weight record');
@@ -69,6 +73,31 @@ export class BackendGrowthService {
     } catch (error: any) {
       console.error('Error adding weight record:', error);
       throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  /**
+   * Get the most recent weight record for a baby and update current weight
+   */
+  private async refreshBabyCurrentWeight(babyId: string): Promise<void> {
+    try {
+      const weightRecords = await this.getWeightRecords(babyId).toPromise();
+      if (weightRecords && weightRecords.length > 0) {
+        // Sort weight records by date descending to get most recent
+        const sortedRecords = weightRecords.sort((a: any, b: any) => {
+          const dateA = new Date(a.record_date || a.date);
+          const dateB = new Date(b.record_date || b.date);
+          return dateB.getTime() - dateA.getTime();
+        });
+        
+        const mostRecentWeight = sortedRecords[0];
+        console.log('Most recent weight for baby', babyId, ':', mostRecentWeight.weight);
+        
+        // Note: The backend should ideally update the baby's current_weight automatically
+        // For now, we'll rely on the growth page to refresh baby data
+      }
+    } catch (error) {
+      console.warn('Failed to refresh baby current weight:', error);
     }
   }
 
@@ -152,7 +181,12 @@ export class BackendGrowthService {
     return this.apiService.getWeightRecords(babyId).pipe(
       map((response: any) => {
         if (response?.success && response.data) {
-          return response.data;
+          // Sort weight records by date descending (most recent first)
+          return response.data.sort((a: any, b: any) => {
+            const dateA = new Date(a.record_date || a.date);
+            const dateB = new Date(b.record_date || b.date);
+            return dateB.getTime() - dateA.getTime();
+          });
         }
         return [];
       }),
@@ -161,6 +195,23 @@ export class BackendGrowthService {
         return of([]);
       })
     );
+  }
+
+  /**
+   * Get the most recent weight for a specific baby
+   */
+  async getMostRecentWeight(babyId: string): Promise<number | null> {
+    try {
+      const weightRecords = await this.getWeightRecords(babyId).toPromise();
+      if (weightRecords && weightRecords.length > 0) {
+        // Records are already sorted by date descending, so first one is most recent
+        return weightRecords[0].weight;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting most recent weight:', error);
+      return null;
+    }
   }
 
   /**

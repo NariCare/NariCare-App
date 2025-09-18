@@ -65,9 +65,11 @@ export interface FeedRecordRequest {
     painLevel?: number;
   };
   expressedMilkDetails?: {
+    startTime?: string;
     quantity: number;
   };
   formulaDetails?: {
+    startTime?: string;
     quantity: number;
   };
   notes?: string;

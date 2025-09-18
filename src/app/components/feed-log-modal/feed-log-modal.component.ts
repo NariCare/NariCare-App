@@ -452,9 +452,11 @@ export class FeedLogModalComponent implements OnInit {
             painLevel: this.selectedPainLevel
           } : undefined,
           expressedMilkDetails: this.selectedFeedTypes.includes('expressed') ? {
+            startTime: formValue.startTime,
             quantity: formValue.ebmQuantity
           } : undefined,
           formulaDetails: this.selectedFeedTypes.includes('formula') ? {
+            startTime: formValue.startTime,
             quantity: formValue.formulaQuantity
           } : undefined,
           notes: formValue.notes,

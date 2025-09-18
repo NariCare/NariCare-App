@@ -283,6 +283,12 @@ export class BabyDetailPage implements OnInit {
 
     modal.onDidDismiss().then((result) => {
       if (result.data?.saved) {
+        // Immediately update the baby's current weight in the UI
+        if (result.data.babyId && result.data.newWeight && this.baby?.id === result.data.babyId) {
+          this.baby.currentWeight = result.data.newWeight;
+        }
+        
+        // Also refresh baby data in the background
         this.loadBabyData();
       }
     });

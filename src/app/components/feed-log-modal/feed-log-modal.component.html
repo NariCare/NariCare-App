@@ -195,6 +195,16 @@
             </div>
             
             <div class="form-group">
+              <label class="field-label">Start Time</label>
+              <ion-item lines="none" class="input-item time-input">
+                <ion-input
+                  formControlName="startTime"
+                  type="time">
+                </ion-input>
+              </ion-item>
+            </div>
+            
+            <div class="form-group">
               <label class="field-label">EBM Quantity Given</label>
               <div class="quantity-container">
                 <div class="quantity-display">{{ feedForm.get('ebmQuantity')?.value || 0 }}ml</div>
@@ -227,6 +237,16 @@
             <div class="section-header">
               <!-- <ion-icon name="nutrition"></ion-icon> -->
               <h3>Formula</h3>
+            </div>
+            
+            <div class="form-group">
+              <label class="field-label">Start Time</label>
+              <ion-item lines="none" class="input-item time-input">
+                <ion-input
+                  formControlName="startTime"
+                  type="time">
+                </ion-input>
+              </ion-item>
             </div>
             
             <div class="form-group">

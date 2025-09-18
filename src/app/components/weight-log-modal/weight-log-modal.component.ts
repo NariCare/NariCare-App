@@ -275,7 +275,11 @@ export class WeightLogModalComponent implements OnInit {
         });
         await toast.present();
 
-        await this.modalController.dismiss({ saved: true });
+        await this.modalController.dismiss({ 
+          saved: true, 
+          babyId: selectedBaby.id,
+          newWeight: parseFloat(formValue.weight)
+        });
 
       } catch (error: any) {
         console.error('Error saving weight record:', error);

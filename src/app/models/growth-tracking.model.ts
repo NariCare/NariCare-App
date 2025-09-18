@@ -12,9 +12,11 @@ export interface GrowthRecord {
     painLevel?: number; // 0-4 scale (emoji based)
   };
   expressedMilkDetails?: {
+    startTime?: string; // HH:MM format
     quantity: number; // in ml
   };
   formulaDetails?: {
+    startTime?: string; // HH:MM format
     quantity: number; // in ml
   };
   // Emotional state

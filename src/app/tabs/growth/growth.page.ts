@@ -220,16 +220,24 @@ export class GrowthPage implements OnInit {
       if (response?.success && response.data) {
         // Update the user object with babies from API
         if (this.user) {
-          this.user.babies = response.data.map((baby: any) => ({
-            id: baby.id,
-            name: baby.name,
-            dateOfBirth: new Date(baby.dateOfBirth || baby.date_of_birth),
-            gender: baby.gender,
-            birthWeight: baby.birthWeight || baby.birth_weight,
-            birthHeight: baby.birthHeight || baby.birth_height,
-            currentWeight: baby.currentWeight || baby.current_weight,
-            currentHeight: baby.currentHeight || baby.current_height
+          // Process each baby and get their most recent weight
+          const babies = await Promise.all(response.data.map(async (baby: any) => {
+            // Get the most recent weight for this baby
+            const mostRecentWeight = await this.backendGrowthService.getMostRecentWeight(baby.id);
+            
+            return {
+              id: baby.id,
+              name: baby.name,
+              dateOfBirth: new Date(baby.dateOfBirth || baby.date_of_birth),
+              gender: baby.gender,
+              birthWeight: baby.birthWeight || baby.birth_weight,
+              birthHeight: baby.birthHeight || baby.birth_height,
+              currentWeight: mostRecentWeight || baby.currentWeight || baby.current_weight || baby.birthWeight,
+              currentHeight: baby.currentHeight || baby.current_height
+            };
           }));
+          
+          this.user.babies = babies;
 
           // If we have babies and no selected baby, select the first one
           if (this.user.babies.length > 0 && !this.selectedBaby) {
@@ -412,7 +420,21 @@ export class GrowthPage implements OnInit {
 
       modal.onDidDismiss().then((result) => {
         if (result.data?.saved) {
-          // Refresh data if needed
+          // Immediately update the baby's current weight in the UI
+          if (result.data.babyId && result.data.newWeight && this.user?.babies) {
+            const babyIndex = this.user.babies.findIndex(baby => baby.id === result.data.babyId);
+            if (babyIndex !== -1) {
+              this.user.babies[babyIndex].currentWeight = result.data.newWeight;
+              
+              // Also update selectedBaby if it's the same baby
+              if (this.selectedBaby?.id === result.data.babyId) {
+                this.selectedBaby.currentWeight = result.data.newWeight;
+              }
+            }
+          }
+          
+          // Also refresh baby data in the background for consistency
+          this.loadUserBabies();
           console.log('Weight record saved successfully');
         }
       });
