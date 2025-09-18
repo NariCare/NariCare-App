@@ -277,7 +277,7 @@ export class EmotionCheckinModalComponent implements OnInit {
     }
   }
 
-  nextStep() {
+  async nextStep() {
     if (this.validateCurrentStep()) {
       this.currentStep = this.getNextEnabledStep(this.currentStep);
       
@@ -286,6 +286,24 @@ export class EmotionCheckinModalComponent implements OnInit {
         this.showCrisisAlert = true;
         this.showCrisisSupport();
       }
+    } else {
+      // Show validation message based on current step
+      let message = '';
+      if (this.currentStep === 1) {
+        message = 'Please select at least one feeling or struggle to continue.';
+      } else if (this.currentStep === 2) {
+        message = 'Please select at least one positive moment to continue.';
+      } else if (this.currentStep === 3) {
+        message = 'Please select at least one concerning thought to continue, or skip this step if none apply.';
+      }
+      
+      const toast = await this.toastController.create({
+        message: message,
+        duration: 3000,
+        color: 'warning',
+        position: 'top'
+      });
+      await toast.present();
     }
   }
 
@@ -322,8 +340,20 @@ export class EmotionCheckinModalComponent implements OnInit {
   }
 
   private validateCurrentStep(): boolean {
-    // All steps are optional, so always return true
-    // Users can proceed even without selecting anything
+    // For the first 3 steps, require at least one selection to proceed
+    if (this.currentStep === 1 && this.stepPreferences.step1_struggles) {
+      return this.selectedStruggles.length > 0;
+    }
+    
+    if (this.currentStep === 2 && this.stepPreferences.step2_positive) {
+      return this.selectedPositiveMoments.length > 0;
+    }
+    
+    if (this.currentStep === 3 && this.stepPreferences.step3_concerning) {
+      return this.selectedConcerningThoughts.length > 0;
+    }
+    
+    // Step 4 (reflection) is always optional - can be empty
     return true;
   }
   
@@ -557,8 +587,34 @@ export class EmotionCheckinModalComponent implements OnInit {
   }
 
   canSave(): boolean {
-    // Allow saving even if nothing is selected - sometimes that's meaningful too
-    return true;
+    // Require at least one selection from the first 3 enabled steps
+    // Step 4 (reflection) can remain empty
+    
+    let hasRequiredSelection = false;
+    
+    // Check if user has made at least one selection from enabled steps 1-3
+    if (this.stepPreferences.step1_struggles && this.selectedStruggles.length > 0) {
+      hasRequiredSelection = true;
+    }
+    
+    if (this.stepPreferences.step2_positive && this.selectedPositiveMoments.length > 0) {
+      hasRequiredSelection = true;
+    }
+    
+    if (this.stepPreferences.step3_concerning && this.selectedConcerningThoughts.length > 0) {
+      hasRequiredSelection = true;
+    }
+    
+    // If none of the first 3 steps are enabled (which shouldn't normally happen),
+    // allow saving as long as there's at least one enabled step
+    if (!this.stepPreferences.step1_struggles && 
+        !this.stepPreferences.step2_positive && 
+        !this.stepPreferences.step3_concerning &&
+        this.stepPreferences.step4_reflection) {
+      return true;
+    }
+    
+    return hasRequiredSelection;
   }
 
   getProgressPercentage(): number {
