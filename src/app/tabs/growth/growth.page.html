@@ -7,6 +7,24 @@
 <ion-content [fullscreen]="true">
   <div class="content-container">
     
+    <!-- Onboarding Overlay -->
+    <div *ngIf="!isOnboardingCompleted()" class="onboarding-overlay">
+      <div class="overlay-backdrop"></div>
+      <div class="overlay-content">
+        <div class="overlay-card">
+          <ion-icon name="person-circle-outline" class="overlay-icon"></ion-icon>
+          <h2>Complete Your Profile First</h2>
+          <p>Please complete your profile setup before you can start tracking data. This helps us provide you with personalized insights and recommendations.</p>
+          <div class="overlay-actions">
+            <ion-button fill="clear" (click)="router.navigate(['/onboarding'])" class="complete-profile-btn">
+              <ion-icon name="arrow-forward" slot="end"></ion-icon>
+              Complete Profile
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <!-- Tracker Cards Grid -->
     <div class="tracker-cards-container">
       <!-- Top Row - 2x2 Grid -->

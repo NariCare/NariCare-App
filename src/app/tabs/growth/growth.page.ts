@@ -97,7 +97,7 @@ export class GrowthPage implements OnInit {
     private modalController: ModalController,
     private toastController: ToastController,
     private alertController: AlertController,
-    private router: Router,
+    public router: Router,
     private apiService: ApiService
   ) {
     // Daily tracking form
@@ -390,30 +390,32 @@ export class GrowthPage implements OnInit {
   }
 
   onFeed() {
-    this.openFeedLogModal();
+    this.handleTrackerClick(() => this.openFeedLogModal());
   }
 
   async onWeightSize() {
-    if (!this.user?.babies || this.user.babies.length === 0) {
-      this.showToast('Please add a baby first to start tracking growth and feeding.', 'warning');
-      return;
-    }
-
-    const modal = await this.modalController.create({
-      component: WeightLogModalComponent,
-      componentProps: {
-        // selectedBaby: this.selectedBaby
+    this.handleTrackerClick(async () => {
+      if (!this.user?.babies || this.user.babies.length === 0) {
+        this.showToast('Please add a baby first to start tracking growth and feeding.', 'warning');
+        return;
       }
-    });
 
-    modal.onDidDismiss().then((result) => {
-      if (result.data?.saved) {
-        // Refresh data if needed
-        console.log('Weight record saved successfully');
-      }
-    });
+      const modal = await this.modalController.create({
+        component: WeightLogModalComponent,
+        componentProps: {
+          // selectedBaby: this.selectedBaby
+        }
+      });
 
-    return await modal.present();
+      modal.onDidDismiss().then((result) => {
+        if (result.data?.saved) {
+          // Refresh data if needed
+          console.log('Weight record saved successfully');
+        }
+      });
+
+      return await modal.present();
+    });
   }
 
   onPoo() {
@@ -421,7 +423,7 @@ export class GrowthPage implements OnInit {
   }
 
   onEmotionCheckin() {
-    this.openEmotionCheckinModal();
+    this.handleTrackerClick(() => this.openEmotionCheckinModal());
   }
 
   selectBaby(baby: any) {
@@ -1455,5 +1457,38 @@ export class GrowthPage implements OnInit {
       minute: '2-digit',
       hour12: false 
     });
+  }
+
+  // Onboarding check methods
+  isOnboardingCompleted(): boolean {
+    return this.user?.isOnboardingCompleted || false;
+  }
+
+  handleTrackerClick(action: () => void) {
+    if (!this.isOnboardingCompleted()) {
+      this.showOnboardingRequiredAlert();
+      return;
+    }
+    action();
+  }
+
+  private async showOnboardingRequiredAlert() {
+    const alert = await this.alertController.create({
+      header: 'Complete Your Profile First',
+      message: 'Please complete your profile setup before you can start tracking data. This helps us provide you with personalized insights and recommendations.',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel'
+        },
+        {
+          text: 'Complete Profile',
+          handler: () => {
+            this.router.navigate(['/onboarding']);
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 }

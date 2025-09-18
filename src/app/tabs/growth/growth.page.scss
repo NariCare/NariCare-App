@@ -1399,3 +1399,93 @@ ion-input[type="number"] {
     -moz-appearance: textfield;
   }
 }
+
+/* Onboarding Overlay Styles */
+.onboarding-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+
+  .overlay-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: none;
+  }
+
+  // Dim the content underneath when overlay is active
+  ~ .tracker-cards-container {
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  .overlay-content {
+    position: relative;
+    z-index: 1;
+    max-width: 320px;
+    width: 90%;
+  }
+
+  .overlay-card {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    /* box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); */
+    /* border: 2px solid rgba(131, 131, 237, 0.6); */
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+
+    .overlay-icon {
+      font-size: 3rem;
+      color: #8383ed;
+      margin-bottom: 0.8rem;
+    }
+
+    h2 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 1.3rem;
+      color: #2c2c2c;
+      margin-bottom: 0.8rem;
+    }
+
+    p {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.4;
+      margin-bottom: 1.5rem;
+    }
+
+    .overlay-actions {
+      .complete-profile-btn {
+        --background: #8383ed;
+        --color: #ffffff;
+        --border-radius: 20px;
+        --padding-start: 1.5rem;
+        --padding-end: 1.5rem;
+        --padding-top: 0.8rem;
+        --padding-bottom: 0.8rem;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        font-size: 0.9rem;
+        text-transform: none;
+        
+        &:hover {
+          --background: #7070e8;
+        }
+      }
+    }
+  }
+}
