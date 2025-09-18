@@ -131,14 +131,17 @@ export class GrowthPage implements OnInit {
 
   ngOnInit() {
     // Refresh user profile to ensure latest onboarding status
-    this.refreshUserProfileSafely();
+    // this.refreshUserProfileSafely();
     
     this.backendAuthService.currentUser$.subscribe(user => {
       this.user = user;
       if (user) {
+        // Always allow access to growth page, regardless of onboarding status
+        // The template will show appropriate UI based on onboarding completion
+        
         // Load babies from API to ensure we have the latest data
         this.loadUserBabies();
-        // Load pumping data (baby-independent)
+        // Load pumping data (baby-independent)  
         this.loadPumpingData();
         // Load emotion check-in data
         this.loadEmotionData();
@@ -1519,9 +1522,11 @@ export class GrowthPage implements OnInit {
 
   private async refreshUserProfileSafely() {
     try {
-      // Only refresh if user is authenticated
+      // Only refresh if user is authenticated and we're not already redirecting
       if (this.backendAuthService.getCurrentUser()) {
-        await this.backendAuthService.refreshUserProfile();
+        // Skip refresh on growth page to prevent navigation issues
+        // User data will still be available from the auth service's current state
+        console.log('Skipping profile refresh on growth page to prevent navigation conflicts');
       }
     } catch (error) {
       console.warn('Failed to refresh user profile on growth page:', error);

@@ -114,7 +114,11 @@ export class BackendAuthService {
         this.currentUserSubject.next(user);
         
         // Navigate to dashboard (onboarding temporarily disabled)
-        this.router.navigate(['/tabs/dashboard']);
+        // Only redirect if not already on a valid tabs page
+        const currentUrl = this.router.url;
+        if (!currentUrl.startsWith('/tabs/')) {
+          this.router.navigate(['/tabs/dashboard']);
+        }
       } else {
         throw new Error(response?.message || 'Registration failed');
       }
@@ -141,7 +145,11 @@ export class BackendAuthService {
         this.twoFactorRequiredSubject.next(false);
         
         // Navigate to dashboard (onboarding temporarily disabled)
-        this.router.navigate(['/tabs/dashboard']);
+        // Only redirect if not already on a valid tabs page
+        const currentUrl = this.router.url;
+        if (!currentUrl.startsWith('/tabs/')) {
+          this.router.navigate(['/tabs/dashboard']);
+        }
       } else {
         throw new Error(response?.message || 'Login failed');
       }
@@ -165,10 +173,14 @@ export class BackendAuthService {
           this.pendingEmail = '';
           
           // Navigate based on onboarding status
-          if (user.isOnboardingCompleted) {
-            this.router.navigate(['/tabs/dashboard']);
-          } else {
-            this.router.navigate(['/onboarding']);
+          // Only redirect if not already on a valid page
+          const currentUrl = this.router.url;
+          if (!currentUrl.startsWith('/tabs/') && !currentUrl.startsWith('/onboarding')) {
+            if (user.isOnboardingCompleted) {
+              this.router.navigate(['/tabs/dashboard']);
+            } else {
+              this.router.navigate(['/onboarding']);
+            }
           }
         }
       } else {
@@ -526,7 +538,11 @@ export class BackendAuthService {
         this.currentUserSubject.next(user);
         
         // Navigate to dashboard (onboarding temporarily disabled)
-        this.router.navigate(['/tabs/dashboard']);
+        // Only redirect if not already on a valid tabs page
+        const currentUrl = this.router.url;
+        if (!currentUrl.startsWith('/tabs/')) {
+          this.router.navigate(['/tabs/dashboard']);
+        }
       } else {
         throw new Error(response?.message || 'Social authentication failed');
       }
