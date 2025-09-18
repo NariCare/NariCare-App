@@ -36,7 +36,7 @@ export class FeedLogModalComponent implements OnInit {
   user: User | null = null;
   selectedFeedTypes: ('direct' | 'expressed' | 'formula')[] = [];
   selectedBreastSide: 'left' | 'right' | 'both' | null = null;
-  selectedPainLevel: number | null = null;
+  selectedPainLevel: number | null = 0;
   selectedPredefinedNotes: string[] = []; // Track selected predefined notes
   isSubmitting = false; // Track submission state
   
@@ -122,7 +122,7 @@ export class FeedLogModalComponent implements OnInit {
       startTime: [this.getCurrentTime()],
       breastSide: [''],
       duration: [15, [Validators.min(1), Validators.max(120)]],
-      painLevel: [null, [Validators.min(0), Validators.max(4)]],
+      painLevel: [0, [Validators.min(0), Validators.max(4)]],
       // Expressed milk fields
       ebmQuantity: [0, [Validators.min(1), Validators.max(500)]],
       // Formula fields
