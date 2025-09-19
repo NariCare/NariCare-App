@@ -7,15 +7,19 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:beta": "ng serve --configuration beta",
     "build": "ng build",
+    "build:beta": "ng build --configuration beta",
     "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
     "ionic:build": "ng build",
+    "ionic:build:beta": "ng build --configuration beta",
     "ionic:build:prod": "ng build --configuration production",
-    "ionic:serve": "ng serve"
+    "ionic:serve": "ng serve",
+    "ionic:serve:beta": "ng serve --configuration beta"
   },
   "private": true,
   "dependencies": {

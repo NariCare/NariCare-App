@@ -70,6 +70,30 @@ A comprehensive cross-platform breastfeeding support application built with Ioni
    ionic serve
    ```
 
+## 🌍 Environment Management
+
+This project supports three environments:
+
+| Environment | Command | API URL | Purpose |
+|-------------|---------|---------|---------|
+| **Local** | `npm start` or `ionic serve` | `http://localhost:3000/api` | Development |
+| **Beta** | `npm run start:beta` | `https://beta-api.naricare.com/api` | Staging |
+| **Production** | `npm run build:prod` | `https://api.naricare.com/api` | Live app |
+
+### Quick Commands
+```bash
+# Development
+npm start                    # Local development
+npm run start:beta          # Beta environment
+
+# Building
+npm run build               # Development build
+npm run build:beta          # Beta build  
+npm run build:prod          # Production build
+```
+
+For detailed environment configuration, see [ENVIRONMENTS.md](./ENVIRONMENTS.md).
+
 ## 📦 Building for Production
 
 ### Web Build

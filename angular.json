@@ -83,6 +83,33 @@
               "vendorChunk": false,
               "buildOptimizer": true
             },
+            "beta": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.beta.ts"
+                }
+              ],
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "20kb",
+                  "maximumError": "30kb"
+                }
+              ],
+              "outputHashing": "all",
+              "sourceMap": true,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "optimization": true
+            },
             "development": {
               "buildOptimizer": false,
               "optimization": false,
@@ -102,6 +129,9 @@
           "configurations": {
             "production": {
               "browserTarget": "app:build:production"
+            },
+            "beta": {
+              "browserTarget": "app:build:beta"
             },
             "development": {
               "browserTarget": "app:build:development"
