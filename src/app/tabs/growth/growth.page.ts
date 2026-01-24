@@ -1493,10 +1493,10 @@ export class GrowthPage implements OnInit {
   }
 
   handleTrackerClick(action: () => void) {
-    if (!this.isOnboardingCompleted()) {
-      this.showOnboardingRequiredAlert();
-      return;
-    }
+    // if (!this.isOnboardingCompleted()) {
+    //   this.showOnboardingRequiredAlert();
+    //   return;
+    // }
     action();
   }
 
