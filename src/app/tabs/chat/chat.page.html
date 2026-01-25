@@ -10,11 +10,11 @@
     <!-- Tab Selector -->
     <div class="tab-selector">
       <ion-segment [(ngModel)]="selectedTab" (ionChange)="onTabChange($event)">
-        <ion-segment-button value="groups">
-          <ion-label>Groups</ion-label>
-        </ion-segment-button>
         <ion-segment-button value="ai">
           <ion-label>AI Assistant</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="groups">
+          <ion-label>Support Groups</ion-label>
         </ion-segment-button>
       </ion-segment>
     </div>
@@ -43,12 +43,21 @@
         </div>
 
         <!-- General Groups Section -->
-        <div class="groups-section">
+        <div class="groups-section groups-section-wrapper">
+          <!-- Coming Soon Overlay -->
+          <div class="coming-soon-overlay">
+            <div class="coming-soon-content">
+              <ion-icon name="time-outline"></ion-icon>
+              <h3>Coming Soon</h3>
+              <p>Support groups feature is under development. Stay tuned!</p>
+            </div>
+          </div>
+
           <h3 class="subsection-title">🌟 Join a Support Group</h3>
           <p class="subsection-description">Connect with up to 20 mothers and expert moderators</p>
-          
+
           <div class="chat-rooms-list">
-            <div 
+            <div
               *ngFor="let room of chatRooms$ | async"
               class="room-card"
               [class.room-full]="room.participants.length >= room.maxParticipants"
@@ -78,8 +87,8 @@
                 </div>
               </div>
               <div class="room-action">
-                <ion-button 
-                  fill="outline" 
+                <ion-button
+                  fill="outline"
                   size="small"
                   [disabled]="room.participants.length >= room.maxParticipants"
                   class="join-room-button">

@@ -15,7 +15,7 @@ import { CreateGroupModalComponent } from '../../components/create-group-modal/c
   styleUrls: ['./chat.page.scss'],
 })
 export class ChatPage implements OnInit {
-  selectedTab = 'groups';
+  selectedTab = 'ai';
   chatRooms$: Observable<ChatRoom[]>;
   currentUser: User | null = null;
 
