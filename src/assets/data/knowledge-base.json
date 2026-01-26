@@ -1,79 +1,703 @@
 {
   "categories": [
     {
-      "id": "postpartum-early-days",
-      "name": "Postpartum & Early Days",
-      "description": "Essential information for the first days after delivery",
-      "icon": "heart",
+      "id": "before-baby-arrives",
+      "name": "Before your baby arrives",
+      "description": "Prepare for your breastfeeding journey before birth",
+      "icon": "calendar-outline",
+      "color": "#9c27b0"
+    },
+    {
+      "id": "birth-early-hours",
+      "name": "At Birth & Early Hours",
+      "description": "Essential guidance for the first hours after delivery",
+      "icon": "sunny",
+      "color": "#ff9800"
+    },
+    {
+      "id": "first-few-days",
+      "name": "The first few days",
+      "description": "What to expect in the early days of breastfeeding",
+      "icon": "time",
       "color": "#8383ed"
     },
     {
-      "id": "breastfeeding-techniques",
-      "name": "Breastfeeding Techniques",
-      "description": "Proper positioning, latching, and feeding techniques",
-      "icon": "school",
-      "customIcon": "assets/Fed directly.svg",
+      "id": "how-to-breastfeed",
+      "name": "How to breastfeed",
+      "description": "Techniques for successful breastfeeding",
+      "icon": "hand-left",
       "color": "#26a69a"
     },
     {
-      "id": "milk-supply-production",
-      "name": "Milk Supply & Production",
-      "description": "Understanding milk production and supply issues",
+      "id": "milk-supply",
+      "name": "Milk Supply",
+      "description": "Understanding and managing your milk production",
       "icon": "water",
       "color": "#42a5f5"
-    },
-    {
-      "id": "common-challenges",
-      "name": "Common Challenges",
-      "description": "Solutions for common breastfeeding problems",
-      "icon": "help-circle",
-      "color": "#ff7043"
-    },
-    {
-      "id": "baby-health-growth",
-      "name": "Baby Health & Growth",
-      "description": "Monitoring your baby's health and development",
-      "icon": "trending-up",
-      "color": "#4caf50"
-    },
-    {
-      "id": "preparation-planning",
-      "name": "Preparation & Planning",
-      "description": "Getting ready for your breastfeeding journey",
-      "icon": "calendar",
-      "color": "#9c27b0"
     }
   ],
   "articles": [
     {
-      "id": "what-to-expect-2-5-days",
-      "title": "What to expect around 2-5 days after delivery?",
-      "summary": "Understanding milk transition and managing engorgement in the first few days",
-      "category": "postpartum-early-days",
-      "tags": ["milk-coming-in", "engorgement", "early-days"],
+      "id": "why-should-you-breastfeed",
+      "title": "Why should you breastfeed?",
+      "summary": "Breastfeeding is the biologically normal way to feed babies. Learn how breastmilk protects your baby and benefits both mother and child.",
+      "category": "before-baby-arrives",
+      "tags": ["benefits", "breastmilk", "health", "protection"],
       "author": "NariCare Team",
-      "publishedAt": "2024-01-15T00:00:00Z",
-      "updatedAt": "2024-01-15T00:00:00Z",
-      "readTime": 4,
+      "publishedAt": "2024-01-20T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 5,
       "difficulty": "beginner",
       "featured": true,
       "content": {
         "sections": [
           {
             "type": "text",
-            "content": "For most mothers, this thinner, whiter form of milk comes in by about 3 days after birth, but may take longer for first-time moms. You may notice your breasts feeling full, hard, and warm as this happens."
+            "content": "Breastfeeding is the biologically normal way to feed babies. The composition of breastmilk sets the standard for human nutrition in early life."
+          },
+          {
+            "type": "text",
+            "content": "Breastmilk contains many important factors that help protect your baby from illness and support the development of their immune system and a healthy gut."
+          },
+          {
+            "type": "callout",
+            "style": "success",
+            "title": "A Lifetime of Benefits",
+            "content": "When you breastfeed, you give your baby a healthy start that lasts a lifetime. Breastmilk is the perfect food for your baby. Breastfeeding saves lives, money, and time."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Benefits for Babies"
+          },
+          {
+            "type": "text",
+            "content": "Infants who are breastfed have reduced risk of:"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Asthma",
+              "Severe lower respiratory disease",
+              "Obesity",
+              "Type 1 diabetes",
+              "Acute otitis media (ear infections)",
+              "Sudden infant death syndrome (SIDS)",
+              "Gastrointestinal infections, which can cause diarrhea and vomiting",
+              "Necrotizing enterocolitis (NEC) (death of intestinal tissue) for preterm infants"
+            ]
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Benefits for Mothers"
+          },
+          {
+            "type": "text",
+            "content": "Breastfeeding can help lower a mother's risk for:"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "High blood pressure",
+              "Type 2 diabetes",
+              "Ovarian cancer",
+              "Breast cancer"
+            ]
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Benefits for Society"
           },
           {
             "type": "callout",
             "style": "info",
-            "title": "Managing Engorgement",
-            "content": "To minimize engorgement: nurse often, don't skip feedings (even at night), ensure good latch/positioning, and let the baby finish the first breast before offering the other side. Use cold and/or cabbage leaf compresses between feedings."
+            "title": "Breastfeeding Saves Lives",
+            "content": "Research shows that if families breastfed exclusively for six months, deaths among infants could be prevented each year."
+          },
+          {
+            "type": "text",
+            "content": "Breastfeeding saves money. Medical costs may be lower for fully breastfed infants than never-breastfed infants. Breastfed infants usually need fewer sick care visits, prescriptions, and hospitalizations."
+          },
+          {
+            "type": "text",
+            "content": "Breastfeeding also helps make a more productive workforce. Mothers who breastfeed may miss less work to care for sick infants than mothers who feed their infants formula."
+          },
+          {
+            "type": "callout",
+            "style": "success",
+            "title": "Better for the Environment",
+            "content": "Breastfeeding is better for the environment. Formula cans and bottle supplies create more trash and plastic waste. Your milk is a renewable resource that comes packaged and warmed."
+          }
+        ]
+      }
+    },
+    {
+      "id": "risks-of-not-breastfeeding",
+      "title": "Risks of Not Breastfeeding",
+      "summary": "Human milk is a complex, living substance that adapts to meet infant needs. Learn about the increased health risks associated with not breastfeeding.",
+      "category": "before-baby-arrives",
+      "tags": ["risks", "health", "formula", "protection"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-19T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 3,
+      "difficulty": "beginner",
+      "featured": false,
+      "content": {
+        "sections": [
+          {
+            "type": "text",
+            "content": "Human milk is a complex, living substance that adapts to meet infant needs and contains a wide range of nutritive and protective compounds."
           },
           {
             "type": "callout",
             "style": "warning",
-            "title": "Important Reminder",
-            "content": "Night-time feedings are very important to help build your milk supply, establish the breastfeeding relationship, and help your baby begin to gain properly."
+            "title": "Important Information",
+            "content": "Not breastfeeding is associated with increased risks for you and your baby."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Risks for Babies"
+          },
+          {
+            "type": "text",
+            "content": "Research shows that babies who are not breastfed are at higher risk of developing:"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Chronic conditions such as obesity, high blood pressure, high cholesterol and diabetes in later life",
+              "Higher rates of ear / nose / throat infections",
+              "Necrotizing enterocolitis (NEC)",
+              "Eczema",
+              "Chest infections",
+              "Gastroenteritis",
+              "Asthma and allergies",
+              "Sudden infant death syndrome (SIDS)",
+              "Childhood cancers"
+            ]
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "title": "Protective Properties of Breast Milk",
+            "content": "Breast milk contains stem cells that help the body to repair itself and antibodies and other factors that help protect your baby from infections, illness and disease."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Risks for Mothers"
+          },
+          {
+            "type": "text",
+            "content": "Mothers who do not breastfeed also have an increased risk of developing:"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Type 2 diabetes",
+              "Breast cancer",
+              "Ovarian cancer",
+              "Endometrial cancer",
+              "Osteoporosis",
+              "Postnatal depression"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "prepare-breastfeeding-before-birth",
+      "title": "How to Prepare for Breastfeeding in the Month Before Birth",
+      "summary": "Essential preparation steps for a successful breastfeeding journey including birth plans and hospital bag essentials.",
+      "category": "before-baby-arrives",
+      "tags": ["preparation", "birth-plan", "hospital-bag", "planning"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-18T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 4,
+      "difficulty": "beginner",
+      "featured": true,
+      "content": {
+        "sections": [
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "1. Make a Birth Plan That Supports Breastfeeding"
+          },
+          {
+            "type": "text",
+            "content": "Discuss your preferences with your doctor. Clearly mention that your baby should not be given formula, bottles, pacifiers, or artificial nipples unless it's prescribed by your pediatrician and you approve it."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "2. If Formula Is Needed, Say No to Bottles"
+          },
+          {
+            "type": "text",
+            "content": "If supplementation is medically necessary, ask that it be given through a spoon, paladai, or oral syringe but not a bottle. This helps protect your baby's latch and breastfeeding journey."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "3. Ask About Hospital Practices"
+          },
+          {
+            "type": "text",
+            "content": "Before delivery, check with your hospital about:"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Breastfeeding within the first hour after birth",
+              "Skin-to-skin contact immediately after delivery",
+              "Keeping baby in the same room (rooming-in)",
+              "Access to a lactation consultant within 24 hours"
+            ]
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "4. Pack Your Breastfeeding Essentials"
+          },
+          {
+            "type": "text",
+            "content": "Here's a simple checklist for your hospital bag:"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Nursing bras",
+              "Nipple cream",
+              "Breastfeeding pillow (optional but helpful)",
+              "Easy-to-open nursing-friendly outfits",
+              "Breast pump (if advised)",
+              "Breast milk storage bags or bottles"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "questions-to-ask-doctor-pregnancy",
+      "title": "Questions to Ask your Doctor During Pregnancy",
+      "summary": "Important questions to discuss with your doctor about hospital practices that support breastfeeding.",
+      "category": "before-baby-arrives",
+      "tags": ["doctor", "questions", "hospital", "preparation"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-17T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 4,
+      "difficulty": "beginner",
+      "featured": false,
+      "content": {
+        "sections": [
+          {
+            "type": "text",
+            "content": "There are certain hospital practices that help you and your baby get off to a better start with breastfeeding like holding your baby skin-to-skin right after delivery, sharing a room with your baby, avoiding bottles and pacifiers, and avoiding formula."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Questions to Ask Your Doctor"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Will I be able to hold my baby skin-to-skin right after birth? What if my baby is born early or if I have a cesarean delivery?",
+              "Are there staff at the hospital who can help me breastfeed my baby in the first hour after delivery, and later on too, if I need help?",
+              "How do I make sure the hospital does not give my baby pacifiers or a bottle? Do I have to use a pacifier to keep my baby calm?",
+              "Should I change my diet or take vitamins?",
+              "If my baby needs formula, will you show me different ways to feed it to my baby so I don't have to use a bottle?",
+              "If my baby needs formula, will the hospital staff or doctors speak with me before offering it to my baby?",
+              "Can I keep my baby in the room with me throughout my hospital stay?",
+              "Who can help me with breastfeeding after I leave the hospital?"
+            ]
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "title": "Hospital Tour Tip",
+            "content": "These are also good topics to discuss with the staff at your hospital when you take a tour and learn about the labor and delivery practices there."
+          },
+          {
+            "type": "text",
+            "content": "Your doctor can be an excellent source of information throughout your pregnancy."
+          }
+        ]
+      }
+    },
+    {
+      "id": "my-breastfeeding-plan",
+      "title": "My Breastfeeding Plan",
+      "summary": "Create your personalized breastfeeding plan to help your family and healthcare providers understand your feeding goals.",
+      "category": "before-baby-arrives",
+      "tags": ["plan", "goals", "birth-plan", "hospital"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-16T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 6,
+      "difficulty": "beginner",
+      "featured": true,
+      "content": {
+        "sections": [
+          {
+            "type": "text",
+            "content": "Your Breastfeeding Plan is your plan of action. It helps your family and health-care providers understand your ideal hospital experience and feeding goals."
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "title": "Work Together",
+            "content": "Consider working together with your partner to fill out this Breastfeeding Plan. It will help you set your breastfeeding goals and it will help your health care team understand what you need during and after delivery."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Exclusive Breastfeeding"
+          },
+          {
+            "type": "text",
+            "content": "My goal is to exclusively breastfeed my baby. Please do not give my baby any supplements before speaking to me or my birthing partner. I need all of my baby's suckling to be at my breast in order for me to establish a good milk supply."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "No Bottles or Pacifiers"
+          },
+          {
+            "type": "text",
+            "content": "Please do not give my baby artificial nipples including pacifiers or any types of bottles filled with formula, water, or glucose water. If there is a medical reason for supplementation, I would first like to speak with a lactation consultant or pediatrician about trying alternate feeding methods with expressed breastmilk."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Skin-to-Skin"
+          },
+          {
+            "type": "text",
+            "content": "When my baby is born, I would like to have him/her placed on my chest, skin-to-skin with me for the first hour. If possible, please perform routine newborn evaluations with my baby on my chest. Throughout our stay, I want to be able to hold my baby skin-to-skin as much as possible."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "First Hour"
+          },
+          {
+            "type": "text",
+            "content": "Please help me start breastfeeding within 30-minutes to 1-hour of delivery. This means placing my baby skin-to-skin as soon as possible after birth and offering to help to begin breastfeeding when my baby seems ready (e.g. rooting, licking lips, etc.). Please do not force my baby to take the breast if he/she is not showing signs of readiness. Instead, keep my baby skin-to-skin with me until he/she is ready to try to latch."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Routine Exams"
+          },
+          {
+            "type": "text",
+            "content": "Please examine my baby in my presence and do not take him/her away from me unless he/she requires medical treatment that cannot be done in my room."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Emergency Cesarean"
+          },
+          {
+            "type": "text",
+            "content": "If I have a cesarean, I would like to hold my baby skin-to-skin as soon as possible after the operation. If I am unable to for some time after the delivery, then please allow my partner to hold my baby skin-to-skin."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Rooming In"
+          },
+          {
+            "type": "text",
+            "content": "I would like to room in with my baby 24 hours a day to give my baby plenty of skin-to-skin time and so I can learn my baby's feeding cues and feed him at his first sign of hunger. If for some reason my baby and I are not in the same room, please bring him/her to me at the earliest hunger cues, such as sucking on hands, making sucking noises or rooting."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Breastfeeding Assistance"
+          },
+          {
+            "type": "text",
+            "content": "Please teach me how to get a good latch and how to correct my baby's positioning and latch if it is needed. Please teach me how to know my baby's early hunger cues and how to tell if my baby is breastfeeding well."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Breast Pumps"
+          },
+          {
+            "type": "text",
+            "content": "If my baby is unable to breastfeed or is separated from me due to medical reasons, I want to be able to use a breast pump within 6 hours of delivery. If you think I am going to need a pump longer than my hospital stay or if there is not a double electric breast pump available, please remind me to arrange for a pump."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Discharge Bags"
+          },
+          {
+            "type": "text",
+            "content": "Please do not give me a free gift bag containing formula or show me any promotional or marketing materials concerning artificial baby milk."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Breastfeeding Support After Discharge"
+          },
+          {
+            "type": "text",
+            "content": "I would like to receive contact information for breastfeeding support in case I need help with breastfeeding after my baby and I are at home."
+          }
+        ]
+      }
+    },
+    {
+      "id": "how-dads-can-support-breastfeeding",
+      "title": "How dads can support breastfeeding",
+      "summary": "Learn how fathers, partners, and family members can support breastfeeding mothers effectively.",
+      "category": "before-baby-arrives",
+      "tags": ["dads", "partners", "support", "family"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-15T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 4,
+      "difficulty": "beginner",
+      "featured": false,
+      "content": {
+        "sections": [
+          {
+            "type": "callout",
+            "style": "success",
+            "title": "Support Matters",
+            "content": "Breastfeeding works best when mothers feel supported and encouraged. Talking with fathers, partners, and family members about how they can help prepares them to be calm, confident, and supportive from the start."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Be Prepared"
+          },
+          {
+            "type": "text",
+            "content": "Breastfeeding works best when parents know what to expect. Babies feed often, including at night. Understanding this helps your partner stay calm and supportive."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Learn the Basics"
+          },
+          {
+            "type": "text",
+            "content": "Babies should be fed according to their hunger cues, not by a clock. Feeding responsively helps breastfeeding succeed."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Be Encouraging"
+          },
+          {
+            "type": "text",
+            "content": "Breastfeeding can be hard. Kind words, reassurance, and recognising the effort it takes can help mothers continue longer."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Stand Up for Her"
+          },
+          {
+            "type": "text",
+            "content": "Mothers may hear advice that undermines breastfeeding. Supporting her choice and speaking up when needed can protect her confidence."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Think Ahead"
+          },
+          {
+            "type": "text",
+            "content": "Small acts make a big difference. Bringing a pillow for comfort, along with water and a healthy snack, can make feeding easier."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Help With Feeding Moments"
+          },
+          {
+            "type": "text",
+            "content": "Partners can bring the baby for feeds, help with positioning, or remember guidance shared by health professionals."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Take Care of Other Tasks"
+          },
+          {
+            "type": "text",
+            "content": "Holding the baby after feeds, changing diapers, soothing the baby, helping with meals and chores, or caring for other children allows mothers to focus on feeding and get the rest they need."
+          }
+        ]
+      }
+    },
+    {
+      "id": "steps-right-after-birth",
+      "title": "Steps to take right after birth for a great start to breastfeeding",
+      "summary": "Essential steps to follow immediately after birth for successful breastfeeding initiation.",
+      "category": "birth-early-hours",
+      "tags": ["birth", "first-steps", "skin-to-skin", "newborn"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-14T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 2,
+      "difficulty": "beginner",
+      "featured": true,
+      "content": {
+        "sections": [
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Right After Birth"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Cuddle with your baby skin-to-skin right away after giving birth if you are both healthy",
+              "Breastfeed as soon as possible after giving birth",
+              "Ask for a lactation consultant to help you",
+              "Ask the hospital staff not to give your baby pacifiers, sugar water, or formula, unless it is medically necessary",
+              "Let your baby stay in your hospital room all day and night so that you can breastfeed often",
+              "Try not to give your baby any pacifiers or artificial nipples until he or she is good at latching on to your breast (usually around 3 to 4 weeks old)"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "the-golden-hour-after-birth",
+      "title": "The Golden Hour After Birth",
+      "summary": "The first 1-2 hours after birth are precious for bonding and breastfeeding initiation.",
+      "category": "birth-early-hours",
+      "tags": ["golden-hour", "first-hour", "bonding", "skin-to-skin"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-13T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 3,
+      "difficulty": "beginner",
+      "featured": true,
+      "content": {
+        "sections": [
+          {
+            "type": "callout",
+            "style": "success",
+            "title": "What is the Golden Hour?",
+            "content": "The Golden Hour is the first 1-2 hours after your baby's birth, an extremely precious time for both you and your baby. It is a period of uninterrupted skin-to-skin contact, allowing you and your baby to rest and gently adjust after labour and birth."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Benefits of the Golden Hour"
+          },
+          {
+            "type": "text",
+            "content": "Immediate skin-to-skin contact during this time helps regulate your newborn's temperature, breathing, and heart rate, and exposes them to beneficial bacteria that support the development of their immune system."
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "title": "Breastfeeding Success",
+            "content": "Breastfeeding within the first hour increases the chances of successful breastfeeding, as babies are alert, ready to learn, and their feeding reflexes are strongest."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "The Power of Colostrum"
+          },
+          {
+            "type": "text",
+            "content": "The first milk, colostrum, is rich in antibodies and acts as your baby's first natural vaccine, helping protect them from infections."
+          },
+          {
+            "type": "media",
+            "mediaType": "video",
+            "media": [
+              {
+                "title": "The Golden Hour Explained",
+                "url": "https://youtu.be/5JHIdPwiGbc?si=29u7fohL37ENBJoh",
+                "thumbnail": "https://img.youtube.com/vi/5JHIdPwiGbc/maxresdefault.jpg",
+                "description": "Learn about the importance of the golden hour after birth"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "skin-to-skin-contact-newborn",
+      "title": "Skin-to-skin contact with your newborn",
+      "summary": "Understanding the benefits of holding your baby naked against your bare chest for bonding and health.",
+      "category": "birth-early-hours",
+      "tags": ["skin-to-skin", "bonding", "newborn", "kangaroo-care"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-12T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 3,
+      "difficulty": "beginner",
+      "featured": false,
+      "content": {
+        "sections": [
+          {
+            "type": "text",
+            "content": "Skin-to-skin contact means holding your baby naked against your bare chest, usually under your clothing or a blanket. After birth, you will be encouraged to have skin-to-skin contact as soon as possible."
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "title": "Comfort and Security",
+            "content": "This close contact allows your baby to hear the familiar sound of your heartbeat and voice, which helps them feel calm, relaxed, and secure."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Benefits of Skin-to-Skin Contact"
+          },
+          {
+            "type": "text",
+            "content": "Skin-to-skin contact helps to:"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Regulate your baby's temperature, breathing, and heart rate",
+              "Support milk production and stimulate your baby's natural feeding instincts",
+              "Strengthen bonding between you and your baby",
+              "Release oxytocin, the body's natural feel-good hormone",
+              "Support your baby's immune system and protect against infections"
+            ]
+          },
+          {
+            "type": "media",
+            "mediaType": "video",
+            "media": [
+              {
+                "title": "Skin-to-Skin Contact Guide",
+                "url": "https://youtu.be/5JHIdPwiGbc?si=v3QuN0fIj6v1fFUA",
+                "thumbnail": "https://img.youtube.com/vi/5JHIdPwiGbc/maxresdefault.jpg",
+                "description": "Learn about the benefits and practice of skin-to-skin contact"
+              }
+            ]
           }
         ]
       }
@@ -81,50 +705,43 @@
     {
       "id": "breastfeeding-after-c-section",
       "title": "Breastfeeding after C-Section",
-      "summary": "Complete guide to successful breastfeeding after cesarean delivery",
-      "category": "postpartum-early-days",
-      "tags": ["c-section", "cesarean", "recovery"],
+      "summary": "Tips for successful breastfeeding after cesarean delivery including comfortable positions and early initiation.",
+      "category": "birth-early-hours",
+      "tags": ["c-section", "cesarean", "recovery", "positions"],
       "author": "NariCare Team",
-      "publishedAt": "2024-01-14T00:00:00Z",
-      "updatedAt": "2024-01-14T00:00:00Z",
-      "readTime": 6,
+      "publishedAt": "2024-01-11T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 4,
       "difficulty": "intermediate",
       "featured": true,
       "content": {
         "sections": [
           {
+            "type": "text",
+            "content": "It is common for moms who deliver via c-section to worry about the milk coming in late, and a delayed start to breastfeeding."
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "title": "You Can Do This",
+            "content": "Follow these tips for a successful breastfeeding journey after c-section."
+          },
+          {
             "type": "heading",
             "level": 2,
-            "content": "Things to do before delivery:"
-          },
-          {
-            "type": "list",
-            "style": "bullet",
-            "items": [
-              "Discuss keeping the baby skin-to-skin until first nursing to your healthcare provider during your pregnancy",
-              "Ask if the hospital has a lactation consultant on hand and arrange them to meet with you after you shift to the recovery room"
-            ]
-          },
-          {
-            "type": "text",
-            "content": "It is common for moms who deliver via c-section to worry about the milk coming in late, and a delayed start to breastfeeding. Follow these tips for a successful breastfeeding journey after c-section."
-          },
-          {
-            "type": "heading",
-            "level": 3,
-            "content": "Tips for Success After C-Section:"
+            "content": "Tips for Success"
           },
           {
             "type": "list",
             "style": "bullet",
             "items": [
               "Keep the baby skin-to-skin right after birth. Ask your partner to hold the baby skin-to-skin if you are unable to do so right after the surgery",
+              "Breastfeed in comfortable nursing positions for c-section like football hold and side lying position",
               "Early and frequent breastfeeding to establish a good milk supply",
               "Keep the baby in the same room as you",
               "Taking pain medication to avoid feeling uncomfortable while breastfeeding",
               "Avoid the use of artificial nipples like pacifiers and bottles as it interferes with breastfeeding",
-              "Avoid supplementing unless medically necessary",
-              "Breastfeed in comfortable nursing positions for c-section like football hold and side lying position",
+              "Avoid supplementing with formula unless it is medically necessary",
               "Hand express the milk and give it to the baby in a cup or feeding syringe, if the baby needs to be away from you",
               "Accept help from family and friends"
             ]
@@ -151,139 +768,137 @@
       }
     },
     {
-      "id": "is-baby-getting-enough-milk",
-      "title": "Is my baby getting enough milk?",
-      "summary": "Signs and indicators to ensure your baby is getting adequate nutrition",
-      "category": "baby-health-growth",
-      "tags": ["milk-intake", "baby-health", "feeding-signs"],
-      "author": "NariCare Team",
-      "publishedAt": "2024-01-13T00:00:00Z",
-      "updatedAt": "2024-01-13T00:00:00Z",
-      "readTime": 5,
-      "difficulty": "beginner",
-      "featured": true,
-      "content": {
-        "sections": [
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "Frequent Feeds"
-          },
-          {
-            "type": "text",
-            "content": "Your baby feeds often around 8 to 12 times in 24 hours. This is completely normal and helps build a good milk supply."
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "After Feeds"
-          },
-          {
-            "type": "text",
-            "content": "After feeding, your baby looks calm and satisfied. They usually let go of the breast on their own. You might notice their hands were clenched before the feed and now look relaxed and open—that's a great sign they're full."
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "Healthy Weight Gain"
-          },
-          {
-            "type": "text",
-            "content": "Most babies gain about 155–240 grams (5.5–8.5 ounces) each week until they're around 4 months old. If weight gain is on track, feeding is going well."
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "Sucking & Swallowing Patterns"
-          },
-          {
-            "type": "text",
-            "content": "During feeds, there will be moments when you hear gulping sounds, this means your milk is letting down and your baby is getting larger mouthfuls. Sucking slows down to about one suck per second as milk fills the mouth before swallowing. Watch their throat—you'll see a gentle rise and fall with each swallow."
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "Poop Changes"
-          },
-          {
-            "type": "text",
-            "content": "By day five, baby's stools usually turn yellow, soft, and seedy. By the fourth day, you should see at least 3–4 dirty diapers each day."
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "Wet Diapers"
-          },
-          {
-            "type": "text",
-            "content": "In the early days, wet diapers gradually increase:"
-          },
-          {
-            "type": "list",
-            "style": "bullet",
-            "items": [
-              "Day 2: at least 2 wet diapers",
-              "Days 3–4: 3 or more per day",
-              "By day 5: 6+ wet diapers in 24 hours"
-            ]
-          },
-          {
-            "type": "text",
-            "content": "By now, diapers should feel heavier. Some disposable diapers have a color-changing line that helps show when they're wet."
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "Baby's Overall Wellness"
-          },
-          {
-            "type": "text",
-            "content": "Your baby should be alert and active when awake and should be progressing in their developmental milestones."
-          }
-        ]
-      }
-    },
-    {
       "id": "pain-relief-medication-c-section",
       "title": "Is it safe to take pain relief medication after C-Section if breastfeeding?",
-      "summary": "Understanding medication safety while breastfeeding after cesarean delivery",
-      "category": "postpartum-early-days",
-      "tags": ["medication", "c-section", "safety"],
+      "summary": "Most pain relief medicines after C-section are safe for breastfeeding. Learn about medication safety resources.",
+      "category": "birth-early-hours",
+      "tags": ["medication", "c-section", "safety", "pain-relief"],
       "author": "NariCare Team",
-      "publishedAt": "2024-01-12T00:00:00Z",
-      "updatedAt": "2024-01-12T00:00:00Z",
+      "publishedAt": "2024-01-10T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
       "readTime": 4,
       "difficulty": "intermediate",
+      "featured": false,
       "content": {
         "sections": [
           {
             "type": "callout",
             "style": "success",
             "title": "Good News",
-            "content": "The medication used for pain relief, antibiotics and any other prescribed medicine after c-section is usually compatible with breastfeeding even in the newborn period. In case you have a question about any medication, doctors can always prescribe an alternative which is safe while breastfeeding."
+            "content": "Most pain relief medicines, antibiotics, and other medications prescribed after a C-section are considered safe to use while breastfeeding, even in the early newborn period. Doctors usually choose medications that are compatible with breastfeeding."
+          },
+          {
+            "type": "text",
+            "content": "If there is ever a concern about a specific medicine, your doctor can almost always suggest a breastfeeding-safe alternative."
           },
           {
             "type": "heading",
             "level": 2,
-            "content": "Reliable Resources"
+            "content": "How Medication Safety Is Checked"
           },
           {
             "type": "text",
-            "content": "The US National Library of Medicine (NLM) maintains LactMed®, a database containing information on drugs and other chemicals to which breastfeeding mothers may be exposed."
+            "content": "There are reliable, evidence-based resources that healthcare providers use to assess medication safety during breastfeeding:"
           },
           {
-            "type": "text",
-            "content": "LactMed® includes information on the levels of such substances in breast milk and infant blood, and the possible adverse effects in the nursing infant. Suggested therapeutic alternatives to those drugs are provided, where appropriate."
-          },
-          {
-            "type": "text",
-            "content": "The InfantRisk Center provides up-to-date evidence-based information on the use of medications during pregnancy and breastfeeding."
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "LactMed\u00ae, maintained by the U.S. National Library of Medicine, provides detailed information on how medicines pass into breast milk and their possible effects on babies",
+              "InfantRisk Center offers up-to-date, research-based guidance on medication use during pregnancy and breastfeeding",
+              "MommyMeds\u00ae App, developed by the InfantRisk Center, helps parents quickly check the safety of prescription and over-the-counter medicines"
+            ]
           },
           {
             "type": "callout",
             "style": "info",
-            "title": "Mobile App Resource",
-            "content": "The MommyMeds mobile app, developed by the Texas Tech University Health Sciences Center's InfantRisk Center, gives pregnant and breastfeeding mothers fast, convenient access to up-to-date and evidence-based information about prescription and over the counter medications."
+            "title": "Evidence-Based Information",
+            "content": "All information in these resources is based on scientific research and regularly reviewed for accuracy. If you are unsure about any medicine, check with your doctor or a lactation consultant."
+          }
+        ]
+      }
+    },
+    {
+      "id": "yellow-breast-milk-colostrum",
+      "title": "Why is my first breast milk yellow?",
+      "summary": "Colostrum, also called liquid gold, is your baby's perfect first food. Learn about its benefits and importance.",
+      "category": "birth-early-hours",
+      "tags": ["colostrum", "liquid-gold", "early-milk", "newborn"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-09T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 4,
+      "difficulty": "beginner",
+      "featured": true,
+      "content": {
+        "sections": [
+          {
+            "type": "callout",
+            "style": "success",
+            "title": "Liquid Gold",
+            "content": "Colostrum is the earliest breast milk produced by mothers ready for babies at birth and is also called liquid gold. It is highly concentrated, full of protein and has disease fighting antibodies."
+          },
+          {
+            "type": "text",
+            "content": "It is nutrient rich and has everything the baby needs in the early days after birth. It is thick, sticky, concentrated milk and is usually yellow, clear or white, although it could be other colors as well."
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "title": "Hand Expression Tip",
+            "content": "If you are not able to breastfeed for any reason in the early hours, hand express the colostrum to feed your baby. Hand expression yields more volume of colostrum than using a breast pump."
+          },
+          {
+            "type": "text",
+            "content": "Colostrum is very important for pre-term babies as it has many health benefits."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Transition to Mature Milk"
+          },
+          {
+            "type": "text",
+            "content": "By the fourth day, the more mature whitish thin milk starts coming in for most mothers. Babies will start drinking colostrum mixed with more mature milk. The colostrum will remain in the milk for the first few weeks."
+          },
+          {
+            "type": "callout",
+            "style": "warning",
+            "title": "Prevents Jaundice",
+            "content": "Colostrum prevents jaundice as it acts like a laxative to help your baby pass the dark first poop (meconium). Colostrum is the most important first food for all infants."
+          }
+        ]
+      }
+    },
+    {
+      "id": "what-to-expect-2-5-days",
+      "title": "What to expect around 2-5 days after delivery?",
+      "summary": "Understanding milk transition and managing engorgement in the first few days after birth.",
+      "category": "first-few-days",
+      "tags": ["milk-coming-in", "engorgement", "early-days", "transition"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-08T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 3,
+      "difficulty": "beginner",
+      "featured": true,
+      "content": {
+        "sections": [
+          {
+            "type": "text",
+            "content": "For most mothers, this thinner, whiter form of milk comes in by about 3 days after birth, but may take longer for first-time moms. You may notice your breasts feeling full, hard, and warm as this happens."
+          },
+          {
+            "type": "callout",
+            "style": "info",
+            "title": "Managing Engorgement",
+            "content": "To minimize engorgement: nurse often, don't skip feedings (even at night), ensure good latch/positioning, and let the baby finish the first breast before offering the other side. Use cold and/or cabbage leaf compresses between feedings."
+          },
+          {
+            "type": "callout",
+            "style": "warning",
+            "title": "Night-time Feedings Are Important",
+            "content": "Night-time feedings are very important to help build your milk supply, establish the breastfeeding relationship, and help your baby begin to gain properly."
           }
         ]
       }
@@ -291,14 +906,15 @@
     {
       "id": "how-often-feed-baby",
       "title": "How often should I feed my baby?",
-      "summary": "Understanding feeding frequency and establishing a healthy nursing routine",
-      "category": "breastfeeding-techniques",
-      "tags": ["feeding-frequency", "schedule", "newborn"],
+      "summary": "Understanding feeding frequency for full-term babies and establishing your milk supply.",
+      "category": "first-few-days",
+      "tags": ["feeding-frequency", "schedule", "newborn", "milk-supply"],
       "author": "NariCare Team",
-      "publishedAt": "2024-01-11T00:00:00Z",
-      "updatedAt": "2024-01-11T00:00:00Z",
+      "publishedAt": "2024-01-07T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
       "readTime": 4,
       "difficulty": "beginner",
+      "featured": false,
       "content": {
         "sections": [
           {
@@ -313,13 +929,13 @@
           },
           {
             "type": "text",
-            "content": "It is important to feed the baby between 8 - 12 times, day and night to establish your milk supply, help your baby grow and prevent or treat jaundice. The first few days, your body produces the earliest form of breastmilk called colostrum."
+            "content": "It is important to feed the baby between 8 - 12 times, day and night to establish your milk supply, help your baby grow and prevent or treat jaundice. The first few days, your body produces the earliest form of breastmilk called colostrum. The more mature milk which is thin and whiter usually comes in after 3 days for most mothers."
           },
           {
             "type": "callout",
             "style": "warning",
-            "title": "Key Point",
-            "content": "It is very important for moms to frequently breastfeed to stimulate milk production. The more mature milk which is thin and whiter usually comes in after 3 days for most mothers."
+            "title": "Stimulating Milk Production",
+            "content": "It is very important for moms to frequently breastfeed to stimulate milk production."
           },
           {
             "type": "text",
@@ -339,14 +955,15 @@
     {
       "id": "milk-not-coming-in",
       "title": "Why is my milk not coming in?",
-      "summary": "Understanding delayed lactation and factors that affect milk production",
-      "category": "milk-supply-production",
-      "tags": ["delayed-lactation", "milk-production", "factors"],
+      "summary": "Understanding delayed lactation and factors that may affect when your milk comes in.",
+      "category": "first-few-days",
+      "tags": ["delayed-lactation", "milk-production", "factors", "concerns"],
       "author": "NariCare Team",
-      "publishedAt": "2024-01-10T00:00:00Z",
-      "updatedAt": "2024-01-10T00:00:00Z",
+      "publishedAt": "2024-01-06T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
       "readTime": 3,
       "difficulty": "intermediate",
+      "featured": false,
       "content": {
         "sections": [
           {
@@ -356,7 +973,7 @@
           {
             "type": "heading",
             "level": 2,
-            "content": "Factors that might delay the onset of lactation:"
+            "content": "Factors That Might Delay Lactation"
           },
           {
             "type": "list",
@@ -380,48 +997,283 @@
       }
     },
     {
-      "id": "yellow-breast-milk-colostrum",
-      "title": "Why is my first breast milk yellow?",
-      "summary": "Understanding colostrum - your baby's first superfood",
-      "category": "milk-supply-production",
-      "tags": ["colostrum", "liquid-gold", "early-milk"],
+      "id": "when-to-get-help",
+      "title": "What's Not Normal \u2013 When to Get Help",
+      "summary": "Warning signs that require immediate attention from your doctor or lactation consultant.",
+      "category": "first-few-days",
+      "tags": ["warning-signs", "medical-help", "emergency", "concerns"],
       "author": "NariCare Team",
-      "publishedAt": "2024-01-09T00:00:00Z",
-      "updatedAt": "2024-01-09T00:00:00Z",
-      "readTime": 4,
+      "publishedAt": "2024-01-05T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 3,
       "difficulty": "beginner",
       "featured": true,
       "content": {
         "sections": [
           {
             "type": "callout",
-            "style": "success",
-            "title": "Liquid Gold",
-            "content": "Colostrum is the earliest breast milk produced by mothers ready for babies at birth and is also called liquid gold. It is highly concentrated, full of protein and has disease fighting antibodies."
+            "style": "danger",
+            "title": "When to Contact Your Doctor",
+            "content": "It's important to speak to your doctor or lactation consultant if you notice any of the following:"
           },
           {
-            "type": "text",
-            "content": "It is nutrient rich and has everything the baby needs in the early days after birth. It is thick, sticky, concentrated milk and is usually yellow, clear or white, although it could be other colors as well."
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "No wet or dirty diapers in a 24-hour period",
+              "Urine is dark in color after day 3 (it should be pale yellow or clear)",
+              "Poop is still dark after day 4 (it should be mustard yellow by then, with no black meconium)",
+              "Baby is feeding less often than 8 times in 24 hours or is having fewer wet/soiled diapers than expected",
+              "Mom has symptoms of infection like a sore, red breast along with fever, chills, or body aches \u2014 this could be mastitis"
+            ]
+          },
+          {
+            "type": "callout",
+            "style": "success",
+            "title": "Trust Your Instincts",
+            "content": "Trust your instincts. If something feels off, don't hesitate to get help."
+          }
+        ]
+      }
+    },
+    {
+      "id": "baby-hunger-cues",
+      "title": "Should I wait till my baby cries before feeding her?",
+      "summary": "Recognizing early hunger cues for easier and more successful breastfeeding.",
+      "category": "first-few-days",
+      "tags": ["hunger-cues", "feeding-timing", "baby-signals", "crying"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-04T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 3,
+      "difficulty": "beginner",
+      "featured": false,
+      "content": {
+        "sections": [
+          {
+            "type": "callout",
+            "style": "warning",
+            "title": "Don't Wait for Crying",
+            "content": "When babies are hungry, they show hunger cues and have to be fed as soon as the mom notices the early signs. Crying is a late sign of hunger. It is easier to breastfeed a calm baby than a crying baby."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Early Cues of Hunger"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Bringing hands to mouth",
+              "Increased Body Movement",
+              "Making cooing noises",
+              "Fussiness",
+              "Restlessness",
+              "Rooting for your breast",
+              "Crying"
+            ]
           },
           {
             "type": "callout",
             "style": "info",
-            "title": "Hand Expression Tip",
-            "content": "If you are not able to breastfeed for any reason in the early hours, hand express the colostrum to feed your baby, hand expression yields more volume of colostrum than using a breast pump."
+            "title": "If Baby is Already Crying",
+            "content": "If the baby is already crying, hold the baby skin-to-skin and soothe the baby before starting to breastfeed her."
           },
           {
-            "type": "text",
-            "content": "Colostrum is very important for pre-term babies as it has many health benefits."
-          },
+            "type": "media",
+            "mediaType": "video",
+            "media": [
+              {
+                "title": "Recognizing Hunger Cues",
+                "url": "https://youtu.be/ABAXgubx58Q?feature=shared",
+                "thumbnail": "https://img.youtube.com/vi/ABAXgubx58Q/maxresdefault.jpg",
+                "description": "Learn to identify your baby's hunger signals before they cry"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "baby-weight-gain-chart",
+      "title": "Average weight gain of breastfed babies",
+      "summary": "WHO growth standards and tips for accurate weight tracking of your breastfed baby.",
+      "category": "first-few-days",
+      "tags": ["weight-gain", "growth-chart", "WHO-standards", "tracking"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-03T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 3,
+      "difficulty": "beginner",
+      "featured": false,
+      "content": {
+        "sections": [
           {
             "type": "text",
-            "content": "By the fourth day, the more mature whitish thin milk starts coming in for most mothers, babies will start drinking colostrum mixed with more mature milk. The colostrum will remain in the milk for the first few weeks."
+            "content": "Here is a chart of average weight gain by age according to the World Health Organization (WHO) issued Child Growth Standards in 2006."
+          },
+          {
+            "type": "table",
+            "headers": ["Baby's Age", "Average Weight Gain"],
+            "rows": [
+              ["0-4 months", "155 \u2013 241 grams per week"],
+              ["4-6 months", "92 \u2013 126 grams per week"],
+              ["6-12 months", "50 \u2013 80 grams per week"]
+            ]
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "To Get Accurate Results"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Weigh the baby on the same day once a week",
+              "Use the same weighing scale every time",
+              "Keep the baby naked while weighing"
+            ]
           },
           {
             "type": "callout",
+            "style": "info",
+            "title": "Normal Weight Loss After Birth",
+            "content": "Please note that babies lose 5-7% of their weight in the first few days after birth and regain their birth weight by 10 - 14 days."
+          }
+        ]
+      }
+    },
+    {
+      "id": "avoid-breastfeeding-pain",
+      "title": "How to avoid pain while breastfeeding?",
+      "summary": "Understanding shallow latch and techniques to achieve pain-free breastfeeding.",
+      "category": "how-to-breastfeed",
+      "tags": ["pain", "latch-problems", "nipple-pain", "technique"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-02T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 5,
+      "difficulty": "intermediate",
+      "featured": true,
+      "content": {
+        "sections": [
+          {
+            "type": "callout",
             "style": "warning",
-            "title": "Important Benefits",
-            "content": "Colostrum prevents jaundice as it acts like a laxative to help your baby pass the dark first poop (meconium). Colostrum is the most important first food for all infants."
+            "title": "What is a Shallow Latch?",
+            "content": "When a baby doesn't take a good portion of the areola and rather feeds from just the nipple, it causes extreme pain to the mother and results in sore, cracked, bleeding nipples. This is called a shallow latch, when the baby nipple feeds and doesn't breastfeed."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Signs of a Poor Latch"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Baby seems fussy and doesn't look satisfied after the feed",
+              "Extreme pain during the entire nursing session, not just the initial discomfort which is common and goes away after a few minutes",
+              "Baby makes clicking noises as the suction is broken multiple times",
+              "Sore, cracked or bleeding nipples",
+              "Discoloration of the nipple or the nipple looks lip-stick shaped after the feed"
+            ]
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Tips for a Deep Latch"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "Sit in a comfortable position, relax your shoulders and the entire body",
+              "Position the baby so that the baby's head and body are in alignment",
+              "Bring your baby across the front of your body, tummy to tummy",
+              "Touch the baby's lip with your nipple to encourage the baby to open her mouth",
+              "Once the baby opens the mouth wide enough, quickly bring the baby to the breast",
+              "Do not lean forward and hunch your shoulders. Bring the baby to the breast, not the breast to the baby",
+              "Side Lying and Laid back positions will encourage the baby to naturally look for the nipple and extend the head to get a good latch by opening their mouth wide"
+            ]
+          },
+          {
+            "type": "media",
+            "mediaType": "video",
+            "media": [
+              {
+                "title": "How to Avoid Sore Nipples",
+                "url": "https://youtu.be/NfVvFNLy5kc",
+                "thumbnail": "https://img.youtube.com/vi/NfVvFNLy5kc/maxresdefault.jpg",
+                "description": "Techniques to prevent and treat sore nipples"
+              },
+              {
+                "title": "Exaggerated Latch Technique",
+                "url": "https://youtu.be/41fC0fQs1P8",
+                "thumbnail": "https://img.youtube.com/vi/41fC0fQs1P8/maxresdefault.jpg",
+                "description": "Advanced technique for achieving deeper latch"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "nipple-pain-causes",
+      "title": "What causes nipple pain during breastfeeding",
+      "summary": "Understanding the various causes of nipple pain from latch issues to pumping problems.",
+      "category": "how-to-breastfeed",
+      "tags": ["nipple-pain", "causes", "problems", "solutions"],
+      "author": "NariCare Team",
+      "publishedAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 4,
+      "difficulty": "intermediate",
+      "featured": false,
+      "content": {
+        "sections": [
+          {
+            "type": "callout",
+            "style": "info",
+            "title": "Normal vs. Concerning Pain",
+            "content": "The initial discomfort and pain when the baby latches on is normal and should go away after a few seconds. If the pain persists, this indicates a shallow latch."
+          },
+          {
+            "type": "heading",
+            "level": 2,
+            "content": "Common Causes of Nipple Pain"
+          },
+          {
+            "type": "list",
+            "style": "bullet",
+            "items": [
+              "When the baby suckles just on the nipples and doesn't take a good portion of the areola, that's called a shallow latch and it causes a lot of nipple pain to the mothers",
+              "Babies with a tongue tie or lip tie find it hard to latch on correctly causing pain. There can be cracking, distortion, blanching or bleeding from the nipple, sometimes followed by infection or mastitis",
+              "If you have flat or inverted nipples, the baby may put extra pressure to draw out the nipples which causes pain. The soreness should go away after the initial 2 weeks of breastfeeding",
+              "If you are pumping, using incorrectly sized pump flanges, too-high or low suction settings causes pain",
+              "When you have an oversupply and a forceful milk ejection, the baby might clamp the breasts to slow the flow which also causes pain",
+              "Rash on the nipple from using deodorants, soaps, breast pads etc."
+            ]
+          },
+          {
+            "type": "media",
+            "mediaType": "video",
+            "media": [
+              {
+                "title": "How to Avoid Sore Nipples",
+                "url": "https://youtu.be/NfVvFNLy5kc",
+                "thumbnail": "https://img.youtube.com/vi/NfVvFNLy5kc/maxresdefault.jpg",
+                "description": "Prevention and treatment of sore nipples"
+              },
+              {
+                "title": "Exaggerated Latch Technique",
+                "url": "https://youtu.be/41fC0fQs1P8",
+                "thumbnail": "https://img.youtube.com/vi/41fC0fQs1P8/maxresdefault.jpg",
+                "description": "Advanced latching technique for pain prevention"
+              }
+            ]
           }
         ]
       }
@@ -429,25 +1281,25 @@
     {
       "id": "good-latch-breastfeeding",
       "title": "How to get a good latch while breastfeeding?",
-      "summary": "Step-by-step guide to achieving the perfect latch for comfortable feeding",
-      "category": "breastfeeding-techniques",
-      "tags": ["latch", "positioning", "technique"],
+      "summary": "Step-by-step guide to achieving a perfect latch in any breastfeeding position.",
+      "category": "how-to-breastfeed",
+      "tags": ["latch", "positioning", "technique", "step-by-step"],
       "author": "NariCare Team",
-      "publishedAt": "2024-01-08T00:00:00Z",
-      "updatedAt": "2024-01-08T00:00:00Z",
-      "readTime": 5,
+      "publishedAt": "2023-12-31T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
+      "readTime": 4,
       "difficulty": "beginner",
       "featured": true,
       "content": {
         "sections": [
           {
             "type": "text",
-            "content": "Whatever breastfeeding position you chose - cradle hold, football hold, cross cradle hold, side lying - follow the below steps for the perfect latch:"
+            "content": "Whatever breastfeeding position - cradle hold, football hold, cross cradle hold, side lying you choose, follow the below steps for the perfect latch:"
           },
           {
             "type": "heading",
             "level": 2,
-            "content": "Steps for Perfect Latch:"
+            "content": "Steps for the Perfect Latch"
           },
           {
             "type": "list",
@@ -485,272 +1337,23 @@
       }
     },
     {
-      "id": "baby-hunger-cues",
-      "title": "Should I wait till my baby cries before feeding her?",
-      "summary": "Recognizing early hunger cues for better feeding experiences",
-      "category": "breastfeeding-techniques",
-      "tags": ["hunger-cues", "feeding-timing", "baby-signals"],
-      "author": "NariCare Team",
-      "publishedAt": "2024-01-07T00:00:00Z",
-      "updatedAt": "2024-01-07T00:00:00Z",
-      "readTime": 3,
-      "difficulty": "beginner",
-      "content": {
-        "sections": [
-          {
-            "type": "callout",
-            "style": "warning",
-            "title": "Important",
-            "content": "When babies are hungry, they show hunger cues and have to be fed as soon as the mom notices the early signs. Crying is a late sign of hunger. It is easier to breastfeed a calm baby than a crying baby."
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "Early cues of hunger:"
-          },
-          {
-            "type": "list",
-            "style": "bullet",
-            "items": [
-              "Bringing hands to mouth",
-              "Increased Body Movement",
-              "Making cooing noises",
-              "Fussiness",
-              "Restlessness",
-              "Rooting for your breast",
-              "Crying"
-            ]
-          },
-          {
-            "type": "callout",
-            "style": "info",
-            "title": "If Baby is Already Crying",
-            "content": "If the baby is already crying, hold the baby skin-to-skin and soothe the baby before starting to breastfeed her."
-          },
-          {
-            "type": "media",
-            "mediaType": "video",
-            "media": [
-              {
-                "title": "Recognizing Hunger Cues",
-                "url": "https://youtu.be/ABAXgubx58Q?feature=shared",
-                "thumbnail": "https://img.youtube.com/vi/ABAXgubx58Q/maxresdefault.jpg",
-                "description": "Learn to identify your baby's hunger signals before they cry"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "avoid-breastfeeding-pain",
-      "title": "How to avoid pain while breastfeeding?",
-      "summary": "Identifying poor latch signs and techniques for pain-free nursing",
-      "category": "common-challenges",
-      "tags": ["pain", "latch-problems", "nipple-pain"],
-      "author": "NariCare Team",
-      "publishedAt": "2024-01-06T00:00:00Z",
-      "updatedAt": "2024-01-06T00:00:00Z",
-      "readTime": 6,
-      "difficulty": "intermediate",
-      "content": {
-        "sections": [
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "Signs of a poor latch:"
-          },
-          {
-            "type": "list",
-            "style": "bullet",
-            "items": [
-              "Baby seems fussy and doesn't look satisfied after the feed",
-              "Extreme pain during the entire nursing session, not just the initial discomfort which is common and goes away after a few minutes",
-              "Baby makes clicking noises as the suction is broken multiple times",
-              "Sore, cracked or bleeding nipples",
-              "Discoloration of the nipple or the nipple looks lip-stick shaped after the feed"
-            ]
-          },
-          {
-            "type": "callout",
-            "style": "warning",
-            "title": "Shallow Latch Problem",
-            "content": "When a baby doesn't take a good portion of the areola and rather feeds from just the nipple, it causes extreme pain to the mother and results in sore, cracked, bleeding nipples. This is called a shallow latch, when the baby nipple feeds and doesn't breastfeed."
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "To get a deep latch, follow these tips:"
-          },
-          {
-            "type": "list",
-            "style": "bullet",
-            "items": [
-              "Sit in a comfortable position, relax your shoulders and the entire body",
-              "Position the baby so that the baby's head and body are in alignment",
-              "Bring your baby across the front of your body, tummy to tummy",
-              "Touch the baby's lip with your nipple to encourage the baby to open her mouth",
-              "Once the baby opens the mouth wide enough, quickly bring the baby to the breast",
-              "Do not lean forward and hunch your shoulders. Bring the baby to the breast, not the breast to the baby",
-              "Side Lying and Laid back positions will encourage the baby to naturally look for the nipple and extend the head to get a good latch by opening their mouth wide"
-            ]
-          },
-          {
-            "type": "media",
-            "mediaType": "video",
-            "media": [
-              {
-                "title": "How to avoid sore nipples",
-                "url": "https://youtu.be/NfVvFNLy5kc",
-                "thumbnail": "https://img.youtube.com/vi/NfVvFNLy5kc/maxresdefault.jpg",
-                "description": "Techniques to prevent and treat sore nipples"
-              },
-              {
-                "title": "Lower lip placement technique",
-                "url": "https://www.facebook.com/reel/458215646196516?s=chYV2B&fs=e",
-                "thumbnail": "https://via.placeholder.com/480x360/e91e63/ffffff?text=Facebook+Video",
-                "description": "Proper lower lip placement to avoid shallow latch"
-              },
-              {
-                "title": "Exaggerated Latch Technique",
-                "url": "https://youtu.be/41fC0fQs1P8",
-                "thumbnail": "https://img.youtube.com/vi/41fC0fQs1P8/maxresdefault.jpg",
-                "description": "Advanced technique for achieving deeper latch"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "nipple-pain-causes",
-      "title": "What causes nipple pain during breastfeeding?",
-      "summary": "Understanding the root causes of nipple pain and discomfort",
-      "category": "common-challenges",
-      "tags": ["nipple-pain", "causes", "problems"],
-      "author": "NariCare Team",
-      "publishedAt": "2024-01-05T00:00:00Z",
-      "updatedAt": "2024-01-05T00:00:00Z",
-      "readTime": 5,
-      "difficulty": "intermediate",
-      "content": {
-        "sections": [
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "Common Causes of Nipple Pain:"
-          },
-          {
-            "type": "list",
-            "style": "bullet",
-            "items": [
-              "Incorrect latch - Shallow latch causes a lot of nipple pain to the mothers as the baby suckles just on the nipples and doesn't take a good portion of the areola",
-              "Babies with a tongue tie or lip tie find it hard to latch on correctly causing pain. There can be cracking, distortion, blanching or bleeding from the nipple, sometimes followed by infection or mastitis",
-              "If you have flat or inverted nipples, the baby may put extra pressure to draw out the nipples which causes pain. The soreness should go away after the initial 2 weeks of breastfeeding",
-              "If you are pumping, using incorrectly sized pump flanges, too-high or low suction settings",
-              "When you have an oversupply and a forceful milk ejection, the baby might clamp the breasts to slow the flow which also causes pain",
-              "Rash on the nipple from using deodorants, soaps, breast pads etc."
-            ]
-          },
-          {
-            "type": "callout",
-            "style": "info",
-            "title": "Normal vs. Concerning Pain",
-            "content": "The initial discomfort and pain when the baby latches on is normal and should go away after a few seconds. If the pain persists, this indicates a shallow latch."
-          },
-          {
-            "type": "media",
-            "mediaType": "video",
-            "media": [
-              {
-                "title": "How to avoid sore nipples",
-                "url": "https://youtu.be/NfVvFNLy5kc",
-                "thumbnail": "https://img.youtube.com/vi/NfVvFNLy5kc/maxresdefault.jpg",
-                "description": "Prevention and treatment of sore nipples"
-              },
-              {
-                "title": "Lower lip placement technique",
-                "url": "https://www.facebook.com/reel/458215646196516?s=chYV2B&fs=e",
-                "thumbnail": "https://via.placeholder.com/480x360/e91e63/ffffff?text=Facebook+Video",
-                "description": "Correct positioning to prevent shallow latch"
-              },
-              {
-                "title": "Exaggerated Latch Technique",
-                "url": "https://youtu.be/41fC0fQs1P8",
-                "thumbnail": "https://img.youtube.com/vi/41fC0fQs1P8/maxresdefault.jpg",
-                "description": "Advanced latching technique for pain prevention"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": "baby-weight-gain-chart",
-      "title": "Average weight gain of breastfed babies",
-      "summary": "WHO growth standards and weight tracking guidelines for breastfed infants",
-      "category": "baby-health-growth",
-      "tags": ["weight-gain", "growth-chart", "WHO-standards"],
-      "author": "NariCare Team",
-      "publishedAt": "2024-01-04T00:00:00Z",
-      "updatedAt": "2024-01-04T00:00:00Z",
-      "readTime": 3,
-      "difficulty": "beginner",
-      "content": {
-        "sections": [
-          {
-            "type": "text",
-            "content": "Here is a chart of average weight gain by age according to the World Health Organization (WHO) issued Child Growth Standards in 2006."
-          },
-          {
-            "type": "table",
-            "headers": ["Baby's Age", "Average Weight Gain"],
-            "rows": [
-              ["0-4 months", "155 – 241 grams per week"],
-              ["4-6 months", "92 – 126 grams per week"],
-              ["6-12 months", "50 – 80 grams per week"]
-            ]
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "To get accurate results:"
-          },
-          {
-            "type": "list",
-            "style": "bullet",
-            "items": [
-              "Weigh the baby on the same day once a week",
-              "Use the same weighing scale every time",
-              "Keep the baby naked while weighing"
-            ]
-          },
-          {
-            "type": "callout",
-            "style": "info",
-            "title": "Important Note",
-            "content": "Please note that babies lose 5-7% of their weight in the first few days after birth and regain their birth weight by 10 - 14 days."
-          }
-        ]
-      }
-    },
-    {
       "id": "low-milk-supply-causes",
       "title": "Causes of Low Milk Supply/Less Milk Production",
-      "summary": "Common factors that can negatively impact milk production",
-      "category": "milk-supply-production",
-      "tags": ["low-milk-supply", "causes", "milk-production"],
+      "summary": "Common factors that can negatively impact your milk production and how to avoid them.",
+      "category": "milk-supply",
+      "tags": ["low-milk-supply", "causes", "milk-production", "prevention"],
       "author": "NariCare Team",
-      "publishedAt": "2024-01-03T00:00:00Z",
-      "updatedAt": "2024-01-03T00:00:00Z",
+      "publishedAt": "2023-12-30T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
       "readTime": 2,
       "difficulty": "intermediate",
+      "featured": false,
       "content": {
         "sections": [
           {
             "type": "heading",
             "level": 2,
-            "content": "Common Causes of Low Milk Supply:"
+            "content": "Common Causes of Low Milk Supply"
           },
           {
             "type": "list",
@@ -775,54 +1378,14 @@
       }
     },
     {
-      "id": "when-to-get-help",
-      "title": "What's Not Normal – When to Get Help",
-      "summary": "Warning signs that require immediate medical attention",
-      "category": "baby-health-growth",
-      "tags": ["warning-signs", "medical-help", "emergency"],
+      "id": "is-baby-getting-enough-milk",
+      "title": "Is my baby getting enough milk?",
+      "summary": "Signs and indicators to ensure your baby is getting adequate nutrition from breastfeeding.",
+      "category": "milk-supply",
+      "tags": ["milk-intake", "baby-health", "feeding-signs", "reassurance"],
       "author": "NariCare Team",
-      "publishedAt": "2024-01-02T00:00:00Z",
-      "updatedAt": "2024-01-02T00:00:00Z",
-      "readTime": 3,
-      "difficulty": "beginner",
-      "featured": true,
-      "content": {
-        "sections": [
-          {
-            "type": "callout",
-            "style": "danger",
-            "title": "When to Contact Your Doctor",
-            "content": "It's important to speak to your doctor or lactation consultant if you notice any of the following:"
-          },
-          {
-            "type": "list",
-            "style": "bullet",
-            "items": [
-              "🍼 No wet or dirty diapers in a 24-hour period",
-              "💧 Urine is dark in color after day 3 (it should be pale yellow or clear)",
-              "💩 Poop is still dark after day 4 (it should be mustard yellow by then, with no black meconium)",
-              "🔄 Baby is feeding less often than 8 times in 24 hours or is having fewer wet/soiled diapers than expected",
-              "🤒 Mom has symptoms of infection like a sore, red breast along with fever, chills, or body aches — this could be mastitis"
-            ]
-          },
-          {
-            "type": "callout",
-            "style": "success",
-            "title": "Trust Your Instincts",
-            "content": "Trust your instincts. If something feels off, don't hesitate to get help."
-          }
-        ]
-      }
-    },
-    {
-      "id": "prepare-breastfeeding-before-birth",
-      "title": "How to Prepare for Breastfeeding in the Month Before Birth",
-      "summary": "Essential preparation steps for a successful breastfeeding journey",
-      "category": "preparation-planning",
-      "tags": ["preparation", "birth-plan", "hospital-bag"],
-      "author": "NariCare Team",
-      "publishedAt": "2024-01-01T00:00:00Z",
-      "updatedAt": "2024-01-01T00:00:00Z",
+      "publishedAt": "2023-12-29T00:00:00Z",
+      "updatedAt": "2026-01-26T00:00:00Z",
       "readTime": 5,
       "difficulty": "beginner",
       "featured": true,
@@ -831,72 +1394,83 @@
           {
             "type": "heading",
             "level": 2,
-            "content": "1. Make a Birth Plan That Supports Breastfeeding"
-          },
-          {
-            "type": "text",
-            "content": "Discuss your preferences with your doctor. Clearly mention that your baby should not be given formula, bottles, pacifiers, or artificial nipples unless it's prescribed by your pediatrician and you approve it."
+            "content": "Signs Your Baby is Getting Enough Milk"
           },
           {
             "type": "heading",
-            "level": 2,
-            "content": "2. If Formula Is Needed, Say No to Bottles"
+            "level": 3,
+            "content": "Frequent Feeds"
           },
           {
             "type": "text",
-            "content": "If supplementation is medically necessary, ask that it be given through a spoon, paladai, or oral syringe—not a bottle. This helps protect your baby's latch and breastfeeding journey."
+            "content": "Your baby feeds often around 8 to 12 times in 24 hours. This is completely normal and helps build a good milk supply."
           },
           {
             "type": "heading",
-            "level": 2,
-            "content": "3. Ask About Hospital Practices"
+            "level": 3,
+            "content": "After Feeds"
           },
           {
             "type": "text",
-            "content": "Before delivery, check with your hospital about:"
+            "content": "After feeding, your baby looks calm and satisfied. They usually let go of the breast on their own. You might notice their hands were clenched before the feed and now look relaxed and open, that's a great sign they're full."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "content": "Healthy Weight Gain"
+          },
+          {
+            "type": "text",
+            "content": "Most babies gain about 155\u2013240 grams (5.5\u20138.5 ounces) each week until they're around 4 months old. If weight gain is on track, feeding is going well."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "content": "Sucking & Swallowing Patterns"
+          },
+          {
+            "type": "text",
+            "content": "During feeds, there will be moments when you hear gulping sounds, this means your milk is letting down and your baby is getting larger mouthfuls. Sucking slows down to about one suck per second as milk fills the mouth before swallowing. Watch their throat\u2014you'll see a gentle rise and fall with each swallow."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "content": "Poop Changes"
+          },
+          {
+            "type": "text",
+            "content": "By day five, baby's stools usually turn yellow, soft, and seedy. By the fourth day, you should see at least 3\u20134 dirty diapers each day."
+          },
+          {
+            "type": "heading",
+            "level": 3,
+            "content": "Wet Diapers"
+          },
+          {
+            "type": "text",
+            "content": "In the early days, wet diapers gradually increase:"
           },
           {
             "type": "list",
             "style": "bullet",
             "items": [
-              "✅ Breastfeeding within the first hour after birth",
-              "✅ Skin-to-skin contact immediately after delivery",
-              "✅ Keeping baby in the same room (rooming-in)",
-              "✅ Access to a lactation consultant within 24 hours"
+              "Day 2: at least 2 wet diapers",
+              "Days 3\u20134: 3 or more per day",
+              "By day 5: 6+ wet diapers in 24 hours"
             ]
-          },
-          {
-            "type": "heading",
-            "level": 2,
-            "content": "4. Pack Your Breastfeeding Essentials"
           },
           {
             "type": "text",
-            "content": "Here's a simple checklist for your hospital bag:"
+            "content": "By now, diapers should feel heavier. Some disposable diapers have a color-changing line that helps show when they're wet."
           },
           {
-            "type": "list",
-            "style": "bullet",
-            "items": [
-              "Nursing bras",
-              "Nipple cream",
-              "Breastfeeding pillow (optional but helpful)",
-              "Easy-to-open nursing-friendly outfits",
-              "Breast pump (if advised)",
-              "Breast milk storage bags or bottles"
-            ]
+            "type": "heading",
+            "level": 3,
+            "content": "Baby's Overall Wellness"
           },
           {
-            "type": "media",
-            "mediaType": "video",
-            "media": [
-              {
-                "title": "Breastfeeding Preparation Guide",
-                "url": "https://www.youtube.com/watch?v=OhF-qpaaOHQ",
-                "thumbnail": "https://img.youtube.com/vi/OhF-qpaaOHQ/maxresdefault.jpg",
-                "description": "Complete guide to preparing for breastfeeding before birth"
-              }
-            ]
+            "type": "text",
+            "content": "Your baby should be alert and active when awake and should be progressing in their developmental milestones."
           }
         ]
       }
