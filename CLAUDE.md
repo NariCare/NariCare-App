@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git Workflow
+
+- Never commit directly to master or main. Always work on a feature branch and commit there.
+- Commit only when explicitly asked, and only the files the user names.
+
 ## Development Commands
 
 ```bash
