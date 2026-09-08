@@ -1,23 +1,101 @@
 .register-content {
   --padding-start: 0;
   --padding-end: 0;
-  background: #ffffff;
+  background: var(--ion-background-color, #ffffff);
 }
 
 .register-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
 }
 
-/* Top Section - Gray Background */
-.top-section {
-  background: #f9f9f9;
-  padding: 4rem 1.5rem 3rem;
-  text-align: center;
-  flex-shrink: 0;
-  min-height: 40vh;
+/* ==================== Stepper Header ==================== */
+
+.stepper-header {
+  padding-top: 1rem;
+}
+
+.stepper-top-row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.back-button {
+  --color: var(--ion-text-color, #2d3748);
+  --padding-start: 0;
+  --padding-end: 0;
+  margin: 0;
+  max-width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+
+  ion-icon {
+    font-size: 1.5rem;
+  }
+}
+
+.step-counter {
+  color: #7a73a9;
+  font-size: 0.875rem;
+  font-family: var(--ion-font-family, sans-serif);
+}
+
+.progress-track {
+  height: 6px;
+  background: #ece9fb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--ion-color-primary);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* ==================== Step Heading ==================== */
+
+.step-heading {
+  margin: 2rem 0 1.5rem 0;
+}
+
+.step-title {
+  margin: 0;
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: var(--ion-text-color, #000000);
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+  line-height: 1.3;
+}
+
+.step-subtitle {
+  margin: 0.5rem 0 0 0;
+  color: #7a73a9;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+}
+
+/* ==================== Welcome Step ==================== */
+
+.welcome-step {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: 2.5rem;
+}
+
+.welcome-top {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -26,54 +104,67 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 1.75rem;
 }
 
-.logo-image {
-  width: 200px;
+.welcome-logo {
+  width: 176px;
   height: auto;
-  margin-bottom: 0;
 }
 
-/* Bottom Section - White Background */
-.bottom-section {
-  background: #ffffff;
-  padding: 2.5rem 1.5rem 2rem;
-  flex: 1;
+.beta-tag {
+  margin-top: 0.75rem;
+  align-self: center;
+  background: #8383ed;
+  color: #ffffff;
+  padding: 4px 14px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  span {
+    display: block;
+  }
+}
+
+.welcome-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--ion-text-color, #000000);
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+  line-height: 1.3;
+  text-align: center;
+}
+
+.welcome-subtitle {
+  margin: 0.75rem 1rem 2rem 1rem;
+  color: #7a73a9;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+  text-align: center;
+}
+
+.welcome-actions {
+  flex-shrink: 0;
+  padding-bottom: 2rem;
+}
+
+/* ==================== Form Inputs ==================== */
+
+.register-form {
   display: flex;
   flex-direction: column;
-  max-width: 400px;
-  margin: 0 auto;
-  width: 100%;
-  margin-top: -20px;
-  position: relative;
-  z-index: 1;
+  min-height: calc(100vh - 90px);
 }
 
-.welcome-section {
-  text-align: left;
-  margin-bottom: 1.5rem;
-}
-
-.signup-title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #000000;
-  font-family: 'Poppins', sans-serif;
-  line-height: 1.3;
-}
-
-.signup-subtitle {
-  margin: 0.5rem 0 0 0;
-  color: #7a73a9;
-  font-size: 1rem;
-  line-height: 1.5;
-  font-family: 'Poppins', sans-serif;
-}
-
-/* Form Styling */
-.register-form {
-  margin-bottom: 2rem;
+.step-body {
+  flex: 1;
+  padding-top: 0.5rem;
 }
 
 .input-container {
@@ -81,110 +172,50 @@
 }
 
 .custom-input {
-  --background: #ffffff;
-  --color: #000000;
+  --background: var(--ion-item-background, #ffffff);
+  --color: var(--ion-text-color, #000000);
   --placeholder-color: #9ca3af;
   --padding-start: 20px;
   --padding-end: 20px;
   --padding-top: 18px;
   --padding-bottom: 18px;
-  --border-radius: 12px;
-  --border-color: #d1d5db;
+  --border-radius: 14px;
+  --border-color: #e2ddf5;
   --border-style: solid;
-  --border-width: 1px;
-  --highlight-color-focused: #8383ed;
-  --highlight-color-valid: #8383ed;
-  font-family: 'Poppins', sans-serif;
-  font-size: 1rem;
+  --border-width: 1.5px;
+  --highlight-color-focused: var(--ion-color-primary);
+  --highlight-color-valid: var(--ion-color-primary);
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+  font-size: 1.0625rem;
   margin-bottom: 4px;
-  border: 1px solid #d1d5db !important;
-  border-radius: 12px !important;
+  border: 1.5px solid #e2ddf5 !important;
+  border-radius: 14px !important;
+  min-height: 56px;
 
-  // Force all borders to show
-  .native-input {
-    border: 1px solid #d1d5db !important;
-    border-radius: 12px !important;
+  &:focus-within {
+    --border-color: var(--ion-color-primary) !important;
+    border: 1.5px solid var(--ion-color-primary) !important;
   }
 
   &.error {
     --border-color: #ed3241 !important;
-    --highlight-color-focused: #ed3241;
-    border: 1px solid #ed3241 !important;
-    
-    .native-input {
-      border: 1px solid #ed3241 !important;
-    }
-  }
-
-  &:focus-within {
-    --border-color: #8383ed !important;
-    border: 1px solid #8383ed !important;
-    
-    .native-input {
-      border: 1px solid #8383ed !important;
-    }
+    border: 1.5px solid #ed3241 !important;
   }
 }
 
-.custom-select {
-  --background: #ffffff;
-  --color: #000000;
-  --placeholder-color: #9ca3af;
-  --padding-start: 20px;
-  --padding-end: 20px;
-  --padding-top: 18px;
-  --padding-bottom: 18px;
-  --border-radius: 12px;
-  --border-color: #d1d5db;
-  --border-style: solid;
-  --border-width: 1px;
-  --highlight-color-focused: #8383ed;
-  font-family: 'Poppins', sans-serif;
-  font-size: 1rem;
-  margin-bottom: 4px;
-  border: 1px solid #d1d5db !important;
-  border-radius: 12px !important;
-  min-height: 56px;
-
-  &:focus-within {
-    --border-color: #8383ed !important;
-    border: 1px solid #8383ed !important;
-  }
-}
-
-.custom-datetime {
-  --background: #ffffff;
-  --color: #000000;
-  --placeholder-color: #9ca3af;
-  --padding-start: 20px;
-  --padding-end: 20px;
-  --padding-top: 18px;
-  --padding-bottom: 18px;
-  --border-radius: 12px;
-  --border-color: #d1d5db;
-  --border-style: solid;
-  --border-width: 1px;
-  --highlight-color-focused: #8383ed;
-  font-family: 'Poppins', sans-serif;
-  font-size: 1rem;
-  margin-bottom: 4px;
-  border: 1px solid #d1d5db !important;
-  border-radius: 12px !important;
-  min-height: 56px;
-
-  &.error {
-    --border-color: #ed3241 !important;
-    border: 1px solid #ed3241 !important;
-  }
-
-  &:focus-within {
-    --border-color: #8383ed !important;
-    border: 1px solid #8383ed !important;
+.datetime-container {
+  ion-datetime {
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: none;
+    border: 1.5px solid #e0ddf5;
+    padding: 12px 8px;
+    --highlight-color: var(--ion-color-primary);
+    --highlight-color-activated: var(--ion-color-primary);
   }
 }
 
 .password-input {
-  position: relative;
   --padding-top: 0px !important;
   --padding-bottom: 0px !important;
 }
@@ -195,74 +226,231 @@
   --padding-start: 8px;
   --padding-end: 8px;
   margin: 0;
-  height: 40px;
-  width: 40px;
+  height: 44px;
+  width: 44px;
 
   ion-icon {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
   }
 }
 
 .error-message {
   color: #ed3241;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   margin-left: 16px;
   margin-top: 4px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
 }
 
-/* WhatsApp Section */
-.whatsapp-section {
-  background: rgba(37, 211, 102, 0.05);
-  border-radius: 12px;
-  padding: 1rem;
-  margin: 0.5rem 0 1rem 0;
-  border-left: 3px solid #25d366;
+/* ==================== Phone Row ==================== */
+
+.phone-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
 }
 
-.checkbox-container {
+.country-select {
+  --background: var(--ion-item-background, #ffffff);
+  --color: var(--ion-text-color, #000000);
+  --border-radius: 14px;
+  --border-color: #e2ddf5;
+  --highlight-color-focused: var(--ion-color-primary);
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+  font-size: 1rem;
+  border: 1.5px solid #e2ddf5 !important;
+  border-radius: 14px !important;
+  min-height: 56px;
+  max-width: 112px;
+  flex-shrink: 0;
+}
+
+.phone-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.whatsapp-toggle {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  
+  margin: 0.25rem 0 1.5rem 0;
+
   ion-checkbox {
     --size: 20px;
     --checkmark-color: #ffffff;
-    --background-checked: #8383ed;
-    --border-color-checked: #8383ed;
-    --border-radius: 4px;
+    --background-checked: var(--ion-color-secondary);
+    --border-color-checked: var(--ion-color-secondary);
+    --border-radius: 6px;
   }
 }
 
 .checkbox-text {
   font-size: 0.875rem;
   color: #2d3748;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
   margin: 0;
 }
 
-.whatsapp-input-wrapper {
-  position: relative;
+/* ==================== Option Cards ==================== */
+
+.option-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.answer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem;
+  background: var(--ion-item-background, #ffffff);
+  border: 2px solid #e2ddf5;
+  border-radius: 18px;
+  min-height: 140px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.1s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.selected {
+    border-color: var(--ion-color-primary);
+    background: #f4f2fe;
+  }
+}
+
+.answer-card-icon {
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 }
 
-.whatsapp-input {
-  --padding-start: 48px;
+.answer-card-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ion-text-color, #000000);
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+  text-align: center;
+  line-height: 1.35;
+}
+
+/* ==================== Goals ==================== */
+
+.goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.goal-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   width: 100%;
+  padding: 1rem 1.125rem;
+  background: var(--ion-item-background, #ffffff);
+  border: 2px solid #e2ddf5;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.1s ease;
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  &.selected {
+    border-color: var(--ion-color-primary);
+    background: #f4f2fe;
+  }
 }
 
-.whatsapp-icon {
-  color: #25d366;
-  font-size: 1.2rem;
-  position: absolute;
-  left: 16px;
-  z-index: 10;
-  pointer-events: none;
+.goal-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 }
 
-/* Terms and Conditions */
+.goal-label {
+  flex: 1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ion-text-color, #000000);
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+  text-align: left;
+  line-height: 1.4;
+}
+
+.goal-check {
+  font-size: 1.5rem;
+  color: #d6d0eb;
+  flex-shrink: 0;
+
+  .selected & {
+    color: var(--ion-color-primary);
+  }
+}
+
+/* ==================== Summary ==================== */
+
+.summary-card {
+  background: #f7f5fd;
+  border-radius: 16px;
+  padding: 0.25rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid #e9e5f8;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.summary-label {
+  color: #7a73a9;
+  font-size: 0.8125rem;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+  flex-shrink: 0;
+}
+
+.summary-value {
+  color: var(--ion-text-color, #000000);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
+  text-align: right;
+}
+
+/* ==================== Terms ==================== */
+
 .terms-container {
   margin: 1rem 0 1.5rem 0;
 }
@@ -271,35 +459,50 @@
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
+
+  ion-checkbox {
+    --size: 22px;
+    --checkmark-color: #ffffff;
+    --background-checked: var(--ion-color-primary);
+    --border-color-checked: var(--ion-color-primary);
+    --border-radius: 6px;
+    margin-top: 1px;
+  }
 }
 
 .terms-text {
   font-size: 0.875rem;
   color: #7a73a9;
-  line-height: 1.4;
-  font-family: 'Poppins', sans-serif;
+  line-height: 1.5;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
   margin: 0;
 }
 
 .terms-link {
-  color: #8383ed;
+  color: var(--ion-color-primary);
   font-weight: 500;
   text-decoration: underline;
   cursor: pointer;
 }
 
-/* Signup Button */
-.signup-button {
-  --background: #8383ed;
+/* ==================== Footer Buttons ==================== */
+
+.step-footer {
+  flex-shrink: 0;
+  padding: 0.5rem 0 2rem 0;
+}
+
+.primary-button {
+  --background: var(--ion-color-primary);
   --background-hover: #7676d1;
   --background-activated: #6b64a9;
-  --border-radius: 12px;
+  --border-radius: 14px;
   --color: #ffffff;
   height: 56px;
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: 0.025em;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
   margin: 0;
 
   &:disabled {
@@ -309,48 +512,48 @@
   }
 }
 
-/* Login Section */
+/* ==================== Login & Social ==================== */
+
 .login-section {
   text-align: center;
-  margin: 1.5rem 0;
+  margin: 1.5rem 0 0 0;
 }
 
 .login-prompt {
   margin: 0;
   color: #7a73a9;
   font-size: 0.875rem;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
   display: inline;
   cursor: pointer;
 }
 
 .login-link {
-  color: #8383ed;
+  color: var(--ion-color-primary);
   font-weight: 600;
   text-decoration: none;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
   font-size: 0.875rem;
   cursor: pointer;
 }
 
-/* Social Sign-in Section */
 .social-signin-section {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 
 .divider-line {
   width: 100%;
   height: 1px;
   background: #e5e7eb;
-  margin: 0 0 1rem 0;
+  margin: 0 0 1.25rem 0;
 }
 
 .social-divider {
   margin: 0 0 1.5rem 0;
   color: #7a73a9;
   font-size: 0.875rem;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--ion-font-family, 'Poppins', sans-serif);
   font-weight: 400;
 }
 
@@ -367,7 +570,7 @@
   width: 60px;
   height: 60px;
   margin: 0;
-  
+
   ion-icon {
     font-size: 1.5rem;
   }
@@ -375,7 +578,7 @@
 
 .google-button {
   --background: #ea4335;
-  
+
   &:hover {
     --background: #d73527;
   }
@@ -383,50 +586,37 @@
 
 .facebook-button {
   --background: #1877f2;
-  
+
   &:hover {
     --background: #166fe5;
   }
 }
 
-/* Responsive Design */
-@media (max-width: 480px) {
-  .top-section {
-    padding: 2.5rem 1rem 2.5rem;
-    min-height: 35vh;
+/* ==================== Responsive ==================== */
+
+@media (max-width: 360px) {
+  .answer-card {
+    padding: 1.25rem 0.75rem;
+    min-height: 120px;
   }
-  
-  .bottom-section {
-    padding: 2rem 1rem 2rem;
-  }
-  
-  .logo-image {
-    width: 170px;
-  }
-  
-  .signup-title {
-    font-size: 1.25rem;
+
+  .answer-card-icon {
+    width: 52px;
+    height: 52px;
   }
 }
 
-@media (min-width: 768px) {
-  .top-section {
-    padding: 5rem 2rem 4rem;
-    min-height: 45vh;
+@media (prefers-reduced-motion: reduce) {
+  .progress-fill {
+    transition: none;
   }
-  
-  .bottom-section {
-    padding: 3rem 2rem 2rem;
-    max-width: 450px;
-  }
-  
-  .logo-image {
-    width: 220px;
-  }
-}
 
-@media (min-width: 1024px) {
-  .bottom-section {
-    max-width: 500px;
+  .answer-card,
+  .goal-card {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
   }
 }
