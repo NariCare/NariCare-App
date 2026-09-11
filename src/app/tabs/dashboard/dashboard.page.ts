@@ -493,55 +493,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return today.toLocaleDateString('en-US', options);
   }
 
-  getBabyAgeOrDueDate(): string {
-    // Priority 1: Baby data (if baby exists, use baby's birth date)
-    if (this.user?.babies && this.user.babies.length > 0) {
-      const baby = this.user.babies[0];
-      
-      if (baby.dateOfBirth) {
-        return AgeCalculatorUtil.calculateBabyAge(baby.dateOfBirth);
-      }
-    }
-    
-    // Priority 2: Due date (if no baby data but due date exists)
-    if (this.user?.dueDate) {
-      const dueDate = new Date(this.user.dueDate);
-      const today = new Date();
-      const diffTime = dueDate.getTime() - today.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays > 0) {
-        // Still pregnant - show countdown to due date
-        if (diffDays < 7) {
-          return `Due in ${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-        } else {
-          const weeksUntilDue = Math.floor(diffDays / 7);
-          const remainingDays = diffDays % 7;
-          if (remainingDays === 0) {
-            return `Due in ${weeksUntilDue} week${weeksUntilDue !== 1 ? 's' : ''}`;
-          }
-          return `Due in ${weeksUntilDue}w ${remainingDays}d`;
-        }
-      } else {
-        // Past due date
-        const daysPastDue = Math.abs(diffDays);
-        if (daysPastDue < 7) {
-          return `${daysPastDue} day${daysPastDue !== 1 ? 's' : ''} overdue`;
-        } else {
-          const weeksPastDue = Math.floor(daysPastDue / 7);
-          const remainingDays = daysPastDue % 7;
-          if (remainingDays === 0) {
-            return `${weeksPastDue} week${weeksPastDue !== 1 ? 's' : ''} overdue`;
-          }
-          return `${weeksPastDue}w ${remainingDays}d overdue`;
-        }
-      }
-    }
-    
-    // No baby data and no due date
-    return '';
-  }
-
   getBabyAvatarImage(): string {
     if (!this.user?.babies || this.user.babies.length === 0) {
       return 'assets/images/baby-neutral.png'; // fallback image
@@ -586,45 +537,58 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return 0;
   }
 
-  getStreakIcon(): string {
-    // If baby exists, show flame (motherhood)
-    if (this.user?.babies && this.user.babies.length > 0) {
-      return 'flame';
-    }
-    
-    // If pregnant (due date exists), show heart for pregnancy journey
-    if (this.user?.dueDate) {
-      return 'heart';
-    }
-    
-    return 'flame'; // default
+  // ============================================================================
+  // JOURNEY CARD
+  // ============================================================================
+
+  hasJourneyCard(): boolean {
+    return !!(this.user?.motherType || this.user?.dueDate || (this.user?.babies && this.user.babies.length > 0));
   }
 
-  getStreakText(): string {
-    // Priority 1: Baby data (motherhood journey)
-    if (this.user?.babies && this.user.babies.length > 0) {
-      const days = this.getBabyAgeInDays();
-      return `${days} days of motherhood`;
+  isPregnantJourney(): boolean {
+    // motherType is the authoritative signal set at registration; babies/dueDate
+    // can be in an inconsistent state (e.g. a new_mom account whose baby record
+    // was never created but an old dueDate is still on file), so trust it first.
+    if (this.user?.motherType) {
+      return this.user.motherType === 'pregnant';
     }
-    
-    // Priority 2: Pregnancy journey
-    if (this.user?.dueDate) {
-      const dueDate = new Date(this.user.dueDate);
-      const today = new Date();
-      const diffTime = dueDate.getTime() - today.getTime();
-      const daysUntilDue = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (daysUntilDue > 0) {
-        // Still pregnant - show countdown
-        return `${daysUntilDue} days until motherhood`;
-      } else {
-        // Overdue - encouraging message
-        const daysPastDue = Math.abs(daysUntilDue);
-        return `Ready to meet your little one! ${daysPastDue} days past due`;
-      }
+    return !(this.user?.babies && this.user.babies.length > 0) && !!this.user?.dueDate;
+  }
+
+  getPregnancyWeeksAndDays(): { weeks: number; days: number } {
+    const pregnancyDays = Math.min(this.getBabyAgeInDays(), 280);
+    return { weeks: Math.floor(pregnancyDays / 7), days: pregnancyDays % 7 };
+  }
+
+  getTrimester(): string {
+    const { weeks } = this.getPregnancyWeeksAndDays();
+    if (weeks <= 13) return 'First Trimester';
+    if (weeks <= 27) return 'Second Trimester';
+    return 'Third Trimester';
+  }
+
+  getPregnancyProgressPercent(): number {
+    const pregnancyDays = Math.min(this.getBabyAgeInDays(), 280);
+    return Math.round((pregnancyDays / 280) * 100);
+  }
+
+  getDaysUntilDue(): number {
+    if (!this.user?.dueDate) return 0;
+    const dueDate = new Date(this.user.dueDate);
+    const today = new Date();
+    const diffDays = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  }
+
+  getBabyAgeText(): string {
+    if (this.user?.babies && this.user.babies.length > 0 && this.user.babies[0].dateOfBirth) {
+      return AgeCalculatorUtil.calculateBabyAge(this.user.babies[0].dateOfBirth);
     }
-    
-    return '';
+    return 'Add your baby to start tracking';
+  }
+
+  getBabyFirstName(): string {
+    return this.user?.babies?.[0]?.name || 'your little one';
   }
 
   hasUnreadNotifications(): boolean {
