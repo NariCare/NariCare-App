@@ -1,31 +1,20 @@
 .custom-tab-bar {
   --background: #ffffff;
-  --border: 1px solid #f1f5f9;
+  --border: 1px solid #e2ddf5;
   height: 70px;
   padding-bottom: env(safe-area-inset-bottom);
 
   .tab-button {
     --color: #94a3b8;
     --color-selected: #8383ed;
-    --ripple-color: rgba(233, 30, 99, 0.1);
-    
+    --ripple-color: rgba(131, 131, 237, 0.1);
+    font-family: var(--ion-font-family, 'Poppins', sans-serif);
+
     ion-icon {
       font-size: 1.4rem;
       margin-bottom: 2px;
     }
-    
-    .tab-icon {
-      width: 24px;
-      height: 24px;
-      margin-bottom: 2px;
-      filter: brightness(0) saturate(100%) invert(59%) sepia(8%) saturate(452%) hue-rotate(202deg) brightness(93%) contrast(84%);
-      transition: filter 0.3s ease;
-      
-      &[src*="Profile.svg"] {
-        filter: none; // Remove filter for Profile.svg since it has its own colors
-      }
-    }
-    
+
     ion-label {
       font-size: 0.75rem;
       font-weight: 500;
@@ -36,14 +25,6 @@
       ion-icon,
       ion-label {
         color: var(--color-selected);
-      }
-      
-      .tab-icon {
-        filter: brightness(0) saturate(100%) invert(45%) sepia(80%) saturate(4934%) hue-rotate(245deg) brightness(101%) contrast(87%);
-        
-        &[src*="Profile.svg"] {
-          filter: none; // Keep original colors when selected too
-        }
       }
     }
   }
