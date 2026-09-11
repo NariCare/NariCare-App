@@ -1,106 +1,169 @@
 <ion-content class="register-content">
   <div class="register-container">
-    <!-- Top Section with Logo (Gray Background) -->
-    <!-- <div class="top-section">
-      <div class="logo-container">
-        <img src="assets/NariCare logo.svg" alt="NariCare Logo" class="logo-image">
+    <!-- Header with Back and Progress -->
+    <div class="stepper-header" *ngIf="!isWelcomeStep">
+      <div class="stepper-top-row">
+        <ion-button fill="clear" class="back-button" (click)="backStep()">
+          <ion-icon slot="icon-only" name="chevron-back"></ion-icon>
+        </ion-button>
+        <div class="step-counter">{{ currentStep }} of {{ stepCount - 1 }}</div>
       </div>
-    </div> -->
-
-    <!-- Bottom Section with Form (White Background) -->
-    <div class="bottom-section">
-      <div class="welcome-section">
-        <h2 class="signup-title">sign up</h2>
-        <p class="signup-subtitle">Create an account to get started</p>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="progressPercent"></div>
       </div>
+    </div>
 
-      <!-- Registration Form -->
-      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-        <!-- First Name Field -->
-        <div class="input-container">
-          <ion-input
-            formControlName="firstName"
-            placeholder="First Name"
-            class="custom-input"
-            fill="outline"
-            [class.error]="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
-          </ion-input>
-          <div class="error-message" *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched">
-            {{ getErrorMessage('firstName') }}
+    <!-- Step: Welcome -->
+    <div class="step-section welcome-step" *ngIf="currentStep === 0">
+      <div class="welcome-top">
+        <div class="logo-container">
+          <img src="assets/NariCare logo.svg" alt="NariCare" class="welcome-logo">
+          <div class="beta-tag">
+            <span>Beta</span>
           </div>
         </div>
+        <h1 class="welcome-title">Every drop matters.</h1>
+        <p class="welcome-subtitle">
+          Track feeds, learn confidently, and get the support you deserve on your breastfeeding journey.
+        </p>
+      </div>
 
-        <!-- Last Name Field -->
-        <div class="input-container">
-          <ion-input
-            formControlName="lastName"
-            placeholder="Last Name"
-            class="custom-input"
-            fill="outline"
-            [class.error]="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
-          </ion-input>
-          <div class="error-message" *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched">
-            {{ getErrorMessage('lastName') }}
-          </div>
+      <div class="welcome-actions">
+        <ion-button expand="block" class="primary-button" (click)="goToStep(1)">
+          Get started
+        </ion-button>
+
+        <div class="login-section">
+          <p class="login-prompt" (click)="navigateToLogin()">
+            Already have an account? <label class="login-link">Sign in here</label>
+          </p>
         </div>
 
-        <!-- Email Address Field -->
+        <div class="social-signin-section">
+          <div class="divider-line"></div>
+          <p class="social-divider">Or continue with</p>
+          <div class="social-buttons">
+            <ion-button
+              (click)="signInWithGoogle()"
+              class="social-button google-button"
+              fill="clear">
+              <ion-icon name="logo-google"></ion-icon>
+            </ion-button>
+            <ion-button
+              (click)="signInWithFacebook()"
+              class="social-button facebook-button"
+              fill="clear">
+              <ion-icon name="logo-facebook"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steps 1+: question form -->
+    <form *ngIf="!isWelcomeStep" [formGroup]="registerForm" (ngSubmit)="nextStep()" class="register-form">
+      <div class="step-heading">
+        <h2 class="step-title">{{ stepTitle }}</h2>
+        <p class="step-subtitle" *ngIf="currentStep === 1">We'll use this to personalize your experience.</p>
+        <p class="step-subtitle" *ngIf="currentStep === 2">We'll store this securely. It helps us keep you safe.</p>
+        <p class="step-subtitle" *ngIf="currentStep === 3">This is where you'll receive your OTP to log in.</p>
+        <p class="step-subtitle" *ngIf="currentStep === 4">At least 6 characters, with a capital letter and a number.</p>
+        <p class="step-subtitle" *ngIf="currentStep === 6 && isPregnant">Your due date helps us show the right help at the right time.</p>
+        <p class="step-subtitle" *ngIf="currentStep === 6 && !isPregnant">When your little one arrived. This personalizes your feed tracking.</p>
+        <p class="step-subtitle" *ngIf="currentStep === 7">You can pick more than one.</p>
+        <p class="step-subtitle" *ngIf="currentStep === 8">One last step to create your account.</p>
+      </div>
+
+      <!-- Step: Name -->
+      <div class="step-body" *ngIf="currentStep === 1">
+        <div class="input-container">
+          <ion-input
+            formControlName="fullName"
+            placeholder="Your full name"
+            class="custom-input"
+            fill="outline"
+            autocomplete="name"
+            (keyup.enter)="nextStep()"
+            [class.error]="registerForm.get('fullName')?.invalid && registerForm.get('fullName')?.touched">
+          </ion-input>
+          <div class="error-message" *ngIf="registerForm.get('fullName')?.invalid && registerForm.get('fullName')?.touched">
+            {{ getErrorMessage('fullName') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Step: Phone -->
+      <div class="step-body" *ngIf="currentStep === 2">
+        <div class="phone-row">
+          <ion-select
+            [value]="selectedCountryCode"
+            class="country-select"
+            fill="outline"
+            interface="action-sheet"
+            (ionChange)="onCountryChange($event)">
+            <ion-select-option *ngFor="let code of countryCodeOptions" [value]="code">{{ code }}</ion-select-option>
+          </ion-select>
+          <ion-input
+            formControlName="phoneNumber"
+            type="tel"
+            inputmode="numeric"
+            placeholder="Phone number"
+            class="custom-input phone-input"
+            fill="outline"
+            autocomplete="tel"
+            (ionInput)="formatPhoneNumber($event, 'phoneNumber')"
+            (keyup.enter)="nextStep()"
+            [class.error]="registerForm.get('phoneNumber')?.invalid && registerForm.get('phoneNumber')?.touched">
+          </ion-input>
+        </div>
+        <div class="error-message" *ngIf="registerForm.get('phoneNumber')?.invalid && registerForm.get('phoneNumber')?.touched">
+          {{ getErrorMessage('phoneNumber') }}
+        </div>
+
+        <div class="whatsapp-toggle">
+          <ion-checkbox formControlName="whatsappSameAsPhone" [checked]="true"></ion-checkbox>
+          <label class="checkbox-text">This is also my WhatsApp number</label>
+        </div>
+
+        <div class="input-container" *ngIf="!registerForm.get('whatsappSameAsPhone')?.value">
+          <ion-input
+            formControlName="whatsappNumber"
+            type="tel"
+            inputmode="numeric"
+            placeholder="WhatsApp number"
+            class="custom-input"
+            fill="outline"
+            (ionInput)="formatPhoneNumber($event, 'whatsappNumber')"
+            [class.error]="registerForm.get('whatsappNumber')?.invalid && registerForm.get('whatsappNumber')?.touched">
+          </ion-input>
+          <div class="error-message" *ngIf="registerForm.get('whatsappNumber')?.invalid && registerForm.get('whatsappNumber')?.touched">
+            {{ getErrorMessage('whatsappNumber') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Step: Email -->
+      <div class="step-body" *ngIf="currentStep === 3">
         <div class="input-container">
           <ion-input
             formControlName="email"
             type="email"
-            placeholder="Email Address"
+            inputmode="email"
+            placeholder="Email address"
             class="custom-input"
             fill="outline"
+            autocomplete="email"
+            (keyup.enter)="nextStep()"
             [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
           </ion-input>
           <div class="error-message" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
             {{ getErrorMessage('email') }}
           </div>
         </div>
+      </div>
 
-        <!-- Phone Number Field -->
-        <div class="input-container">
-          <ion-input
-            formControlName="phoneNumber"
-            type="tel"
-            placeholder="Phone Number"
-            class="custom-input"
-            fill="outline"
-            (ionInput)="formatPhoneNumber($event, 'phoneNumber')"
-            [class.error]="registerForm.get('phoneNumber')?.invalid && registerForm.get('phoneNumber')?.touched">
-          </ion-input>
-          <div class="error-message" *ngIf="registerForm.get('phoneNumber')?.invalid && registerForm.get('phoneNumber')?.touched">
-            {{ getErrorMessage('phoneNumber') }}
-          </div>
-        </div>
-
-        <!-- WhatsApp Same as Phone Checkbox -->
-        <div class="checkbox-container">
-          <ion-checkbox formControlName="whatsappSameAsPhone"></ion-checkbox>
-          <label class="checkbox-text">WhatsApp number same as phone number</label>
-        </div>
-
-        <!-- WhatsApp Number Field - Only show if checkbox is unchecked -->
-        <div class="input-container" *ngIf="!registerForm.get('whatsappSameAsPhone')?.value">
-          <div class="whatsapp-input-wrapper">
-            <ion-icon name="logo-whatsapp" class="whatsapp-icon"></ion-icon>
-            <ion-input
-              formControlName="whatsappNumber"
-              type="tel"
-              placeholder="WhatsApp Phone Number"
-              class="custom-input whatsapp-input"
-              fill="outline"
-              (ionInput)="formatPhoneNumber($event, 'whatsappNumber')"
-              [class.error]="registerForm.get('whatsappNumber')?.invalid && registerForm.get('whatsappNumber')?.touched">
-            </ion-input>
-          </div>
-          <div class="error-message" *ngIf="registerForm.get('whatsappNumber')?.invalid && registerForm.get('whatsappNumber')?.touched">
-            {{ getErrorMessage('whatsappNumber') }}
-          </div>
-        </div>
-
-        <!-- Password Field -->
+      <!-- Step: Password -->
+      <div class="step-body" *ngIf="currentStep === 4">
         <div class="input-container">
           <ion-input
             formControlName="password"
@@ -108,10 +171,12 @@
             placeholder="Create a password"
             class="custom-input password-input"
             fill="outline"
+            autocomplete="new-password"
+            (keyup.enter)="nextStep()"
             [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-            <ion-button 
-              fill="clear" 
-              slot="end" 
+            <ion-button
+              fill="clear"
+              slot="end"
               (click)="togglePasswordVisibility('password')"
               class="password-toggle">
               <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
@@ -122,18 +187,19 @@
           </div>
         </div>
 
-        <!-- Confirm Password Field -->
         <div class="input-container">
           <ion-input
             formControlName="confirmPassword"
             [type]="showConfirmPassword ? 'text' : 'password'"
-            placeholder="Confirm password"
+            placeholder="Confirm your password"
             class="custom-input password-input"
             fill="outline"
+            autocomplete="new-password"
+            (keyup.enter)="nextStep()"
             [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
-            <ion-button 
-              fill="clear" 
-              slot="end" 
+            <ion-button
+              fill="clear"
+              slot="end"
               (click)="togglePasswordVisibility('confirmPassword')"
               class="password-toggle">
               <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
@@ -143,37 +209,106 @@
             {{ getErrorMessage('confirmPassword') }}
           </div>
         </div>
+      </div>
 
-        <!-- Mother Type Selection -->
-        <div class="input-container">
-          <ion-select 
-            formControlName="motherType" 
-            placeholder="I am a... (optional)"
-            class="custom-select"
-            fill="outline"
-            interface="popover">
-            <ion-select-option value="pregnant">Expecting Mother</ion-select-option>
-            <ion-select-option value="new_mom">New Mother</ion-select-option>
-          </ion-select>
+      <!-- Step: Stage -->
+      <div class="step-body" *ngIf="currentStep === 5">
+        <div class="option-grid">
+          <button
+            type="button"
+            class="answer-card"
+            *ngFor="let type of motherTypes"
+            [class.selected]="registerForm.get('motherType')?.value === type.key"
+            (click)="selectMotherType(type.key)">
+            <div class="answer-card-icon">
+              <img [src]="'assets/' + type.icon" [alt]="type.label">
+            </div>
+            <span class="answer-card-label">{{ type.label }}</span>
+          </button>
         </div>
+      </div>
 
-        <!-- Due Date for Pregnant Mothers -->
-        <div class="input-container" *ngIf="registerForm.get('motherType')?.value === 'pregnant'">
-          <ion-input
-            formControlName="dueDate"
-            type="date"
-            placeholder="Select your due date"
-            class="custom-input"
-            fill="outline"
+      <!-- Step: Date -->
+      <div class="step-body" *ngIf="currentStep === 6">
+        <div class="input-container datetime-container" *ngIf="isPregnant">
+          <ion-datetime
+            presentation="date"
+            size="cover"
+            [value]="registerForm.get('dueDate')?.value || null"
             [min]="getTodayDate()"
-            [class.error]="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
-          </ion-input>
+            [max]="getMaxDueDate()"
+            (ionChange)="onDateSelect($event, 'dueDate')">
+          </ion-datetime>
           <div class="error-message" *ngIf="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
             {{ getErrorMessage('dueDate') }}
           </div>
         </div>
 
-        <!-- Terms and Conditions Checkbox -->
+        <div class="input-container datetime-container" *ngIf="!isPregnant">
+          <ion-datetime
+            presentation="date"
+            size="cover"
+            [value]="registerForm.get('deliveryDate')?.value || null"
+            [min]="getMinDeliveryDate()"
+            [max]="getTodayDate()"
+            (ionChange)="onDateSelect($event, 'deliveryDate')">
+          </ion-datetime>
+          <div class="error-message" *ngIf="registerForm.get('deliveryDate')?.invalid && registerForm.get('deliveryDate')?.touched">
+            {{ getErrorMessage('deliveryDate') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Step: Goals -->
+      <div class="step-body" *ngIf="currentStep === 7">
+        <div class="goal-list">
+          <button
+            type="button"
+            class="goal-card"
+            *ngFor="let goal of goalsOptions"
+            [class.selected]="selectedGoals.includes(goal.key)"
+            (click)="toggleGoal(goal.key)">
+            <div class="goal-icon">
+              <img [src]="'assets/' + goal.icon" [alt]="goal.label">
+            </div>
+            <span class="goal-label">{{ goal.label }}</span>
+            <ion-icon [name]="selectedGoals.includes(goal.key) ? 'checkmark-circle' : 'ellipse-outline'" class="goal-check"></ion-icon>
+          </button>
+        </div>
+        <div class="error-message" *ngIf="registerForm.get('goals')?.invalid && registerForm.get('goals')?.touched">
+          {{ getErrorMessage('goals') }}
+        </div>
+      </div>
+
+      <!-- Step: Finish -->
+      <div class="step-body" *ngIf="currentStep === 8">
+        <div class="summary-card">
+          <div class="summary-row" *ngIf="registerForm.get('firstName')?.value">
+            <span class="summary-label">Name</span>
+            <span class="summary-value">{{ registerForm.get('firstName')?.value }} {{ registerForm.get('lastName')?.value }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Email</span>
+            <span class="summary-value">{{ registerForm.get('email')?.value }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Phone</span>
+            <span class="summary-value">{{ selectedCountryCode }} {{ registerForm.get('phoneNumber')?.value }}</span>
+          </div>
+          <div class="summary-row" *ngIf="isPregnant && registerForm.get('dueDate')?.value">
+            <span class="summary-label">Due date</span>
+            <span class="summary-value">{{ formatDisplayDate(registerForm.get('dueDate')?.value) }}</span>
+          </div>
+          <div class="summary-row" *ngIf="!isPregnant && registerForm.get('deliveryDate')?.value">
+            <span class="summary-label">Delivery date</span>
+            <span class="summary-value">{{ formatDisplayDate(registerForm.get('deliveryDate')?.value) }}</span>
+          </div>
+          <div class="summary-row" *ngIf="selectedGoals.length">
+            <span class="summary-label">Focus</span>
+            <span class="summary-value">{{ getGoalsLabel(selectedGoals) }}</span>
+          </div>
+        </div>
+
         <div class="terms-container">
           <div class="checkbox-wrapper">
             <ion-checkbox formControlName="agreeToTerms"></ion-checkbox>
@@ -185,47 +320,18 @@
             You must agree to the terms and conditions
           </div>
         </div>
+      </div>
 
-
-
-        <!-- Submit Button -->
-        <ion-button 
+      <!-- Step Footer -->
+      <div class="step-footer">
+        <ion-button
           expand="block"
-          type="submit" 
-          [disabled]="!registerForm.valid"
-          class="signup-button">
-          Create Account
+          [disabled]="!canGoNext()"
+          (click)="nextStep()"
+          class="primary-button continue-button">
+          {{ isLastStep ? 'Create my account' : 'Continue' }}
         </ion-button>
-      </form>
-
-      <!-- Login Link -->
-      <div class="login-section">
-        <p class="login-prompt" (click)="navigateToLogin()">
-          Already have an account? <label class="login-link">Sign in here</label>
-        </p>
       </div>
-
-      <!-- Social Sign-in Section -->
-      <div class="social-signin-section">
-        <div class="divider-line"></div>
-        <p class="social-divider">Or continue with</p>
-        
-        <div class="social-buttons">
-          <ion-button
-            (click)="signInWithGoogle()"
-            class="social-button google-button"
-            fill="clear">
-            <ion-icon name="logo-google"></ion-icon>
-          </ion-button>
-          
-          <ion-button
-            (click)="signInWithFacebook()"
-            class="social-button facebook-button"
-            fill="clear">
-            <ion-icon name="logo-facebook"></ion-icon>
-          </ion-button>
-        </div>
-      </div>
-    </div>
+    </form>
   </div>
 </ion-content>

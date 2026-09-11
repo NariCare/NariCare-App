@@ -1,12 +1,16 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Trackers</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="tracker-content">
 
-<ion-content [fullscreen]="true">
+  <!-- Hero Header -->
+  <div class="tracker-hero">
+    <div class="tracker-hero-text">
+      <h1>Trackers</h1>
+      <p>Small updates. Big progress.</p>
+    </div>
+    <img src="assets/images/tracker-hero.webp" alt="" class="tracker-hero-image" aria-hidden="true">
+  </div>
+
   <div class="content-container">
-    
+
     <!-- Onboarding Overlay -->
     <!-- <div *ngIf="!isOnboardingCompleted()" class="onboarding-overlay">
       <div class="overlay-backdrop"></div>
@@ -27,13 +31,22 @@
     
     <!-- Tracker Cards Grid -->
     <div class="tracker-cards-container">
+      <div class="section-heading">
+        <h2>Track Today</h2>
+        <p>Log your daily activities and well-being</p>
+      </div>
+
       <!-- Top Row - 2x2 Grid -->
       <div class="tracker-cards-grid">
         <div class="tracker-card feed-card" (click)="onFeed()">
           <div class="tracker-icon">
-            <app-custom-icon trackerType="feed" size="50px"></app-custom-icon>
+            <app-custom-icon trackerType="feed" size="40px"></app-custom-icon>
           </div>
           <span class="tracker-label">Feed</span>
+          <span class="tracker-description">Breast or formula feeding</span>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
 
         <div class="tracker-card diaper-card" (click)="openDiaperLogModal()">
@@ -41,13 +54,21 @@
             <img src="assets/Diaper change.svg" alt="Diaper change" class="tracker-svg-icon">
           </div>
           <span class="tracker-label">Diaper change</span>
+          <span class="tracker-description">Track wet, dirty or mixed</span>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
-        
+
         <div class="tracker-card weight-card" (click)="onWeightSize()">
           <div class="tracker-icon">
-            <app-custom-icon trackerType="weight" size="50px"></app-custom-icon>
+            <app-custom-icon trackerType="weight" size="40px"></app-custom-icon>
           </div>
           <span class="tracker-label">Weight</span>
+          <span class="tracker-description">Monitor your baby's growth</span>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
 
         <div class="tracker-card pump-card" (click)="openPumpLogModal()">
@@ -55,16 +76,26 @@
             <img src="assets/Pump.svg" alt="Pump" class="tracker-svg-icon">
           </div>
           <span class="tracker-label">Pump</span>
+          <span class="tracker-description">Log your pumping sessions</span>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
       </div>
 
       <!-- Full-width Emotional Check-in Card -->
       <div class="tracker-card emotional-card" (click)="onEmotionCheckin()">
         <div class="emotional-content">
-          <div class="tracker-icon">
-            <app-custom-icon trackerType="emotional" size="100px"></app-custom-icon>
+          <div class="emotional-faces" aria-hidden="true">
+            <span *ngFor="let mood of motherMoodOptions">{{ mood.emoji }}</span>
           </div>
-          <span class="tracker-label">Emotional check-in</span>
+          <div class="emotional-text">
+            <span class="tracker-label">Emotional check-in</span>
+            <span class="tracker-description">How are you feeling today?</span>
+          </div>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
       </div>
     </div>
@@ -102,21 +133,21 @@
       </div>
       
       <div class="empty-babies" *ngIf="!user || !user.babies || user.babies.length === 0">
-        <app-custom-icon name="Baby boy" size="48px"></app-custom-icon>
+        <img src="assets/images/tracker-empty-baby.webp" alt="" class="empty-babies-image" aria-hidden="true">
         <h3>No babies added yet</h3>
-        <p>Add your baby's information to start tracking growth and feeding</p>
-        <!-- <ion-button 
+        <p>Add your baby's information to start tracking growth and feeding.</p>
+        <ion-button
           expand="block"
           (click)="openAddBabyModal()"
           class="add-first-baby-button">
           <ion-icon name="add-outline" slot="start"></ion-icon>
-          Add Your First Baby
-        </ion-button> -->
+          Add Baby
+        </ion-button>
       </div>
 
       <!-- Floating Add Baby Button - Inside My Babies Tab -->
-      <div class="fab-wrapper">
-        <ion-fab-button 
+      <div class="fab-wrapper" *ngIf="user?.babies && user.babies.length > 0">
+        <ion-fab-button
           (click)="openAddBabyModal()"
           class="add-baby-fab">
           <ion-icon name="add"></ion-icon>

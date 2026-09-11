@@ -1,3 +1,13 @@
+// Shared design tokens (matches register/onboarding/dashboard/profile/tracker)
+$primary: #8383ed;
+$primary-hover: #7676d1;
+$lavender-bg: #f4f2fe;
+$lavender-surface: #f7f5fd;
+$lavender-border: #e2ddf5;
+$ink: #2d3748;
+$muted: #7a73a9;
+$font: var(--ion-font-family, 'Poppins', sans-serif);
+
 .ai-chat-container {
   height: 100%;
   display: flex;
@@ -8,49 +18,86 @@
   position: relative;
 }
 
-.ai-header {
+.assistant-header {
   display: flex;
   align-items: center;
-  padding: 1rem;
+  gap: 0.75rem;
   background: #ffffff;
+  border: 1px solid $lavender-border;
   border-radius: 16px;
-  margin-bottom: 1rem;
-  border: 1px solid #f1f5f9;
+  padding: 0.875rem 1rem;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
 }
 
-.ai-avatar {
-  width: 48px;
-  height: 48px;
+.assistant-avatar {
+  position: relative;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #42a5f5, #64b5f6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 1rem;
+  background: $lavender-bg;
+  flex-shrink: 0;
+  overflow: visible;
 
-  ion-icon {
-    font-size: 1.5rem;
-    color: #ffffff;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .assistant-online-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #22c55e;
+    border: 2px solid #ffffff;
   }
 }
 
-.ai-info {
+.assistant-info {
   flex: 1;
+  min-width: 0;
 
   h3 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #2d3748;
+    margin: 0 0 0.15rem 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: $ink;
+    font-family: $font;
   }
 
   p {
     margin: 0;
-    font-size: 0.85rem;
-    color: #64748b;
+    font-size: 0.8125rem;
+    color: $muted;
+    font-family: $font;
   }
 }
 
+.assistant-status {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: $font;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+  }
+}
 
 .medical-disclaimer {
   display: flex;
@@ -149,6 +196,107 @@
   }
 }
 
+.welcome-message {
+  display: flex;
+  margin-bottom: 1.25rem;
+  align-items: flex-end;
+
+  .message-content {
+    align-items: flex-start;
+  }
+
+  .message-bubble {
+    background: $lavender-surface;
+    color: $ink;
+  }
+}
+
+.quick-questions {
+  margin: 0 0 1.5rem 0;
+
+  .quick-questions-title {
+    margin: 0 0 0.6rem 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: $ink;
+    font-family: $font;
+  }
+
+  .quick-questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .quick-question-row {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    background: #ffffff;
+    border: 1.5px solid $lavender-border;
+    border-radius: 14px;
+    padding: 0.75rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, transform 0.1s ease;
+
+    &:hover {
+      box-shadow: 0 4px 14px rgba(131, 131, 237, 0.12);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  .quick-question-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+
+    &.icon-blush {
+      background: #ffedf4;
+      ion-icon { color: #db2777; }
+    }
+
+    &.icon-lavender {
+      background: $lavender-bg;
+      ion-icon { color: $primary; }
+    }
+
+    &.icon-mint {
+      background: #e2f5ef;
+      ion-icon { color: #059669; }
+    }
+  }
+
+  .quick-question-text {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $ink;
+    font-family: $font;
+  }
+
+  .quick-question-arrow {
+    color: #cbd5e1;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+}
+
 .message-avatar {
   width: 32px;
   height: 32px;
@@ -159,8 +307,17 @@
   flex-shrink: 0;
 
   &:not(.user-avatar) {
-    background: linear-gradient(135deg, #42a5f5, #64b5f6);
+    background: #ffffff;
+    border: 1px solid $lavender-border;
     margin-right: 0.5rem;
+    padding: 3px;
+    box-sizing: border-box;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
   }
 
   &.user-avatar {
@@ -603,7 +760,8 @@
 }
 
 .attachment-button {
-  --color: #64748b;
+  --background: #{$lavender-bg};
+  --color: #{$primary};
   --padding-start: 8px;
   --padding-end: 8px;
   --border-radius: 50%;
@@ -614,7 +772,6 @@
   transition: all 0.2s ease;
 
   &:hover:not(:disabled) {
-    --color: #8383ed;
     transform: scale(1.05);
   }
 
@@ -623,15 +780,18 @@
   }
 
   ion-icon {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 }
 
 .send-button {
-  --color: #8383ed;
+  --background: #{$primary};
+  --background-hover: #{$primary-hover};
+  --color: #ffffff;
   --padding-start: 8px;
   --padding-end: 8px;
   --border-radius: 50%;
+  --box-shadow: none;
   width: 36px;
   height: 36px;
   margin: 0;
@@ -691,16 +851,20 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #42a5f5, #64b5f6);
+  background: #ffffff;
+  border: 1px solid $lavender-border;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 0.5rem;
   flex-shrink: 0;
+  padding: 3px;
+  box-sizing: border-box;
 
-  ion-icon {
-    font-size: 1rem;
-    color: #ffffff;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 }
 

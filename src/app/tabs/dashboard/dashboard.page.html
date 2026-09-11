@@ -1,85 +1,112 @@
 <ion-header [translucent]="true" class="dashboard-header" [class.collapsed]="isHeaderCollapsed">
   <ion-toolbar>
-    <ion-title>
-      <div class="header-content">
-        <!-- Subtle background decoration -->
-        <div class="header-decoration">
-          <div class="floating-bubble bubble-1"></div>
-          <div class="floating-bubble bubble-2"></div>
-          <div class="floating-bubble bubble-3"></div>
-        </div>
-        
-        <div class="greeting-section">
-          <!-- Morning Messages (6 AM - 12 PM) -->
-          <h1 class="greeting" *ngIf="getTimeOfDay() === 'morning'">
-            <ion-icon name="sunny" class="time-icon"></ion-icon>
-            You're amazing, {{ getFirstName() }}!
-          </h1>
-          
-          <!-- Afternoon Messages (12 PM - 6 PM) -->
-          <h1 class="greeting" *ngIf="getTimeOfDay() === 'afternoon'">
-            <ion-icon name="partly-sunny" class="time-icon"></ion-icon>
-            Keep nurturing, {{ getFirstName() }}!
-          </h1>
-          
-          <!-- Evening Messages (6 PM - 6 AM) -->
-          <h1 class="greeting" *ngIf="getTimeOfDay() === 'evening'">
-            <ion-icon name="moon" class="time-icon"></ion-icon>
-            Rest well, {{ getFirstName() }}!
-          </h1>
-          
-          <div class="date-container" (click)="showDateOptions()">
-            <p class="current-day">{{ getCurrentDay() }}</p>
-            <p class="current-date">{{ getCurrentDateOnly() }}</p>
-            <div class="streak-indicator" *ngIf="getBabyAgeOrDueDate()">
-              <ion-icon [name]="getStreakIcon()"></ion-icon>
-              <span>{{ getStreakText() }}</span>
-            </div>
+    <div class="header-content">
+      <div class="brand-row">
+        <div class="brand-lockup">
+          <img src="assets/NariCare logo.svg" alt="NariCare" class="brand-logo">
+          <div class="brand-text">
+            <span class="brand-name">NariCare</span>
+            <span class="brand-tagline">For every step of your motherhood journey</span>
           </div>
         </div>
-        
-        <!-- Notification badge -->
-        <div class="notification-badge" *ngIf="hasUnreadNotifications()" (click)="showNotifications()">
-          <ion-icon name="notifications"></ion-icon>
-          <div class="notification-dot"></div>
+
+        <div class="header-actions">
+          <!-- Notification badge -->
+          <div class="notification-badge" *ngIf="hasUnreadNotifications()" (click)="showNotifications()">
+            <ion-icon name="notifications"></ion-icon>
+            <div class="notification-dot"></div>
+          </div>
+
+          <ion-button
+            fill="clear"
+            class="profile-button-overlay"
+            (click)="navigateToProfile()">
+            <!-- Show baby image if baby exists, otherwise show person icon -->
+            <div class="profile-avatar" *ngIf="user?.babies && user.babies.length > 0; else personIcon">
+              <img
+                [src]="getBabyAvatarImage()"
+                [alt]="user.babies[0].name + ' avatar'"
+                class="baby-avatar-image" />
+            </div>
+            <ng-template #personIcon>
+              <ion-icon name="person-circle" slot="icon-only"></ion-icon>
+            </ng-template>
+          </ion-button>
         </div>
       </div>
-    </ion-title>
+
+      <div class="greeting-section">
+        <!-- Morning Messages (6 AM - 12 PM) -->
+        <h1 class="greeting" *ngIf="getTimeOfDay() === 'morning'">
+          <span>You're amazing, {{ getFirstName() }}!</span>
+          <ion-icon name="sunny" class="time-icon"></ion-icon>
+        </h1>
+
+        <!-- Afternoon Messages (12 PM - 6 PM) -->
+        <h1 class="greeting" *ngIf="getTimeOfDay() === 'afternoon'">
+          <span>Keep nurturing, {{ getFirstName() }}!</span>
+          <ion-icon name="partly-sunny" class="time-icon"></ion-icon>
+        </h1>
+
+        <!-- Evening Messages (6 PM - 6 AM) -->
+        <h1 class="greeting" *ngIf="getTimeOfDay() === 'evening'">
+          <span>Rest well, {{ getFirstName() }}!</span>
+          <ion-icon name="moon" class="time-icon"></ion-icon>
+        </h1>
+
+        <div class="date-container" (click)="showDateOptions()">
+          <p class="current-date-line">
+            <span class="current-day">{{ getCurrentDay() }}</span>,
+            <span class="current-date">{{ getCurrentDateOnly() }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="dashboard-content" [scrollEvents]="true" (ionScroll)="onContentScroll($event)">
-  <!-- Profile Icon and Baby Info Badge Overlapping Header and Content -->
-  <div class="profile-icon-overlay-container">
-    <ion-button 
-      fill="clear" 
-      class="profile-button-overlay" 
-      (click)="navigateToProfile()">
-      <!-- Show baby image if baby exists, otherwise show person icon -->
-      <div class="profile-avatar" *ngIf="user?.babies && user.babies.length > 0; else personIcon">
-        <img 
-          [src]="getBabyAvatarImage()" 
-          [alt]="user.babies[0].name + ' avatar'"
-          class="baby-avatar-image" />
-      </div>
-      <ng-template #personIcon>
-        <ion-icon name="person-circle" slot="icon-only"></ion-icon>
-      </ng-template>
-    </ion-button>
-    <div class="baby-info-overlay" *ngIf="getBabyAgeOrDueDate()">
-      {{ getBabyAgeOrDueDate() }}
-    </div>
-  </div>
-
   <!-- Card Container for Content -->
   <div class="content-card">
+
+    <!-- Journey Card -->
+    <div
+      class="journey-card"
+      *ngIf="hasJourneyCard()"
+      [class.pregnant]="isPregnantJourney()"
+      [style.background-image]="'url(' + (isPregnantJourney() ? 'assets/images/pregnant-journey-hero.webp' : 'assets/images/new-mom-journey-hero.webp') + ')'">
+      <div class="journey-scrim"></div>
+      <div class="journey-text">
+        <ng-container *ngIf="isPregnantJourney(); else newMomJourney">
+          <div class="journey-header">
+            <span class="journey-label">Your Pregnancy Journey</span>
+            <ion-icon name="heart" class="journey-icon" aria-hidden="true"></ion-icon>
+          </div>
+          <p class="journey-headline">{{ getPregnancyWeeksAndDays().weeks }} weeks {{ getPregnancyWeeksAndDays().days }} day{{ getPregnancyWeeksAndDays().days !== 1 ? 's' : '' }}</p>
+          <p class="journey-subtext">{{ getTrimester() }}</p>
+          <div class="journey-progress-track">
+            <div class="journey-progress-fill" [style.width.%]="getPregnancyProgressPercent()"></div>
+          </div>
+          <p class="journey-footnote">{{ getDaysUntilDue() }} day{{ getDaysUntilDue() !== 1 ? 's' : '' }} until motherhood</p>
+        </ng-container>
+        <ng-template #newMomJourney>
+          <div class="journey-header">
+            <span class="journey-label">{{ getBabyFirstName() }}'s Journey</span>
+            <ion-icon name="flame" class="journey-icon" aria-hidden="true"></ion-icon>
+          </div>
+          <p class="journey-headline">{{ getBabyAgeText() }}</p>
+          <p class="journey-subtext">Every day is a milestone. You're doing great.</p>
+        </ng-template>
+      </div>
+    </div>
 
     <!-- Quick Actions -->
     <div class="section">
       <h2 class="section-title">Quick Actions</h2>
       <div class="quick-actions-grid">
-        <div *ngFor="let action of quickActions; let i = index" 
-             class="action-card" 
+        <button type="button"
+             *ngFor="let action of quickActions; let i = index"
+             class="action-card"
              [class]="'action-card-' + action.color"
              [class.priority-action]="action.priority"
              [class.onboarding-action]="action.action === 'openOnboarding'"
@@ -91,12 +118,14 @@
             <h3>{{ action.title }}</h3>
             <p>{{ action.description }}</p>
             <div *ngIf="action.action === 'openOnboarding'" class="onboarding-badge">
-              <ion-icon name="star" slot="start"></ion-icon>
+              <ion-icon name="star"></ion-icon>
               Required for Expert Consultation
             </div>
           </div>
-          <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
-        </div>
+          <div class="action-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </button>
       </div>
     </div>
 
@@ -119,7 +148,9 @@
       <div class="insights-container" *ngIf="todaysInsights">
         <div class="insight-card">
           <div class="insight-header">
-            <ion-icon name="heart" class="insight-icon"></ion-icon>
+            <div class="insight-icon-badge">
+              <ion-icon name="heart" class="insight-icon"></ion-icon>
+            </div>
             <h3>Baby's Progress</h3>
           </div>
           <div class="insight-content">
@@ -133,7 +164,9 @@
 
         <div class="insight-card">
           <div class="insight-header">
-            <ion-icon name="bulb" class="insight-icon"></ion-icon>
+            <div class="insight-icon-badge insight-icon-badge-tip">
+              <ion-icon name="bulb" class="insight-icon"></ion-icon>
+            </div>
             <h3>{{ todaysInsights.dailyTip.title }}</h3>
             <ion-chip size="small" color="medium" class="evidence-chip">{{ todaysInsights.dailyTip.source }}</ion-chip>
           </div>
@@ -364,6 +397,7 @@
     </div>
 
     <!-- Book Consultation Section - Hidden for experts -->
+    <!--
     <div class="section" *ngIf="!shouldHideSection('booking')">
       <h2 class="section-title">Expert Support</h2>
       <div class="consultation-booking-card">
@@ -381,8 +415,8 @@
             </div>
           </div>
         </div>
-        <ion-button 
-          expand="block" 
+        <ion-button
+          expand="block"
           (click)="openConsultationBooking()"
           class="book-consultation-button">
           <ion-icon name="calendar" slot="start"></ion-icon>
@@ -390,6 +424,7 @@
         </ion-button>
       </div>
     </div>
+    -->
 
     <!-- Timeline Section - Hidden for experts and when no baby -->
     <div class="section" *ngIf="!shouldHideSection('timeline') && user && user.babies && user.babies.length > 0">
@@ -463,7 +498,9 @@
       <h2 class="section-title">Continue Learning</h2>
       <div class="activity-card" [style.--category-color]="getCurrentLearningActivity().categoryColor">
         <div class="activity-content">
-          <ion-icon [name]="getCurrentLearningActivity().icon" class="activity-icon"></ion-icon>
+          <div class="activity-icon-badge">
+            <ion-icon [name]="getCurrentLearningActivity().icon" class="activity-icon"></ion-icon>
+          </div>
           <div class="activity-text">
             <h3>{{ getCurrentLearningActivity().title }}</h3>
             <p>{{ getCurrentLearningActivity().description }}</p>

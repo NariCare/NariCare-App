@@ -32,7 +32,7 @@ export class OnboardingService {
         totalSteps: this.totalSteps,
         completedSteps: validCompletedSteps.length,
         currentStep,
-        percentComplete: (validCompletedSteps.length / this.totalSteps) * 100,
+        percentComplete: (currentStep / this.totalSteps) * 100,
         canProceed: this.canProceedOrComplete(currentStep, data)
       };
     })
@@ -593,11 +593,6 @@ export class OnboardingService {
         validation.isValid = false;
         validation.errors['currentChallenges'] = 'Please select at least one current challenge';
       }
-    }
-
-    if (!data?.expectationsFromProgram?.trim()) {
-      validation.isValid = false;
-      validation.errors['expectationsFromProgram'] = 'Please describe your expectations from the NariCare program';
     }
 
     return validation;
