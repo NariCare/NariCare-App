@@ -21,7 +21,7 @@ export class RegisterPage implements OnInit {
   registerForm: FormGroup;
   showPassword = false;
   showConfirmPassword = false;
-  currentStep = 0;
+  currentStep = 1;
   submitting = false;
 
   steps: StepDefinition[] = [
@@ -198,9 +198,14 @@ export class RegisterPage implements OnInit {
   }
 
   backStep() {
-    if (this.canGoBack()) {
-      this.currentStep -= 1;
+    if (!this.canGoBack()) {
+      return;
     }
+    if (this.currentStep === 1) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+    this.currentStep -= 1;
   }
 
   selectMotherType(key: string) {
