@@ -82,7 +82,7 @@ export class ProfilePage implements OnInit {
   private updateProfileSections() {
     console.log('Profile Page - updateProfileSections called for user:', this.user);
     const accountItems: any[] = [
-      { label: 'Personal Information', icon: 'person-outline', action: 'editProfile' }
+      { label: 'Personal Information', subtitle: 'Manage your details', icon: 'person-outline', iconColor: 'purple', action: 'editProfile' }
     ];
 
     // Check if user is an expert
@@ -106,39 +106,39 @@ export class ProfilePage implements OnInit {
       }
 
       // Determine the add baby label based on existing babies
-      const addBabyLabel = (this.user?.babies && this.user.babies.length > 0) 
-        ? 'Add Another Baby' 
+      const addBabyLabel = (this.user?.babies && this.user.babies.length > 0)
+        ? 'Add Another Baby'
         : 'Add New Baby';
 
-      accountItems.push({ label: addBabyLabel, icon: 'add-circle-outline', action: 'addBaby' });
+      accountItems.push({ label: addBabyLabel, subtitle: 'Start tracking your little one', icon: 'add-circle-outline', iconColor: 'pink', action: 'addBaby' });
     }
 
     // Add notifications for all users
     accountItems.push(
-      { label: 'Notifications', icon: 'notifications-outline', action: 'viewNotifications', badge: this.unreadNotificationCount }
+      { label: 'Notifications', subtitle: 'Manage reminders and updates', icon: 'notifications-outline', iconColor: 'yellow', action: 'viewNotifications', badge: this.unreadNotificationCount }
     );
 
     // Create support items based on user role
     const supportItems: any[] = [
-      { label: 'Contact Support', icon: 'mail-outline', action: 'contact' },
-      { label: 'Privacy Policy', icon: 'shield-outline', action: 'privacy' }
+      { label: 'Contact Support', icon: 'mail-outline', iconColor: 'green', action: 'contact' },
+      { label: 'Privacy Policy', icon: 'shield-checkmark-outline', iconColor: 'purple', action: 'privacy' }
     ];
 
     // Only add help center for non-expert users
     // ponytail: 'Book Expert Consultation' item disabled alongside dashboard's Expert Support section
     if (!isExpert) {
       supportItems.unshift(
-        { label: 'Help Center', icon: 'help-circle-outline', action: 'help' }
+        { label: 'Help Center', icon: 'help-circle-outline', iconColor: 'blue', action: 'help' }
       );
     }
 
     this.profileSections = [
       {
-        title: 'Account',
+        title: 'My Account',
         items: accountItems
       },
       {
-        title: 'Support',
+        title: 'Support & Resources',
         items: supportItems
       }
     ];
@@ -540,6 +540,24 @@ export class ProfilePage implements OnInit {
 
   private viewPrivacyPolicy() {
     console.log('View privacy policy');
+  }
+
+  async shareApp() {
+    const shareData = {
+      title: 'NariCare',
+      text: 'Help other mothers by sharing NariCare',
+      url: 'https://naricare.app'
+    };
+    if ((navigator as any).share) {
+      try {
+        await (navigator as any).share(shareData);
+      } catch {
+        // user cancelled share sheet, no-op
+      }
+    } else {
+      await navigator.clipboard.writeText(shareData.url);
+      this.showSuccessToast('Link copied to clipboard!');
+    }
   }
 
   async logout() {

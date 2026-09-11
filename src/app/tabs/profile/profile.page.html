@@ -1,30 +1,58 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Profile</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
   <div class="content-container">
-    
-    <!-- Profile Header -->
-    <div class="profile-header" *ngIf="user">
-      <div class="profile-avatar">
-        <img src="assets/Profile icon.svg" alt="Profile" class="profile-icon" *ngIf="!user.profileImage">
-        <img [src]="user.profileImage" [alt]="user.firstName" *ngIf="user.profileImage">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-header-text">
+        <h1>Profile</h1>
+        <p>Your journey. Your settings. Always with you.</p>
       </div>
-      <div class="profile-info">
-        <h2>{{ user.firstName }} {{ user.lastName }}</h2>
-        <p class="email">{{ user.email }}</p>
-        <div class="tier-info">
-          <ion-chip class="chip" [color]="getTierColor()" size="small">
-            {{ getTierDisplay() }}
-          </ion-chip>
-          <span class="consultations" *ngIf="getConsultationsRemaining() > 0">
-            {{ getConsultationsRemaining() }} consultations remaining
-          </span>
+      <button type="button" class="settings-button" aria-label="Settings">
+        <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Profile Header -->
+    <div class="profile-header" *ngIf="user" [style.background-image]="'url(assets/images/profile-hero.webp)'">
+      <div class="profile-header-scrim"></div>
+      <div class="profile-header-content">
+      <div class="profile-header-top">
+        <div class="profile-avatar">
+          <img [src]="user.profileImage" [alt]="user.firstName" *ngIf="user.profileImage">
+          <span *ngIf="!user.profileImage" class="avatar-initial">{{ user.firstName?.charAt(0) }}</span>
         </div>
-        <p class="join-date">Member since {{ formatJoinDate() }}</p>
+        <div class="profile-info">
+          <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+          <p class="email">{{ user.email }}</p>
+        </div>
+      </div>
+      <div class="tier-info">
+        <ion-chip class="chip" [color]="getTierColor()" size="small">
+          {{ getTierDisplay() }}
+        </ion-chip>
+      </div>
+      <p class="join-date">Member since {{ formatJoinDate() }}</p>
+      </div>
+    </div>
+
+    <!-- Stat Row -->
+    <div class="stat-row" *ngIf="user">
+      <div class="stat-col">
+        <ion-icon name="chatbubble-outline" class="stat-icon stat-icon-purple"></ion-icon>
+        <span class="stat-value">{{ getConsultationsRemaining() }}</span>
+        <span class="stat-label">Consultations remaining</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-col">
+        <ion-icon name="happy-outline" class="stat-icon stat-icon-pink"></ion-icon>
+        <span class="stat-value">{{ user.babies?.length || 0 }}</span>
+        <span class="stat-label">Babies added</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-col">
+        <ion-icon name="calendar-outline" class="stat-icon stat-icon-green"></ion-icon>
+        <span class="stat-value">{{ formatJoinDate() }}</span>
+        <span class="stat-label">Member since</span>
       </div>
     </div>
 
@@ -62,7 +90,13 @@
     <!-- Profile Sections -->
     <div class="profile-sections">
       <div *ngFor="let section of profileSections" class="section">
-        <h3 class="section-title">{{ section.title }}</h3>
+        <div class="section-title-row">
+          <h3 class="section-title">{{ section.title }}</h3>
+          <button *ngIf="section.title === 'My Account'" type="button" class="edit-profile-link" (click)="handleAction('editProfile')">
+            Edit Profile
+            <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
         <div class="section-items">
           <div
             *ngFor="let item of section.items"
@@ -73,12 +107,15 @@
             (click)="handleAction(item.action, item)"
             (keydown.enter)="handleAction(item.action, item)"
             (keydown.space)="$event.preventDefault(); handleAction(item.action, item)">
-            <div class="item-icon">
+            <div class="item-icon" [class]="'item-icon-' + (item.iconColor || 'purple')">
               <img *ngIf="item.customIcon" [src]="item.customIcon" [alt]="item.label" class="baby-icon">
               <ion-icon *ngIf="!item.customIcon" [name]="item.icon" aria-hidden="true"></ion-icon>
             </div>
             <div class="item-content">
-              <span class="item-label">{{ item.label }}</span>
+              <div class="item-text">
+                <span class="item-label">{{ item.label }}</span>
+                <span *ngIf="item.subtitle" class="item-subtitle">{{ item.subtitle }}</span>
+              </div>
               <ion-badge *ngIf="item.badge && item.badge > 0" color="danger" class="notification-badge">
                 {{ item.badge > 99 ? '99+' : item.badge }}
               </ion-badge>
@@ -87,6 +124,16 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Share the Care -->
+    <div class="share-card">
+      <div class="share-hearts" aria-hidden="true">
+        <ion-icon name="heart" class="share-heart share-heart-1"></ion-icon>
+        <ion-icon name="heart" class="share-heart share-heart-2"></ion-icon>
+      </div>
+      <p class="share-text">Help other mothers by sharing NariCare</p>
+      <button type="button" class="share-button" (click)="shareApp()">Share</button>
     </div>
 
     <!-- Logout Button -->
