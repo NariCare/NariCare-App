@@ -1,13 +1,18 @@
 <div class="ai-chat-container">
-  <!-- AI Header -->
-  <div class="ai-header">
-    <div class="ai-avatar">
-      <ion-icon name="chatbot"></ion-icon>
+  <!-- Assistant Header Card -->
+  <div class="assistant-header">
+    <div class="assistant-avatar">
+      <img src="assets/images/profile-hero.webp" alt="">
+      <span class="assistant-online-dot" aria-hidden="true"></span>
     </div>
-    <div class="ai-info">
-      <h3>AI Lactation Assistant</h3>
-      <p>Get instant help with breastfeeding questions</p>
+    <div class="assistant-info">
+      <h3>NariCare AI</h3>
+      <p>Your personal motherhood companion</p>
     </div>
+    <span class="assistant-status">
+      <span class="status-dot" aria-hidden="true"></span>
+      Online
+    </span>
   </div>
 
   <!-- Medical Disclaimer -->
@@ -16,8 +21,8 @@
     <div class="disclaimer-text">
       <strong>Medical Disclaimer:</strong> This AI provides educational information only. Always consult with a lactation consultant, pediatrician, or healthcare provider for personalized medical advice and concerns.
     </div>
-    <ion-button 
-      fill="clear" 
+    <ion-button
+      fill="clear"
       size="small"
       (click)="hideDisclaimer()"
       class="close-disclaimer-button">
@@ -28,10 +33,53 @@
 
   <!-- Messages Container -->
   <div class="messages-container" #messagesContainer>
+    <!-- Welcome Bubble (shown before any messages load) -->
+    <div class="welcome-message" *ngIf="!hasMessages() && !isInitializing">
+      <div class="message-avatar">
+        <img src="assets/NariCare logo.svg" alt="NariCare">
+      </div>
+      <div class="message-content">
+        <div class="message-bubble">
+          <div class="message-text">
+            <p>Hello! I'm NariCare AI 👋 Your personal breastfeeding support assistant. Ask me anything, anytime.</p>
+          </div>
+        </div>
+        <span class="message-time">{{ getMessageTime(welcomeTime) }}</span>
+      </div>
+    </div>
+
+    <!-- Quick Questions -->
+    <div class="quick-questions" *ngIf="!hasMessages() && !isInitializing">
+      <h4 class="quick-questions-title">Quick questions</h4>
+      <div class="quick-questions-list">
+        <button type="button" class="quick-question-row" (click)="handleFollowUpAction('latch_problems', 'I have breastfeeding questions')">
+          <div class="quick-question-icon icon-blush">
+            <ion-icon name="water"></ion-icon>
+          </div>
+          <span class="quick-question-text">I have breastfeeding questions</span>
+          <ion-icon name="chevron-forward" class="quick-question-arrow"></ion-icon>
+        </button>
+        <button type="button" class="quick-question-row" (click)="handleFollowUpAction('feeding_issues', 'My baby is having feeding issues')">
+          <div class="quick-question-icon icon-lavender">
+            <ion-icon name="happy-outline"></ion-icon>
+          </div>
+          <span class="quick-question-text">My baby is having feeding issues</span>
+          <ion-icon name="chevron-forward" class="quick-question-arrow"></ion-icon>
+        </button>
+        <button type="button" class="quick-question-row" (click)="handleFollowUpAction('development', 'Questions about baby\'s development')">
+          <div class="quick-question-icon icon-mint">
+            <ion-icon name="bar-chart-outline"></ion-icon>
+          </div>
+          <span class="quick-question-text">Questions about baby's development</span>
+          <ion-icon name="chevron-forward" class="quick-question-arrow"></ion-icon>
+        </button>
+      </div>
+    </div>
+
     <!-- Loading State -->
     <div class="loading-state" *ngIf="isInitializing">
       <div class="loading-avatar">
-        <ion-icon name="chatbot"></ion-icon>
+        <img src="assets/NariCare logo.svg" alt="NariCare">
       </div>
       <div class="loading-content">
         <div class="loading-bubble">
@@ -46,16 +94,16 @@
     </div>
 
     <!-- Messages -->
-    <div 
+    <div
       *ngFor="let message of chatbotMessages$ | async"
       class="message"
       [class.user-message]="message.sender === 'user'"
       [class.bot-message]="message.sender === 'bot'"
       [class.typing]="message.isTyping"
       [class.duplicate-hidden]="message.isTyping && hasMultipleTypingMessages()">
-      
+
       <div class="message-avatar" *ngIf="message.sender === 'bot'">
-        <ion-icon name="chatbot"></ion-icon>
+        <img src="assets/NariCare logo.svg" alt="NariCare">
       </div>
       
       <div class="message-content">
@@ -216,12 +264,12 @@
   <!-- Message Input -->
   <div class="message-input-container fixed-bottom" #messageInputContainer>
     <div class="message-input">
-      <ion-button 
-        fill="clear" 
+      <ion-button
+        fill="clear"
         size="small"
         (click)="openAttachmentMenu()"
         class="attachment-button">
-        <ion-icon name="attach" slot="icon-only"></ion-icon>
+        <ion-icon name="add" slot="icon-only"></ion-icon>
       </ion-button>
       <ion-button 
         *ngIf="isExpert()"
@@ -234,7 +282,7 @@
       </ion-button>
       <ion-textarea
         [(ngModel)]="messageText"
-        placeholder="How can I support you?"
+        placeholder="Ask NariCare anything..."
         rows="1"
         autoGrow="true"
         maxlength="500"
@@ -247,12 +295,12 @@
         spellcheck="true"
         inputmode="text">
       </ion-textarea>
-      <ion-button 
-        fill="clear" 
+      <ion-button
+        fill="solid"
         (click)="sendMessage()"
         [disabled]="!messageText?.trim()"
         class="send-button">
-        <ion-icon name="send" slot="icon-only"></ion-icon>
+        <ion-icon name="paper-plane" slot="icon-only"></ion-icon>
       </ion-button>
     </div>
   </div>

@@ -36,6 +36,9 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   private keyboardVisible = false;
   private lastKeyboardHeight = 0;
 
+  // ponytail: display-only timestamp for the static welcome bubble
+  readonly welcomeTime = new Date();
+
   constructor(
     private chatbotService: ChatbotService,
     private authService: AuthService,

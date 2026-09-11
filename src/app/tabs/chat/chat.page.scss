@@ -1,3 +1,16 @@
+// Shared design tokens (matches register/onboarding/dashboard/profile/tracker)
+$primary: #8383ed;
+$primary-hover: #7676d1;
+$lavender-bg: #f4f2fe;
+$lavender-surface: #f7f5fd;
+$lavender-border: #e2ddf5;
+$ink: #2d3748;
+$muted: #7a73a9;
+$font: var(--ion-font-family, 'Poppins', sans-serif);
+
+.chat-page-content {
+  --background: #ffffff;
+}
 
 .chat-container {
   height: 100vh; /* Use viewport height instead of 100% */
@@ -10,24 +23,128 @@
   position: relative;
 }
 
-.tab-selector {
-  padding: 2px;
-  background: #ffffff;
-  border-bottom: 1px solid #f1f5f9;
+/* Hero Header */
+.chat-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 1.25rem 2rem 1.25rem;
+  background: linear-gradient(180deg, $lavender-bg 0%, #ffffff 100%);
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+  flex-shrink: 0;
+}
 
-  ion-segment {
-    --background: #f8fafc;
-    --color-checked: #8383ed;
-    --background-checked: #ffffff;
-    --border-radius: 8px;
+.chat-hero-text {
+  flex-shrink: 0;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $ink;
+    font-family: $font;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.9rem;
+    color: $muted;
+    font-family: $font;
+  }
+}
+
+.chat-hero-decoration {
+  position: relative;
+  width: 84px;
+  height: 64px;
+  flex-shrink: 0;
+
+  .deco-bubble {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(131, 131, 237, 0.18);
+
+    ion-icon {
+      color: #ffffff;
+    }
+  }
+
+  .deco-bubble-purple {
+    top: 0;
+    right: 8px;
+    width: 48px;
+    height: 40px;
+    background: $primary;
+    border-bottom-right-radius: 4px;
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+  }
+
+  .deco-bubble-pink {
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 32px;
+    background: #ff8fb1;
+    border-bottom-right-radius: 4px;
+
+    ion-icon {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.content-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  padding: 1rem;
+}
+
+/* Main Tab Selector (matches Tracker page pill pattern) */
+.main-tab-selector {
+  margin-bottom: 1.25rem;
+  background: $lavender-bg;
+  border-radius: 999px;
+  padding: 4px;
+
+  ion-segment.main-tabs-segment {
+    --background: transparent !important;
+    background: transparent !important;
+
+    ion-segment-button {
+      --border-radius: 999px !important;
+      border-radius: 999px !important;
+      --color: #{$muted} !important;
+      color: $muted !important;
+      font-weight: 600 !important;
+      font-family: $font;
+
+      &.segment-button-checked {
+        --background: #{$primary} !important;
+        background: $primary !important;
+        --color: #ffffff !important;
+        color: #ffffff !important;
+
+        ion-label {
+          color: #ffffff !important;
+        }
+      }
+    }
   }
 }
 
 .tab-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  padding: 1rem;
   width: 100%;
   max-width: 100%;
 
