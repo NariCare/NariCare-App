@@ -36,7 +36,7 @@
           *ngFor="let consultation of upcomingConsultations"
           class="consultation-card">
           <div class="consultation-icon">
-            <ion-icon name="videocam"></ion-icon>
+            <ion-icon name="videocam" aria-hidden="true"></ion-icon>
           </div>
           <div class="consultation-info">
             <h4>{{ consultation.topic | titlecase }}</h4>
@@ -64,13 +64,18 @@
       <div *ngFor="let section of profileSections" class="section">
         <h3 class="section-title">{{ section.title }}</h3>
         <div class="section-items">
-          <div 
+          <div
             *ngFor="let item of section.items"
             class="section-item"
-            (click)="handleAction(item.action, item)">
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="item.label"
+            (click)="handleAction(item.action, item)"
+            (keydown.enter)="handleAction(item.action, item)"
+            (keydown.space)="$event.preventDefault(); handleAction(item.action, item)">
             <div class="item-icon">
               <img *ngIf="item.customIcon" [src]="item.customIcon" [alt]="item.label" class="baby-icon">
-              <ion-icon *ngIf="!item.customIcon" [name]="item.icon"></ion-icon>
+              <ion-icon *ngIf="!item.customIcon" [name]="item.icon" aria-hidden="true"></ion-icon>
             </div>
             <div class="item-content">
               <span class="item-label">{{ item.label }}</span>
@@ -78,7 +83,7 @@
                 {{ item.badge > 99 ? '99+' : item.badge }}
               </ion-badge>
             </div>
-            <ion-icon name="chevron-forward-outline" class="item-arrow"></ion-icon>
+            <ion-icon name="chevron-forward-outline" class="item-arrow" aria-hidden="true"></ion-icon>
           </div>
         </div>
       </div>

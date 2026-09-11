@@ -124,11 +124,11 @@ export class ProfilePage implements OnInit {
       { label: 'Privacy Policy', icon: 'shield-outline', action: 'privacy' }
     ];
 
-    // Only add help center and book consultation for non-expert users
+    // Only add help center for non-expert users
+    // ponytail: 'Book Expert Consultation' item disabled alongside dashboard's Expert Support section
     if (!isExpert) {
       supportItems.unshift(
-        { label: 'Help Center', icon: 'help-circle-outline', action: 'help' },
-        { label: 'Book Expert Consultation', icon: 'videocam-outline', action: 'bookConsultation' }
+        { label: 'Help Center', icon: 'help-circle-outline', action: 'help' }
       );
     }
 
