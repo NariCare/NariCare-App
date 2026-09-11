@@ -13,7 +13,7 @@ The register screen was rebuilt as a one-question-per-step wizard with strict fi
 
 ## The 9-step flow
 
-1. **Welcome** - centered NariCare logo with a Beta pill below it, Get started button.
+1. **Welcome** (`currentStep === 0`) - centered NariCare logo with a Beta pill below it, Get started button. Defined in `steps[]` but skipped on entry; see "Skipping the welcome step" below.
 2. **Name** - single "full name" field. Auto-splits into `firstName` (all words except the last) and `lastName` (last word).
 3. **Phone** - country selector (default `+91`) + number, optional WhatsApp toggle.
 4. **Email** - single field.
@@ -24,6 +24,25 @@ The register screen was rebuilt as a one-question-per-step wizard with strict fi
 9. **Finish** - summary of all answers, terms checkbox, Create account button.
 
 Each step gates the Continue button (`canGoNext()`), and a blocked attempt marks the fields touched so the inline error shows.
+
+## Skipping the welcome step
+
+Landing on `/auth/register` from the login page's "Register now" link should
+drop straight into step 1 (Name), not the welcome/"Get started" screen - the
+login page already sells the app, so a second intro screen right after was
+redundant and users were reporting it as unwanted friction.
+
+- `currentStep` initializes to `1` instead of `0`. The welcome step markup
+  (`*ngIf="currentStep === 0"`) and the stepper header/form
+  (`*ngIf="!isWelcomeStep"` / `*ngIf="!isWelcomeStep"`) never render it as a
+  result, no template changes were needed.
+- `backStep()` special-cases `currentStep === 1`: instead of decrementing
+  into the now-unreachable welcome step, it navigates to `/auth/login`. Every
+  other step still decrements normally.
+- The `steps[]` array itself, including the `'welcome'` entry, is left
+  intact. `progressPercent`, `isLastStep`, and the step-count labels ("1 of
+  8", etc.) already excluded the welcome step from their math, so nothing
+  else needed to change.
 
 ## Validation rules (client and server)
 
