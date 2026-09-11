@@ -981,16 +981,10 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
     box-shadow: 0 4px 15px rgba(131, 131, 237, 0.1);
   }
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--category-color, #8383ed);
-    opacity: 0.85;
-  }
+  &.theme-pink { background: #fdedf4; border-color: #fbcfe1; }
+  &.theme-yellow { background: #fdf8e8; border-color: #f5e4a8; }
+  &.theme-lavender { background: #{$lavender-surface}; border-color: #{$lavender-border}; }
+  &.theme-mint { background: #eaf7f1; border-color: #bfe8d4; }
 }
 
 .activity-content {
@@ -999,22 +993,18 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   flex: 1;
 }
 
-.activity-icon-badge {
+.activity-illustration {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(131, 131, 237, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 1rem;
   flex-shrink: 0;
-}
+  margin-right: 1rem;
 
-.activity-icon {
-  color: var(--category-color, #{$primary});
-  font-size: 1.5rem;
-  margin-right: 0;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 }
 
 .activity-text {
@@ -1038,7 +1028,7 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 
     .progress-text {
       font-size: 0.75rem;
-      color: var(--category-color, #{$primary});
+      color: #{$primary};
       font-weight: 500;
       background: rgba(131, 131, 237, 0.1);
       padding: 0.25rem 0.5rem;

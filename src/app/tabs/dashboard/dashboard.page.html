@@ -496,10 +496,10 @@
     <!-- Continue Learning Section - Hidden for experts -->
     <div class="section" *ngIf="!shouldHideSection('learning')">
       <h2 class="section-title">Continue Learning</h2>
-      <div class="activity-card" [style.--category-color]="getCurrentLearningActivity().categoryColor">
+      <div class="activity-card" [ngClass]="getLearningCardTheme().className">
         <div class="activity-content">
-          <div class="activity-icon-badge">
-            <ion-icon [name]="getCurrentLearningActivity().icon" class="activity-icon"></ion-icon>
+          <div class="activity-illustration">
+            <img [src]="getLearningCardTheme().illustration" alt="">
           </div>
           <div class="activity-text">
             <h3>{{ getCurrentLearningActivity().title }}</h3>

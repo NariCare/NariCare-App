@@ -1109,6 +1109,27 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return 'Start your learning journey';
   }
 
+  private readonly learningCardThemes = [
+    { className: 'theme-pink', illustration: 'assets/images/new-mom-journey-hero.webp' },
+    { className: 'theme-yellow', illustration: 'assets/images/tracker-hero.webp' },
+    { className: 'theme-lavender', illustration: 'assets/images/profile-hero.webp' },
+    { className: 'theme-mint', illustration: 'assets/images/tracker-empty-baby.webp' }
+  ];
+
+  getLearningCardTheme(): { className: string, illustration: string } {
+    const activity = this.getCurrentLearningActivity();
+    const key = activity.article?.id;
+    if (!key) {
+      return this.learningCardThemes[2]; // lavender fallback for the general/no-article state
+    }
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = ((hash << 5) - hash) + key.charCodeAt(i);
+      hash = hash & hash;
+    }
+    return this.learningCardThemes[Math.abs(hash) % this.learningCardThemes.length];
+  }
+
   /**
    * Check if consultation has expert notes
    */

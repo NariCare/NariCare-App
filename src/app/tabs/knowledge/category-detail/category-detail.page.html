@@ -1,18 +1,14 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="goBack()" class="header-button">
-        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title>Category</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
   <div class="content-container">
-    
-    <!-- Category Header -->
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <button type="button" class="back-button" (click)="goBack()" aria-label="Back">
+        <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Category Banner -->
     <div class="category-header" *ngIf="category$ | async as category">
       <div class="category-icon" [style.background-color]="category.color">
         <ion-icon [name]="category.icon"></ion-icon>
@@ -23,29 +19,28 @@
       </div>
     </div>
 
-    <!-- Articles List -->
+    <!-- Articles Grid -->
     <div class="section">
       <h2 class="section-title">Articles in this category</h2>
-      <div class="articles-list">
-        <div 
+      <div class="articles-grid">
+        <div
           *ngFor="let article of articles$ | async"
           class="article-card"
+          [ngClass]="getCardTheme(article.id).className"
           (click)="onArticleSelect(article)">
-          <div class="article-content">
-            <div class="article-meta">
-              <ion-chip [color]="getDifficultyColor(article.difficulty)" size="small">
-                {{ article.difficulty }}
-              </ion-chip>
-              <span class="read-time">{{ formatReadTime(article.readTime) }}</span>
-            </div>
-            <h3>{{ article.title }}</h3>
-            <p>{{ article.summary }}</p>
-            <div class="article-footer">
-              <span class="author">By {{ article.author }}</span>
-              <span class="date">{{ article.publishedAt | date:'MMM d, y' }}</span>
-            </div>
+          <div class="article-illustration">
+            <img [src]="getCardTheme(article.id).illustration" alt="">
           </div>
-          <ion-icon name="chevron-forward-outline" class="article-arrow"></ion-icon>
+          <ion-chip class="difficulty-chip">{{ article.difficulty | titlecase }}</ion-chip>
+          <h3>{{ article.title }}</h3>
+          <p>{{ article.summary }}</p>
+          <div class="article-footer">
+            <span class="read-time">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ formatReadTime(article.readTime) }}
+            </span>
+            <span class="author">By {{ article.author }}</span>
+          </div>
         </div>
       </div>
     </div>

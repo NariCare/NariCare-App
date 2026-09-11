@@ -51,16 +51,23 @@ export class CategoryDetailPage implements OnInit {
     this.router.navigate(['/tabs/knowledge/article', article.id]);
   }
 
-  getDifficultyColor(difficulty: string): string {
-    switch (difficulty) {
-      case 'beginner': return 'success';
-      case 'intermediate': return 'warning';
-      case 'advanced': return 'danger';
-      default: return 'medium';
-    }
-  }
-
   formatReadTime(minutes: number): string {
     return `${minutes} min read`;
+  }
+
+  private readonly cardThemes = [
+    { className: 'theme-pink', illustration: 'assets/images/new-mom-journey-hero.webp' },
+    { className: 'theme-yellow', illustration: 'assets/images/tracker-hero.webp' },
+    { className: 'theme-lavender', illustration: 'assets/images/profile-hero.webp' },
+    { className: 'theme-mint', illustration: 'assets/images/tracker-empty-baby.webp' }
+  ];
+
+  getCardTheme(articleId: string): { className: string, illustration: string } {
+    let hash = 0;
+    for (let i = 0; i < articleId.length; i++) {
+      hash = ((hash << 5) - hash) + articleId.charCodeAt(i);
+      hash = hash & hash;
+    }
+    return this.cardThemes[Math.abs(hash) % this.cardThemes.length];
   }
 }

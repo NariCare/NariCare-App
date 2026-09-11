@@ -22,7 +22,7 @@ export class KnowledgePage implements OnInit {
     private authService: AuthService,
     private router: Router
   ) {
-    this.categorizedArticles$ = this.knowledgeService.getArticlesGroupedByCategory(5);
+    this.categorizedArticles$ = this.knowledgeService.getArticlesGroupedByCategory(6);
   }
 
   ngOnInit() {
@@ -71,15 +71,6 @@ export class KnowledgePage implements OnInit {
     this.router.navigate(['/tabs/knowledge/article', article.id]);
   }
 
-  getDifficultyColor(difficulty: string): string {
-    switch (difficulty) {
-      case 'beginner': return 'success';
-      case 'intermediate': return 'warning';
-      case 'advanced': return 'danger';
-      default: return 'medium';
-    }
-  }
-
   formatReadTime(minutes: number): string {
     return `${minutes} min read`;
   }
@@ -106,81 +97,19 @@ export class KnowledgePage implements OnInit {
     return this.bookmarkedArticles.includes(articleId);
   }
 
-  getRandomGradient(articleId: string): string {
-    const gradients = [
-      // Set 1: Pink - #FFEDF4 with border #FFCADF
-      '#FFEDF4',
-      '#FFEDF4',
-      '#FFEDF4',
-      '#FFEDF4',
-      // Set 2: Yellow - #FFFAED with border #FFE8AD
-      '#FFFAED',
-      '#FFFAED',
-      '#FFFAED',
-      '#FFFAED'
-    ];
-    
-    // Use article ID to generate consistent random index
-    let hash = 0;
-    for (let i = 0; i < articleId.length; i++) {
-      const char = articleId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    
-    const index = Math.abs(hash) % gradients.length;
-    return gradients[index];
-  }
+  private readonly cardThemes = [
+    { className: 'theme-pink', illustration: 'assets/images/new-mom-journey-hero.webp' },
+    { className: 'theme-yellow', illustration: 'assets/images/tracker-hero.webp' },
+    { className: 'theme-lavender', illustration: 'assets/images/profile-hero.webp' },
+    { className: 'theme-mint', illustration: 'assets/images/tracker-empty-baby.webp' }
+  ];
 
-  getBorderColor(articleId: string): string {
-    const borderColors = [
-      // Set 1: Pink border
-      '#FFCADF',
-      '#FFCADF',
-      '#FFCADF',
-      '#FFCADF',
-      // Set 2: Yellow border
-      '#FFE8AD',
-      '#FFE8AD',
-      '#FFE8AD',
-      '#FFE8AD'
-    ];
-    
-    // Use same hash logic as gradient to ensure matching colors
+  getCardTheme(articleId: string): { className: string, illustration: string } {
     let hash = 0;
     for (let i = 0; i < articleId.length; i++) {
-      const char = articleId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
+      hash = ((hash << 5) - hash) + articleId.charCodeAt(i);
+      hash = hash & hash;
     }
-    
-    const index = Math.abs(hash) % borderColors.length;
-    return borderColors[index];
-  }
-
-  getChipStyle(articleId: string): { background: string, color: string, border: string } {
-    const chipStyles = [
-      // Set 1: Pink - slightly darker pink for chip
-      { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
-      { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
-      { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
-      { background: 'rgba(255, 182, 193, 0.8)', color: '#8B5A5A', border: '1px solid rgba(255, 182, 193, 0.6)' },
-      // Set 2: Yellow - darker yellow/orange for chip
-      { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' },
-      { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' },
-      { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' },
-      { background: 'rgba(255, 232, 173, 0.8)', color: '#D97706', border: '1px solid rgba(255, 232, 173, 0.6)' }
-    ];
-    
-    // Use same hash logic to ensure matching colors
-    let hash = 0;
-    for (let i = 0; i < articleId.length; i++) {
-      const char = articleId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    
-    const index = Math.abs(hash) % chipStyles.length;
-    return chipStyles[index];
+    return this.cardThemes[Math.abs(hash) % this.cardThemes.length];
   }
 }
