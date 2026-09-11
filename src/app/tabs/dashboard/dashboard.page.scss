@@ -1,9 +1,17 @@
+// Shared design tokens (matches register/onboarding wizard)
+$primary: #8383ed;
+$primary-hover: #7676d1;
+$lavender-bg: #f4f2fe;
+$lavender-surface: #f7f5fd;
+$lavender-border: #e2ddf5;
+$ink: #2d3748;
+$muted: #7a73a9;
+$font: var(--ion-font-family, 'Poppins', sans-serif);
+
 .dashboard-header {
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   overflow: hidden;
-  will-change: transform; // Optimize for animations
-  
+
   ion-toolbar {
     --background: linear-gradient(135deg, #8383ed 0%, #7070db 50%, #8383ed 100%);
     --color: #ffffff;
@@ -11,9 +19,7 @@
     --min-height: 140px;
     --padding-start: 16px;
     --padding-end: 16px;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     position: relative;
-    will-change: min-height; // Optimize for height changes
   }
   
   // Collapsed state
@@ -65,7 +71,6 @@
   transition: padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   z-index: 2;
-  will-change: padding; // Optimize for padding changes
 }
 
 // Floating background decoration
@@ -302,7 +307,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // Adjust overlay position when header is collapsed
@@ -311,19 +316,18 @@
 }
 
 .baby-info-overlay {
-  font-size: 0.8rem; 
+  font-size: 0.8rem;
   color: #ffffff;
   font-weight: 600;
-  background: rgba(131, 131, 237, 0.95); 
-  padding: 0.6rem 1.2rem; 
-  border-radius: 22px; 
+  background: rgba(131, 131, 237, 0.95);
+  padding: 0.6rem 1.2rem;
+  border-radius: 22px;
   text-align: center;
   white-space: nowrap;
   box-shadow: 0 4px 16px rgba(131, 131, 237, 0.3);
   border: 2px solid #ffffff;
-  backdrop-filter: blur(12px); 
-  transition: all 0.3s ease;
-  
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
   &:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 20px rgba(131, 131, 237, 0.4);
@@ -348,8 +352,7 @@
   height: 60px;
   box-shadow: 0 4px 16px rgba(131, 131, 237, 0.3);
   border: 3px solid #ffffff;
-  backdrop-filter: blur(12px);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
 
   ion-icon {
@@ -380,8 +383,8 @@
 }
 
 .section {
-  margin-bottom: 2rem;
-  
+  margin-bottom: 1.75rem;
+
   &:first-child {
     margin-top: 0.5rem; // Extra space from card top for first section
   }
@@ -389,9 +392,11 @@
 
 .section-title {
   margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2d3748;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: $ink;
+  font-family: $font;
+  letter-spacing: -0.01em;
 }
 
 .quick-actions-grid {
@@ -401,17 +406,29 @@
 }
 
 .action-card {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  font: inherit;
+  text-align: left;
   background: #ffffff;
   border-radius: 16px;
-  padding: 1rem;
+  padding: 0.875rem 1rem;
   display: flex;
   align-items: center;
-  border: 1px solid #f1f5f9;
+  min-height: 72px;
+  border: 1.5px solid $lavender-border;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.1s ease;
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
 
   &:active {
-    transform: translateY(1px);
+    transform: scale(0.99);
+    background: $lavender-bg;
   }
 }
 
@@ -422,7 +439,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 1rem;
+  margin-right: 0.875rem;
   flex-shrink: 0;
 
   ion-icon {
@@ -432,43 +449,47 @@
 }
 
 .action-card-primary .action-icon {
-  background: linear-gradient(135deg, #8383ed, #8383ed);
+  background: linear-gradient(135deg, #8383ed, #9a9af0);
 }
 
 .action-card-success .action-icon {
-  background: linear-gradient(135deg, #26a69a, #4db6ac);
+  background: linear-gradient(135deg, #34b3a6, #4db6ac);
 }
 
 .action-card-tertiary .action-icon {
-  background: linear-gradient(135deg, #ff7043, #ff8a65);
+  background: linear-gradient(135deg, #ff7f66, #ff9d7a);
 }
 
 .action-card-secondary .action-icon {
-  background: linear-gradient(135deg, #42a5f5, #64b5f6);
+  background: linear-gradient(135deg, #5c9df5, #7bb4f7);
 }
 
 .action-content {
   flex: 1;
+  min-width: 0;
 
   h3 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1rem;
+    margin: 0 0 0.2rem 0;
+    font-size: 0.975rem;
     font-weight: 600;
-    color: #2d3748;
+    color: $ink;
+    font-family: $font;
   }
 
   p {
     margin: 0;
-    font-size: 0.85rem;
-    color: #64748b;
+    font-size: 0.825rem;
+    color: $muted;
     line-height: 1.4;
+    font-family: $font;
   }
 }
 
 .action-arrow {
   color: #cbd5e1;
-  font-size: 1rem;
+  font-size: 1.1rem;
   margin-left: 0.5rem;
+  flex-shrink: 0;
 }
 
 .insights-container {
@@ -478,10 +499,10 @@
 }
 
 .insight-card {
-  background: #ffffff;
+  background: $lavender-surface;
   border-radius: 16px;
-  padding: 1rem;
-  border: 1px solid #f1f5f9;
+  padding: 1.125rem;
+  border: 1.5px solid $lavender-border;
 }
 
 .insight-header {
@@ -492,12 +513,13 @@
 
   h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 0.975rem;
     font-weight: 600;
-    color: #2d3748;
+    color: $ink;
+    font-family: $font;
     flex: 1;
   }
-  
+
   .evidence-chip {
     margin-left: 0.5rem;
     font-size: 0.7rem;
@@ -505,18 +527,40 @@
   }
 }
 
+.insight-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(131, 131, 237, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.625rem;
+  flex-shrink: 0;
+
+  &.insight-icon-badge-tip {
+    background: rgba(255, 152, 0, 0.12);
+
+    .insight-icon {
+      color: #ff9800;
+      margin-right: 0;
+    }
+  }
+}
+
 .insight-icon {
-  color: #8383ed;
-  font-size: 1.25rem;
-  margin-right: 0.5rem;
+  color: $primary;
+  font-size: 1.15rem;
+  margin-right: 0;
 }
 
 .insight-content {
   .insight-text {
     margin: 0 0 0.75rem 0;
     font-size: 0.9rem;
-    color: #64748b;
-    line-height: 1.5;
+    color: $muted;
+    line-height: 1.55;
+    font-family: $font;
   }
 }
 
@@ -579,7 +623,7 @@
   background: #ffffff;
   border-radius: 16px;
   padding: 0;
-  border: 1px solid #f1f5f9;
+  border: 1.5px solid $lavender-border;
   overflow: hidden;
   position: relative;
   transition: all 0.2s ease;
@@ -587,8 +631,8 @@
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-    border-color: #e2e8f0;
+    box-shadow: 0 8px 24px rgba(131, 131, 237, 0.12);
+    border-color: $primary;
   }
 
   &:active {
@@ -597,7 +641,7 @@
   }
 
   &.upcoming {
-    border-left: 4px solid #10b981;
+    border-left: 4px solid $primary;
   }
 
   &.completed {
@@ -617,8 +661,8 @@
   letter-spacing: 0.025em;
   
   &[data-status="scheduled"] {
-    background: #dcfce7;
-    color: #15803d;
+    background: $lavender-bg;
+    color: $primary-hover;
   }
   
   &[data-status="completed"] {
@@ -667,20 +711,23 @@
 
 .consultation-info {
   flex: 1;
+  min-width: 0;
 
   h4 {
     margin: 0 0 0.25rem 0;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    color: #2d3748;
+    color: $ink;
+    font-family: $font;
     line-height: 1.3;
   }
 
   .expert-name {
     margin: 0;
     font-size: 0.9rem;
-    color: #64748b;
+    color: $muted;
     font-weight: 500;
+    font-family: $font;
   }
 }
 
@@ -875,19 +922,21 @@
 .activity-card {
   background: #ffffff;
   border-radius: 16px;
-  padding: 1rem;
-  border: 1px solid #f1f5f9;
+  padding: 1.125rem 1rem;
+  border: 1.5px solid $lavender-border;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   transition: all 0.2s ease;
   position: relative;
-  
+  overflow: hidden;
+
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px rgba(131, 131, 237, 0.1);
   }
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -896,8 +945,7 @@
     right: 0;
     height: 3px;
     background: var(--category-color, #8383ed);
-    border-radius: 16px 16px 0 0;
-    opacity: 0.8;
+    opacity: 0.85;
   }
 }
 
@@ -907,10 +955,22 @@
   flex: 1;
 }
 
+.activity-icon-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(131, 131, 237, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
 .activity-icon {
   color: var(--category-color, #8383ed);
-  font-size: 2rem;
-  margin-right: 1rem;
+  font-size: 1.5rem;
+  margin-right: 0;
 }
 
 .activity-text {

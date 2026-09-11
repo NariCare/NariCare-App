@@ -171,10 +171,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
     
     if (scrollTop > scrollThreshold + hysteresis && scrollTop > this.lastScrollTop && !this.isHeaderCollapsed) {
-      // Scrolling down - collapse header
+      // Scrolling down past threshold - collapse header
       this.isHeaderCollapsed = true;
-    } else if ((scrollTop < this.lastScrollTop || scrollTop <= scrollThreshold - hysteresis) && this.isHeaderCollapsed) {
-      // Scrolling up or near top - expand header
+    } else if (scrollTop <= scrollThreshold - hysteresis && this.isHeaderCollapsed) {
+      // Scrolled back near the top - expand header
       this.isHeaderCollapsed = false;
     }
     
