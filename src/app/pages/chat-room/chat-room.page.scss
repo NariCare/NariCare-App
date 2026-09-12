@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   height: calc(100vh - 56px - 100px); // Account for header and input area
+  height: calc(100dvh - 56px - 100px);
   background: #f8fafc;
   padding-bottom: 100px; // Add padding to prevent content from being hidden behind fixed input
 }

@@ -7,15 +7,17 @@
 .register-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100%;
   max-width: 480px;
   margin: 0 auto;
   padding: 0 1.25rem;
+  box-sizing: border-box;
 }
 
 /* ==================== Stepper Header ==================== */
 
 .stepper-header {
+  flex-shrink: 0;
   padding-top: 1rem;
 }
 
@@ -63,6 +65,7 @@
 /* ==================== Step Heading ==================== */
 
 .step-heading {
+  flex-shrink: 0;
   margin: 2rem 0 1.5rem 0;
 }
 
@@ -159,11 +162,14 @@
 .register-form {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 90px);
+  flex: 1;
+  min-height: 0;
 }
 
 .step-body {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding-top: 0.5rem;
 }
 

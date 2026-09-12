@@ -217,6 +217,7 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 .content-card {
   background: #ffffff;
   min-height: calc(100vh - 92px);
+  min-height: calc(100dvh - 92px);
   padding: 1.5rem 1rem 2rem 1rem;
   position: relative;
 }
