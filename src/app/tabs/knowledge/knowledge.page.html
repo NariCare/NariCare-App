@@ -1,16 +1,12 @@
 <ion-content [fullscreen]="true">
   <div class="content-container">
 
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="page-header-text">
-        <h1>Knowledge Section</h1>
-        <p>Each card gives a quick, scannable preview of helpful content.</p>
-      </div>
-      <ion-button fill="clear" class="see-all-pill" (click)="onSearchFocus()">
-        See all
-        <ion-icon name="chevron-forward" slot="end"></ion-icon>
-      </ion-button>
+    <!-- Hero Banner -->
+    <div class="hero-banner">
+      <ion-icon name="sparkles" class="hero-icon"></ion-icon>
+      <h1>Knowledge</h1>
+      <p>Trusted guidance for your motherhood journey</p>
+      <span class="hero-tagline">Small steps, brighter days</span>
     </div>
 
     <!-- Search Bar -->
@@ -24,41 +20,15 @@
       </ion-searchbar>
     </div>
 
-    <!-- Articles by Category -->
-    <div *ngFor="let categoryGroup of categorizedArticles$ | async" class="category-section">
-      <div class="section-header">
-        <h2 class="section-title">{{ categoryGroup.category.name }}</h2>
-        <ion-button
-          fill="clear"
-          size="small"
-          class="see-all-button"
-          (click)="onSeeAllCategory(categoryGroup.category.id)">
-          See all
-        </ion-button>
-      </div>
-
-      <div class="articles-grid">
-        <div
-          *ngFor="let article of categoryGroup.articles"
-          class="article-card"
-          [ngClass]="getCardTheme(article.id).className"
-          (click)="onArticleSelect(article)">
-          <div class="article-illustration">
-            <img [src]="getCardTheme(article.id).illustration" alt="">
-          </div>
-          <ion-chip class="difficulty-chip">{{ article.difficulty | titlecase }}</ion-chip>
-          <h3>{{ article.title }}</h3>
-          <p>{{ article.summary }}</p>
-          <div class="article-footer">
-            <span class="read-time">
-              <ion-icon name="time-outline"></ion-icon>
-              {{ formatReadTime(article.readTime) }}
-            </span>
-            <ion-button fill="clear" size="small" class="bookmark-button" [class.saved]="isBookmarked(article.id)" (click)="toggleBookmark(article.id, $event)">
-              <ion-icon [name]="isBookmarked(article.id) ? 'bookmark' : 'bookmark-outline'" slot="icon-only"></ion-icon>
-            </ion-button>
-          </div>
-        </div>
+    <!-- Topic Grid -->
+    <div class="topic-grid">
+      <div
+        *ngFor="let category of categories$ | async"
+        class="topic-tile"
+        [style.background-image]="'url(' + illustrationFor(category.id) + ')'"
+        (click)="onCategorySelect(category.id)">
+        <div class="topic-tile-scrim"></div>
+        <h2>{{ category.name }}</h2>
       </div>
     </div>
 

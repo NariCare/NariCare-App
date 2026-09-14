@@ -3,12 +3,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, switchMap } from 'rxjs/operators';
 import { KnowledgeBaseService } from '../../../services/knowledge-base.service';
 import { AuthService } from '../../../services/auth.service';
 import { Article } from '../../../models/knowledge-base.model';
 import { User } from '../../../models/user.model';
 import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
+import { illustrationForCategory } from '../knowledge-illustrations';
 
 @Component({
   selector: 'app-article-detail',
@@ -18,6 +19,7 @@ import { VideoPlayerModalComponent } from '../../../components/video-player-moda
 export class ArticleDetailPage implements OnInit {
   article$: Observable<Article | undefined>;
   processedArticle$ = new BehaviorSubject<Article | undefined>(undefined);
+  relatedArticles$: Observable<Article[]>;
   articleId: string = '';
   user: User | null = null;
   isBookmarked = false;
@@ -38,6 +40,14 @@ export class ArticleDetailPage implements OnInit {
     private toastController: ToastController
   ) {
     this.article$ = new Observable();
+    this.relatedArticles$ = this.processedArticle$.pipe(
+      switchMap(article => article
+        ? this.knowledgeService.getArticlesByCategory(article.category.id).pipe(
+            map(articles => articles.filter(a => a.id !== article.id).slice(0, 2))
+          )
+        : [[]]
+      )
+    );
     this.initializeSpeechSynthesis();
   }
 
@@ -307,6 +317,14 @@ export class ArticleDetailPage implements OnInit {
     }
     
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  illustrationFor(article: Article): string {
+    return illustrationForCategory(article.category.id);
+  }
+
+  onRelatedArticleSelect(article: Article) {
+    this.router.navigate(['/tabs/knowledge/article', article.id]);
   }
 
   onTagClick(tag: string) {

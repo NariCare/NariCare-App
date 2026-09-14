@@ -1,47 +1,27 @@
 <ion-content [fullscreen]="true">
-  <div class="content-container">
+  <div class="content-container" *ngIf="category$ | async as category">
 
-    <!-- Page Header -->
-    <div class="page-header">
+    <!-- Topic Hero -->
+    <div class="topic-hero" [style.background-image]="'url(' + illustrationFor(category.id) + ')'">
+      <div class="topic-hero-scrim"></div>
       <button type="button" class="back-button" (click)="goBack()" aria-label="Back">
         <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
       </button>
-    </div>
-
-    <!-- Category Banner -->
-    <div class="category-header" *ngIf="category$ | async as category">
-      <div class="category-icon" [style.background-color]="category.color">
-        <ion-icon [name]="category.icon"></ion-icon>
-      </div>
-      <div class="category-info">
+      <div class="topic-hero-text">
         <h1>{{ category.name }}</h1>
         <p>{{ category.description }}</p>
       </div>
     </div>
 
-    <!-- Articles Grid -->
-    <div class="section">
-      <h2 class="section-title">Articles in this category</h2>
-      <div class="articles-grid">
-        <div
-          *ngFor="let article of articles$ | async"
-          class="article-card"
-          [ngClass]="getCardTheme(article.id).className"
-          (click)="onArticleSelect(article)">
-          <div class="article-illustration">
-            <img [src]="getCardTheme(article.id).illustration" alt="">
-          </div>
-          <ion-chip class="difficulty-chip">{{ article.difficulty | titlecase }}</ion-chip>
-          <h3>{{ article.title }}</h3>
-          <p>{{ article.summary }}</p>
-          <div class="article-footer">
-            <span class="read-time">
-              <ion-icon name="time-outline"></ion-icon>
-              {{ formatReadTime(article.readTime) }}
-            </span>
-            <span class="author">By {{ article.author }}</span>
-          </div>
-        </div>
+    <!-- Sub-topic list -->
+    <div class="topic-list">
+      <div
+        *ngFor="let article of articles$ | async"
+        class="topic-row"
+        (click)="onArticleSelect(article)">
+        <div class="topic-row-thumb" [style.background-image]="'url(' + illustrationFor(category.id) + ')'"></div>
+        <span class="topic-row-title">{{ article.title }}</span>
+        <ion-icon name="chevron-forward" class="topic-row-arrow"></ion-icon>
       </div>
     </div>
 

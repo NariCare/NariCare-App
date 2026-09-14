@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, combineLatest } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { KnowledgeBaseService } from '../../../services/knowledge-base.service';
 import { Article, ArticleCategory } from '../../../models/knowledge-base.model';
+import { illustrationForCategory } from '../knowledge-illustrations';
 
 @Component({
   selector: 'app-category-detail',
@@ -51,23 +52,7 @@ export class CategoryDetailPage implements OnInit {
     this.router.navigate(['/tabs/knowledge/article', article.id]);
   }
 
-  formatReadTime(minutes: number): string {
-    return `${minutes} min read`;
-  }
-
-  private readonly cardThemes = [
-    { className: 'theme-pink', illustration: 'assets/images/new-mom-journey-hero.webp' },
-    { className: 'theme-yellow', illustration: 'assets/images/tracker-hero.webp' },
-    { className: 'theme-lavender', illustration: 'assets/images/profile-hero.webp' },
-    { className: 'theme-mint', illustration: 'assets/images/tracker-empty-baby.webp' }
-  ];
-
-  getCardTheme(articleId: string): { className: string, illustration: string } {
-    let hash = 0;
-    for (let i = 0; i < articleId.length; i++) {
-      hash = ((hash << 5) - hash) + articleId.charCodeAt(i);
-      hash = hash & hash;
-    }
-    return this.cardThemes[Math.abs(hash) % this.cardThemes.length];
+  illustrationFor(categoryId: string): string {
+    return illustrationForCategory(categoryId);
   }
 }

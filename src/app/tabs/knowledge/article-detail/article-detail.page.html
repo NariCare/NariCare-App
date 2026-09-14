@@ -1,11 +1,10 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
+<ion-header [translucent]="true" class="article-header-transparent">
+  <ion-toolbar class="transparent-toolbar">
     <ion-buttons slot="start">
       <ion-button (click)="goBack()" class="header-button">
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Article</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="toggleReading()" class="header-button" [class.button-active]="isReading">
         <ion-icon [name]="isReading ? 'stop' : 'volume-high'" slot="icon-only"></ion-icon>
@@ -21,38 +20,49 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div class="article-container" *ngIf="processedArticle$ | async as article">
-    
+  <div *ngIf="processedArticle$ | async as article">
+
+    <!-- Article Hero -->
+    <div class="article-hero" [style.background-image]="'url(' + illustrationFor(article) + ')'">
+      <div class="article-hero-scrim"></div>
+      <h1>{{ article.title }}</h1>
+    </div>
+
+  <div class="article-container">
+
     <!-- Reading Controls -->
     <div class="reading-controls" *ngIf="isReading">
       <div class="reading-indicator">
+        <ion-icon name="volume-high" class="reading-play-icon"></ion-icon>
+        <span>Listening to this article</span>
+      </div>
+      <div class="reading-progress-track">
         <div class="pulse-dot"></div>
-        <span>Reading article...</span>
       </div>
       <div class="speed-controls">
-        <ion-button 
-          fill="clear" 
+        <ion-button
+          fill="clear"
           size="small"
           [class.active]="readingSpeed === 0.5"
           (click)="adjustReadingSpeed(0.5)">
           0.5x
         </ion-button>
-        <ion-button 
-          fill="clear" 
+        <ion-button
+          fill="clear"
           size="small"
           [class.active]="readingSpeed === 1"
           (click)="adjustReadingSpeed(1)">
           1x
         </ion-button>
-        <ion-button 
-          fill="clear" 
+        <ion-button
+          fill="clear"
           size="small"
           [class.active]="readingSpeed === 1.5"
           (click)="adjustReadingSpeed(1.5)">
           1.5x
         </ion-button>
-        <ion-button 
-          fill="clear" 
+        <ion-button
+          fill="clear"
           size="small"
           [class.active]="readingSpeed === 2"
           (click)="adjustReadingSpeed(2)">
@@ -60,6 +70,21 @@
         </ion-button>
       </div>
     </div>
+
+    <!-- Quick Take -->
+    <div class="quick-take" *ngIf="article.quickTake">
+      <div class="quick-take-header">
+        <span class="quick-take-label">
+          <ion-icon name="sparkles"></ion-icon>
+          Quick take
+        </span>
+        <ion-button fill="clear" size="small" class="quick-take-bookmark" [class.saved]="isBookmarked" (click)="toggleBookmark()">
+          <ion-icon [name]="isBookmarked ? 'heart' : 'heart-outline'" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+      <p>{{ article.quickTake }}</p>
+    </div>
+
     <!-- Article Header -->
     <div class="article-header">
       <div class="article-meta">
@@ -68,9 +93,7 @@
         </ion-chip>
         <span class="read-time">{{ formatReadTime(article.readTime) }}</span>
       </div>
-      
-      <h1 class="article-title">{{ article.title }}</h1>
-      
+
       <p class="article-summary">{{ article.summary }}</p>
       
       <div class="article-info">
@@ -124,6 +147,12 @@
             <h4>{{ section.title }}</h4>
           </div>
           <p>{{ section.content }}</p>
+        </div>
+
+        <!-- Quotes -->
+        <div *ngIf="section.type === 'quote'" class="content-quote" [class.has-author]="section.author">
+          <p>{{ section.content }}</p>
+          <span class="quote-author" *ngIf="section.author">{{ section.author }}</span>
         </div>
 
         <!-- Tables -->
@@ -183,5 +212,23 @@
       </div>
     </div>
 
+    <!-- You may also find helpful -->
+    <div class="related-articles" *ngIf="(relatedArticles$ | async)?.length">
+      <h3>You may also find helpful</h3>
+      <div class="related-articles-grid">
+        <div
+          *ngFor="let related of relatedArticles$ | async"
+          class="related-article-card"
+          (click)="onRelatedArticleSelect(related)">
+          <h4>{{ related.title }}</h4>
+          <span class="read-time">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ formatReadTime(related.readTime) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div>
   </div>
 </ion-content>

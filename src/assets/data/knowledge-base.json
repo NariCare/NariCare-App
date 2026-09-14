@@ -49,6 +49,7 @@
       "id": "what-to-expect-2-5-days",
       "title": "What to expect around 2-5 days after delivery?",
       "summary": "Understanding milk transition and managing engorgement in the first few days",
+      "quickTake": "Your milk usually starts to change around day 3 after delivery. You may feel fuller, warmer, and sometimes uncomfortable. Regular feeding, a good latch, and gentle care can help you manage engorgement.",
       "category": "postpartum-early-days",
       "tags": ["milk-coming-in", "engorgement", "early-days"],
       "author": "NariCare Team",
@@ -74,6 +75,15 @@
             "style": "warning",
             "title": "Important Reminder",
             "content": "Night-time feedings are very important to help build your milk supply, establish the breastfeeding relationship, and help your baby begin to gain properly."
+          },
+          {
+            "type": "quote",
+            "content": "This app is here to help you with your journey, whether it be 2 days or 2 years. You are not alone."
+          },
+          {
+            "type": "quote",
+            "content": "As a really busy mum, breastfeeding gave me a good chance to just stop and relax. It was so special to bond with my baby.",
+            "author": "Priya"
           }
         ]
       }
@@ -180,7 +190,7 @@
           },
           {
             "type": "text",
-            "content": "After feeding, your baby looks calm and satisfied. They usually let go of the breast on their own. You might notice their hands were clenched before the feed and now look relaxed and open—that's a great sign they're full."
+            "content": "After feeding, your baby looks calm and satisfied. They usually let go of the breast on their own. You might notice their hands were clenched before the feed and now look relaxed and open-that's a great sign they're full."
           },
           {
             "type": "heading",
@@ -198,7 +208,7 @@
           },
           {
             "type": "text",
-            "content": "During feeds, there will be moments when you hear gulping sounds, this means your milk is letting down and your baby is getting larger mouthfuls. Sucking slows down to about one suck per second as milk fills the mouth before swallowing. Watch their throat—you'll see a gentle rise and fall with each swallow."
+            "content": "During feeds, there will be moments when you hear gulping sounds, this means your milk is letting down and your baby is getting larger mouthfuls. Sucking slows down to about one suck per second as milk fills the mouth before swallowing. Watch their throat-you'll see a gentle rise and fall with each swallow."
           },
           {
             "type": "heading",
@@ -802,7 +812,7 @@
               "💧 Urine is dark in color after day 3 (it should be pale yellow or clear)",
               "💩 Poop is still dark after day 4 (it should be mustard yellow by then, with no black meconium)",
               "🔄 Baby is feeding less often than 8 times in 24 hours or is having fewer wet/soiled diapers than expected",
-              "🤒 Mom has symptoms of infection like a sore, red breast along with fever, chills, or body aches — this could be mastitis"
+              "🤒 Mom has symptoms of infection like a sore, red breast along with fever, chills, or body aches - this could be mastitis"
             ]
           },
           {
@@ -844,7 +854,7 @@
           },
           {
             "type": "text",
-            "content": "If supplementation is medically necessary, ask that it be given through a spoon, paladai, or oral syringe—not a bottle. This helps protect your baby's latch and breastfeeding journey."
+            "content": "If supplementation is medically necessary, ask that it be given through a spoon, paladai, or oral syringe-not a bottle. This helps protect your baby's latch and breastfeeding journey."
           },
           {
             "type": "heading",
