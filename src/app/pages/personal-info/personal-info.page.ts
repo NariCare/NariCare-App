@@ -199,6 +199,17 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     // Reset the form's dirty state after populating with saved data
     this.personalInfoForm.markAsPristine();
     this.personalInfoForm.markAsUntouched();
+
+    // Motherhood journey (mother type + due date) is a one-time choice at
+    // registration; lock it once set so tracking data stays consistent.
+    if (user.motherType) {
+      this.personalInfoForm.get('motherType')?.disable();
+      this.personalInfoForm.get('dueDate')?.disable();
+    }
+  }
+
+  get isMotherhoodJourneyLocked(): boolean {
+    return !!this.user?.motherType;
   }
   
   async onSubmit() {

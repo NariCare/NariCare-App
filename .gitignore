@@ -60,3 +60,6 @@ android/
 # /src/environments/environment.ts
 # /src/environments/environment.prod.ts
 .env
+
+.claude/*
+.opencode/*

@@ -184,7 +184,12 @@
           <ion-icon name="heart-outline"></ion-icon>
           Motherhood Journey
         </h3>
-        
+
+        <p class="section-note" *ngIf="isMotherhoodJourneyLocked">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+          This was set when you joined and can't be changed. Contact support if it's wrong.
+        </p>
+
         <div class="form-group">
           <label class="form-label">Mother Type</label>
           <ion-item lines="none" class="select-item">
@@ -196,7 +201,7 @@
             </ion-select>
           </ion-item>
         </div>
-        
+
         <div class="form-group" *ngIf="personalInfoForm.get('motherType')?.value === 'pregnant'">
           <label class="form-label">Due Date</label>
           <ion-item lines="none" class="input-item">
