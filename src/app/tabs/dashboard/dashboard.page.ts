@@ -19,6 +19,7 @@ import { SpecificWeekModalComponent } from '../../components/specific-week-modal
 import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
 import { AvailabilitySchedulerModalComponent } from '../../components/availability-scheduler-modal/availability-scheduler-modal.component';
 import { ConsultationReportModalComponent } from '../../components/consultation-report-modal/consultation-report-modal.component';
+import { illustrationForCategory } from '../knowledge/knowledge-illustrations';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,6 +37,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   nonUpcomingConsultations: Consultation[] = [];
   experts: Expert[] = [];
   showOnboardingAction = false;
+  encouragementQuote = '';
   
   // Insights data
   todaysInsights: TodaysInsights | null = null;
@@ -113,7 +115,32 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private alertController: AlertController
   ) {}
 
+  private readonly encouragementQuotes = [
+    'Small steps today, big changes tomorrow',
+    'You are doing better than you think',
+    'Every feed, every cuddle, it all adds up',
+    'Trust yourself, you know your baby best',
+    'Progress, not perfection',
+    'You are exactly the mother your baby needs',
+    'Motherhood is hard, and you are handling it beautifully',
+    'One day at a time is enough',
+    'Your love is the only expert your baby needs',
+    'Rest is productive too',
+    'You are stronger than you know',
+    'This season is hard, but it will not last forever',
+    'You showed up today, and that is everything',
+    'Being a mother is the bravest thing you will ever do',
+    'You are enough, just as you are',
+    'Every mother finds her own way, and yours is enough',
+    'Your baby does not need a perfect mother, just you',
+    'Take it one feed, one nap, one day at a time',
+    'You are raising a whole human, be proud of that',
+    'It is okay to ask for help, that is strength too'
+  ];
+
   ngOnInit() {
+    this.encouragementQuote = this.encouragementQuotes[Math.floor(Math.random() * this.encouragementQuotes.length)];
+
     // Subscribe to user changes and store subscription for cleanup
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.user = user;
@@ -391,6 +418,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         this.todaysInsights = null;
       }
     });
+  }
+
+  navigateToKnowledge() {
+    this.router.navigate(['/tabs/knowledge']);
   }
 
   handleQuickAction(action: string) {
@@ -1043,6 +1074,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         description: `Continue reading • ${article.readTime} min read`,
         icon: 'bookmark',
         article: article,
+        categoryId: article.category.id,
         categoryColor: article.category.color
       };
     }
@@ -1055,6 +1087,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         description: `New article • ${article.readTime} min read • ${article.category.name}`,
         icon: 'library',
         article: article,
+        categoryId: article.category.id,
         categoryColor: article.category.color
       };
     }
@@ -1065,6 +1098,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       title: 'Breastfeeding Basics',
       description: 'Start your learning journey with essential topics',
       icon: 'school',
+      categoryId: 'breastfeeding-techniques',
       categoryColor: '#8383ed'
     };
   }
@@ -1109,25 +1143,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return 'Start your learning journey';
   }
 
-  private readonly learningCardThemes = [
-    { className: 'theme-pink', illustration: 'assets/images/new-mom-journey-hero.webp' },
-    { className: 'theme-yellow', illustration: 'assets/images/tracker-hero.webp' },
-    { className: 'theme-lavender', illustration: 'assets/images/profile-hero.webp' },
-    { className: 'theme-mint', illustration: 'assets/images/tracker-empty-baby.webp' }
-  ];
-
-  getLearningCardTheme(): { className: string, illustration: string } {
+  getLearningCardIllustration(): string {
     const activity = this.getCurrentLearningActivity();
-    const key = activity.article?.id;
-    if (!key) {
-      return this.learningCardThemes[2]; // lavender fallback for the general/no-article state
-    }
-    let hash = 0;
-    for (let i = 0; i < key.length; i++) {
-      hash = ((hash << 5) - hash) + key.charCodeAt(i);
-      hash = hash & hash;
-    }
-    return this.learningCardThemes[Math.abs(hash) % this.learningCardThemes.length];
+    return illustrationForCategory(activity.categoryId);
   }
 
   /**
