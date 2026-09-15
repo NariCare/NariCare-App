@@ -2,6 +2,8 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } fr
 import { Router } from '@angular/router';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable, Subscription } from 'rxjs';
+import { App } from '@capacitor/app';
+import { PluginListenerHandle } from '@capacitor/core';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { ChatbotService } from '../../services/chatbot.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
@@ -9,6 +11,8 @@ import { ConsultationService } from '../../services/consultation.service';
 import { OnboardingService } from '../../services/onboarding.service';
 import { InsightsService, TodaysInsights } from '../../services/insights.service';
 import { BackendKnowledgeService } from '../../services/backend-knowledge.service';
+import { QuoteService, Quote } from '../../services/quote.service';
+import { SelfCareService, SelfCareTip, TimeBlock } from '../../services/self-care.service';
 import { Article } from '../../models/knowledge-base.model';
 import { BabyTimelineItem, BabyTimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
@@ -37,8 +41,12 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   nonUpcomingConsultations: Consultation[] = [];
   experts: Expert[] = [];
   showOnboardingAction = false;
-  encouragementQuote = '';
-  
+  quoteOfDay: Quote | null = null;
+  currentTip: SelfCareTip | null = null;
+  private selfCareTips: SelfCareTip[] = [];
+  private currentBlock: TimeBlock | null = null;
+  private resumeListener: PluginListenerHandle | null = null;
+
   // Insights data
   todaysInsights: TodaysInsights | null = null;
   
@@ -112,34 +120,24 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private insightsService: InsightsService,
     private knowledgeService: BackendKnowledgeService,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private quoteService: QuoteService,
+    private selfCareService: SelfCareService
   ) {}
 
-  private readonly encouragementQuotes = [
-    'Small steps today, big changes tomorrow',
-    'You are doing better than you think',
-    'Every feed, every cuddle, it all adds up',
-    'Trust yourself, you know your baby best',
-    'Progress, not perfection',
-    'You are exactly the mother your baby needs',
-    'Motherhood is hard, and you are handling it beautifully',
-    'One day at a time is enough',
-    'Your love is the only expert your baby needs',
-    'Rest is productive too',
-    'You are stronger than you know',
-    'This season is hard, but it will not last forever',
-    'You showed up today, and that is everything',
-    'Being a mother is the bravest thing you will ever do',
-    'You are enough, just as you are',
-    'Every mother finds her own way, and yours is enough',
-    'Your baby does not need a perfect mother, just you',
-    'Take it one feed, one nap, one day at a time',
-    'You are raising a whole human, be proud of that',
-    'It is okay to ask for help, that is strength too'
-  ];
-
   ngOnInit() {
-    this.encouragementQuote = this.encouragementQuotes[Math.floor(Math.random() * this.encouragementQuotes.length)];
+    this.quoteService.getQuoteOfTheDay().subscribe(quote => {
+      this.quoteOfDay = quote;
+    });
+
+    this.selfCareService.getTipsData().subscribe(tips => {
+      this.selfCareTips = tips;
+      this.refreshTip();
+    });
+
+    this.resumeListener = App.addListener('resume', () => {
+      this.refreshTip();
+    });
 
     // Subscribe to user changes and store subscription for cleanup
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
@@ -172,6 +170,50 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     if (this.scrollTimeout) {
       clearTimeout(this.scrollTimeout);
     }
+    if (this.resumeListener) {
+      this.resumeListener.remove();
+    }
+  }
+
+  // Re-picks the self-care tip for whatever time block we're in now.
+  // Called on init, on app resume, and whenever the block changes (per spec).
+  private refreshTip(): void {
+    const block = this.getTimeOfDay();
+    this.currentBlock = block;
+    this.currentTip = this.selfCareService.pickTip(this.selfCareTips, block);
+  }
+
+  getTimeOfDay(): TimeBlock {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Morning';
+    if (hour >= 12 && hour < 17) return 'Afternoon';
+    if (hour >= 17 && hour < 21) return 'Evening';
+    if (hour >= 21) return 'Night';
+    return 'Midnight'; // 0-4
+  }
+
+  getGreeting(): string {
+    switch (this.getTimeOfDay()) {
+      case 'Morning': return 'Good morning';
+      case 'Afternoon': return 'Good afternoon';
+      case 'Evening': return 'Good evening';
+      case 'Night': return 'Good night';
+      case 'Midnight': return 'Midnight check-in';
+    }
+  }
+
+  getGreetingEmoji(): string {
+    switch (this.getTimeOfDay()) {
+      case 'Morning': return '☀️';
+      case 'Afternoon': return '🌤️';
+      case 'Evening': return '🌙';
+      case 'Night': return '🌛';
+      case 'Midnight': return '🌌';
+    }
+  }
+
+  getQuoteAttribution(): string {
+    return this.quoteService.getAttribution(this.quoteOfDay);
   }
 
   onContentScroll(event: any) {
@@ -476,18 +518,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birthDate.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
-  }
-
-  getTimeOfDay(): string {
-    const hour = new Date().getHours();
-    
-    if (hour >= 6 && hour < 12) {
-      return 'morning';
-    } else if (hour >= 12 && hour < 18) {
-      return 'afternoon';
-    } else {
-      return 'evening';
-    }
   }
 
   getFirstName(): string {

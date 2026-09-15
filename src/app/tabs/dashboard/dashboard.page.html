@@ -44,33 +44,11 @@
     <div class="greeting-banner" [style.background-image]="'url(' + (isPregnantJourney() ? 'assets/images/pregnant-journey-hero.webp' : 'assets/images/new-mom-journey-hero.webp') + ')'">
       <div class="greeting-scrim"></div>
       <div class="greeting-copy">
-        <!-- Morning Messages (6 AM - 12 PM) -->
-        <ng-container *ngIf="getTimeOfDay() === 'morning'">
-          <h1 class="greeting">
-            <span>Good morning, {{ getFirstName() }}!</span>
-            <ion-icon name="sunny" class="time-icon"></ion-icon>
-          </h1>
-          <p class="greeting-subtitle">You're doing an amazing job. A healthier, brighter tomorrow for you and your little one.</p>
-        </ng-container>
-
-        <!-- Afternoon Messages (12 PM - 6 PM) -->
-        <ng-container *ngIf="getTimeOfDay() === 'afternoon'">
-          <h1 class="greeting">
-            <span>Good afternoon, {{ getFirstName() }}!</span>
-            <ion-icon name="partly-sunny" class="time-icon"></ion-icon>
-          </h1>
-          <p class="greeting-subtitle">Keep nurturing. Every feed, every cuddle, it all adds up.</p>
-        </ng-container>
-
-        <!-- Evening Messages (6 PM - 6 AM) -->
-        <ng-container *ngIf="getTimeOfDay() === 'evening'">
-          <h1 class="greeting">
-            <span>Good night, {{ getFirstName() }}!</span>
-            <ion-icon name="moon" class="time-icon"></ion-icon>
-          </h1>
-          <p class="greeting-subtitle">Rest well today. A healthier, happier you means a brighter tomorrow for your little one.</p>
-        </ng-container>
-        <span class="greeting-tagline">Small steps, big changes</span>
+        <h1 class="greeting">
+          <span>{{ getGreeting() }}, {{ getFirstName() }}! {{ getGreetingEmoji() }}</span>
+        </h1>
+        <p class="greeting-subtitle" *ngIf="currentTip">{{ currentTip.text }}</p>
+        <span class="greeting-tagline" *ngIf="currentTip">{{ currentTip.title }}</span>
       </div>
     </div>
 
@@ -520,10 +498,11 @@
       </div>
     </div>
 
-    <!-- Encouragement Quote -->
-    <div class="quote-card">
+    <!-- Quote of the Day -->
+    <div class="quote-card" *ngIf="quoteOfDay">
       <ion-icon name="leaf" class="quote-leaf" aria-hidden="true"></ion-icon>
-      <p class="quote-text">{{ encouragementQuote }} <ion-icon name="heart" class="quote-heart" aria-hidden="true"></ion-icon></p>
+      <p class="quote-text">"{{ quoteOfDay.text }}" <ion-icon name="heart" class="quote-heart" aria-hidden="true"></ion-icon></p>
+      <p class="quote-author">{{ getQuoteAttribution() }}</p>
     </div>
 
   </div>
