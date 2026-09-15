@@ -28,6 +28,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
   
   conditionalRequirements: { [key: string]: boolean } = {};
   options = OnboardingOptions;
+  showIntro = true;
   
   // Multiple babies support
   babies: FormGroup[] = [];
@@ -80,6 +81,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Purge any legacy localStorage draft from before persistence was removed
+    this.clearLocalStorageData();
+
     // Subscribe to current user to prefill form
     this.subscriptions.push(
       this.authService.currentUser$.subscribe(user => {
@@ -358,46 +362,13 @@ export class OnboardingPage implements OnInit, OnDestroy {
   // LOCAL STORAGE MANAGEMENT
   // ============================================================================
 
+  // ponytail: onboarding form no longer persists to localStorage across refresh;
+  // only the backend-saved answers (via onboardingService.onboardingData$) restore.
   private saveFormDataToLocalStorage(): void {
-    try {
-      const formData = {
-        formValues: this.onboardingForm.value,
-        progress: this.progress,
-        timestamp: new Date().toISOString()
-      };
-      console.log('Saving form data to localStorage:', formData.formValues);
-      if (formData.formValues.babies) {
-        console.log('Saving babies data:', formData.formValues.babies);
-      }
-      const storageKey = this.getUserSpecificStorageKey();
-      localStorage.setItem(storageKey, JSON.stringify(formData));
-    } catch (error) {
-      console.warn('Failed to save form data to local storage:', error);
-    }
+    // no-op
   }
 
   private loadFormDataFromLocalStorage(): any {
-    try {
-      const storageKey = this.getUserSpecificStorageKey();
-      const savedData = localStorage.getItem(storageKey);
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        
-        // Check if data is not too old (e.g., older than 7 days)
-        const savedTimestamp = new Date(parsedData.timestamp);
-        const daysDiff = (new Date().getTime() - savedTimestamp.getTime()) / (1000 * 3600 * 24);
-        
-        if (daysDiff <= 7) {
-          return parsedData;
-        } else {
-          // Remove old data
-          this.clearLocalStorageData();
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load form data from local storage:', error);
-      this.clearLocalStorageData();
-    }
     return null;
   }
 
@@ -485,7 +456,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       currentChallenges: [[]],
       breastfeedingGoals: [[]],
       breastfeedingGoalsOther: [''],
-      expectationsFromProgram: ['', [Validators.required]]
+      expectationsFromProgram: ['']
     });
 
     // Initialize with one baby by default
@@ -909,14 +880,13 @@ export class OnboardingPage implements OnInit, OnDestroy {
       case 5: // Current Challenges & Expectations
         const isPregnant = formValue.motherType === 'pregnant';
         const isNewMom = formValue.motherType === 'new_mom';
-        const hasExpectations = formValue.expectationsFromProgram?.trim();
-        
+
         if (isPregnant) {
-          // For expecting mothers: require breastfeeding goals + expectations
-          return !!(formValue.breastfeedingGoals?.length && hasExpectations);
+          // For expecting mothers: require breastfeeding goals (expectations optional)
+          return !!formValue.breastfeedingGoals?.length;
         } else if (isNewMom) {
-          // For new mothers: require current challenges + expectations
-          return !!(formValue.currentChallenges?.length && hasExpectations);
+          // For new mothers: require current challenges (expectations optional)
+          return !!formValue.currentChallenges?.length;
         }
         return false;
       
@@ -1696,7 +1666,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
     }
   }
 
-  goBack(): void {
+  exitToDashboard(): void {
     this.router.navigate(['/tabs/dashboard']);
   }
 

@@ -1,123 +1,125 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Chat & Support</ion-title>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" class="chat-page-content">
   <div class="chat-container">
-    
-    <!-- Tab Selector -->
-    <div class="tab-selector">
-      <ion-segment [(ngModel)]="selectedTab" (ionChange)="onTabChange($event)">
-        <ion-segment-button value="ai">
-          <ion-label>AI Assistant</ion-label>
-        </ion-segment-button>
-        <ion-segment-button value="groups">
-          <ion-label>Support Groups</ion-label>
-        </ion-segment-button>
-      </ion-segment>
-    </div>
 
-    <!-- Group Chat Tab -->
-    <div class="tab-content" *ngIf="selectedTab === 'groups'">
-      
-      <!-- Groups List -->
-      <div class="groups-list-container">
-        <div class="groups-header">
-          <h2>Mothers Support Groups</h2>
-          <p>Connect with other mothers in topic-based chat rooms</p>
-          
-          <!-- Create Group Button (Expert/Admin only) -->
-          <div class="create-group-section" *ngIf="canCreateGroups()">
-            <ion-button 
-              expand="block" 
-              fill="outline" 
-              color="primary"
-              (click)="openCreateGroupModal()"
-              class="create-group-button">
-              <ion-icon name="add-circle" slot="start"></ion-icon>
-              Create New Group
-            </ion-button>
-          </div>
+    <!-- Hero Header -->
+    <div class="chat-hero">
+      <div class="chat-hero-text">
+        <h1>Chat & Support</h1>
+        <p>You're not alone. Ask, learn, and feel supported.</p>
+      </div>
+      <div class="chat-hero-decoration" aria-hidden="true">
+        <div class="deco-bubble deco-bubble-purple">
+          <ion-icon name="chatbubbles"></ion-icon>
         </div>
-
-        <!-- General Groups Section -->
-        <div class="groups-section groups-section-wrapper">
-          <!-- Coming Soon Overlay -->
-          <div class="coming-soon-overlay">
-            <div class="coming-soon-content">
-              <ion-icon name="time-outline"></ion-icon>
-              <h3>Coming Soon</h3>
-              <p>Support groups feature is under development. Stay tuned!</p>
-            </div>
-          </div>
-
-          <h3 class="subsection-title">🌟 Join a Support Group</h3>
-          <p class="subsection-description">Connect with up to 20 mothers and expert moderators</p>
-
-          <div class="chat-rooms-list">
-            <div
-              *ngFor="let room of chatRooms$ | async"
-              class="room-card"
-              [class.room-full]="room.participants.length >= room.maxParticipants"
-              (click)="joinRoom(room)">
-              <div class="room-icon">
-                <ion-icon [name]="getRoomIcon(room.topic)"></ion-icon>
-              </div>
-              <div class="room-content">
-                <div class="room-header">
-                  <h3>{{ room.name }}</h3>
-                  <div class="room-stats">
-                    <span class="participant-count">{{ room.participants.length }}/{{ room.maxParticipants }}</span>
-                    <ion-chip color="success" size="small" *ngIf="room.moderators.length > 0">
-                      <ion-icon name="shield-checkmark" slot="start"></ion-icon>
-                      Expert Moderated
-                    </ion-chip>
-                  </div>
-                </div>
-                <p class="room-description">{{ room.description }}</p>
-                <div class="room-footer">
-                  <div class="room-topics">
-                    <ion-chip color="light" size="small">{{ room.topic | titlecase }}</ion-chip>
-                  </div>
-                  <span class="join-status" *ngIf="room.participants.length >= room.maxParticipants">
-                    Group Full
-                  </span>
-                </div>
-              </div>
-              <div class="room-action">
-                <ion-button
-                  fill="outline"
-                  size="small"
-                  [disabled]="room.participants.length >= room.maxParticipants"
-                  class="join-room-button">
-                  <ion-icon [name]="room.participants.length >= room.maxParticipants ? 'lock-closed' : 'enter'" slot="start"></ion-icon>
-                  {{ room.participants.length >= room.maxParticipants ? 'Full' : 'Join' }}
-                </ion-button>
-              </div>
-            </div>
-          </div>
+        <div class="deco-bubble deco-bubble-pink">
+          <ion-icon name="heart"></ion-icon>
         </div>
-
-        <!-- Popular Topics - Hidden for now -->
-        <!-- <div class="popular-topics">
-          <h3 class="subsection-title">💬 Popular Discussion Topics</h3>
-          <div class="topics-grid">
-            <div class="topic-card" *ngFor="let topic of ['Newborn Care', 'Pumping Tips', 'Sleep Training', 'Nutrition', 'Working Moms', 'Twins & Multiples']">
-              <ion-icon [name]="getTopicIcon(topic)"></ion-icon>
-              <span>{{ topic }}</span>
-            </div>
-          </div>
-        </div> -->
       </div>
     </div>
 
-    <!-- AI Assistant Tab -->
-    <div class="tab-content ai-chat" *ngIf="selectedTab === 'ai'">
-      <app-ai-chat></app-ai-chat>
-    </div>
+    <div class="content-container">
 
+      <!-- Tab Selector -->
+      <div class="main-tab-selector">
+        <ion-segment [(ngModel)]="selectedTab" (ionChange)="onTabChange($event)" class="main-tabs-segment">
+          <ion-segment-button value="ai">
+            <ion-label>AI Assistant</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="groups">
+            <ion-label>Support Groups</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <!-- Group Chat Tab -->
+      <div class="tab-content" *ngIf="selectedTab === 'groups'">
+
+        <!-- Groups List -->
+        <div class="groups-list-container">
+          <div class="groups-header">
+            <h2>Mothers Support Groups</h2>
+            <p>Connect with other mothers in topic-based chat rooms</p>
+
+            <!-- Create Group Button (Expert/Admin only) -->
+            <div class="create-group-section" *ngIf="canCreateGroups()">
+              <ion-button
+                expand="block"
+                fill="outline"
+                color="primary"
+                (click)="openCreateGroupModal()"
+                class="create-group-button">
+                <ion-icon name="add-circle" slot="start"></ion-icon>
+                Create New Group
+              </ion-button>
+            </div>
+          </div>
+
+          <!-- General Groups Section -->
+          <div class="groups-section groups-section-wrapper">
+            <!-- Coming Soon Overlay -->
+            <div class="coming-soon-overlay">
+              <div class="coming-soon-content">
+                <ion-icon name="time-outline"></ion-icon>
+                <h3>Coming Soon</h3>
+                <p>Support groups feature is under development. Stay tuned!</p>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">Join a Support Group</h3>
+            <p class="subsection-description">Connect with up to 20 mothers and expert moderators</p>
+
+            <div class="chat-rooms-list">
+              <div
+                *ngFor="let room of chatRooms$ | async"
+                class="room-card"
+                [class.room-full]="room.participants.length >= room.maxParticipants"
+                (click)="joinRoom(room)">
+                <div class="room-icon">
+                  <ion-icon [name]="getRoomIcon(room.topic)"></ion-icon>
+                </div>
+                <div class="room-content">
+                  <div class="room-header">
+                    <h3>{{ room.name }}</h3>
+                    <div class="room-stats">
+                      <span class="participant-count">{{ room.participants.length }}/{{ room.maxParticipants }}</span>
+                      <ion-chip color="success" size="small" *ngIf="room.moderators.length > 0">
+                        <ion-icon name="shield-checkmark" slot="start"></ion-icon>
+                        Expert Moderated
+                      </ion-chip>
+                    </div>
+                  </div>
+                  <p class="room-description">{{ room.description }}</p>
+                  <div class="room-footer">
+                    <div class="room-topics">
+                      <ion-chip color="light" size="small">{{ room.topic | titlecase }}</ion-chip>
+                    </div>
+                    <span class="join-status" *ngIf="room.participants.length >= room.maxParticipants">
+                      Group Full
+                    </span>
+                  </div>
+                </div>
+                <div class="room-action">
+                  <ion-button
+                    fill="outline"
+                    size="small"
+                    [disabled]="room.participants.length >= room.maxParticipants"
+                    class="join-room-button">
+                    <ion-icon [name]="room.participants.length >= room.maxParticipants ? 'lock-closed' : 'enter'" slot="start"></ion-icon>
+                    {{ room.participants.length >= room.maxParticipants ? 'Full' : 'Join' }}
+                  </ion-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Assistant Tab -->
+      <div class="tab-content ai-chat" *ngIf="selectedTab === 'ai'">
+        <app-ai-chat></app-ai-chat>
+      </div>
+
+    </div>
   </div>
 
 </ion-content>

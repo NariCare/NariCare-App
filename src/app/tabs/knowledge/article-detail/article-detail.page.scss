@@ -1,29 +1,62 @@
+.transparent-toolbar {
+  --background: transparent;
+  --border-width: 0;
+}
+
+.article-hero {
+  position: relative;
+  height: 240px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+
+  .article-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(45, 55, 72, 0.4) 0%, rgba(45, 55, 72, 0.15) 35%, rgba(45, 55, 72, 0.9) 100%);
+  }
+
+  h1 {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    padding: 1.25rem;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.35;
+  }
+}
+
 /* Header button specific styling */
 ion-header ion-toolbar {
   .header-button {
-    --padding-start: 8px;
-    --padding-end: 8px;
+    --padding-start: 0;
+    --padding-end: 0;
+    --background: rgba(45, 55, 72, 0.45) !important;
+    --border-radius: 50%;
     --color: #ffffff !important;
+    width: 36px;
+    height: 36px;
     margin: 0 4px;
     transition: all 0.2s ease;
-    
+
     ion-icon {
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       color: #ffffff !important;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
     }
-    
+
     &:hover {
-      --background: rgba(255, 255, 255, 0.2) !important;
+      --background: rgba(45, 55, 72, 0.6) !important;
       transform: scale(1.05);
     }
-    
+
     &.button-active {
-      --background: rgba(255, 255, 255, 0.25) !important;
-      
+      --background: rgba(45, 55, 72, 0.65) !important;
+
       ion-icon {
         color: #ffffff !important;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
       }
     }
   }
@@ -36,29 +69,42 @@ ion-header ion-toolbar {
 }
 
 .reading-controls {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-  border-radius: 12px;
+  background: #f4f2fe;
+  border-radius: 16px;
   padding: 1rem;
   margin-bottom: 1.5rem;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid #2196f3;
+  flex-direction: column;
+  gap: 0.75rem;
+  border: 1px solid #e2ddf5;
 }
 
 .reading-indicator {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #1976d2;
-  font-weight: 500;
+  color: #8383ed;
+  font-weight: 600;
+  font-size: 0.85rem;
+
+  .reading-play-icon {
+    font-size: 1.1rem;
+  }
+}
+
+.reading-progress-track {
+  height: 4px;
+  border-radius: 999px;
+  background: #e2ddf5;
+  position: relative;
+  overflow: hidden;
 }
 
 .pulse-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #2196f3;
+  width: 40%;
+  height: 100%;
+  border-radius: 999px;
+  background: #8383ed;
   animation: pulse 1.5s infinite;
 }
 
@@ -80,17 +126,110 @@ ion-header ion-toolbar {
 .speed-controls {
   display: flex;
   gap: 0.25rem;
+  align-self: flex-end;
 
   ion-button {
-    --color: #1976d2;
-    --border-radius: 6px;
-    height: 32px;
-    font-size: 0.8rem;
-    min-width: 40px;
+    --color: #8383ed;
+    --border-radius: 999px;
+    height: 28px;
+    font-size: 0.75rem;
+    min-width: 36px;
 
     &.active {
-      --background: #2196f3;
+      --background: #8383ed;
       --color: #ffffff;
+    }
+  }
+}
+
+.quick-take {
+  background: #fdedf4;
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+
+  .quick-take-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .quick-take-label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #b23366;
+
+    ion-icon {
+      font-size: 1rem;
+    }
+  }
+
+  .quick-take-bookmark {
+    --color: #b23366;
+    margin: 0;
+
+    &.saved ion-icon {
+      color: #b23366;
+    }
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #4a4458;
+  }
+}
+
+.related-articles {
+  margin-top: 1.5rem;
+
+  h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2d3748;
+  }
+}
+
+.related-articles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.related-article-card {
+  background: #f7f5fd;
+  border: 1px solid #e2ddf5;
+  border-radius: 14px;
+  padding: 0.85rem;
+  cursor: pointer;
+
+  h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #2d3748;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .read-time {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.7rem;
+    color: #7a73a9;
+
+    ion-icon {
+      font-size: 0.85rem;
     }
   }
 }
@@ -110,14 +249,6 @@ ion-header ion-toolbar {
     font-size: 0.85rem;
     color: #94a3b8;
   }
-}
-
-.article-title {
-  margin: 0 0 1rem 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #2d3748;
-  line-height: 1.3;
 }
 
 .article-summary {
@@ -199,23 +330,20 @@ ion-header ion-toolbar {
 
 .content-callout {
   background: #f8fafc;
-  border-left: 4px solid #e2e8f0;
-  border-radius: 0 8px 8px 0;
-  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
   margin: 1.5rem 0;
 
   &.callout-info {
-    background: #eff6ff;
-    border-left-color: #3b82f6;
+    background: #f4f2fe;
 
     .callout-header ion-icon {
-      color: #3b82f6;
+      color: #8383ed;
     }
   }
 
   &.callout-warning {
     background: #fffbeb;
-    border-left-color: #f59e0b;
 
     .callout-header ion-icon {
       color: #f59e0b;
@@ -224,7 +352,6 @@ ion-header ion-toolbar {
 
   &.callout-success {
     background: #f0fdf4;
-    border-left-color: #10b981;
 
     .callout-header ion-icon {
       color: #10b981;
@@ -233,7 +360,6 @@ ion-header ion-toolbar {
 
   &.callout-danger {
     background: #fef2f2;
-    border-left-color: #ef4444;
 
     .callout-header ion-icon {
       color: #ef4444;
@@ -262,6 +388,41 @@ ion-header ion-toolbar {
     margin: 0;
     color: #374151;
     line-height: 1.6;
+  }
+}
+
+.content-quote {
+  background: #f4f2fe;
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #4a4458;
+    line-height: 1.5;
+  }
+
+  &.has-author {
+    text-align: left;
+
+    p {
+      font-size: 0.95rem;
+      font-weight: 400;
+      font-style: italic;
+    }
+
+    .quote-author {
+      display: block;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #8383ed;
+      text-align: right;
+    }
   }
 }
 
@@ -383,10 +544,6 @@ ion-header ion-toolbar {
 @media (max-width: 768px) {
   .article-container {
     padding: 0.75rem;
-  }
-
-  .article-title {
-    font-size: 1.5rem;
   }
 
   .article-info {

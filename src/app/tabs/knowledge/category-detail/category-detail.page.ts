@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, combineLatest } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { KnowledgeBaseService } from '../../../services/knowledge-base.service';
 import { Article, ArticleCategory } from '../../../models/knowledge-base.model';
+import { illustrationForCategory } from '../knowledge-illustrations';
 
 @Component({
   selector: 'app-category-detail',
@@ -51,16 +52,7 @@ export class CategoryDetailPage implements OnInit {
     this.router.navigate(['/tabs/knowledge/article', article.id]);
   }
 
-  getDifficultyColor(difficulty: string): string {
-    switch (difficulty) {
-      case 'beginner': return 'success';
-      case 'intermediate': return 'warning';
-      case 'advanced': return 'danger';
-      default: return 'medium';
-    }
-  }
-
-  formatReadTime(minutes: number): string {
-    return `${minutes} min read`;
+  illustrationFor(categoryId: string): string {
+    return illustrationForCategory(categoryId);
   }
 }

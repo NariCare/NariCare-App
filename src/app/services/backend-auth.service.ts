@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap, catchError, tap } from 'rxjs/operators';
@@ -31,9 +31,17 @@ export class BackendAuthService {
     private router: Router,
     private storage: Storage,
     private afAuth: AngularFireAuth,
-    private platform: Platform
+    private platform: Platform,
+    private ngZone: NgZone
   ) {
     this.initializeAuth();
+  }
+
+  // Constructor-time async/await and Firebase callbacks can resolve outside
+  // Angular's zone, silently leaving *ngIf-gated UI stale until an unrelated
+  // click/scroll forces change detection. Route every update through the zone.
+  private setCurrentUser(user: User | null): void {
+    this.ngZone.run(() => this.currentUserSubject.next(user));
   }
 
   private async initializeAuth() {
@@ -45,7 +53,7 @@ export class BackendAuthService {
           const response = await this.apiService.getUserProfile().toPromise();
           if (response?.success && response.data) {
             const user = this.transformUserData(response.data);
-            this.currentUserSubject.next(user);
+            this.setCurrentUser(user);
             
             // Don't auto-navigate here, let app.component handle it
             console.log('User loaded on initialization:', user.email);
@@ -53,7 +61,7 @@ export class BackendAuthService {
         } catch (error) {
           console.warn('Failed to load user profile on init:', error);
           this.apiService.logout().subscribe();
-          this.currentUserSubject.next(null);
+          this.setCurrentUser(null);
         }
       }
     } finally {
@@ -111,7 +119,7 @@ export class BackendAuthService {
       if (response?.success && response.data) {
         // API returns user data directly in response.data, not response.data.user
         const user = this.transformUserData(response.data);
-        this.currentUserSubject.next(user);
+        this.setCurrentUser(user);
         
         // Navigate to dashboard (onboarding temporarily disabled)
         // Only redirect if not already on a valid tabs page
@@ -139,11 +147,23 @@ export class BackendAuthService {
           return;
         }
         
-        // Normal login success
-        const user = this.transformUserData(response.data.user);
-        this.currentUserSubject.next(user);
+        // Normal login success. The login endpoint's user payload is a stripped
+        // shape (id/email/name/role only) - it lacks motherType/dueDate/babies,
+        // which the dashboard's journey card needs on first render. Fetch the
+        // full profile before anything downstream reads currentUser$.
+        const loginUser = this.transformUserData(response.data.user);
+        this.setCurrentUser(loginUser);
         this.twoFactorRequiredSubject.next(false);
-        
+
+        try {
+          const profileResponse = await this.apiService.getUserProfile().toPromise();
+          if (profileResponse?.success && profileResponse.data) {
+            this.setCurrentUser(this.transformUserData(profileResponse.data));
+          }
+        } catch (profileError) {
+          console.warn('Failed to load full profile after login:', profileError);
+        }
+
         // Navigate to dashboard (onboarding temporarily disabled)
         // Only redirect if not already on a valid tabs page
         const currentUrl = this.router.url;
@@ -168,7 +188,7 @@ export class BackendAuthService {
         
         if (profileResponse?.success && profileResponse.data) {
           const user = this.transformUserData(profileResponse.data);
-          this.currentUserSubject.next(user);
+          this.setCurrentUser(user);
           this.twoFactorRequiredSubject.next(false);
           this.pendingEmail = '';
           
@@ -235,7 +255,7 @@ export class BackendAuthService {
     } finally {
       // Always clear local state
       await this.clearAllUserData();
-      this.currentUserSubject.next(null);
+      this.setCurrentUser(null);
       this.twoFactorRequiredSubject.next(false);
       this.pendingEmail = '';
       this.router.navigate(['/auth/login']);
@@ -272,7 +292,7 @@ export class BackendAuthService {
       if (response?.success) {
         if (response.data) {
           const updatedUser = this.transformUserData(response.data);
-          this.currentUserSubject.next(updatedUser);
+          this.setCurrentUser(updatedUser);
         }
         // Success with or without data - both are valid
       } else {
@@ -289,7 +309,7 @@ export class BackendAuthService {
       
       if (response?.success && response.data) {
         const user = this.transformUserData(response.data);
-        this.currentUserSubject.next(user);
+        this.setCurrentUser(user);
       } else {
         throw new Error(response?.message || 'Failed to refresh profile');
       }
@@ -307,7 +327,7 @@ export class BackendAuthService {
         const currentUser = this.getCurrentUser();
         if (currentUser) {
           currentUser.notificationPreferences = { ...currentUser.notificationPreferences, ...preferences };
-          this.currentUserSubject.next(currentUser);
+          this.setCurrentUser(currentUser);
         }
       } else {
         throw new Error(response?.message || 'Failed to update notification preferences');
@@ -535,7 +555,7 @@ export class BackendAuthService {
       
       if (response?.success && response.data) {
         const user = this.transformUserData(response.data.user);
-        this.currentUserSubject.next(user);
+        this.setCurrentUser(user);
         
         // Navigate to dashboard (onboarding temporarily disabled)
         // Only redirect if not already on a valid tabs page

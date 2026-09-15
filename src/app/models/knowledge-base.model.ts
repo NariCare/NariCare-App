@@ -6,7 +6,7 @@ export interface MediaContent {
 }
 
 export interface ArticleContentSection {
-  type: 'text' | 'list' | 'callout' | 'table' | 'media' | 'heading';
+  type: 'text' | 'list' | 'callout' | 'table' | 'media' | 'heading' | 'quote';
   content?: string | string[] | MediaContent | any;
   title?: string;
   variant?: string;
@@ -16,6 +16,7 @@ export interface ArticleContentSection {
   headers?: string;
   rows?: any;
   media?: any;
+  author?: string;
 }
 
 export interface ArticleContent {
@@ -27,6 +28,7 @@ export interface Article {
   title: string;
   content: ArticleContent;
   summary: string;
+  quickTake?: string;
   category: ArticleCategory;
   tags: string[];
   author: string;

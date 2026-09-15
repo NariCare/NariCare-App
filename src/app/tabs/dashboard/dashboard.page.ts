@@ -19,6 +19,7 @@ import { SpecificWeekModalComponent } from '../../components/specific-week-modal
 import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
 import { AvailabilitySchedulerModalComponent } from '../../components/availability-scheduler-modal/availability-scheduler-modal.component';
 import { ConsultationReportModalComponent } from '../../components/consultation-report-modal/consultation-report-modal.component';
+import { illustrationForCategory } from '../knowledge/knowledge-illustrations';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,6 +37,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   nonUpcomingConsultations: Consultation[] = [];
   experts: Expert[] = [];
   showOnboardingAction = false;
+  encouragementQuote = '';
   
   // Insights data
   todaysInsights: TodaysInsights | null = null;
@@ -113,7 +115,32 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private alertController: AlertController
   ) {}
 
+  private readonly encouragementQuotes = [
+    'Small steps today, big changes tomorrow',
+    'You are doing better than you think',
+    'Every feed, every cuddle, it all adds up',
+    'Trust yourself, you know your baby best',
+    'Progress, not perfection',
+    'You are exactly the mother your baby needs',
+    'Motherhood is hard, and you are handling it beautifully',
+    'One day at a time is enough',
+    'Your love is the only expert your baby needs',
+    'Rest is productive too',
+    'You are stronger than you know',
+    'This season is hard, but it will not last forever',
+    'You showed up today, and that is everything',
+    'Being a mother is the bravest thing you will ever do',
+    'You are enough, just as you are',
+    'Every mother finds her own way, and yours is enough',
+    'Your baby does not need a perfect mother, just you',
+    'Take it one feed, one nap, one day at a time',
+    'You are raising a whole human, be proud of that',
+    'It is okay to ask for help, that is strength too'
+  ];
+
   ngOnInit() {
+    this.encouragementQuote = this.encouragementQuotes[Math.floor(Math.random() * this.encouragementQuotes.length)];
+
     // Subscribe to user changes and store subscription for cleanup
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.user = user;
@@ -171,10 +198,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
     
     if (scrollTop > scrollThreshold + hysteresis && scrollTop > this.lastScrollTop && !this.isHeaderCollapsed) {
-      // Scrolling down - collapse header
+      // Scrolling down past threshold - collapse header
       this.isHeaderCollapsed = true;
-    } else if ((scrollTop < this.lastScrollTop || scrollTop <= scrollThreshold - hysteresis) && this.isHeaderCollapsed) {
-      // Scrolling up or near top - expand header
+    } else if (scrollTop <= scrollThreshold - hysteresis && this.isHeaderCollapsed) {
+      // Scrolled back near the top - expand header
       this.isHeaderCollapsed = false;
     }
     
@@ -393,6 +420,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  navigateToKnowledge() {
+    this.router.navigate(['/tabs/knowledge']);
+  }
+
   handleQuickAction(action: string) {
     switch (action) {
       case 'openOnboarding':
@@ -493,55 +524,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return today.toLocaleDateString('en-US', options);
   }
 
-  getBabyAgeOrDueDate(): string {
-    // Priority 1: Baby data (if baby exists, use baby's birth date)
-    if (this.user?.babies && this.user.babies.length > 0) {
-      const baby = this.user.babies[0];
-      
-      if (baby.dateOfBirth) {
-        return AgeCalculatorUtil.calculateBabyAge(baby.dateOfBirth);
-      }
-    }
-    
-    // Priority 2: Due date (if no baby data but due date exists)
-    if (this.user?.dueDate) {
-      const dueDate = new Date(this.user.dueDate);
-      const today = new Date();
-      const diffTime = dueDate.getTime() - today.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays > 0) {
-        // Still pregnant - show countdown to due date
-        if (diffDays < 7) {
-          return `Due in ${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-        } else {
-          const weeksUntilDue = Math.floor(diffDays / 7);
-          const remainingDays = diffDays % 7;
-          if (remainingDays === 0) {
-            return `Due in ${weeksUntilDue} week${weeksUntilDue !== 1 ? 's' : ''}`;
-          }
-          return `Due in ${weeksUntilDue}w ${remainingDays}d`;
-        }
-      } else {
-        // Past due date
-        const daysPastDue = Math.abs(diffDays);
-        if (daysPastDue < 7) {
-          return `${daysPastDue} day${daysPastDue !== 1 ? 's' : ''} overdue`;
-        } else {
-          const weeksPastDue = Math.floor(daysPastDue / 7);
-          const remainingDays = daysPastDue % 7;
-          if (remainingDays === 0) {
-            return `${weeksPastDue} week${weeksPastDue !== 1 ? 's' : ''} overdue`;
-          }
-          return `${weeksPastDue}w ${remainingDays}d overdue`;
-        }
-      }
-    }
-    
-    // No baby data and no due date
-    return '';
-  }
-
   getBabyAvatarImage(): string {
     if (!this.user?.babies || this.user.babies.length === 0) {
       return 'assets/images/baby-neutral.png'; // fallback image
@@ -586,45 +568,58 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return 0;
   }
 
-  getStreakIcon(): string {
-    // If baby exists, show flame (motherhood)
-    if (this.user?.babies && this.user.babies.length > 0) {
-      return 'flame';
-    }
-    
-    // If pregnant (due date exists), show heart for pregnancy journey
-    if (this.user?.dueDate) {
-      return 'heart';
-    }
-    
-    return 'flame'; // default
+  // ============================================================================
+  // JOURNEY CARD
+  // ============================================================================
+
+  hasJourneyCard(): boolean {
+    return !!(this.user?.motherType || this.user?.dueDate || (this.user?.babies && this.user.babies.length > 0));
   }
 
-  getStreakText(): string {
-    // Priority 1: Baby data (motherhood journey)
-    if (this.user?.babies && this.user.babies.length > 0) {
-      const days = this.getBabyAgeInDays();
-      return `${days} days of motherhood`;
+  isPregnantJourney(): boolean {
+    // motherType is the authoritative signal set at registration; babies/dueDate
+    // can be in an inconsistent state (e.g. a new_mom account whose baby record
+    // was never created but an old dueDate is still on file), so trust it first.
+    if (this.user?.motherType) {
+      return this.user.motherType === 'pregnant';
     }
-    
-    // Priority 2: Pregnancy journey
-    if (this.user?.dueDate) {
-      const dueDate = new Date(this.user.dueDate);
-      const today = new Date();
-      const diffTime = dueDate.getTime() - today.getTime();
-      const daysUntilDue = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (daysUntilDue > 0) {
-        // Still pregnant - show countdown
-        return `${daysUntilDue} days until motherhood`;
-      } else {
-        // Overdue - encouraging message
-        const daysPastDue = Math.abs(daysUntilDue);
-        return `Ready to meet your little one! ${daysPastDue} days past due`;
-      }
+    return !(this.user?.babies && this.user.babies.length > 0) && !!this.user?.dueDate;
+  }
+
+  getPregnancyWeeksAndDays(): { weeks: number; days: number } {
+    const pregnancyDays = Math.min(this.getBabyAgeInDays(), 280);
+    return { weeks: Math.floor(pregnancyDays / 7), days: pregnancyDays % 7 };
+  }
+
+  getTrimester(): string {
+    const { weeks } = this.getPregnancyWeeksAndDays();
+    if (weeks <= 13) return 'First Trimester';
+    if (weeks <= 27) return 'Second Trimester';
+    return 'Third Trimester';
+  }
+
+  getPregnancyProgressPercent(): number {
+    const pregnancyDays = Math.min(this.getBabyAgeInDays(), 280);
+    return Math.round((pregnancyDays / 280) * 100);
+  }
+
+  getDaysUntilDue(): number {
+    if (!this.user?.dueDate) return 0;
+    const dueDate = new Date(this.user.dueDate);
+    const today = new Date();
+    const diffDays = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  }
+
+  getBabyAgeText(): string {
+    if (this.user?.babies && this.user.babies.length > 0 && this.user.babies[0].dateOfBirth) {
+      return AgeCalculatorUtil.calculateBabyAge(this.user.babies[0].dateOfBirth);
     }
-    
-    return '';
+    return 'Add your baby to start tracking';
+  }
+
+  getBabyFirstName(): string {
+    return this.user?.babies?.[0]?.name || 'your little one';
   }
 
   hasUnreadNotifications(): boolean {
@@ -1079,6 +1074,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         description: `Continue reading • ${article.readTime} min read`,
         icon: 'bookmark',
         article: article,
+        categoryId: article.category.id,
         categoryColor: article.category.color
       };
     }
@@ -1091,6 +1087,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         description: `New article • ${article.readTime} min read • ${article.category.name}`,
         icon: 'library',
         article: article,
+        categoryId: article.category.id,
         categoryColor: article.category.color
       };
     }
@@ -1101,6 +1098,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       title: 'Breastfeeding Basics',
       description: 'Start your learning journey with essential topics',
       icon: 'school',
+      categoryId: 'breastfeeding-techniques',
       categoryColor: '#8383ed'
     };
   }
@@ -1143,6 +1141,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
     
     return 'Start your learning journey';
+  }
+
+  getLearningCardIllustration(): string {
+    const activity = this.getCurrentLearningActivity();
+    return illustrationForCategory(activity.categoryId);
   }
 
   /**
