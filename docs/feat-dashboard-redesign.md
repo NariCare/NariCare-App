@@ -128,3 +128,74 @@ in-toolbar greeting felt cramped and the journey card too plain.
 | `src/app/tabs/dashboard/dashboard.page.html` | Slimmed toolbar, standalone greeting banner, trimmed journey card, Continue Learning row restyle, quote binding |
 | `src/app/tabs/dashboard/dashboard.page.scss` | Greeting banner + scrim, journey card revert, activity-card restyle, quote-card restyle |
 | `src/app/tabs/dashboard/dashboard.page.ts` | `encouragementQuotes` array + random pick, `categoryId` on learning activity, `getLearningCardIllustration()` replacing hash-rotated `getLearningCardTheme()` |
+
+## Follow-up: Quote of the Day + self-care tip banner (data-driven)
+
+Third pass: replaced the two still-placeholder pieces from the previous
+follow-up (the inline `encouragementQuotes` array and the hardcoded
+per-time-of-day greeting subtitle) with real curated datasets, following the
+existing `insights.service.ts` + `assets/data/*.json` convention already used
+for the daily-tips feature.
+
+### Quote of the Day (24h locked)
+
+- New `src/assets/data/quotes.json`: all 29 supplied quotes, each with an
+  `isInclusive` flag. Rows marked `isInclusive: false` are kept in the file
+  but filtered out at load time, not deleted, so they can be re-enabled
+  later without a data migration.
+- New `QuoteService` (`src/app/services/quote.service.ts`) loads the JSON
+  once (`shareReplay(1)`), filters to inclusive quotes, and picks one per
+  calendar day. The picked quote's id is cached in `localStorage` under
+  `quote_of_day` alongside the day key (`YYYY-MM-DD`, the same idiom used
+  elsewhere in the codebase), so the quote stays stable across reloads for
+  the rest of the day and only changes at midnight.
+- `dashboard.page.ts` no longer holds an `encouragementQuote` string or the
+  20-entry inline array; it holds a `quoteOfDay: Quote | null` populated
+  from `QuoteService.getQuoteOfTheDay()` in `ngOnInit`.
+- Attribution: `"quote text" - Author` when `author` is present and not
+  `"Unknown"`, otherwise just the quote text. Rendered as a second, smaller
+  italic line under the quote in `.quote-card`.
+
+### Self-care tip banner (5 time blocks, refreshes on resume)
+
+- New `src/assets/data/self-care-tips.json`: all 19 supplied tips, tagged
+  `Morning` / `Afternoon` / `Evening` / `Night` / `Midnight`.
+- New `SelfCareService` (`src/app/services/self-care.service.ts`) loads the
+  tips and exposes `pickTip(tips, block)`, a random pick within the current
+  time block. Unlike the quote, this is intentionally not day-locked: a tip
+  can change more than once a day if the user opens the app in a different
+  time block, or resumes the app and the block has changed.
+- `getTimeOfDay()` on `dashboard.page.ts` expanded from 3 buckets to 5 to
+  match the tip dataset's tags (`Morning` 5-11, `Afternoon` 12-16, `Evening`
+  17-20, `Night` 21-23, `Midnight` 0-4), each with its own greeting line and
+  emoji (no more ion-icon `sunny`/`moon`/etc, matches the emoji-based
+  mockup instead).
+- Refresh triggers: on `ngOnInit`, and on app resume via
+  `@capacitor/app`'s `App.addListener('resume', ...)` (already a project
+  dependency, no new package). The greeting banner's subtitle now renders
+  `currentTip.text` and the italic tagline renders `currentTip.title`,
+  replacing the three hardcoded `ng-container` branches and the fixed
+  "Small steps, big changes" tagline.
+
+### Backend note
+
+Both new services are frontend-only for now (bundled JSON via
+`HttpClient.get('/assets/data/...')`), matching the existing
+`insights.service.ts` pattern. This is a deliberate stopgap: quotes and
+tips should eventually be admin-editable and served from the backend
+instead of requiring an app rebuild to change. Each service is written as
+the single point where the JSON is fetched, so swapping the HTTP call for a
+real API endpoint later is a one-method change per service with no
+changes needed in `dashboard.page.ts` or the templates.
+
+### Files changed (this pass)
+
+| File | Change |
+|---|---|
+| `src/assets/data/quotes.json` | New. 29 quotes with `isInclusive` flag |
+| `src/assets/data/self-care-tips.json` | New. 19 tips tagged by time block |
+| `src/app/services/quote.service.ts` | New. Day-locked quote selection + attribution formatting |
+| `src/app/services/self-care.service.ts` | New. Time-block tip lookup |
+| `src/app/tabs/dashboard/dashboard.page.ts` | Removed inline `encouragementQuotes`; added `quoteOfDay`/`currentTip` state, 5-bucket `getTimeOfDay()`, `getGreeting()`/`getGreetingEmoji()`, resume listener |
+| `src/app/tabs/dashboard/dashboard.page.html` | Greeting banner now data-driven (single branch instead of three), quote card renders attribution line |
+| `src/app/tabs/dashboard/dashboard.page.scss` | `.quote-card` switched to column layout, new `.quote-author` style |

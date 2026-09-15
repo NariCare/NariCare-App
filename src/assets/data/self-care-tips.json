@@ -1,0 +1,23 @@
+{
+  "tips": [
+    { "id": "t1", "category": "Reassuring Mindset & Emotional Relief", "title": "1-Minute Morning Reset", "text": "Before getting out of bed, take 3 deep breaths and repeat: \"I am capable, resilient, and ready for today.\"", "timeOfDay": "Morning" },
+    { "id": "t2", "category": "Effortless Daily Habits", "title": "Stay Hydrated", "text": "Keep a full water bottle where you sit most, and take a sip every time you rest or feed your baby.", "timeOfDay": "Morning" },
+    { "id": "t3", "category": "Reassuring Mindset & Emotional Relief", "title": "Presence Over Progress", "text": "Feeding and holding your baby is the work today. If nothing else gets done, your day was still a success.", "timeOfDay": "Morning" },
+    { "id": "t4", "category": "Micro-Rests & Physical Comfort", "title": "3-Second Posture Drop", "text": "Drop your shoulders away from your ears, unclench your jaw, and take a long, slow breath out.", "timeOfDay": "Afternoon" },
+    { "id": "t5", "category": "Fresh Air & Micro-Connections", "title": "2-Minute Fresh Air", "text": "Step outside the front door or open a window to pull in fresh air and reset your mood instantly.", "timeOfDay": "Afternoon" },
+    { "id": "t6", "category": "Micro-Rests & Physical Comfort", "title": "Quick Confidence Boost", "text": "Take 2 minutes to wash your face, brush your hair, or put on mascara to feel instantly refreshed.", "timeOfDay": "Afternoon" },
+    { "id": "t7", "category": "Fresh Air & Micro-Connections", "title": "Low-Pressure Outings", "text": "Take a gentle stroller walk or sit at a local cafe. Getting out of the house doesn't need to be complicated.", "timeOfDay": "Afternoon" },
+    { "id": "t8", "category": "Reassuring Mindset & Emotional Relief", "title": "The Unapologetic Pass", "text": "The laundry and dishes can wait, for real. A quiet hour resting on the couch is time well spent.", "timeOfDay": "Evening" },
+    { "id": "t9", "category": "Protected Time & Boundaries", "title": "Delegate One Task", "text": "Pick one specific chore today, like folding laundry or washing dishes, and hand it off completely.", "timeOfDay": "Evening" },
+    { "id": "t10", "category": "Effortless Daily Habits", "title": "Cook Easy & Plan Simple", "text": "Stick to simple, quick meals or plan ahead so you aren't spending every evening in the kitchen.", "timeOfDay": "Evening" },
+    { "id": "t11", "category": "Protected Time & Boundaries", "title": "Set Gentle Boundaries", "text": "Give yourself full permission to say \"not right now\" to visitors when your battery feels drained.", "timeOfDay": "Evening" },
+    { "id": "t12", "category": "Micro-Rests & Physical Comfort", "title": "Screen-Free Micro-Nap", "text": "Put your phone face down, feet up, and close your eyes for 5 minutes to give your brain a quick recharge.", "timeOfDay": "Night" },
+    { "id": "t13", "category": "Protected Time & Boundaries", "title": "Uninterrupted Break", "text": "Schedule a long, warm shower or bath this week where someone else handles the baby completely.", "timeOfDay": "Night" },
+    { "id": "t14", "category": "Effortless Daily Habits", "title": "Low-Friction Hobbies", "text": "Keep a book, podcast, or easy craft ready to enjoy in quick 30-second pockets of free time.", "timeOfDay": "Night" },
+    { "id": "t15", "category": "Reassuring Mindset & Emotional Relief", "title": "Quiet Night Company", "text": "You are not alone right now. Thousands of moms across the world are up feeding their babies with you.", "timeOfDay": "Midnight" },
+    { "id": "t16", "category": "Micro-Rests & Physical Comfort", "title": "Low-Light Mode", "text": "Keep lights low and soft during midnight feeds to help both you and baby drift back to sleep easily.", "timeOfDay": "Midnight" },
+    { "id": "t17", "category": "Reassuring Mindset & Emotional Relief", "title": "The Quiet Hours", "text": "There is no rush right now. The world is asleep, and this quiet bonding moment belongs just to you two.", "timeOfDay": "Midnight" },
+    { "id": "t18", "category": "Effortless Daily Habits", "title": "Midnight Water Sip", "text": "Keep a water bottle right by your nursing or feeding chair for a quick sip during late-night wakeups.", "timeOfDay": "Midnight" },
+    { "id": "t19", "category": "Reassuring Mindset & Emotional Relief", "title": "One Feed at a Time", "text": "Don't count how many hours of sleep are left. Focus only on this current feed, then rest.", "timeOfDay": "Midnight" }
+  ]
+}
