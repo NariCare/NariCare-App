@@ -57,13 +57,14 @@ export class ProfilePage implements OnInit {
     this.backendAuthService.currentUser$.subscribe(user => {
       this.user = user;
       if (user) {
-        this.loadUpcomingConsultations();
+        // Consultations display disabled; skip the fetch so we don't pull data nothing renders.
+        // this.loadUpcomingConsultations();
         this.initializeNotifications();
         this.updateProfileSections();
       }
     });
-    
-    this.loadExperts();
+
+    // this.loadExperts();  // re-enable with consultation UI
     this.loadVersionInfo();
   }
 
