@@ -84,7 +84,8 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 .greeting-scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #{$lavender-surface} 0%, #{$lavender-surface} 50%, rgba(247, 245, 253, 0) 78%);
+  // Solid only behind the text column, then clear early so the illustration on the right stays crisp.
+  background: linear-gradient(90deg, #{$lavender-surface} 0%, #{$lavender-surface} 42%, rgba(247, 245, 253, 0) 62%);
   pointer-events: none;
 }
 
@@ -187,6 +188,26 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 @media (max-width: 480px) {
   .greeting {
     font-size: 1.2rem;
+  }
+
+  .greeting-banner {
+    min-height: 148px;
+    padding: 1.25rem 1rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .greeting-banner {
+    min-height: 138px;
+    padding: 1rem 0.9rem;
+  }
+
+  .greeting {
+    font-size: 1.05rem;
+  }
+
+  .greeting-scrim {
+    background: linear-gradient(90deg, #{$lavender-surface} 0%, #{$lavender-surface} 46%, rgba(247, 245, 253, 0) 66%);
   }
 }
 

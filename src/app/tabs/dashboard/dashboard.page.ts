@@ -72,6 +72,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   isHeaderCollapsed = false;
   private lastScrollTop = 0;
   private scrollTimeout: any = null;
+  private readonly hiddenSections: Array<'timeline' | 'booking' | 'learning' | 'insights'> = ['insights', 'timeline'];
 
   baseQuickActions = [
     {
@@ -214,6 +215,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   getQuoteAttribution(): string {
     return this.quoteService.getAttribution(this.quoteOfDay);
+  }
+
+  hasQuoteAuthor(): boolean {
+    return this.getQuoteAttribution().length > 0;
   }
 
   onContentScroll(event: any) {
@@ -1020,9 +1025,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
 
   shouldHideSection(section: 'timeline' | 'booking' | 'learning' | 'insights'): boolean {
-    if (!this.isExpert()) return false;
-    
-    return ['timeline', 'booking', 'learning', 'insights'].includes(section);
+    // Hidden for everyone via hiddenSections, plus experts never see these sections.
+    return this.hiddenSections.includes(section) || this.isExpert();
   }
 
   /**

@@ -71,10 +71,8 @@ export class QuoteService {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ date, id }));
   }
 
-  // Falls back to "NariCare" when author is missing or "Unknown".
   getAttribution(quote: Quote | null): string {
-    if (!quote) return '';
-    const author = quote.author && quote.author !== 'Unknown' ? quote.author : 'NariCare';
-    return `- ${author}`;
+    if (!quote || !quote.author || quote.author === 'Unknown') return '';
+    return `- ${quote.author}`;
   }
 }
