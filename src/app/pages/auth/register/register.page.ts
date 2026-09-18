@@ -24,6 +24,11 @@ export class RegisterPage implements OnInit {
   currentStep = 1;
   submitting = false;
 
+  // Precomputed once so ion-datetime min/max bindings are stable across change detection (avoids calendar re-render lag)
+  readonly todayDate = this.getTodayDate();
+  readonly maxDueDate = this.getMaxDueDate();
+  readonly minDeliveryDate = this.getMinDeliveryDate();
+
   steps: StepDefinition[] = [
     { id: 'welcome', title: 'Welcome to NariCare', controls: [] },
     { id: 'name', title: 'What should we call you?', controls: ['fullName'] },
@@ -43,8 +48,8 @@ export class RegisterPage implements OnInit {
   ];
 
   motherTypes = [
-    { key: 'pregnant', label: 'I\u2019m pregnant', icon: 'Mother_icon.svg' },
-    { key: 'new_mom', label: 'I\u2019m a new mother', icon: 'Baby boy.svg' }
+    { key: 'pregnant', label: 'I\u2019m pregnant', icon: 'images/pregnant-choice.webp' },
+    { key: 'new_mom', label: 'I\u2019m a new mother', icon: 'images/new-mom-choice.webp' }
   ];
 
   countryCodeOptions = ['+91', '+1', '+44', '+61', '+971', '+65'];

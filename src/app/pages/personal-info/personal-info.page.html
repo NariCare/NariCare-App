@@ -215,42 +215,6 @@
         </div>
       </div>
       
-      <!-- Subscription Information Section -->
-      <div class="form-section" *ngIf = 'false'>
-        <h3 class="section-title">
-          <ion-icon name="card-outline"></ion-icon>
-          Subscription Information
-        </h3>
-        
-        <div class="subscription-info">
-          <div class="current-plan">
-            <div class="plan-details">
-              <h4>Current Plan</h4>
-              <ion-chip [color]="user?.tier?.type === 'basic' ? 'medium' : 'primary'">
-                {{ getTierDisplay() }}
-              </ion-chip>
-            </div>
-            <div class="plan-actions" *ngIf="isTierUpgradeable()">
-              <ion-button fill="outline" size="small" (click)="handleAction('upgrade')">
-                <ion-icon name="arrow-up-outline" slot="start"></ion-icon>
-                Upgrade Plan
-              </ion-button>
-            </div>
-          </div>
-          
-          <div class="plan-benefits" *ngIf="user?.tier">
-            <p class="benefits-text">
-              <span *ngIf="user.tier.type === 'basic'">
-                You're on our free plan with access to basic features.
-              </span>
-              <span *ngIf="user.tier.type !== 'basic'">
-                Consultations remaining: {{ user.tier.consultationsRemaining || 0 }}
-              </span>
-            </p>
-          </div>
-        </div>
-      </div>
-      
       <!-- Form Actions -->
       <div class="form-actions">
         <ion-button

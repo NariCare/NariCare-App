@@ -222,8 +222,9 @@
 }
 
 .password-input {
-  --padding-top: 0px !important;
-  --padding-bottom: 0px !important;
+  // Keep the toggle button from stretching the row; input keeps custom-input vertical padding
+  // so the field never collapses while typing on mobile.
+  --padding-end: 4px;
 }
 
 .password-toggle {
@@ -259,16 +260,20 @@
 .country-select {
   --background: var(--ion-item-background, #ffffff);
   --color: var(--ion-text-color, #000000);
+  --padding-start: 20px;
+  --padding-end: 16px;
   --border-radius: 14px;
   --border-color: #e2ddf5;
   --highlight-color-focused: var(--ion-color-primary);
   font-family: var(--ion-font-family, 'Poppins', sans-serif);
-  font-size: 1rem;
+  font-size: 1.0625rem;
   border: 1.5px solid #e2ddf5 !important;
   border-radius: 14px !important;
   min-height: 56px;
   max-width: 112px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .phone-input {
@@ -309,38 +314,74 @@
 .answer-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1.5rem 1rem;
+  align-items: stretch;
+  gap: 0.875rem;
+  padding: 0.75rem 0.75rem 1rem;
   background: var(--ion-item-background, #ffffff);
   border: 2px solid #e2ddf5;
-  border-radius: 18px;
-  min-height: 140px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, transform 0.1s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
 
   &:active {
     transform: scale(0.98);
   }
 
+  &:focus-visible {
+    outline: none;
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.25);
+  }
+
   &.selected {
     border-color: var(--ion-color-primary);
     background: #f4f2fe;
+    box-shadow: 0 6px 16px rgba(var(--ion-color-primary-rgb), 0.18);
+
+    .answer-card-check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .answer-card-label {
+      color: var(--ion-color-primary);
+    }
   }
 }
 
-.answer-card-icon {
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.answer-card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  overflow: hidden;
 
   img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.answer-card-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  color: #ffffff;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+
+  ion-icon {
+    font-size: 16px;
   }
 }
 
@@ -351,6 +392,7 @@
   font-family: var(--ion-font-family, 'Poppins', sans-serif);
   text-align: center;
   line-height: 1.35;
+  transition: color 0.2s ease;
 }
 
 /* ==================== Goals ==================== */

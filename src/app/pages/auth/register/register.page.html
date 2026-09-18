@@ -219,9 +219,13 @@
             class="answer-card"
             *ngFor="let type of motherTypes"
             [class.selected]="registerForm.get('motherType')?.value === type.key"
+            [attr.aria-pressed]="registerForm.get('motherType')?.value === type.key"
             (click)="selectMotherType(type.key)">
-            <div class="answer-card-icon">
+            <div class="answer-card-media">
               <img [src]="'assets/' + type.icon" [alt]="type.label">
+              <span class="answer-card-check" aria-hidden="true">
+                <ion-icon name="checkmark"></ion-icon>
+              </span>
             </div>
             <span class="answer-card-label">{{ type.label }}</span>
           </button>
@@ -235,8 +239,8 @@
             presentation="date"
             size="cover"
             [value]="registerForm.get('dueDate')?.value || null"
-            [min]="getTodayDate()"
-            [max]="getMaxDueDate()"
+            [min]="todayDate"
+            [max]="maxDueDate"
             (ionChange)="onDateSelect($event, 'dueDate')">
           </ion-datetime>
           <div class="error-message" *ngIf="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
@@ -249,8 +253,8 @@
             presentation="date"
             size="cover"
             [value]="registerForm.get('deliveryDate')?.value || null"
-            [min]="getMinDeliveryDate()"
-            [max]="getTodayDate()"
+            [min]="minDeliveryDate"
+            [max]="todayDate"
             (ionChange)="onDateSelect($event, 'deliveryDate')">
           </ion-datetime>
           <div class="error-message" *ngIf="registerForm.get('deliveryDate')?.invalid && registerForm.get('deliveryDate')?.touched">

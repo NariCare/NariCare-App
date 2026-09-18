@@ -26,23 +26,12 @@
           <p class="email">{{ user.email }}</p>
         </div>
       </div>
-      <div class="tier-info">
-        <ion-chip class="chip" [color]="getTierColor()" size="small">
-          {{ getTierDisplay() }}
-        </ion-chip>
-      </div>
       <p class="join-date">Member since {{ formatJoinDate() }}</p>
       </div>
     </div>
 
     <!-- Stat Row -->
     <div class="stat-row" *ngIf="user">
-      <div class="stat-col">
-        <ion-icon name="chatbubble-outline" class="stat-icon stat-icon-purple"></ion-icon>
-        <span class="stat-value">{{ getConsultationsRemaining() }}</span>
-        <span class="stat-label">Consultations remaining</span>
-      </div>
-      <div class="stat-divider"></div>
       <div class="stat-col">
         <ion-icon name="happy-outline" class="stat-icon stat-icon-pink"></ion-icon>
         <span class="stat-value">{{ user.babies?.length || 0 }}</span>
@@ -53,37 +42,6 @@
         <ion-icon name="calendar-outline" class="stat-icon stat-icon-green"></ion-icon>
         <span class="stat-value">{{ formatJoinDate() }}</span>
         <span class="stat-label">Member since</span>
-      </div>
-    </div>
-
-    <!-- Upcoming Consultations -->
-    <div class="consultations-section" *ngIf="upcomingConsultations.length > 0">
-      <h3 class="section-title">Upcoming Consultations</h3>
-      <div class="consultations-list">
-        <div 
-          *ngFor="let consultation of upcomingConsultations"
-          class="consultation-card">
-          <div class="consultation-icon">
-            <ion-icon name="videocam" aria-hidden="true"></ion-icon>
-          </div>
-          <div class="consultation-info">
-            <h4>{{ consultation.topic | titlecase }}</h4>
-            <p class="expert-name">with {{ getExpertName(consultation.expertId) }}</p>
-            <p class="consultation-time">{{ formatConsultationTime(consultation) }}</p>
-            <p class="consultation-timezone-context" *ngIf="formatConsultationTimeWithContext(consultation).expertTime">
-              <small>{{ formatConsultationTimeWithContext(consultation).display }}</small>
-            </p>
-          </div>
-          <ion-button 
-            fill="outline" 
-            size="small"
-            (click)="joinConsultation(consultation)"
-            [disabled]="!isConsultationReady(consultation)"
-            class="join-button">
-            <ion-icon name="videocam" slot="start"></ion-icon>
-            {{ isConsultationReady(consultation) ? 'Join Call' : 'Not Ready' }}
-          </ion-button>
-        </div>
       </div>
     </div>
 

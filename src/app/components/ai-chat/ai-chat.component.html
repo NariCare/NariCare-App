@@ -268,6 +268,7 @@
         fill="clear"
         size="small"
         (click)="openAttachmentMenu()"
+        aria-label="Add attachment"
         class="attachment-button">
         <ion-icon name="add" slot="icon-only"></ion-icon>
       </ion-button>
@@ -299,6 +300,7 @@
         fill="solid"
         (click)="sendMessage()"
         [disabled]="!messageText?.trim()"
+        aria-label="Send message"
         class="send-button">
         <ion-icon name="paper-plane" slot="icon-only"></ion-icon>
       </ion-button>

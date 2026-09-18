@@ -590,7 +590,7 @@ export class BackendAuthService {
       whatsappNumber: apiUser.whatsappNumber || apiUser.whatsapp_number || '',
       motherType: apiUser.motherType || apiUser.mother_type,
       dueDate: apiUser.dueDate || apiUser.due_date ? new Date(apiUser.dueDate || apiUser.due_date) : undefined,
-      profileImage: apiUser.profileImage || apiUser.profile_image,
+      profileImage: apiUser.profileImage || apiUser.profile_image || apiUser.profile_image_url || apiUser.profileImageUrl,
       role: apiUser.role || 'user',
       tier: {
         type: apiUser.tier?.type || apiUser.tier_type || 'basic',

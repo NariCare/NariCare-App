@@ -72,6 +72,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   isHeaderCollapsed = false;
   private lastScrollTop = 0;
   private scrollTimeout: any = null;
+  private readonly hiddenSections: Array<'timeline' | 'booking' | 'learning' | 'insights'> = ['insights', 'timeline'];
 
   baseQuickActions = [
     {
@@ -214,6 +215,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   getQuoteAttribution(): string {
     return this.quoteService.getAttribution(this.quoteOfDay);
+  }
+
+  hasQuoteAuthor(): boolean {
+    return this.getQuoteAttribution().length > 0;
   }
 
   onContentScroll(event: any) {
