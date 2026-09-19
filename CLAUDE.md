@@ -4,8 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Git Workflow
 
-- Never commit directly to master or main. Always work on a feature branch and commit there.
+- `staging` is the main branch for this repo. Always create new branches from `staging`.
+- Never commit directly to `staging`, `master`, or `main`. Always work on a feature branch and commit there.
+- When a feature is done, raise a PR into `staging`. The PR must include a thorough code review and a clear description of what changed and why.
 - Commit only when explicitly asked, and only the files the user names.
+
+## UI Design
+
+- When building or changing UI in NariCare-App, use design skills for higher quality. The `/ui-ux-pro-max` skill (and similar UI/design skills or agents) are encouraged for polished, production-grade interfaces.
 
 ## Development Commands
 
