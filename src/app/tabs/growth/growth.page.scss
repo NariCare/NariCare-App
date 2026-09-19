@@ -135,6 +135,9 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
     color: $ink;
     text-align: left;
     font-family: $font;
+    // Break between words only, never mid-word (avoids "Emotion al check-in").
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 
   .tracker-description {
