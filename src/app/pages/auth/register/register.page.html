@@ -1,4 +1,6 @@
-<ion-content class="register-content" [scrollY]="false">
+<!-- scrollY enabled so the focused field can scroll into view when the keyboard
+     shrinks the viewport; otherwise the lower password field is hidden while typing. -->
+<ion-content class="register-content" [scrollY]="true">
   <div class="register-container">
     <!-- Header with Back and Progress -->
     <div class="stepper-header" *ngIf="!isWelcomeStep">
