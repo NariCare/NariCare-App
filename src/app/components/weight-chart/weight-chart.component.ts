@@ -426,29 +426,25 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
         colors: ['#fecaca', '#fed7aa', '#fde68a', '#d9f99d', '#10b981', '#7dd3fc', '#a78bfa', '#f9a8d4', '#fca5a5']
       };
 
-      // Add WHO percentile curves (filtered to visible age range)
-      const percentiles = [10, 25, 50, 75, 90]; // Simplified to key percentiles
+      // Add WHO weight-for-age z-score (SD) curves, filtered to the visible age range.
       const xAxisConfig = this.getSmartXAxisConfig();
-      
-      percentiles.forEach(percentile => {
-        // Filter data to only include visible age range for better performance and clarity
-        const relevantData = chartData.data.filter(point => 
-          point.ageInWeeks >= xAxisConfig.min && point.ageInWeeks <= xAxisConfig.max
+      const zLines = this.whoService.getWeightZScoreLines(this.babyGender);
+
+      zLines.forEach(line => {
+        const seriesData = line.points.filter(([weeks]) =>
+          weeks >= xAxisConfig.min && weeks <= xAxisConfig.max
         );
-        
-        const seriesData = relevantData.map(point => [point.ageInWeeks, (point as any)[`p${percentile}`]]);
-        console.log(`Percentile ${percentile} data (filtered):`, seriesData.slice(0, 3)); // Log first 3 points
-        
+
         const series: Highcharts.SeriesLineOptions = {
-          name: this.getMotherFriendlyPercentileName(percentile),
+          name: line.label,
           type: 'line',
           data: seriesData,
-          color: this.getMotherFriendlyColor(percentile),
-          lineWidth: percentile === 50 ? 3 : 2,
-          dashStyle: percentile === 50 ? 'Solid' : 'ShortDash',
+          color: line.color,
+          lineWidth: line.isMedian ? 3 : 1.5,
+          dashStyle: line.isMedian ? 'Solid' : 'ShortDash',
           marker: { enabled: false },
           enableMouseTracking: true,
-          zIndex: percentile === 50 ? 5 : 1
+          zIndex: line.isMedian ? 5 : 1
         };
         chartOptions.series!.push(series);
       });
