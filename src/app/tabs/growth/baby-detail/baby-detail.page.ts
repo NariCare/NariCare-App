@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, startWith } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
@@ -43,12 +43,14 @@ export class BabyDetailPage implements OnInit {
   babyId: string = '';
   selectedSubTab: 'weight-size' | 'feed-tracks' | 'diaper-change' | 'pumping-tracks' | 'stool-tracks' = 'weight-size';
   
-  // Data observables
-  growthRecords$: Observable<any[]> | null = null;
+  // Data observables. Feed/diaper emit null first (loading) so the empty
+  // state only shows once the list has actually loaded and is empty.
+  growthRecords$: Observable<any[] | null> | null = null;
   weightRecords$: Observable<WeightRecord[]> | null = null;
   stoolRecords$: Observable<StoolRecord[]> | null = null;
-  diaperChangeRecords$: Observable<any[]> | null = null;
+  diaperChangeRecords$: Observable<any[] | null> | null = null;
   pumpingRecords$: Observable<any[]> | null = null;
+  private loadedBabyId: string | null = null;
   
   // Modal controls
   showAddRecordModal = false;
@@ -210,27 +212,35 @@ export class BabyDetailPage implements OnInit {
   }
 
   private loadBabyData() {
-    if (this.babyId) {
-      // Check if user is using backend services
-      const isBackendUser = this.backendAuthService.getCurrentUser();
-      
-      if (isBackendUser) {
-        // Use backend services for all data
-        this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId);
-        this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId);
-        this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId);
-        this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId);
-        this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(this.babyId).pipe(
-          map(response => response.records)
-        );
-      } else {
-        // Fallback to local services
-        this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId);
-        this.weightRecords$ = this.growthService.getWeightRecords(this.babyId);
-        this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
-        this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId);
-        this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId);
-      }
+    if (!this.babyId) {
+      return;
+    }
+    // Guard against re-creating the observables on every route/user emission,
+    // which is what caused the empty-state to flash before data loaded.
+    if (this.loadedBabyId === this.babyId) {
+      return;
+    }
+    this.loadedBabyId = this.babyId;
+
+    // Check if user is using backend services
+    const isBackendUser = this.backendAuthService.getCurrentUser();
+
+    if (isBackendUser) {
+      // Use backend services for all data
+      this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId).pipe(startWith(null));
+      this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId);
+      this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId);
+      this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId).pipe(startWith(null));
+      this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(this.babyId).pipe(
+        map(response => response.records)
+      );
+    } else {
+      // Fallback to local services
+      this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId).pipe(startWith(null));
+      this.weightRecords$ = this.growthService.getWeightRecords(this.babyId);
+      this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
+      this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId).pipe(startWith(null));
+      this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId);
     }
   }
 

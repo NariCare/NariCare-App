@@ -136,7 +136,8 @@
       
       <div class="records-section">
         <h3 class="section-title">Recent Feed Records</h3>
-        <div class="recent-feeds-list" *ngIf="growthRecords$ | async as growthRecords; else noFeedRecords">
+        <div class="recent-feeds-list" *ngIf="(growthRecords$ | async) as growthRecords">
+          <ng-container *ngIf="growthRecords.length === 0" [ngTemplateOutlet]="noFeedRecords"></ng-container>
           <ng-container *ngFor="let record of growthRecords | slice:0:10">
             
             <!-- Direct Feed (if exists) -->
@@ -226,7 +227,8 @@
       
       <div class="records-section">
         <h3 class="section-title">Recent Diaper Changes</h3>
-        <div class="records-list" *ngIf="diaperChangeRecords$ | async as diaperRecords; else noDiaperRecords">
+        <div class="records-list" *ngIf="(diaperChangeRecords$ | async) as diaperRecords">
+          <ng-container *ngIf="diaperRecords.length === 0" [ngTemplateOutlet]="noDiaperRecords"></ng-container>
           <div *ngFor="let record of diaperRecords | slice:0:10" class="record-item diaper-record">
             <div class="record-time">{{ getDiaperChangeTime(record) }}</div>
             <div class="record-date">{{ getDiaperChangeDate(record) }}</div>
