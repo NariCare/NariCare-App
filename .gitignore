@@ -63,3 +63,6 @@ android/
 
 .claude/*
 .opencode/*
+
+# CommandCode local config
+.commandcode/
