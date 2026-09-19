@@ -51,14 +51,14 @@
   </div>
 
   <!-- Empty State -->
-  <div class="chart-empty" *ngIf="!isLoading && weightRecords.length === 0">
+  <div class="chart-empty" *ngIf="!isLoading && !hasChartData">
     <ion-icon name="heart-outline"></ion-icon>
     <h4>Ready to Track Growth! 🌱</h4>
     <p>Add your baby's weight to see their beautiful growth journey compared to other babies</p>
   </div>
 
   <!-- Chart Info -->
-  <div class="chart-info" *ngIf="!isLoading && weightRecords.length > 0">
+  <div class="chart-info" *ngIf="!isLoading && hasChartData">
     <div class="info-grid">
       <div class="info-item">
         <div class="info-label">How Baby's Doing</div>

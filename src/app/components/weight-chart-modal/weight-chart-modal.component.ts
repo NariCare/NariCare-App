@@ -12,6 +12,7 @@ export class WeightChartModalComponent implements OnInit {
   @Input() weightRecords: WeightRecord[] = [];
   @Input() babyGender: 'male' | 'female' = 'female';
   @Input() babyBirthDate: Date = new Date();
+  @Input() babyBirthWeight: number | null = null;
   @Input() babyName: string = 'Baby';
 
   constructor(private modalController: ModalController) {}

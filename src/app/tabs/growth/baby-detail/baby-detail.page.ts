@@ -492,6 +492,7 @@ export class BabyDetailPage implements OnInit {
             weightRecords: weightRecords || [],
             babyGender: this.baby!.gender,
             babyBirthDate: this.baby!.dateOfBirth,
+            babyBirthWeight: this.baby!.birthWeight ?? null,
             babyName: this.baby!.name
           },
           cssClass: 'weight-chart-modal'
