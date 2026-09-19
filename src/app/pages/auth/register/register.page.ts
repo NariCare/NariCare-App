@@ -28,6 +28,11 @@ export class RegisterPage implements OnInit {
   readonly todayDate = this.getTodayDate();
   readonly maxDueDate = this.getMaxDueDate();
   readonly minDeliveryDate = this.getMinDeliveryDate();
+  // Anchor months so the calendar paints immediately instead of sitting blank
+  // for a few seconds while it resolves a default from a null value. This only
+  // sets which month is shown, not the selected form value (that comes from onDateSelect).
+  readonly dueDateAnchor = this.todayDate;
+  readonly deliveryDateAnchor = this.todayDate;
 
   steps: StepDefinition[] = [
     { id: 'welcome', title: 'Welcome to NariCare', controls: [] },
