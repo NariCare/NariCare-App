@@ -25,6 +25,7 @@ import { WeightLogModalComponent } from 'src/app/components/weight-log-modal/wei
 import { BabyCreationModalComponent } from 'src/app/components/baby-creation-modal/baby-creation-modal.component';
 import { ApiService } from '../../services/api.service';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 
 @Component({
@@ -1207,31 +1208,24 @@ export class GrowthPage implements OnInit {
   }
 
   getPumpDailySessions(): number {
-    // Calculate today's sessions from pumping records
-    const today = new Date().toDateString();
+    // Calculate today's sessions. Parse the date-only string as a local date so
+    // evening entries in +offset timezones are not counted as tomorrow (UTC shift).
+    const now = new Date();
     const records = this.pumpingRecords || [];
-    
-    const todayRecords = records.filter((record: any) => {
-      const recordDate = record.record_date || record.date;
-      return recordDate && new Date(recordDate).toDateString() === today;
-    });
-    
-    return todayRecords.length;
+
+    return records.filter((record: any) =>
+      DateOnlyUtil.isSameLocalDay(record.record_date || record.date, now)
+    ).length;
   }
 
   getPumpDailyOutput(): number {
-    // Calculate today's total output from pumping records
-    const today = new Date().toDateString();
+    // Calculate today's total output (local-day match, same reasoning as above).
+    const now = new Date();
     const records = this.pumpingRecords || [];
-    
-    const todayRecords = records.filter((record: any) => {
-      const recordDate = record.record_date || record.date;
-      return recordDate && new Date(recordDate).toDateString() === today;
-    });
-    
-    return todayRecords.reduce((total: number, record: any) => {
-      return total + (record.total_output || record.totalOutput || 0);
-    }, 0);
+
+    return records
+      .filter((record: any) => DateOnlyUtil.isSameLocalDay(record.record_date || record.date, now))
+      .reduce((total: number, record: any) => total + (record.total_output || record.totalOutput || 0), 0);
   }
 
   // Pumping record display helpers (reused from baby-detail page)
