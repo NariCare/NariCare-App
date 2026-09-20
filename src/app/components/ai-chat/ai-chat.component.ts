@@ -32,9 +32,8 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   quickAccessNotes: ExpertNote[] = [];
   quickAccessLinks: ExpertLink[] = [];
 
-  // Keyboard handling
-  private keyboardVisible = false;
-  private lastKeyboardHeight = 0;
+  // Keyboard handling (web only; native uses Capacitor resize:body)
+  private viewportResizeHandler?: () => void;
 
   // ponytail: display-only timestamp for the static welcome bubble
   readonly welcomeTime = new Date();
@@ -94,133 +93,35 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.viewportResizeHandler && (window as any).visualViewport) {
+      (window as any).visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+    }
   }
 
+  // Web-only keyboard tracking. On native, Capacitor Keyboard resize:"body"
+  // shrinks the WebView so the fixed composer already rests on the keyboard.
+  // visualViewport lets mobile web browsers do the same without guesswork.
   private setupKeyboardHandling() {
-    // Enhanced keyboard handling for mobile devices
-    if (typeof window !== 'undefined') {
-      // Focus and blur events are more reliable for keyboard detection
-      setTimeout(() => {
-        const textarea = document.querySelector('.message-textarea');
-        if (textarea) {
-          textarea.addEventListener('focus', () => {
-            // Keyboard is about to show
-            setTimeout(() => {
-              this.handleKeyboardShow();
-            }, 300); // Wait for keyboard animation
-          });
+    const vv = (window as any).visualViewport;
+    if (!vv) return;
 
-          textarea.addEventListener('blur', () => {
-            // Keyboard is about to hide
-            setTimeout(() => {
-              this.handleKeyboardHide();
-            }, 100);
-          });
-        }
-      }, 1000);
+    this.viewportResizeHandler = () => {
+      const overlap = window.innerHeight - vv.height - vv.offsetTop;
+      const container = this.messageInputContainer?.nativeElement;
+      if (!container) return;
 
-      // Backup detection using visual viewport (more accurate)
-      if ('visualViewport' in window) {
-        let initialHeight = (window as any).visualViewport.height;
-        
-        (window as any).visualViewport.addEventListener('resize', () => {
-          const currentHeight = (window as any).visualViewport.height;
-          const heightDiff = initialHeight - currentHeight;
-          
-          // Only trigger if height difference is significant (keyboard-related)
-          if (heightDiff > 150 && !this.keyboardVisible) {
-            this.handleKeyboardShow();
-          } else if (heightDiff < 50 && this.keyboardVisible) {
-            this.handleKeyboardHide();
-          }
-        });
-      }
-    }
-  }
-
-  private handleKeyboardShow() {
-    if (!this.keyboardVisible && typeof window !== 'undefined') {
-      this.keyboardVisible = true;
-      
-      // Calculate keyboard height
-      const windowHeight = window.innerHeight;
-      const viewportHeight = (window as any).visualViewport?.height || windowHeight;
-      const keyboardHeight = windowHeight - viewportHeight;
-      
-      // Store the height for consistency
-      this.lastKeyboardHeight = Math.max(keyboardHeight, 300); // Minimum 300px
-      
-      // Add keyboard-visible class to body
-      document.body.classList.add('keyboard-visible');
-      
-      // Adjust input container to stay above keyboard
-      this.adjustInputForKeyboard(this.lastKeyboardHeight);
-    }
-  }
-
-  private handleKeyboardHide() {
-    if (this.keyboardVisible) {
-      this.keyboardVisible = false;
-      this.lastKeyboardHeight = 0;
-      
-      // Remove keyboard-visible class
-      document.body.classList.remove('keyboard-visible');
-      this.resetInputPosition();
-    }
-  }
-
-  private adjustInputForKeyboard(keyboardHeight: number) {
-    const inputContainer = this.messageInputContainer?.nativeElement;
-    if (inputContainer) {
-      // Simply adjust the bottom position to account for keyboard
-      // The element already has fixed positioning from CSS
-      const keyboardOffset = Math.max(keyboardHeight * 0.8, 260); // Keep input well above keyboard
-      inputContainer.style.bottom = `${keyboardOffset}px`;
-      inputContainer.style.transition = 'bottom 0.25s ease-out';
-    }
-
-    // Hide expert banner when keyboard is open to prevent overlap
-    const expertBanner = document.querySelector('.expert-help-banner') as HTMLElement;
-    if (expertBanner) {
-      expertBanner.style.position = 'absolute';
-      expertBanner.style.top = '-1000px'; // Move off screen
-      expertBanner.style.zIndex = '-1';
-    }
-
-    // Adjust messages container to prevent content from being hidden
-    if (this.messagesContainer) {
-      const messagesElement = this.messagesContainer.nativeElement;
-      const paddingOffset = Math.min(keyboardHeight + 40, 280); // Reduced max padding
-      messagesElement.style.paddingBottom = `${paddingOffset}px`;
-      messagesElement.style.transition = 'padding-bottom 0.25s ease-out';
-      
-      // Delay scroll to ensure layout is updated
-      setTimeout(() => {
+      if (overlap > 80) {
+        // Lift the composer by the exact keyboard overlap (compositor-only).
+        container.style.transform = `translateY(-${overlap}px)`;
+        document.body.classList.add('keyboard-visible');
         this.scrollToBottom();
-      }, 100);
-    }
-  }
+      } else {
+        container.style.transform = '';
+        document.body.classList.remove('keyboard-visible');
+      }
+    };
 
-  private resetInputPosition() {
-    const inputContainer = this.messageInputContainer?.nativeElement;
-    if (inputContainer) {
-      // Reset bottom position to original CSS value
-      inputContainer.style.bottom = '0';
-      inputContainer.style.transition = 'bottom 0.25s ease-out';
-    }
-
-    if (this.messagesContainer) {
-      const messagesElement = this.messagesContainer.nativeElement;
-      messagesElement.style.paddingBottom = '10rem';
-      messagesElement.style.transition = 'padding-bottom 0.25s ease-out';
-    }
-
-    // Ensure banner is visible when keyboard closes
-    const expertBanner = document.querySelector('.expert-help-banner') as HTMLElement;
-    if (expertBanner) {
-      expertBanner.style.position = 'static';
-      expertBanner.style.zIndex = '1';
-    }
+    vv.addEventListener('resize', this.viewportResizeHandler);
   }
 
   private async initializeChatbot() {
