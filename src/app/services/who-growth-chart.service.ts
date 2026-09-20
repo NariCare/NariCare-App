@@ -1,5 +1,20 @@
 import { Injectable } from '@angular/core';
 import { WHOPercentileData, WHOGrowthChart, BabyGrowthPoint, GrowthChartConfig } from '../models/who-growth-data.model';
+import { WHO_WFA_ZSCORES, WHOZScoreRow } from '../models/who-zscore-data.model';
+
+/** One WHO SD (z-score) reference line, ready to plot. */
+export interface WHOZScoreLine {
+  key: keyof Omit<WHOZScoreRow, 'month'>;
+  zscore: number;              // -3..+3
+  label: string;               // mother-friendly legend label
+  color: string;
+  isMedian: boolean;
+  points: Array<[number, number]>; // [ageInWeeks, weightKg]
+}
+
+// ~weeks per month (average month length), used to place monthly WHO data on
+// the chart's week-based x-axis consistently with the baby's plotted points.
+const WEEKS_PER_MONTH = 4.345;
 
 @Injectable({
   providedIn: 'root'
@@ -319,6 +334,45 @@ export class WHOGrowthChartService {
         color: '#be185d'
       };
     }
+  }
+
+  /**
+   * WHO weight-for-age z-score reference lines (SD -3..+3) for the chart.
+   * Returns 7 lines with mother-friendly labels, plotted against ageInWeeks.
+   */
+  getWeightZScoreLines(gender: 'male' | 'female'): WHOZScoreLine[] {
+    const rows = gender === 'male' ? WHO_WFA_ZSCORES.boys : WHO_WFA_ZSCORES.girls;
+    const defs: Array<{ key: keyof Omit<WHOZScoreRow, 'month'>; z: number; label: string; color: string }> = [
+      { key: 'sd3neg', z: -3, label: 'Very low (-3)', color: '#ef4444' },
+      { key: 'sd2neg', z: -2, label: 'Low (-2)', color: '#f59e0b' },
+      { key: 'sd1neg', z: -1, label: 'Below average (-1)', color: '#a3a3a3' },
+      { key: 'sd0', z: 0, label: 'On track (median)', color: '#10b981' },
+      { key: 'sd1', z: 1, label: 'Above average (+1)', color: '#38bdf8' },
+      { key: 'sd2', z: 2, label: 'High (+2)', color: '#6366f1' },
+      { key: 'sd3', z: 3, label: 'Very high (+3)', color: '#a855f7' }
+    ];
+    return defs.map(d => ({
+      key: d.key,
+      zscore: d.z,
+      label: d.label,
+      color: d.color,
+      isMedian: d.z === 0,
+      points: rows.map(r => [r.month * WEEKS_PER_MONTH, r[d.key] as number] as [number, number])
+    }));
+  }
+
+  /** Classify a weight against the WHO SD bands at a given age (in months). */
+  getZScoreCategory(ageInMonths: number, weight: number, gender: 'male' | 'female'):
+    { label: string; message: string; color: string } {
+    const rows = gender === 'male' ? WHO_WFA_ZSCORES.boys : WHO_WFA_ZSCORES.girls;
+    const clamped = Math.max(0, Math.min(60, ageInMonths));
+    // Nearest monthly row (WHO data is monthly).
+    const row = rows.reduce((a, b) => Math.abs(b.month - clamped) < Math.abs(a.month - clamped) ? b : a);
+    if (weight < row.sd3neg) return { label: 'Well below range', message: 'Below -3 SD. Please consult your pediatrician.', color: '#ef4444' };
+    if (weight < row.sd2neg) return { label: 'Low', message: 'Between -3 and -2 SD. Discuss with your doctor.', color: '#f59e0b' };
+    if (weight <= row.sd2) return { label: 'On track', message: 'Within the healthy WHO range (-2 to +2 SD).', color: '#10b981' };
+    if (weight <= row.sd3) return { label: 'High', message: 'Between +2 and +3 SD. Monitor growth pattern.', color: '#6366f1' };
+    return { label: 'Well above range', message: 'Above +3 SD. Please consult your pediatrician.', color: '#a855f7' };
   }
 
   calculateAgeInWeeks(birthDate: Date, measurementDate: Date): number {
