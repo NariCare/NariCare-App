@@ -238,7 +238,7 @@
           <ion-datetime
             presentation="date"
             size="cover"
-            [value]="registerForm.get('dueDate')?.value || null"
+            [value]="registerForm.get('dueDate')?.value || dueDateAnchor"
             [min]="todayDate"
             [max]="maxDueDate"
             (ionChange)="onDateSelect($event, 'dueDate')">
@@ -252,7 +252,7 @@
           <ion-datetime
             presentation="date"
             size="cover"
-            [value]="registerForm.get('deliveryDate')?.value || null"
+            [value]="registerForm.get('deliveryDate')?.value || deliveryDateAnchor"
             [min]="minDeliveryDate"
             [max]="todayDate"
             (ionChange)="onDateSelect($event, 'deliveryDate')">
