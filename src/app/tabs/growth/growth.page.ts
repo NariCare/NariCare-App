@@ -1262,25 +1262,13 @@ export class GrowthPage implements OnInit {
   }
 
   getEmotionCheckinsCount(): number {
-    // Calculate current week's emotion check-ins
-    const today = new Date();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
-    weekStart.setHours(0, 0, 0, 0);
-    
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6); // End of current week (Saturday)
-    weekEnd.setHours(23, 59, 59, 999);
-    
-    // Get records from local property
+    // Count check-ins in the current local (Sunday-start) week. Parsing the
+    // date-only value as local avoids the UTC shift that dropped valid check-ins.
     const records = this.emotionRecords || [];
-    
-    const thisWeekRecords = records.filter((record: any) => {
-      const checkinDate = new Date(record.checkin_date || record.date);
-      return checkinDate >= weekStart && checkinDate <= weekEnd;
-    });
-    
-    return thisWeekRecords.length;
+
+    return records.filter((record: any) =>
+      DateOnlyUtil.isInLocalWeek(record.checkin_date || record.date)
+    ).length;
   }
 
   getLastEmotionCheckinDate(): string {
