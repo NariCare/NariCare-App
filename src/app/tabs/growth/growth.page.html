@@ -86,12 +86,12 @@
       <!-- Full-width Emotional Check-in Card -->
       <div class="tracker-card emotional-card" (click)="onEmotionCheckin()">
         <div class="emotional-content">
-          <div class="emotional-faces" aria-hidden="true">
-            <span *ngFor="let mood of motherMoodOptions">{{ mood.emoji }}</span>
-          </div>
           <div class="emotional-text">
             <span class="tracker-label">Emotional check-in</span>
             <span class="tracker-description">How are you feeling today?</span>
+          </div>
+          <div class="emotional-faces" aria-hidden="true">
+            <span class="mood-chip" *ngFor="let mood of motherMoodOptions">{{ mood.emoji }}</span>
           </div>
           <div class="tracker-arrow-badge" aria-hidden="true">
             <ion-icon name="chevron-forward"></ion-icon>
