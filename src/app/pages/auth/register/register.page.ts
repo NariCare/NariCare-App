@@ -28,9 +28,10 @@ export class RegisterPage implements OnInit {
   readonly todayDate = this.getTodayDate();
   readonly maxDueDate = this.getMaxDueDate();
   readonly minDeliveryDate = this.getMinDeliveryDate();
-  // Anchor months so the calendar paints immediately instead of sitting blank
-  // for a few seconds while it resolves a default from a null value. This only
-  // sets which month is shown, not the selected form value (that comes from onDateSelect).
+  // Anchor date so the calendar paints immediately instead of sitting blank for
+  // a few seconds while ion-datetime resolves a default from a null value.
+  // Note: ion-datetime visually highlights this date, but the form control stays
+  // empty until onDateSelect fires, so the required-date validation still holds.
   readonly dueDateAnchor = this.todayDate;
   readonly deliveryDateAnchor = this.todayDate;
 
