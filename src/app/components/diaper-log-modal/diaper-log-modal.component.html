@@ -148,7 +148,9 @@
         </div>
         
         <!-- Quick Notes Section -->
-        <div class="quick-notes-section">
+        <!-- HIDDEN for now: red-flag warning-sign chips will move to a dedicated
+             screen later. Kept in code (gated with *ngIf="false") rather than deleted. -->
+        <div class="quick-notes-section" *ngIf="false">
           <div class="predefined-notes-grid">
             <ion-chip 
               *ngFor="let note of predefinedNotes"
