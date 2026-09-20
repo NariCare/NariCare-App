@@ -13,6 +13,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   @Input() weightRecords: WeightRecord[] = [];
   @Input() babyGender: 'male' | 'female' = 'female';
   @Input() babyBirthDate: Date = new Date();
+  @Input() babyBirthWeight: number | null = null;
   @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
 
   chart: any;
@@ -22,6 +23,12 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   chartError = '';
 
   constructor(private whoService: WHOGrowthChartService) {}
+
+  /** True when there is anything to plot: a logged weight, or a recorded birth weight. */
+  get hasChartData(): boolean {
+    return (this.weightRecords && this.weightRecords.length > 0)
+      || (!!this.babyBirthWeight && this.babyBirthWeight > 0);
+  }
 
   ngOnInit() {
     console.log('WeightChartComponent ngOnInit');
@@ -52,7 +59,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
 
   ngOnChanges(changes: SimpleChanges) {
     console.log('WeightChartComponent ngOnChanges', changes);
-    if (changes['weightRecords'] || changes['babyGender'] || changes['babyBirthDate']) {
+    if (changes['weightRecords'] || changes['babyGender'] || changes['babyBirthDate'] || changes['babyBirthWeight']) {
       if (this.chart) {
         console.log('Updating existing chart');
         this.updateChart();
@@ -672,47 +679,51 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   private convertToGrowthPoints(): BabyGrowthPoint[] {
-    if (!this.weightRecords || this.weightRecords.length === 0) {
-      console.log('No weight records available');
+    const hasRecords = !!this.weightRecords && this.weightRecords.length > 0;
+    const hasBirthWeight = !!this.babyBirthWeight && this.babyBirthWeight > 0;
+
+    if (!hasRecords && !hasBirthWeight) {
+      console.log('No weight records or birth weight available');
       return [];
     }
 
-    console.log('Converting', this.weightRecords.length, 'weight records to growth points');
-    console.log('Baby birth date:', this.babyBirthDate);
-    console.log('Sample weight record:', this.weightRecords[0]);
-    
     try {
-      // Normalize all records first
-      const normalizedRecords = this.weightRecords
-        .map(record => this.normalizeWeightRecord(record))
-        .filter(record => record !== null) as { date: Date; weight: number }[];
+      const growthPoints: BabyGrowthPoint[] = [];
 
-      console.log('Valid normalized records:', normalizedRecords.length, 'out of', this.weightRecords.length);
-
-      const growthPoints = normalizedRecords.map(record => {
+      // Seed an age-0 point from the baby's recorded birth weight so the chart
+      // plots something even before any weight record is logged.
+      if (hasBirthWeight) {
         const birthDate = new Date(this.babyBirthDate);
-        
-        console.log('Processing normalized record:', {
-          recordDate: record.date.toISOString(),
-          birthDate: birthDate.toISOString(),
-          weight: record.weight
+        growthPoints.push({
+          ageInWeeks: 0,
+          value: this.babyBirthWeight as number,
+          percentile: this.whoService.calculatePercentile(0, this.babyBirthWeight as number, this.babyGender),
+          date: birthDate
         });
+      }
 
-        const ageInWeeks = this.whoService.calculateAgeInWeeks(birthDate, record.date);
-        const percentile = this.whoService.calculatePercentile(ageInWeeks, record.weight, this.babyGender);
-        
-        return {
-          ageInWeeks,
-          value: record.weight,
-          percentile,
-          date: record.date
-        };
-      });
+      if (hasRecords) {
+        const normalizedRecords = this.weightRecords
+          .map(record => this.normalizeWeightRecord(record))
+          .filter(record => record !== null) as { date: Date; weight: number }[];
 
-      const sortedPoints = growthPoints.sort((a, b) => a.ageInWeeks - b.ageInWeeks);
-      console.log('Converted growth points:', sortedPoints);
-      
-      return sortedPoints;
+        for (const record of normalizedRecords) {
+          const birthDate = new Date(this.babyBirthDate);
+          const ageInWeeks = this.whoService.calculateAgeInWeeks(birthDate, record.date);
+          // Avoid a duplicate age-0 point if a logged record lands on the birth date.
+          if (hasBirthWeight && ageInWeeks === 0) {
+            continue;
+          }
+          growthPoints.push({
+            ageInWeeks,
+            value: record.weight,
+            percentile: this.whoService.calculatePercentile(ageInWeeks, record.weight, this.babyGender),
+            date: record.date
+          });
+        }
+      }
+
+      return growthPoints.sort((a, b) => a.ageInWeeks - b.ageInWeeks);
     } catch (error) {
       console.error('Error converting weight records to growth points:', error);
       return [];
