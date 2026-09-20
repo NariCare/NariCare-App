@@ -296,7 +296,9 @@
         </div>
         
         <!-- Quick Notes Section -->
-        <div class="quick-notes-section">
+        <!-- HIDDEN for now: red-flag Baby/Mother related notes will move to a dedicated
+             screen later. Kept in code (gated with *ngIf="false") rather than deleted. -->
+        <div class="quick-notes-section" *ngIf="false">
           <!-- Baby Related Notes -->
           <div class="notes-category">
             <div class="category-header baby-category">
