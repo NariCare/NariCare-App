@@ -21,6 +21,21 @@ describe('DateOnlyUtil', () => {
     });
   });
 
+  describe('formatLocalDate / formatLocalTime', () => {
+    it('formats a local date as YYYY-MM-DD (no UTC shift)', () => {
+      // 2026-09-19 23:30 local. toISOString would roll this to the 20th in +offset zones.
+      expect(DateOnlyUtil.formatLocalDate(new Date(2026, 8, 19, 23, 30))).toBe('2026-09-19');
+    });
+
+    it('zero-pads month and day', () => {
+      expect(DateOnlyUtil.formatLocalDate(new Date(2026, 0, 5))).toBe('2026-01-05');
+    });
+
+    it('formats local time as HH:MM:SS', () => {
+      expect(DateOnlyUtil.formatLocalTime(new Date(2026, 8, 19, 5, 3, 7))).toBe('05:03:07');
+    });
+  });
+
   describe('isSameLocalDay', () => {
     it('matches a date-only string against a same-day local Date', () => {
       expect(DateOnlyUtil.isSameLocalDay('2026-09-19', new Date(2026, 8, 19, 23, 0))).toBeTrue();

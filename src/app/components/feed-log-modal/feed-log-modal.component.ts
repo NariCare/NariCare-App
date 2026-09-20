@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { GrowthRecord, FeedType, PainLevel } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 interface PredefinedNote {
   id: string;
@@ -116,7 +117,7 @@ export class FeedLogModalComponent implements OnInit {
   ) {
     this.feedForm = this.formBuilder.group({
       selectedBaby: ['', [Validators.required]],
-      date: [new Date().toISOString().split('T')[0], [Validators.required]],
+      date: [DateOnlyUtil.formatLocalDate(), [Validators.required]],
       feedTypes: [[], [Validators.required]],
       // Direct feeding fields
       startTime: [this.getCurrentTime()],
@@ -167,8 +168,7 @@ export class FeedLogModalComponent implements OnInit {
   }
 
   getCurrentDate(): string {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
   }
 
   getDateLabel(date: Date): string {
@@ -270,8 +270,8 @@ export class FeedLogModalComponent implements OnInit {
     }
     
     this.selectedDate = selectedDate;
-    this.feedForm.patchValue({ 
-      date: selectedDate.toISOString().split('T')[0] 
+    this.feedForm.patchValue({
+      date: DateOnlyUtil.formatLocalDate(selectedDate)
     });
     this.showDatePicker = false;
   }

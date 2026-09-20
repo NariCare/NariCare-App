@@ -7,6 +7,7 @@ import { BackendPumpingService, CreatePumpingRecordRequest } from '../../service
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { PumpingRecord, PumpingSide } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 interface PredefinedNote {
   id: string;
@@ -60,7 +61,7 @@ export class PumpingLogModalComponent implements OnInit {
     private backendAuthService: BackendAuthService
   ) {
     this.pumpingForm = this.formBuilder.group({
-      date: [new Date().toISOString().split('T')[0], [Validators.required]],
+      date: [DateOnlyUtil.formatLocalDate(), [Validators.required]],
       time: [this.getCurrentTime(), [Validators.required]],
       pumpingSide: ['', [Validators.required]],
       totalOutput: [0, [Validators.required, Validators.min(0), Validators.max(500)]],
@@ -96,8 +97,7 @@ export class PumpingLogModalComponent implements OnInit {
   }
 
   getCurrentDate(): string {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
   }
 
   getDateLabel(date: Date): string {
@@ -215,8 +215,8 @@ export class PumpingLogModalComponent implements OnInit {
     }
     
     this.selectedDate = selectedDate;
-    this.pumpingForm.patchValue({ 
-      date: selectedDate.toISOString().split('T')[0] 
+    this.pumpingForm.patchValue({
+      date: DateOnlyUtil.formatLocalDate(selectedDate)
     });
     this.showDatePicker = false;
   }
