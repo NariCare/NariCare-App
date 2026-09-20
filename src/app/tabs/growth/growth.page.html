@@ -215,8 +215,21 @@
           </div>
           
           <div class="section-content">
+            <!-- Empty state -->
+            <div class="journey-empty" *ngIf="getLastTrackTime() === '--'">
+              <div class="journey-empty-icon breastfeeding">
+                <img src="assets/Breastfeeding journey.svg" alt="" aria-hidden="true">
+              </div>
+              <h4>Start your feeding log</h4>
+              <p>Log your first feed to see your rhythm and recent sessions here.</p>
+              <ion-button fill="solid" size="small" class="journey-empty-cta" (click)="onFeed()">
+                <ion-icon name="add" slot="start"></ion-icon>
+                Log first feed
+              </ion-button>
+            </div>
+
             <!-- Last Feed Summary -->
-            <div class="last-activity-card" *ngIf="selectedBaby">
+            <div class="last-activity-card" *ngIf="selectedBaby && getLastTrackTime() !== '--'">
               <div class="activity-header">
                 <div class="activity-icon breastfeeding">
                   <ion-icon name="ellipse" *ngIf="getLastTrackBreastSide() === 'both'"></ion-icon>
@@ -234,7 +247,7 @@
             </div>
             
             <!-- Recent Feeds -->
-            <div class="recent-activities" *ngIf="recentRecords$ | async as recentRecords; else noRecentFeeds">
+            <div class="recent-activities" *ngIf="getLastTrackTime() !== '--' && (recentRecords$ | async) as recentRecords">
               <h4 class="activities-title">Recent Feeds</h4>
               <div class="recent-feeds-list">
                 <div *ngFor="let record of recentRecords | slice:0:3" class="feed-record-wrapper">
@@ -322,8 +335,21 @@
           </div>
           
           <div class="section-content">
+            <!-- Empty state -->
+            <div class="journey-empty" *ngIf="getLastPumpTime() === '--'">
+              <div class="journey-empty-icon pumping">
+                <img src="assets/Pumping journey.svg" alt="" aria-hidden="true">
+              </div>
+              <h4>No pump sessions yet</h4>
+              <p>Track a session to watch your output and timing build over time.</p>
+              <ion-button fill="solid" size="small" class="journey-empty-cta" (click)="openAddPumpingModal()">
+                <ion-icon name="add" slot="start"></ion-icon>
+                Log a session
+              </ion-button>
+            </div>
+
             <!-- Last Pump Summary -->
-            <div class="last-activity-card">
+            <div class="last-activity-card" *ngIf="getLastPumpTime() !== '--'">
               <div class="activity-header">
                 <div class="activity-icon pumping">
                   <ion-icon name="ellipse" *ngIf="getLastPumpSide() === 'both'"></ion-icon>
@@ -341,7 +367,7 @@
             </div>
             
             <!-- Recent Pumping Sessions -->
-            <div class="recent-activities" *ngIf="pumpingRecords$ | async as pumpingRecords; else noRecentPumps">
+            <div class="recent-activities" *ngIf="getLastPumpTime() !== '--' && (pumpingRecords$ | async) as pumpingRecords">
               <h4 class="activities-title">Recent Sessions</h4>
               <div class="activities-list">
                 <div *ngFor="let record of pumpingRecords | slice:0:3" class="activity-item pump-item">
@@ -430,6 +456,17 @@
             </div>
             
             <ng-template #noRecentEmotions>
+              <div class="journey-empty emotion">
+                <div class="journey-empty-icon emotion">
+                  <ion-icon name="heart"></ion-icon>
+                </div>
+                <h4>How are you feeling?</h4>
+                <p>A quick daily check-in helps you notice patterns in your wellbeing.</p>
+                <ion-button fill="solid" size="small" class="journey-empty-cta" (click)="onEmotionCheckin()">
+                  <ion-icon name="add" slot="start"></ion-icon>
+                  Add check-in
+                </ion-button>
+              </div>
               <!-- Wellness Tips (shown when no check-ins) -->
               <div class="wellness-tips">
                 <h4 class="tips-title">💡 Wellness Tips</h4>
