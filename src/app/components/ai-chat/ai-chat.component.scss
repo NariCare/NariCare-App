@@ -706,10 +706,6 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
     border-top: 1px solid #e2e8f0;
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
     will-change: transform;
-    
-    @supports (height: 100dvh) {
-      bottom: env(keyboard-inset-height, 0);
-    }
   }
 }
 
