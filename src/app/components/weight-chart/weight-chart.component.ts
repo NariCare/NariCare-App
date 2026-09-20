@@ -535,16 +535,15 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
       credits: { enabled: false }
     };
 
-    // Add just the median line and baby's data
+    // Add just the WHO median (0 SD) line and baby's data
     try {
-      const chartData = this.whoService.getWeightChart(this.babyGender);
-      if (chartData && chartData.data) {
-        // Add 50th percentile line
+      const medianLine = this.whoService.getWeightZScoreLines(this.babyGender).find(l => l.isMedian);
+      if (medianLine) {
         const medianSeries: Highcharts.SeriesLineOptions = {
-          name: 'Average babies (50th percentile)',
+          name: 'On track (median)',
           type: 'line',
-          data: chartData.data.map(point => [point.ageInWeeks, point.p50]),
-          color: '#10b981',
+          data: medianLine.points,
+          color: medianLine.color,
           lineWidth: 2,
           marker: { enabled: false }
         };
