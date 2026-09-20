@@ -189,16 +189,30 @@
 // Unit suffix styling
 .weight-input,
 .height-input {
+  // Tighten start icon + let the input shrink so the "Birth Weight" / "Birth
+  // Height" placeholder is not truncated to "Birth" in the half-width column.
+  --padding-start: 12px;
+  --padding-end: 8px;
+
+  .input-icon {
+    margin-right: 8px;
+  }
+
+  ion-input {
+    min-width: 0;
+    flex: 1;
+  }
+
   .unit-suffix {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: #8383ed;
     background: rgba(131, 131, 237, 0.1);
-    padding: 0.4rem 0.7rem;
+    padding: 0.35rem 0.5rem;
     border-radius: 6px;
-    margin-left: 0.5rem;
+    margin-left: 0.35rem;
     border: 1px solid rgba(131, 131, 237, 0.2);
-    min-width: 32px;
+    min-width: 28px;
     text-align: center;
     flex-shrink: 0;
   }
