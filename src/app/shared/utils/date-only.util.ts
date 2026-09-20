@@ -20,6 +20,22 @@ export class DateOnlyUtil {
     return new Date(value as any);
   }
 
+  /** Format a date as a local `YYYY-MM-DD` string (no UTC shift). Defaults to now. */
+  static formatLocalDate(date: Date = new Date()): string {
+    const y = date.getFullYear();
+    const m = `${date.getMonth() + 1}`.padStart(2, '0');
+    const d = `${date.getDate()}`.padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  /** Format a date as a local `HH:MM:SS` string. Defaults to now. */
+  static formatLocalTime(date: Date = new Date()): string {
+    const h = `${date.getHours()}`.padStart(2, '0');
+    const min = `${date.getMinutes()}`.padStart(2, '0');
+    const s = `${date.getSeconds()}`.padStart(2, '0');
+    return `${h}:${min}:${s}`;
+  }
+
   /** True if both dates fall on the same local calendar day. */
   static isSameLocalDay(a: string | Date | null | undefined, b: string | Date | null | undefined): boolean {
     const da = this.parseLocalDate(a);

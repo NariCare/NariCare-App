@@ -13,6 +13,7 @@ import {
   ConcerningThought 
 } from '../../models/emotion-checkin.model';
 import { User } from '../../models/user.model';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-emotion-checkin-modal',
@@ -532,7 +533,11 @@ export class EmotionCheckinModalComponent implements OnInit {
             gratefulFor: formValue.gratefulFor && formValue.gratefulFor.trim() ? formValue.gratefulFor.trim() : null,
             proudOfToday: formValue.proudOfToday && formValue.proudOfToday.trim() ? formValue.proudOfToday.trim() : null,
             tomorrowGoal: formValue.tomorrowGoal && formValue.tomorrowGoal.trim() ? formValue.tomorrowGoal.trim() : null,
-            additionalNotes: formValue.additionalNotes && formValue.additionalNotes.trim() ? formValue.additionalNotes.trim() : null
+            additionalNotes: formValue.additionalNotes && formValue.additionalNotes.trim() ? formValue.additionalNotes.trim() : null,
+            // Send the local date/time so an evening check-in is not shifted to
+            // tomorrow by the server's UTC default.
+            recordDate: DateOnlyUtil.formatLocalDate(),
+            recordTime: DateOnlyUtil.formatLocalTime()
           };
 
           const result = await this.backendEmotionService.createEmotionCheckin(requestData).toPromise();
