@@ -1,23 +1,276 @@
 {
   "tips": [
-    { "id": "t1", "category": "Reassuring Mindset & Emotional Relief", "title": "1-Minute Morning Reset", "text": "Before getting out of bed, take 3 deep breaths and repeat: \"I am capable, resilient, and ready for today.\"", "timeOfDay": "Morning" },
-    { "id": "t2", "category": "Effortless Daily Habits", "title": "Stay Hydrated", "text": "Keep a full water bottle where you sit most, and take a sip every time you rest or feed your baby.", "timeOfDay": "Morning" },
-    { "id": "t3", "category": "Reassuring Mindset & Emotional Relief", "title": "Presence Over Progress", "text": "Feeding and holding your baby is the work today. If nothing else gets done, your day was still a success.", "timeOfDay": "Morning" },
-    { "id": "t4", "category": "Micro-Rests & Physical Comfort", "title": "3-Second Posture Drop", "text": "Drop your shoulders away from your ears, unclench your jaw, and take a long, slow breath out.", "timeOfDay": "Afternoon" },
-    { "id": "t5", "category": "Fresh Air & Micro-Connections", "title": "2-Minute Fresh Air", "text": "Step outside the front door or open a window to pull in fresh air and reset your mood instantly.", "timeOfDay": "Afternoon" },
-    { "id": "t6", "category": "Micro-Rests & Physical Comfort", "title": "Quick Confidence Boost", "text": "Take 2 minutes to wash your face, brush your hair, or put on mascara to feel instantly refreshed.", "timeOfDay": "Afternoon" },
-    { "id": "t7", "category": "Fresh Air & Micro-Connections", "title": "Low-Pressure Outings", "text": "Take a gentle stroller walk or sit at a local cafe. Getting out of the house doesn't need to be complicated.", "timeOfDay": "Afternoon" },
-    { "id": "t8", "category": "Reassuring Mindset & Emotional Relief", "title": "The Unapologetic Pass", "text": "The laundry and dishes can wait, for real. A quiet hour resting on the couch is time well spent.", "timeOfDay": "Evening" },
-    { "id": "t9", "category": "Protected Time & Boundaries", "title": "Delegate One Task", "text": "Pick one specific chore today, like folding laundry or washing dishes, and hand it off completely.", "timeOfDay": "Evening" },
-    { "id": "t10", "category": "Effortless Daily Habits", "title": "Cook Easy & Plan Simple", "text": "Stick to simple, quick meals or plan ahead so you aren't spending every evening in the kitchen.", "timeOfDay": "Evening" },
-    { "id": "t11", "category": "Protected Time & Boundaries", "title": "Set Gentle Boundaries", "text": "Give yourself full permission to say \"not right now\" to visitors when your battery feels drained.", "timeOfDay": "Evening" },
-    { "id": "t12", "category": "Micro-Rests & Physical Comfort", "title": "Screen-Free Micro-Nap", "text": "Put your phone face down, feet up, and close your eyes for 5 minutes to give your brain a quick recharge.", "timeOfDay": "Night" },
-    { "id": "t13", "category": "Protected Time & Boundaries", "title": "Uninterrupted Break", "text": "Schedule a long, warm shower or bath this week where someone else handles the baby completely.", "timeOfDay": "Night" },
-    { "id": "t14", "category": "Effortless Daily Habits", "title": "Low-Friction Hobbies", "text": "Keep a book, podcast, or easy craft ready to enjoy in quick 30-second pockets of free time.", "timeOfDay": "Night" },
-    { "id": "t15", "category": "Reassuring Mindset & Emotional Relief", "title": "Quiet Night Company", "text": "You are not alone right now. Thousands of moms across the world are up feeding their babies with you.", "timeOfDay": "Midnight" },
-    { "id": "t16", "category": "Micro-Rests & Physical Comfort", "title": "Low-Light Mode", "text": "Keep lights low and soft during midnight feeds to help both you and baby drift back to sleep easily.", "timeOfDay": "Midnight" },
-    { "id": "t17", "category": "Reassuring Mindset & Emotional Relief", "title": "The Quiet Hours", "text": "There is no rush right now. The world is asleep, and this quiet bonding moment belongs just to you two.", "timeOfDay": "Midnight" },
-    { "id": "t18", "category": "Effortless Daily Habits", "title": "Midnight Water Sip", "text": "Keep a water bottle right by your nursing or feeding chair for a quick sip during late-night wakeups.", "timeOfDay": "Midnight" },
-    { "id": "t19", "category": "Reassuring Mindset & Emotional Relief", "title": "One Feed at a Time", "text": "Don't count how many hours of sleep are left. Focus only on this current feed, then rest.", "timeOfDay": "Midnight" }
+    {
+      "id": "t1",
+      "category": "Effortless Daily Habits",
+      "title": "Morning Sun Exposure",
+      "text": "Open the windows or step outside for 2 minutes to soak in natural light. It helps reset your circadian rhythm and boosts your mood for the day ahead.",
+      "timeOfDay": "Morning",
+      "audience": "both"
+    },
+    {
+      "id": "t2",
+      "category": "Reassuring Mindset & Emotional Relief",
+      "title": "1-Minute Morning Reset",
+      "text": "Before getting out of bed, take 3 deep breaths and repeat: \"I am capable, resilient, and ready for today.\"",
+      "timeOfDay": "Morning",
+      "audience": "both"
+    },
+    {
+      "id": "t3",
+      "category": "Effortless Daily Habits",
+      "title": "Stay Hydrated",
+      "text": "Put a water bottle next to your feeding chair and take a sip every time baby latches or you sit down to rest.",
+      "timeOfDay": "Morning",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t4",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Morning Nausea Relief",
+      "text": "Keep plain crackers or rusk on your nightstand to eat a few bites before sitting up out of bed.",
+      "timeOfDay": "Morning",
+      "audience": "pregnant"
+    },
+    {
+      "id": "t5",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Quick Confidence Boost",
+      "text": "Take 2 minutes to wash your face with cool water, brush your hair, or put on a fresh shirt to feel instantly refreshed.",
+      "timeOfDay": "Afternoon",
+      "audience": "both"
+    },
+    {
+      "id": "t6",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "3-Second Posture Drop",
+      "text": "Drop your shoulders away from your ears, unclench your jaw, and take a long slow breath out.",
+      "timeOfDay": "Afternoon",
+      "audience": "both"
+    },
+    {
+      "id": "t7",
+      "category": "Fresh Air & Micro-Connections",
+      "title": "2-Minute Fresh Air",
+      "text": "Step outside the front door or open a window to pull in fresh air and reset your mood instantly.",
+      "timeOfDay": "Afternoon",
+      "audience": "both"
+    },
+    {
+      "id": "t8",
+      "category": "Effortless Daily Habits",
+      "title": "The Midday Hydration & Snack Refuel",
+      "text": "Grab a high-protein snack and finish a glass of water to beat the 2:00 PM energy slump.",
+      "timeOfDay": "Afternoon",
+      "audience": "both"
+    },
+    {
+      "id": "t9",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Upper Back Relief Stretch",
+      "text": "Roll your shoulders back and tilt your head gently side-to-side to release upper-back and neck tension that builds through the day.",
+      "timeOfDay": "Afternoon",
+      "audience": "pregnant"
+    },
+    {
+      "id": "t10",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Unburdening Reset",
+      "text": "Hand off the baby for 5 minutes and stretch your arms overhead and take that moment for yourself.",
+      "timeOfDay": "Afternoon",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t11",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Elevate & Unwind",
+      "text": "Prop your feet up on two pillows for 10 minutes to relieve pressure, reduce swelling, and rest your lower back.",
+      "timeOfDay": "Afternoon",
+      "audience": "pregnant"
+    },
+    {
+      "id": "t12",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Screen-Free Micro-Nap",
+      "text": "Put your phone face down, feet up, and close your eyes for 5 minutes to give your brain a quick recharge.",
+      "timeOfDay": "Afternoon",
+      "audience": "both"
+    },
+    {
+      "id": "t13",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Baby-Holding Relief",
+      "text": "Take 30 seconds to circle your wrists and slowly roll your neck to release the strain of holding and rocking all day.",
+      "timeOfDay": "Afternoon",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t14",
+      "category": "Fresh Air & Micro-Connections",
+      "title": "Low-Pressure Outings",
+      "text": "If energy allows, step outside for a gentle 5-10 minute walk in the cooler evening air to clear your head and lift your spirits.",
+      "timeOfDay": "Evening",
+      "audience": "both"
+    },
+    {
+      "id": "t15",
+      "category": "Protected Time & Boundaries",
+      "title": "Set Gentle Boundaries",
+      "text": "Give yourself full permission to say \"not right now\" to visitors when your battery feels drained.",
+      "timeOfDay": "Evening",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t16",
+      "category": "Effortless Daily Habits",
+      "title": "Dim the Lights Early",
+      "text": "Lower your home's overhead lighting 1-2 hours before bedtime to signal to your brain (and baby's) that nighttime is approaching.",
+      "timeOfDay": "Evening",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t17",
+      "category": "Reassuring Mindset & Emotional Relief",
+      "title": "Presence Over Progress",
+      "text": "Caring for yourself and your baby is the work today. If nothing else gets done, your day was still a success.",
+      "timeOfDay": "Evening",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t18",
+      "category": "Effortless Daily Habits",
+      "title": "Nesting Prep Buffer",
+      "text": "Pick one small baby setup task to finish early in the evening, then step away and give yourself full permission to rest.",
+      "timeOfDay": "Evening",
+      "audience": "pregnant"
+    },
+    {
+      "id": "t19",
+      "category": "Protected Time & Boundaries",
+      "title": "Uninterrupted Break",
+      "text": "Tonight, ask your partner or support person to take the baby for 15 minutes so you can have a warm, uninterrupted shower.",
+      "timeOfDay": "Evening",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t20",
+      "category": "Protected Time & Boundaries",
+      "title": "Hand Off the List",
+      "text": "If you have support, pass the remaining to-dos to them and go rest, your rest matters more than a clean counter.",
+      "timeOfDay": "Evening",
+      "audience": "pregnant"
+    },
+    {
+      "id": "t21",
+      "category": "Protected Time & Boundaries",
+      "title": "Silence Break",
+      "text": "Even 20 minutes of quiet - no tasks, no screens, no noise can restore more than you expect. Ask for that space if you can, or find it when baby next sleeps.",
+      "timeOfDay": "Evening",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t22",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Leg Swelling Drain",
+      "text": "Prop your legs up against a wall or high pillows for 5 minutes to instantly drain foot and leg swelling.",
+      "timeOfDay": "Evening",
+      "audience": "pregnant"
+    },
+    {
+      "id": "t23",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Mindless Comfort",
+      "text": "Close your eyes and play a soothing song so your brain can completely switch off.",
+      "timeOfDay": "Night",
+      "audience": "both"
+    },
+    {
+      "id": "t24",
+      "category": "Effortless Daily Habits",
+      "title": "Brain Dump Journaling",
+      "text": "Jot down tomorrow's to-dos or lingering worries on a notepad to clear your mind before closing your eyes.",
+      "timeOfDay": "Night",
+      "audience": "both"
+    },
+    {
+      "id": "t25",
+      "category": "Effortless Daily Habits",
+      "title": "Over-Prep the Station",
+      "text": "Restock diapers, wipes, and feeding supplies at your primary feeding spot before you go to sleep so you aren't searching in the dark.",
+      "timeOfDay": "Night",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t26",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Pillow Fortress Nesting",
+      "text": "Tuck a support pillow between your knees and under your bump to relieve hip strain before trying to fall asleep.",
+      "timeOfDay": "Night",
+      "audience": "pregnant"
+    },
+    {
+      "id": "t27",
+      "category": "Reassuring Mindset & Emotional Relief",
+      "title": "Unwind Mindset",
+      "text": "Set down your phone and play a comfort show or familiar playlist that asks nothing of your brain.",
+      "timeOfDay": "Night",
+      "audience": "pregnant"
+    },
+    {
+      "id": "t28",
+      "category": "Reassuring Mindset & Emotional Relief",
+      "title": "Brainpower Reset",
+      "text": "You've made a thousand micro-decisions today. Put on your favorite show or movie you've seen before and just breathe.",
+      "timeOfDay": "Night",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t29",
+      "category": "Reassuring Mindset & Emotional Relief",
+      "title": "Quiet Night Company",
+      "text": "You are not alone right now. Thousands of parents across the world are up feeding their babies with you.",
+      "timeOfDay": "Midnight",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t30",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Low-Light Mode",
+      "text": "Keep lights low and soft during midnight feeds to help both you and baby drift back to sleep easily.",
+      "timeOfDay": "Midnight",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t31",
+      "category": "Reassuring Mindset & Emotional Relief",
+      "title": "The Quiet Hours",
+      "text": "There is no rush right now. The world is asleep, and this quiet bonding moment belongs just to you two.",
+      "timeOfDay": "Midnight",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t32",
+      "category": "Effortless Daily Habits",
+      "title": "Midnight Water Sip",
+      "text": "Keep a water bottle right by your bed for a quick sip during late-night wakeups.",
+      "timeOfDay": "Midnight",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t33",
+      "category": "Reassuring Mindset & Emotional Relief",
+      "title": "One Feed at a Time",
+      "text": "Don't count how many hours of sleep are left. Focus only on this current feed, then rest.",
+      "timeOfDay": "Midnight",
+      "audience": "new_mom"
+    },
+    {
+      "id": "t34",
+      "category": "Micro-Rests & Physical Comfort",
+      "title": "Midnight Position Shift",
+      "text": "If you find yourself watching the clock, try shifting your pregnancy pillow and taking 3 slow breaths to ease yourself back into rest.",
+      "timeOfDay": "Midnight",
+      "audience": "pregnant"
+    }
   ]
 }
