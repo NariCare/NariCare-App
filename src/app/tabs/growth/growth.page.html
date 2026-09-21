@@ -216,7 +216,7 @@
           
           <div class="section-content">
             <!-- Empty state -->
-            <div class="journey-empty" *ngIf="getLastTrackTime() === '--'">
+            <div class="journey-empty" *ngIf="!hasFeedActivity()">
               <div class="journey-empty-icon breastfeeding">
                 <img src="assets/Breastfeeding journey.svg" alt="" aria-hidden="true">
               </div>
@@ -229,7 +229,7 @@
             </div>
 
             <!-- Last Feed Summary -->
-            <div class="last-activity-card" *ngIf="selectedBaby && getLastTrackTime() !== '--'">
+            <div class="last-activity-card" *ngIf="selectedBaby && hasFeedActivity()">
               <div class="activity-header">
                 <div class="activity-icon breastfeeding">
                   <ion-icon name="ellipse" *ngIf="getLastTrackBreastSide() === 'both'"></ion-icon>
@@ -247,7 +247,7 @@
             </div>
             
             <!-- Recent Feeds -->
-            <div class="recent-activities" *ngIf="getLastTrackTime() !== '--' && (recentRecords$ | async) as recentRecords">
+            <div class="recent-activities" *ngIf="hasFeedActivity() && (recentRecords$ | async) as recentRecords">
               <h4 class="activities-title">Recent Feeds</h4>
               <div class="recent-feeds-list">
                 <div *ngFor="let record of recentRecords | slice:0:3" class="feed-record-wrapper">
@@ -313,12 +313,6 @@
               </div>
             </div>
             
-            <ng-template #noRecentFeeds>
-              <div class="empty-activities">
-                <ion-icon name="body"></ion-icon>
-                <p>No recent feeds tracked</p>
-              </div>
-            </ng-template>
           </div>
         </div>
 
@@ -336,7 +330,7 @@
           
           <div class="section-content">
             <!-- Empty state -->
-            <div class="journey-empty" *ngIf="getLastPumpTime() === '--'">
+            <div class="journey-empty" *ngIf="!hasPumpActivity()">
               <div class="journey-empty-icon pumping">
                 <img src="assets/Pumping journey.svg" alt="" aria-hidden="true">
               </div>
@@ -349,7 +343,7 @@
             </div>
 
             <!-- Last Pump Summary -->
-            <div class="last-activity-card" *ngIf="getLastPumpTime() !== '--'">
+            <div class="last-activity-card" *ngIf="hasPumpActivity()">
               <div class="activity-header">
                 <div class="activity-icon pumping">
                   <ion-icon name="ellipse" *ngIf="getLastPumpSide() === 'both'"></ion-icon>
@@ -367,7 +361,7 @@
             </div>
             
             <!-- Recent Pumping Sessions -->
-            <div class="recent-activities" *ngIf="getLastPumpTime() !== '--' && (pumpingRecords$ | async) as pumpingRecords">
+            <div class="recent-activities" *ngIf="hasPumpActivity() && (pumpingRecords$ | async) as pumpingRecords">
               <h4 class="activities-title">Recent Sessions</h4>
               <div class="activities-list">
                 <div *ngFor="let record of pumpingRecords | slice:0:3" class="activity-item pump-item">
@@ -396,12 +390,6 @@
               </div>
             </div>
             
-            <ng-template #noRecentPumps>
-              <div class="empty-activities">
-                <ion-icon name="medical"></ion-icon>
-                <p>No recent pump sessions</p>
-              </div>
-            </ng-template>
           </div>
         </div>
 

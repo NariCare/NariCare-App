@@ -237,7 +237,10 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
     .emotional-faces {
       display: flex;
       gap: 0.375rem;
-      flex-shrink: 0;
+      flex-shrink: 1;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 55%; // keep the label readable; chips wrap instead of overflowing at 360px
     }
 
     .mood-chip {
