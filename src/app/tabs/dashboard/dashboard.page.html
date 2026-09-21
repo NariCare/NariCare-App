@@ -16,11 +16,12 @@
           <div class="notification-dot"></div>
         </div>
 
+<!-- HIDDEN for now (Komal request): header profile avatar. Kept in code to restore later.
         <ion-button
           fill="clear"
           class="profile-button-overlay"
           (click)="navigateToProfile()">
-          <!-- Show baby image if baby exists, otherwise show person icon -->
+          Show baby image if baby exists, otherwise show person icon
           <div class="profile-avatar" *ngIf="user?.babies && user.babies.length > 0; else personIcon">
             <img
               [src]="getBabyAvatarImage()"
@@ -31,6 +32,7 @@
             <ion-icon name="person-circle" slot="icon-only"></ion-icon>
           </ng-template>
         </ion-button>
+        -->
       </div>
     </div>
   </ion-toolbar>
