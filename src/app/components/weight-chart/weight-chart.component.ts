@@ -31,15 +31,9 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnInit() {
-    console.log('WeightChartComponent ngOnInit');
-    console.log('Weight records:', this.weightRecords);
-    console.log('Baby gender:', this.babyGender);
-    console.log('Baby birth date:', this.babyBirthDate);
   }
 
   ngAfterViewInit() {
-    console.log('WeightChartComponent ngAfterViewInit');
-    console.log('Chart container element:', this.chartContainer?.nativeElement);
     
     // Initialize chart immediately after view init
     if (this.chartContainer?.nativeElement) {
@@ -58,24 +52,16 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    console.log('WeightChartComponent ngOnChanges', changes);
     if (changes['weightRecords'] || changes['babyGender'] || changes['babyBirthDate'] || changes['babyBirthWeight']) {
       if (this.chart) {
-        console.log('Updating existing chart');
         this.updateChart();
       } else if (this.chartContainer?.nativeElement) {
-        console.log('Creating chart from ngOnChanges');
         this.initializeChart();
       }
     }
   }
 
   public initializeChart() {
-    console.log('Initializing chart...');
-    console.log('Chart container available:', !!this.chartContainer?.nativeElement);
-    console.log('Weight records:', this.weightRecords);
-    console.log('Baby gender:', this.babyGender);
-    console.log('Baby birth date:', this.babyBirthDate);
     
     this.isLoading = true;
     this.chartError = '';
@@ -169,7 +155,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
             return weeks.toString();
           } else {
             // Show numbered months: 1, 2, 3, 4...
-            const months = Math.floor(weeks / 4);
+            const months = Math.floor(weeks / 4.345); // ~weeks per month, matches SD-line placement
             if (months === 0) return 'Birth';
             return months.toString();
           }
@@ -301,7 +287,6 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   private createChart() {
-    console.log('Creating weight chart...');
     
     try {
       // Validate data first
@@ -311,7 +296,6 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
 
       const babyGrowthPoints = this.convertToGrowthPoints();
       const that = this;
-      console.log('Baby growth points:', babyGrowthPoints);
       
       // Validate WHO service
       if (!this.whoService) {
@@ -319,7 +303,6 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
       }
 
       const chartData = this.whoService.getWeightChart(this.babyGender);
-      console.log('WHO chart data:', chartData);
 
       if (!chartData || !chartData.data || chartData.data.length === 0) {
         throw new Error('WHO chart data is not available');
@@ -407,7 +390,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
                 ageText = `${weeks} week${weeks === 1 ? '' : 's'} old`;
               } else {
                 // Show months for older babies
-                const months = Math.floor(weeks / 4);
+                const months = Math.floor(weeks / 4.345); // ~weeks per month, matches SD-line placement
                 ageText = months === 0 ? 'Birth' : `${months} month${months === 1 ? '' : 's'} old`;
               }
               
@@ -484,25 +467,20 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
         chartOptions.series!.push(babySeries);
       }
 
-      console.log('Creating Highcharts chart with options:', chartOptions);
-      console.log('Chart container element:', this.chartContainer.nativeElement);
       
       // Ensure container has proper dimensions
       if (this.chartContainer.nativeElement.offsetWidth === 0) {
-        console.log('Container has no width, setting default dimensions');
         this.chartContainer.nativeElement.style.width = '100%';
         this.chartContainer.nativeElement.style.height = '400px';
       }
       
       this.chart = Highcharts.chart(this.chartContainer.nativeElement, chartOptions);
       
-      console.log('Chart created successfully:', this.chart);
       this.updatePercentileInfo(babyGrowthPoints);
       this.isLoading = false;
       
     } catch (error) {
       console.error('Error creating chart:', error);
-      console.log('Attempting to create simplified fallback chart...');
       try {
         this.createSimplifiedChart();
       } catch (fallbackError) {
@@ -514,7 +492,6 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
   }
 
   private createSimplifiedChart() {
-    console.log('Creating simplified chart as fallback...');
     
     const babyGrowthPoints = this.convertToGrowthPoints();
     
@@ -577,9 +554,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
       console.warn('Could not add data series, showing empty chart:', seriesError);
     }
 
-    console.log('Creating simplified Highcharts chart...');
     this.chart = Highcharts.chart(this.chartContainer.nativeElement, simpleOptions);
-    console.log('Simplified chart created successfully');
     
     this.updatePercentileInfo(babyGrowthPoints);
     this.isLoading = false;
@@ -628,7 +603,6 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
 
   private updateChart() {
     if (!this.chart) {
-      console.log('No existing chart, creating new one');
       this.createChart();
       return;
     }
@@ -636,9 +610,10 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     try {
       const babyGrowthPoints = this.convertToGrowthPoints();
       
-      // Find and update baby's data series
-      const babySeriesIndex = this.chart.series.findIndex((s: any) => s.name === 'Baby\'s Weight');
-      
+      // Find and update baby's data series. Name must match createChart's
+      // series name ('Your Baby\'s Weight'), else a duplicate series is added.
+      const babySeriesIndex = this.chart.series.findIndex((s: any) => s.name === 'Your Baby\'s Weight');
+
       if (babySeriesIndex >= 0 && babyGrowthPoints.length > 0) {
         const newData = babyGrowthPoints.map(point => ({
           x: point.ageInWeeks,
@@ -649,7 +624,7 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
       } else if (babyGrowthPoints.length > 0) {
         // Add baby series if it doesn't exist
         this.chart.addSeries({
-          name: 'Baby\'s Weight',
+          name: 'Your Baby\'s Weight',
           type: 'scatter',
           data: babyGrowthPoints.map(point => ({
             x: point.ageInWeeks,
@@ -678,7 +653,6 @@ export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
     const hasBirthWeight = !!this.babyBirthWeight && this.babyBirthWeight > 0;
 
     if (!hasRecords && !hasBirthWeight) {
-      console.log('No weight records or birth weight available');
       return [];
     }
 

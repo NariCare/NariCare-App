@@ -55,8 +55,6 @@ export class BabyCreationModalComponent implements OnInit {
           dateOfBirth: defaultDate
         });
       }
-      
-      console.log('Defaulted DOB and units from existing baby:', firstBaby.dateOfBirth);
     }
   }
 

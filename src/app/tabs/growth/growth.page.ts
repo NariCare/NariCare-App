@@ -270,7 +270,6 @@ export class GrowthPage implements OnInit {
       if (firstBaby?.id) {
         this.pumpingRecords$ = this.backendPumpingService.getRecentPumpingRecords(firstBaby.id, 10).pipe(
           map(records => {
-            console.log('Recent pumping records:', records);
             this.pumpingRecords = records || []; // Store records for synchronous access
             return records;
           }),
@@ -1151,8 +1150,18 @@ export class GrowthPage implements OnInit {
 
 
   getLastTrackTime(): string {
-    if (!this.lastTrack) return '--';
+    if (!this.lastTrack || !this.lastTrack.time) return '--';
     return this.lastTrack.time;
+  }
+
+  /** True when a feed has been logged (independent of whether it carries a time). */
+  hasFeedActivity(): boolean {
+    return !!this.lastTrack;
+  }
+
+  /** True when a pump session has been logged. */
+  hasPumpActivity(): boolean {
+    return (this.pumpingRecords || []).length > 0;
   }
 
   getLastTrackDate(): string {
@@ -1182,28 +1191,30 @@ export class GrowthPage implements OnInit {
 
   // Pumping helper methods
   getLastPumpTime(): string {
-    // Get the most recent pumping record
-    const records = this.pumpingRecords || [];
-    if (records.length === 0) return '--';
-    
-    const lastPump = records[0];
+    const lastPump = this.getMostRecentPump();
+    if (!lastPump) return '--';
     const time = lastPump.record_time || lastPump.time;
     return time ? time.slice(0, 5) : '--';
   }
 
-  getLastPumpSide(): string {
+  /** Most recent pump by date (do not assume the API returns newest-first). */
+  private getMostRecentPump(): any | null {
     const records = this.pumpingRecords || [];
-    if (records.length === 0) return '--';
-    
-    const lastPump = records[0];
+    if (records.length === 0) return null;
+    return [...records].sort((a, b) =>
+      new Date(b.record_date || b.date).getTime() - new Date(a.record_date || a.date).getTime()
+    )[0];
+  }
+
+  getLastPumpSide(): string {
+    const lastPump = this.getMostRecentPump();
+    if (!lastPump) return '--';
     return lastPump.pumping_side || lastPump.pumpingSide || '--';
   }
 
   getLastPumpOutput(): number {
-    const records = this.pumpingRecords || [];
-    if (records.length === 0) return 0;
-    
-    const lastPump = records[0];
+    const lastPump = this.getMostRecentPump();
+    if (!lastPump) return 0;
     return lastPump.total_output || lastPump.totalOutput || 0;
   }
 

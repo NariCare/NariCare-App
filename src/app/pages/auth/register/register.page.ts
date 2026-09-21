@@ -5,6 +5,7 @@ import { LoadingController, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { ApiService } from '../../../services/api.service';
+import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
 
 interface StepDefinition {
   id: string;
@@ -715,19 +716,19 @@ export class RegisterPage implements OnInit {
   }
 
   getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
   }
 
   getMaxDueDate(): string {
     const max = new Date();
     max.setFullYear(max.getFullYear() + 1);
-    return max.toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate(max);
   }
 
   getMinDeliveryDate(): string {
     const min = new Date();
     min.setFullYear(min.getFullYear() - 3);
-    return min.toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate(min);
   }
 
   onDateSelect(event: any, fieldName: string) {
