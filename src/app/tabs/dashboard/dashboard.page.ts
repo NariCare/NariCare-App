@@ -181,7 +181,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   private refreshTip(): void {
     const block = this.getTimeOfDay();
     this.currentBlock = block;
-    this.currentTip = this.selfCareService.pickTip(this.selfCareTips, block);
+    this.currentTip = this.selfCareService.pickTip(this.selfCareTips, block, this.isPregnantJourney());
   }
 
   getTimeOfDay(): TimeBlock {

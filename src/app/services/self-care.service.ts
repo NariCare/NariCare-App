@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { map, catchError, shareReplay } from 'rxjs/operators';
 
 export type TimeBlock = 'Morning' | 'Afternoon' | 'Evening' | 'Night' | 'Midnight';
+export type TipAudience = 'both' | 'pregnant' | 'new_mom';
 
 export interface SelfCareTip {
   id: string;
@@ -11,6 +12,7 @@ export interface SelfCareTip {
   title: string;
   text: string;
   timeOfDay: TimeBlock;
+  audience: TipAudience;
 }
 
 interface SelfCareTipsData {
@@ -41,8 +43,16 @@ export class SelfCareService {
   }
 
   // Random pick within the block, not day-locked: caller re-invokes on block change / app resume.
-  pickTip(tips: SelfCareTip[], block: TimeBlock): SelfCareTip | null {
-    const matching = tips.filter(t => t.timeOfDay === block);
+  // Filters to the mother's stage (pregnant vs new mom); 'both' tips always qualify.
+  pickTip(tips: SelfCareTip[], block: TimeBlock, isPregnant?: boolean): SelfCareTip | null {
+    const audience: TipAudience = isPregnant ? 'pregnant' : 'new_mom';
+    let matching = tips.filter(t =>
+      t.timeOfDay === block && (t.audience === 'both' || t.audience === audience)
+    );
+    // Fall back to any tip in the block if stage-specific filtering leaves none.
+    if (!matching.length) {
+      matching = tips.filter(t => t.timeOfDay === block);
+    }
     if (!matching.length) return null;
     return matching[Math.floor(Math.random() * matching.length)];
   }
