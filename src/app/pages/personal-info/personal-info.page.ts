@@ -210,7 +210,17 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
   get isMotherhoodJourneyLocked(): boolean {
     return !!this.user?.motherType;
   }
-  
+
+  // Normalize a date input to YYYY-MM-DD; some platforms surface it as DD/MM/YYYY.
+  private formatDateForApi(dateValue: string): string {
+    if (!dateValue) { return ''; }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) { return dateValue; }
+    const dmy = dateValue.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (dmy) { return `${dmy[3]}-${dmy[2]}-${dmy[1]}`; }
+    const d = new Date(dateValue);
+    return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+  }
+
   async onSubmit() {
     if (this.personalInfoForm.valid) {
       const loading = await this.loadingController.create({
@@ -221,15 +231,19 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       
       try {
         const formValue = this.personalInfoForm.value;
-        const updateData = {
+        const updateData: any = {
           firstName: formValue.firstName,
           lastName: formValue.lastName,
           phoneNumber: formValue.phoneNumber,
           whatsappNumber: formValue.whatsappNumber,
-          motherType: formValue.motherType,
-          dueDate: formValue.dueDate ? new Date(formValue.dueDate) : undefined,
           timezone: formValue.timezone
         };
+        // Send due date as a normalized YYYY-MM-DD string (the date input can
+        // surface DD/MM/YYYY on some platforms, which new Date() misparses).
+        const normalizedDue = this.formatDateForApi(formValue.dueDate);
+        if (normalizedDue) {
+          updateData.dueDate = normalizedDue;
+        }
         
         await this.backendAuthService.updateUserProfile(updateData);
         await loading.dismiss();
