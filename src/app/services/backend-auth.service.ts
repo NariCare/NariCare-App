@@ -155,14 +155,17 @@ export class BackendAuthService {
         this.setCurrentUser(loginUser);
         this.twoFactorRequiredSubject.next(false);
 
-        try {
-          const profileResponse = await this.apiService.getUserProfile().toPromise();
-          if (profileResponse?.success && profileResponse.data) {
-            this.setCurrentUser(this.transformUserData(profileResponse.data));
-          }
-        } catch (profileError) {
-          console.warn('Failed to load full profile after login:', profileError);
-        }
+        // Navigate immediately on the stripped login user so sign-in feels instant.
+        // The full profile (motherType/dueDate/babies) is fetched in the background
+        // and pushed into currentUser$; the dashboard subscribes and re-renders when
+        // it lands, so we don't block the user on a second round-trip.
+        this.apiService.getUserProfile().toPromise()
+          .then(profileResponse => {
+            if (profileResponse?.success && profileResponse.data) {
+              this.setCurrentUser(this.transformUserData(profileResponse.data));
+            }
+          })
+          .catch(profileError => console.warn('Failed to load full profile after login:', profileError));
 
         // Navigate to dashboard (onboarding temporarily disabled)
         // Only redirect if not already on a valid tabs page
@@ -248,18 +251,17 @@ export class BackendAuthService {
   }
 
   async logout(): Promise<void> {
-    try {
-      await this.apiService.logout().toPromise();
-    } catch (error) {
-      console.warn('Logout API call failed, but clearing local state:', error);
-    } finally {
-      // Always clear local state
-      await this.clearAllUserData();
-      this.setCurrentUser(null);
-      this.twoFactorRequiredSubject.next(false);
-      this.pendingEmail = '';
-      this.router.navigate(['/auth/login']);
-    }
+    // Clear local state and navigate FIRST so logout is instant. The JWT is
+    // stateless (the server logout endpoint just logs and returns 200), so we
+    // don't wait on it - fire it non-blocking afterwards.
+    await this.clearAllUserData();
+    this.setCurrentUser(null);
+    this.twoFactorRequiredSubject.next(false);
+    this.pendingEmail = '';
+    this.router.navigate(['/auth/login']);
+
+    this.apiService.logout().toPromise()
+      .catch(error => console.warn('Logout API call failed (local state already cleared):', error));
   }
 
   private async clearAllUserData(): Promise<void> {

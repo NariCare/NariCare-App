@@ -6,14 +6,18 @@ import { User } from '../models/user.model';
 import { Storage } from '@ionic/storage-angular';
 import { environment } from '../../environments/environment';
 import { GrowthTrackingService } from './growth-tracking.service';
+import { BackendAuthService } from './backend-auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  // Legacy service kept for its method surface (13 consumers). Auth STATE is the
+  // single source of truth in BackendAuthService; proxy to it so surfaces that
+  // subscribe here (e.g. the "sign in" banner) update after login/logout.
   private currentUserSubject = new BehaviorSubject<User | null>(null);
-  public currentUser$ = this.currentUserSubject.asObservable();
-  
+  public currentUser$: Observable<User | null>;
+
   // Firebase services (loaded conditionally)
   private afAuth: any;
   private firestore: any;
@@ -22,8 +26,12 @@ export class AuthService {
   constructor(
     private router: Router,
     private storage: Storage,
-    private growthTrackingService: GrowthTrackingService
+    private growthTrackingService: GrowthTrackingService,
+    private backendAuthService: BackendAuthService
   ) {
+    // Proxy auth state to the single source of truth so all legacy consumers
+    // (incl. the sign-in banner) reflect login/logout immediately.
+    this.currentUser$ = this.backendAuthService.currentUser$;
     this.initializeAuth();
   }
 
@@ -275,7 +283,7 @@ export class AuthService {
   }
 
   getCurrentUser(): User | null {
-    return this.currentUserSubject.value;
+    return this.backendAuthService.getCurrentUser();
   }
 
   isAuthenticated(): Observable<boolean> {
