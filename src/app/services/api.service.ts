@@ -1278,7 +1278,10 @@ export class ApiService {
     
     if (error.error) {
       // Check for API response structure - prioritize 'error' field first since that's what your API uses
-      if (error.error.error) {
+      if (error.error.details && Array.isArray(error.error.details) && error.error.details.length) {
+        // Validation format: { error: "Validation failed", details: [{ field, message }] }
+        errorMessage = error.error.details.map((d: any) => d.message).filter(Boolean).join('. ');
+      } else if (error.error.error) {
         // API error format: { success: false, error: "Error message" }
         errorMessage = error.error.error;
       } else if (error.error.message) {

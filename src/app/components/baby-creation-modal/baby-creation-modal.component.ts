@@ -28,7 +28,7 @@ export class BabyCreationModalComponent implements OnInit {
       dateOfBirth: ['', [Validators.required, this.noFutureDateValidator]],
       gender: ['', [Validators.required]],
       birthWeight: ['', [Validators.required, Validators.min(0.5), Validators.max(10)]],
-      birthHeight: ['', [Validators.required, Validators.min(20), Validators.max(80)]]
+      birthHeight: ['', [Validators.required, Validators.min(20), Validators.max(70)]] // match server cap
     });
   }
 
@@ -213,8 +213,13 @@ export class BabyCreationModalComponent implements OnInit {
   }
 
   private formatDateForApi(dateValue: string): string {
-    // ion-input with type="date" returns YYYY-MM-DD format, which is perfect for API
-    return dateValue;
+    // Normalize to YYYY-MM-DD; some platforms surface the date input as DD/MM/YYYY.
+    if (!dateValue) { return dateValue; }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) { return dateValue; }
+    const dmy = dateValue.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (dmy) { return `${dmy[3]}-${dmy[2]}-${dmy[1]}`; }
+    const d = new Date(dateValue);
+    return isNaN(d.getTime()) ? dateValue : d.toISOString().split('T')[0];
   }
   
 }
