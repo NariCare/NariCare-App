@@ -378,7 +378,8 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   }
 }
 
-.empty-babies {
+.empty-babies,
+.pregnant-tracker-placeholder {
   text-align: center;
   padding: 2rem 1.5rem 1rem 1.5rem;
   color: $muted;

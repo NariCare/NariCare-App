@@ -1485,6 +1485,12 @@ export class GrowthPage implements OnInit {
     return this.user?.isOnboardingCompleted || false;
   }
 
+  // Pregnant mom with no baby yet: hide baby tracking and emotional check-in.
+  isPregnantNoBaby(): boolean {
+    const hasBaby = !!(this.user?.babies && this.user.babies.length > 0);
+    return this.user?.motherType === 'pregnant' && !hasBaby;
+  }
+
   handleTrackerClick(action: () => void) {
     // if (!this.isOnboardingCompleted()) {
     //   this.showOnboardingRequiredAlert();
