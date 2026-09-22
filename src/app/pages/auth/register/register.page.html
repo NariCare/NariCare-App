@@ -65,7 +65,7 @@
     <!-- Steps 1+: question form -->
     <form *ngIf="!isWelcomeStep" [formGroup]="registerForm" (ngSubmit)="nextStep()" class="register-form">
       <div class="step-heading">
-        <h2 class="step-title">{{ stepTitle }}</h2>
+        <h2 class="step-title">{{ currentStep === 6 ? dateStepTitle : stepTitle }}</h2>
         <p class="step-subtitle" *ngIf="currentStep === 1">We'll use this to personalize your experience.</p>
         <p class="step-subtitle" *ngIf="currentStep === 2">We'll store this securely. It helps us keep you safe.</p>
         <p class="step-subtitle" *ngIf="currentStep === 3">This is where you'll receive your OTP to log in.</p>
@@ -235,31 +235,21 @@
       </div>
 
       <!-- Step: Date -->
+      <!-- Single ion-datetime (heavy component built once, no size="cover" layout cost);
+           min/max/value + field switch on pregnant vs new-mom. -->
       <div class="step-body" *ngIf="currentStep === 6">
-        <div class="input-container datetime-container" *ngIf="isPregnant">
+        <div class="input-container datetime-container">
           <ion-datetime
             presentation="date"
-            size="cover"
-            [value]="registerForm.get('dueDate')?.value || dueDateAnchor"
-            [min]="todayDate"
-            [max]="maxDueDate"
-            (ionChange)="onDateSelect($event, 'dueDate')">
+            [value]="dateStepValue"
+            [min]="isPregnant ? todayDate : minDeliveryDate"
+            [max]="isPregnant ? maxDueDate : todayDate"
+            (ionChange)="onDateSelect($event, isPregnant ? 'dueDate' : 'deliveryDate')">
           </ion-datetime>
-          <div class="error-message" *ngIf="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
+          <div class="error-message" *ngIf="isPregnant && registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
             {{ getErrorMessage('dueDate') }}
           </div>
-        </div>
-
-        <div class="input-container datetime-container" *ngIf="!isPregnant">
-          <ion-datetime
-            presentation="date"
-            size="cover"
-            [value]="registerForm.get('deliveryDate')?.value || deliveryDateAnchor"
-            [min]="minDeliveryDate"
-            [max]="todayDate"
-            (ionChange)="onDateSelect($event, 'deliveryDate')">
-          </ion-datetime>
-          <div class="error-message" *ngIf="registerForm.get('deliveryDate')?.invalid && registerForm.get('deliveryDate')?.touched">
+          <div class="error-message" *ngIf="!isPregnant && registerForm.get('deliveryDate')?.invalid && registerForm.get('deliveryDate')?.touched">
             {{ getErrorMessage('deliveryDate') }}
           </div>
         </div>
