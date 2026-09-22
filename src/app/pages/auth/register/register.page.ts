@@ -29,12 +29,6 @@ export class RegisterPage implements OnInit {
   readonly todayDate = this.getTodayDate();
   readonly maxDueDate = this.getMaxDueDate();
   readonly minDeliveryDate = this.getMinDeliveryDate();
-  // Anchor date so the calendar paints immediately instead of sitting blank for
-  // a few seconds while ion-datetime resolves a default from a null value.
-  // Note: ion-datetime visually highlights this date, but the form control stays
-  // empty until onDateSelect fires, so the required-date validation still holds.
-  readonly dueDateAnchor = this.todayDate;
-  readonly deliveryDateAnchor = this.todayDate;
 
   steps: StepDefinition[] = [
     { id: 'welcome', title: 'Welcome to NariCare', controls: [] },
@@ -150,14 +144,6 @@ export class RegisterPage implements OnInit {
   // Date step (6) needs a stage-specific title; every other step's title is static.
   get dateStepTitle(): string {
     return this.isPregnant ? 'When is your due date?' : 'When did your baby arrive?';
-  }
-
-  // Value bound to the single date-step ion-datetime (dueDate for pregnant, deliveryDate otherwise).
-  get dateStepValue(): string {
-    if (this.isPregnant) {
-      return this.registerForm.get('dueDate')?.value || this.dueDateAnchor;
-    }
-    return this.registerForm.get('deliveryDate')?.value || this.deliveryDateAnchor;
   }
 
   get isPregnant(): boolean {

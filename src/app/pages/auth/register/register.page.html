@@ -235,23 +235,48 @@
       </div>
 
       <!-- Step: Date -->
-      <!-- Single ion-datetime (heavy component built once, no size="cover" layout cost);
-           min/max/value + field switch on pregnant vs new-mom. -->
+      <!-- Native date input (opens the OS calendar, renders instantly); field
+           switches on pregnant vs new-mom. -->
       <div class="step-body" *ngIf="currentStep === 6">
-        <div class="input-container datetime-container">
-          <ion-datetime
-            presentation="date"
-            [value]="dateStepValue"
-            [min]="isPregnant ? todayDate : minDeliveryDate"
-            [max]="isPregnant ? maxDueDate : todayDate"
-            (ionChange)="onDateSelect($event, isPregnant ? 'dueDate' : 'deliveryDate')">
-          </ion-datetime>
-          <div class="error-message" *ngIf="isPregnant && registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
+        <div class="input-container datetime-container" *ngIf="isPregnant">
+          <label class="date-label">Due date</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              type="date"
+              placeholder="Select due date"
+              [value]="registerForm.get('dueDate')?.value"
+              [min]="todayDate"
+              [max]="maxDueDate"
+              (ionChange)="onDateSelect($event, 'dueDate')">
+            </ion-input>
+          </ion-item>
+          <div class="error-message" *ngIf="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
             {{ getErrorMessage('dueDate') }}
           </div>
-          <div class="error-message" *ngIf="!isPregnant && registerForm.get('deliveryDate')?.invalid && registerForm.get('deliveryDate')?.touched">
+        </div>
+
+        <div class="input-container datetime-container" *ngIf="!isPregnant">
+          <label class="date-label">Delivery date</label>
+          <ion-item lines="none" class="input-item">
+            <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-input
+              type="date"
+              placeholder="Select delivery date"
+              [value]="registerForm.get('deliveryDate')?.value"
+              [min]="minDeliveryDate"
+              [max]="todayDate"
+              (ionChange)="onDateSelect($event, 'deliveryDate')">
+            </ion-input>
+          </ion-item>
+          <div class="error-message" *ngIf="registerForm.get('deliveryDate')?.invalid && registerForm.get('deliveryDate')?.touched">
             {{ getErrorMessage('deliveryDate') }}
           </div>
+        </div>
+
+        <div class="date-reassurance">
+          <ion-icon name="heart-outline"></ion-icon>
+          <p>We use this only to time gentle, relevant guidance for you. You can change it later.</p>
         </div>
       </div>
 
