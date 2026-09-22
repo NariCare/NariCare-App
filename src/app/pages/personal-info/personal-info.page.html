@@ -209,7 +209,9 @@
             <ion-input
               formControlName="dueDate"
               type="date"
-              placeholder="Select your due date">
+              placeholder="Select your due date"
+              (ionChange)="onDueDateChange($event)"
+              (ionInput)="onDueDateChange($event)">
             </ion-input>
           </ion-item>
         </div>

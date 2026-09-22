@@ -211,6 +211,14 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     return !!this.user?.motherType;
   }
 
+  // ion-input type=date with formControlName alone does not always sync the
+  // native picker value back to the reactive control, so push it explicitly.
+  onDueDateChange(event: any) {
+    const value = event?.detail?.value ?? '';
+    this.personalInfoForm.get('dueDate')?.setValue(value);
+    this.personalInfoForm.get('dueDate')?.markAsDirty();
+  }
+
   // Normalize a date input to YYYY-MM-DD; some platforms surface it as DD/MM/YYYY.
   private formatDateForApi(dateValue: string): string {
     if (!dateValue) { return ''; }
