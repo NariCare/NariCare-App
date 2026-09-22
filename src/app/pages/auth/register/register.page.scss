@@ -210,14 +210,56 @@
 }
 
 .datetime-container {
-  ion-datetime {
+  .input-item {
     width: 100%;
     border-radius: 16px;
-    box-shadow: none;
     border: 1.5px solid #e0ddf5;
-    padding: 12px 8px;
-    --highlight-color: var(--ion-color-primary);
-    --highlight-color-activated: var(--ion-color-primary);
+    --background: transparent;
+    --padding-start: 12px;
+    --inner-padding-end: 12px;
+    --min-height: 56px;
+  }
+
+  .input-icon {
+    color: var(--ion-color-primary);
+    font-size: 1.25rem;
+    margin-inline-end: 8px;
+  }
+
+  ion-input[type="date"] {
+    font-size: 1rem;
+  }
+}
+
+.date-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 0 0 8px 4px;
+}
+
+.date-reassurance {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f6f5fe;
+
+  ion-icon {
+    color: var(--ion-color-primary);
+    font-size: 1.15rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #6b7280;
   }
 }
 
