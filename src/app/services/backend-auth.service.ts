@@ -147,25 +147,21 @@ export class BackendAuthService {
           return;
         }
         
-        // Normal login success. The login endpoint's user payload is a stripped
-        // shape (id/email/name/role only) - it lacks motherType/dueDate/babies,
-        // which the dashboard's journey card needs on first render. Fetch the
-        // full profile before anything downstream reads currentUser$.
+        // Normal login success. The login endpoint now returns the full profile
+        // (babies/tier/prefs), so currentUser$ is fully populated in one round trip.
         const loginUser = this.transformUserData(response.data.user);
         this.setCurrentUser(loginUser);
         this.twoFactorRequiredSubject.next(false);
 
-        // Navigate immediately on the stripped login user so sign-in feels instant.
-        // The full profile (motherType/dueDate/babies) is fetched in the background
-        // and pushed into currentUser$; the dashboard subscribes and re-renders when
-        // it lands, so we don't block the user on a second round-trip.
-        this.apiService.getUserProfile().toPromise()
-          .then(profileResponse => {
-            if (profileResponse?.success && profileResponse.data) {
-              this.setCurrentUser(this.transformUserData(profileResponse.data));
-            }
-          })
-          .catch(profileError => console.warn('Failed to load full profile after login:', profileError));
+        // (Commented out) Background profile refetch - redundant now that login
+        // returns the full profile. Kept for reference.
+        // this.apiService.getUserProfile().toPromise()
+        //   .then(profileResponse => {
+        //     if (profileResponse?.success && profileResponse.data) {
+        //       this.setCurrentUser(this.transformUserData(profileResponse.data));
+        //     }
+        //   })
+        //   .catch(profileError => console.warn('Failed to load full profile after login:', profileError));
 
         // Navigate to dashboard (onboarding temporarily disabled)
         // Only redirect if not already on a valid tabs page
@@ -255,6 +251,7 @@ export class BackendAuthService {
     // stateless (the server logout endpoint just logs and returns 200), so we
     // don't wait on it - fire it non-blocking afterwards.
     await this.clearAllUserData();
+    this.apiService.clearAllUserData(); // synchronous token/localStorage clear
     this.setCurrentUser(null);
     this.twoFactorRequiredSubject.next(false);
     this.pendingEmail = '';
