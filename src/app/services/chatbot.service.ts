@@ -781,11 +781,8 @@ export class ChatbotService {
     };
 
     this.messagesSubject.next([...messagesWithoutTyping, errorMessage]);
-    
-    // Speak error message
-    setTimeout(() => {
-      this.speakMessage(errorMessage.id, errorMessage.content);
-    }, 500);
+    // Error message is shown on screen only. It is never spoken aloud, even in
+    // voice/auto-speak mode, so users don't hear an error read out on app open.
   }
 
   // Voice Mode Methods
@@ -934,11 +931,13 @@ export class ChatbotService {
     };
 
     this.messagesSubject.next([...this.messagesSubject.value, expertMessage]);
-    
-    // Speak expert help message
-    setTimeout(() => {
-      this.speakMessage(expertMessage.id, expertMessage.content);
-    }, 500);
+
+    // Only speak when the user has opted into auto-speak.
+    if (this.autoSpeakEnabled) {
+      setTimeout(() => {
+        this.speakMessage(expertMessage.id, expertMessage.content);
+      }, 500);
+    }
   }
 
   addSystemMessage(content: string): void {
