@@ -147,6 +147,19 @@ export class RegisterPage implements OnInit {
     return this.steps[this.currentStep].title;
   }
 
+  // Date step (6) needs a stage-specific title; every other step's title is static.
+  get dateStepTitle(): string {
+    return this.isPregnant ? 'When is your due date?' : 'When did your baby arrive?';
+  }
+
+  // Value bound to the single date-step ion-datetime (dueDate for pregnant, deliveryDate otherwise).
+  get dateStepValue(): string {
+    if (this.isPregnant) {
+      return this.registerForm.get('dueDate')?.value || this.dueDateAnchor;
+    }
+    return this.registerForm.get('deliveryDate')?.value || this.deliveryDateAnchor;
+  }
+
   get isPregnant(): boolean {
     return this.registerForm.get('motherType')?.value === 'pregnant';
   }
