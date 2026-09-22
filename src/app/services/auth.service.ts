@@ -60,8 +60,10 @@ export class AuthService {
         this.setupMockAuth();
       }
     } else {
-      console.warn('Firebase not configured, using mock authentication');
-      this.setupMockAuth();
+      // Auth state is proxied from BackendAuthService (single source of truth),
+      // so the legacy mock auto-login is disabled and kept for reference only.
+      // console.warn('Firebase not configured, using mock authentication');
+      // this.setupMockAuth();
     }
   }
 
