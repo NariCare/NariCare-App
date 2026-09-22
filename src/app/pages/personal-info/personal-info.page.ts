@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { TimezoneService, TimezoneOption } from '../../services/timezone.service';
 import { User } from '../../models/user.model';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-personal-info',
@@ -239,6 +240,14 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
 
   async onSubmit() {
     if (this.personalInfoForm.valid) {
+      const dueError = DateOnlyUtil.invalidDateMessage(this.personalInfoForm.get('dueDate')?.value);
+      if (dueError) {
+        const t = await this.toastController.create({
+          message: dueError, duration: 3000, color: 'danger', position: 'top'
+        });
+        await t.present();
+        return;
+      }
       const loading = await this.loadingController.create({
         message: 'Updating your information...',
         translucent: true
