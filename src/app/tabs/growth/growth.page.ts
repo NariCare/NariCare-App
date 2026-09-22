@@ -1485,10 +1485,17 @@ export class GrowthPage implements OnInit {
     return this.user?.isOnboardingCompleted || false;
   }
 
-  // Pregnant mom with no baby yet: hide baby tracking and emotional check-in.
+  // Pregnant mom, no baby, due date not reached yet: hide baby tracking and
+  // emotional check-in. Once the due date passes, tracking auto-appears so she
+  // can add the baby even if motherType is still 'pregnant'.
   isPregnantNoBaby(): boolean {
     const hasBaby = !!(this.user?.babies && this.user.babies.length > 0);
-    return this.user?.motherType === 'pregnant' && !hasBaby;
+    if (this.user?.motherType !== 'pregnant' || hasBaby) {
+      return false;
+    }
+    const due = this.user?.dueDate ? new Date(this.user.dueDate) : null;
+    const dueInFuture = due ? due.getTime() > Date.now() : true;
+    return dueInFuture;
   }
 
   handleTrackerClick(action: () => void) {
