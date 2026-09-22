@@ -200,15 +200,23 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     this.personalInfoForm.markAsPristine();
     this.personalInfoForm.markAsUntouched();
 
-    // Mother type is a one-time choice at registration; lock it once set so
-    // tracking data stays consistent. Due date stays editable (it can change).
-    if (user.motherType) {
-      this.personalInfoForm.get('motherType')?.disable();
+    // Mother type is derived from the due date, so it is always display-only.
+    // Due date drives the stage and is editable, but frozen once a baby exists.
+    this.personalInfoForm.get('motherType')?.disable();
+    if (this.hasBaby) {
+      this.personalInfoForm.get('dueDate')?.disable();
+    } else {
+      this.personalInfoForm.get('dueDate')?.enable();
     }
   }
 
   get isMotherhoodJourneyLocked(): boolean {
     return !!this.user?.motherType;
+  }
+
+  // Once a baby is added the stage is settled, so the due date is frozen.
+  get hasBaby(): boolean {
+    return !!(this.user?.babies && this.user.babies.length > 0);
   }
 
   // ion-input type=date with formControlName alone does not always sync the
