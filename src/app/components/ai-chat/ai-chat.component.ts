@@ -107,19 +107,23 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
     const vv = (window as any).visualViewport;
     if (!vv) return;
 
+    // Primary keyboard handling is CSS: the viewport meta uses
+    // interactive-widget=resizes-content, so the layout (100dvh/100%) shrinks
+    // when the keyboard opens and the flex column keeps the messages in view.
+    // This is a fallback for browsers that do not resize the layout: cap the
+    // outer chat wrapper (the real height owner) to the visible viewport.
     this.viewportResizeHandler = () => {
       const overlap = window.innerHeight - vv.height - vv.offsetTop;
-      const container = document.querySelector('.ai-chat-container') as HTMLElement | null;
-      if (overlap > 80) {
-        // On web the layout height does not shrink for the on-screen keyboard,
-        // so the messages scroll out of view. Cap the chat height to the visible
-        // viewport so the flex column shrinks and the messages stay in view.
+      const outer = document.querySelector('.chat-container') as HTMLElement | null;
+      const layoutResizes = Math.abs(window.innerHeight - vv.height) < 40; // browser already shrank layout
+      if (overlap > 80 && !layoutResizes) {
         document.body.classList.add('keyboard-visible');
-        container?.style.setProperty('height', `${vv.height}px`);
+        outer?.style.setProperty('height', `${vv.height}px`);
         setTimeout(() => this.scrollToBottom(), 50);
       } else {
         document.body.classList.remove('keyboard-visible');
-        container?.style.removeProperty('height');
+        outer?.style.removeProperty('height');
+        if (overlap > 80) { setTimeout(() => this.scrollToBottom(), 50); }
       }
     };
 
