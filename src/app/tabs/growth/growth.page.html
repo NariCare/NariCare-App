@@ -29,8 +29,15 @@
       </div>
     </div> -->
     
+    <!-- Pregnant mom, no baby yet: tracking and check-ins unlock after the baby arrives -->
+    <div class="pregnant-tracker-placeholder" *ngIf="isPregnantNoBaby()">
+      <img src="assets/images/tracker-empty-baby.webp" alt="" class="empty-babies-image" aria-hidden="true">
+      <h3>Tracking unlocks once your baby arrives</h3>
+      <p>Feeding, growth, and emotional check-ins will be here after you add your baby. For now, explore Learn and Community.</p>
+    </div>
+
     <!-- Tracker Cards Grid -->
-    <div class="tracker-cards-container">
+    <div class="tracker-cards-container" *ngIf="!isPregnantNoBaby()">
       <div class="section-heading">
         <h2>Track Today</h2>
         <p>Log your daily activities and well-being</p>
@@ -101,7 +108,7 @@
     </div>
 
     <!-- Main Tab Selector -->
-    <div class="main-tab-selector">
+    <div class="main-tab-selector" *ngIf="!isPregnantNoBaby()">
       <ion-segment [(ngModel)]="selectedMainTab" (ionChange)="onMainTabChange($event)" class="main-tabs-segment">
         <ion-segment-button value="my-babies">
           <ion-label>My Babies</ion-label>
@@ -113,7 +120,7 @@
     </div>
 
     <!-- My Babies Tab Content -->
-    <div class="tab-content" *ngIf="selectedMainTab === 'my-babies'">
+    <div class="tab-content" *ngIf="selectedMainTab === 'my-babies' && !isPregnantNoBaby()">
       <div class="baby-cards-list" *ngIf="user && user.babies && user.babies.length > 0">
         <div 
           *ngFor="let baby of user.babies"
@@ -156,7 +163,7 @@
     </div>
 
     <!-- Mother's Journey Tab Content -->
-    <div class="tab-content" *ngIf="selectedMainTab === 'mothers-journey'">
+    <div class="tab-content" *ngIf="selectedMainTab === 'mothers-journey' && !isPregnantNoBaby()">
       
       <!-- Mother's Journey Header -->
       <div class="mothers-journey-header">
