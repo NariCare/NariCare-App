@@ -1,20 +1,17 @@
 .feed-log-container {
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 /* Single form styles */
 .single-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 0.625rem; // compact, matches feed/weight logs
 }
 
 
 .form-section {
-  // background: #ffffff;
-  // border-radius: 16px;
-  padding: 0 1.5rem;
-  // border: 1px solid #f1f5f9;
+  padding: 0 0.75rem;
 }
 
 .section-title {
@@ -27,10 +24,10 @@
 }
 
 .section-description {
-  margin: 0 0 1.5rem 0;
+  margin: 0 0 0.5rem 0;
   color: #7a73a9;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.82rem;
+  line-height: 1.35;
   font-family: 'Poppins', sans-serif;
 }
 
@@ -58,19 +55,15 @@
 }
 
 /* Notes section as separate card */
+/* Flat notes section to match the other log modals */
 .notes-section {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 1.5rem;
-  border: 1px solid #f1f5f9;
+  padding: 0 0.75rem;
 }
 
 /* Save section styling */
 .save-section {
-  // background: linear-gradient(135deg, #f0fdf4, #ffffff);
-  // border: 2px solid #bbf7d0;
   text-align: center;
-  padding: 2rem 1.5rem;
+  padding: 0.5rem 0.75rem;
 }
 
 .save-section .save-button {
@@ -109,11 +102,11 @@
 
 .input-item {
   --background: #f8fafc;
-  --border-radius: 12px;
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --min-height: 52px;
-  margin-bottom: 0.5rem;
+  --border-radius: 8px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --min-height: 44px;
+  margin-bottom: 0.25rem;
 
   &.time-input {
     text-align: center;
