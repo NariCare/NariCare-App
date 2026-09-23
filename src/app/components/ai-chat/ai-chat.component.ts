@@ -32,9 +32,6 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   quickAccessNotes: ExpertNote[] = [];
   quickAccessLinks: ExpertLink[] = [];
 
-  // Keyboard handling (web/PWA only; native uses Capacitor resize:body)
-  private viewportHandler?: () => void;
-
   // ponytail: display-only timestamp for the static welcome bubble
   readonly welcomeTime = new Date();
 
@@ -89,58 +86,12 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.setupKeyboardHandling();
+    // Keyboard handling is pure CSS now (interactive-widget=resizes-content +
+    // dvh flex layout). No per-keystroke JS: repositioning the textarea's
+    // ancestor mid-IME-composition corrupted GBoard and reversed typed text.
   }
 
-  ngOnDestroy() {
-    const vv = (window as any).visualViewport;
-    if (this.viewportHandler && vv) {
-      vv.removeEventListener('resize', this.viewportHandler);
-      vv.removeEventListener('scroll', this.viewportHandler);
-    }
-  }
-
-  // Mobile browsers (Chrome Android, iOS Safari, in-app PWA) do NOT shrink the
-  // layout viewport when the on-screen keyboard opens, and iOS ignores the
-  // interactive-widget meta entirely. The old flex column then kept full height
-  // while the browser scrolled the document up to reveal the focused input,
-  // leaving a white gap where the messages were and the composer floating in
-  // the middle. The one approach that works everywhere: pin the chat container
-  // to the visualViewport rectangle (position:fixed sized to vv.height/offset)
-  // while the keyboard is open, so it always fills exactly the visible area.
-  private setupKeyboardHandling() {
-    const vv = (window as any).visualViewport;
-    if (!vv) return;
-
-    this.viewportHandler = () => {
-      const container = document.querySelector('.ai-chat-container') as HTMLElement | null;
-      if (!container) return;
-
-      // Keyboard height = layout viewport minus the visible viewport.
-      const keyboard = window.innerHeight - vv.height;
-      if (keyboard > 120) {
-        // Pin to the visible rectangle. offsetTop tracks any document scroll the
-        // browser applied to keep the input in view, so the box never drifts.
-        container.style.position = 'fixed';
-        container.style.top = `${vv.offsetTop}px`;
-        container.style.left = `${vv.offsetLeft}px`;
-        container.style.width = `${vv.width}px`;
-        container.style.height = `${vv.height}px`;
-        container.style.zIndex = '1000';
-        setTimeout(() => this.scrollToBottom(), 50);
-      } else {
-        container.style.removeProperty('position');
-        container.style.removeProperty('top');
-        container.style.removeProperty('left');
-        container.style.removeProperty('width');
-        container.style.removeProperty('height');
-        container.style.removeProperty('z-index');
-      }
-    };
-
-    vv.addEventListener('resize', this.viewportHandler);
-    vv.addEventListener('scroll', this.viewportHandler);
-  }
+  ngOnDestroy() {}
 
   private async initializeChatbot() {
     if (this.currentUser) {

@@ -747,10 +747,16 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 .message-input-container {
   padding: 8px 12px;
 
-  // Sits at the bottom of the flex column (not viewport-fixed, which floated it
-  // over the messages when the container was shorter than the screen).
+  // Normal flex child pinned at the column bottom. sticky bottom:0 keeps it above
+  // the keyboard on iOS Safari (which ignores interactive-widget) without any JS
+  // reflow of the textarea ancestor. Chrome Android shrinks the layout viewport
+  // via interactive-widget=resizes-content, so the flex column shrinks and the
+  // composer rides up naturally.
   &.fixed-bottom {
     flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 6px));
     background: #ffffff;
     border-top: 1px solid rgba(226, 221, 245, 0.5);
