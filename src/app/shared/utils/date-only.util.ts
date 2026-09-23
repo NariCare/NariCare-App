@@ -5,6 +5,22 @@
  */
 export class DateOnlyUtil {
   /**
+   * Format an "HH:MM" or "HH:MM:SS" 24-hour time string as 12-hour with AM/PM
+   * (e.g. "14:37" -> "2:37 PM"). Used for all displayed times in the app.
+   */
+  static to12Hour(time: string | null | undefined): string {
+    if (!time) return '--';
+    const m = /^(\d{1,2}):(\d{2})/.exec(String(time).trim());
+    if (!m) return String(time);
+    let h = parseInt(m[1], 10);
+    const min = m[2];
+    const period = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${h}:${min} ${period}`;
+  }
+
+  /**
    * Parse a value into a local Date.
    * A `YYYY-MM-DD` string is built with local components (no UTC shift).
    * Anything else (ISO datetime, Date) is passed through to `new Date`.

@@ -31,6 +31,7 @@ import {
 import { User, Baby } from '../../../models/user.model';
 import { PumpingRecord } from '../../../models/growth-tracking.model';
 import { AgeCalculatorUtil } from '../../../shared/utils/age-calculator.util';
+import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-baby-detail',
@@ -635,16 +636,11 @@ export class BabyDetailPage implements OnInit {
   }
 
   getRecordTime(record: any): string {
-    // Handle transformed API data and local data
-    const startTime = record.directFeedDetails?.startTime || record.direct_start_time;
-    if (!startTime) return '--';
-    
-    // If time is in HH:MM:SS format, convert to HH:MM
-    if (typeof startTime === 'string' && startTime.includes(':')) {
-      return startTime.slice(0, 5); // Takes HH:MM from HH:MM:SS
-    }
-    
-    return startTime;
+    // Prefer the direct feed start time, then any method's start time.
+    const startTime = record.directFeedDetails?.startTime || record.direct_start_time
+      || record.expressedMilkDetails?.startTime || record.expressed_start_time
+      || record.formulaDetails?.startTime || record.formula_start_time;
+    return DateOnlyUtil.to12Hour(startTime);
   }
 
   getRecordDate(record: any): string {
@@ -654,7 +650,7 @@ export class BabyDetailPage implements OnInit {
   }
 
   getStoolTime(record: StoolRecord): string {
-    return record.time;
+    return DateOnlyUtil.to12Hour(record.time);
   }
 
   getStoolDate(record: StoolRecord): string {
@@ -662,16 +658,7 @@ export class BabyDetailPage implements OnInit {
   }
 
   getDiaperChangeTime(record: any): string {
-    // Handle both API format (record_time) and local format (time)
-    const time = record.record_time || record.time;
-    if (!time) return '--';
-    
-    // If time is in HH:MM:SS format, convert to HH:MM
-    if (typeof time === 'string' && time.includes(':')) {
-      return time.slice(0, 5); // Takes HH:MM from HH:MM:SS
-    }
-    
-    return time;
+    return DateOnlyUtil.to12Hour(record.record_time || record.time);
   }
 
   getDiaperChangeDate(record: any): string {

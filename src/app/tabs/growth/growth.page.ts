@@ -1191,8 +1191,7 @@ export class GrowthPage implements OnInit {
   getLastPumpTime(): string {
     const lastPump = this.getMostRecentPump();
     if (!lastPump) return '--';
-    const time = lastPump.record_time || lastPump.time;
-    return time ? time.slice(0, 5) : '--';
+    return DateOnlyUtil.to12Hour(lastPump.record_time || lastPump.time);
   }
 
   /** Most recent pump by date (do not assume the API returns newest-first). */
