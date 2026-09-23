@@ -142,68 +142,29 @@
           <ng-container *ngIf="growthRecords.length === 0" [ngTemplateOutlet]="noFeedRecords"></ng-container>
           <ng-container *ngFor="let record of growthRecords | slice:0:10">
             
-            <!-- Direct Feed (if exists) -->
-            <div *ngIf="getFeedTypes(record).includes('direct')" class="feed-record-wrapper">
-              <div class="feed-record direct-feed">
-                <div class="feed-time-container">
-                  <div class="feed-time">{{ getRecordTime(record) }}</div>
-                </div>
-                <div class="feed-content">
-                  <div class="feed-main-info">
-                    <div class="feed-icon-label">
-                      <img src="assets/Fed directly.svg" alt="Direct Feed" class="feed-svg-icon">
-                      <span class="feed-type">{{ getBreastSide(record) | titlecase }}</span>
-                    </div>
-                    <!-- Pain metric removed per Komal, keep for later reuse -->
-                    <!--
-                    <div class="feed-metric" *ngIf="getFeedPainLevel(record) !== null">
-                      <span class="pain-value">{{ getFeedPainLevel(record) }}/10</span>
-                    </div>
-                    -->
-                  </div>
-                  <div class="feed-date">{{ getRecordDate(record) }}</div>
-                </div>
+            <!-- One card per feed session; combined methods listed inside -->
+            <div class="feed-session-card">
+              <div class="feed-session-header">
+                <span class="feed-session-time">{{ getRecordTime(record) }}</span>
+                <span class="feed-session-date">{{ getRecordDate(record) }}</span>
+                <span class="feed-session-badge" *ngIf="getFeedTypes(record).length > 1">1 feed</span>
               </div>
-            </div>
 
-            <!-- Expressed Milk Feed (if exists) -->
-            <div *ngIf="getFeedTypes(record).includes('expressed')" class="feed-record-wrapper">
-              <div class="feed-record expressed-feed">
-                <div class="feed-time-container">
-                  <div class="feed-time">{{ getRecordTime(record) }}</div>
+              <div class="feed-session-methods">
+                <div class="feed-method-row" *ngIf="getFeedTypes(record).includes('direct')">
+                  <img src="assets/Fed directly.svg" alt="" class="feed-method-icon">
+                  <span class="feed-method-name">Direct</span>
+                  <span class="feed-method-detail">{{ getBreastSide(record) | titlecase }}</span>
                 </div>
-                <div class="feed-content">
-                  <div class="feed-main-info">
-                    <div class="feed-icon-label">
-                      <img src="assets/Pump.svg" alt="Expressed Milk" class="feed-svg-icon">
-                      <span class="feed-type">Expressed Milk</span>
-                    </div>
-                    <div class="feed-metric">
-                      <span class="volume-value">{{ getExpressedVolume(record) || 0 }}ml</span>
-                    </div>
-                  </div>
-                  <div class="feed-date">{{ getRecordDate(record) }}</div>
+                <div class="feed-method-row" *ngIf="getFeedTypes(record).includes('expressed')">
+                  <img src="assets/Pump.svg" alt="" class="feed-method-icon">
+                  <span class="feed-method-name">Expressed milk</span>
+                  <span class="feed-method-detail">{{ getExpressedVolume(record) || 0 }} ml</span>
                 </div>
-              </div>
-            </div>
-
-            <!-- Formula Feed (if exists) -->
-            <div *ngIf="getFeedTypes(record).includes('formula')" class="feed-record-wrapper">
-              <div class="feed-record formula-feed">
-                <div class="feed-time-container">
-                  <div class="feed-time">{{ getRecordTime(record) }}</div>
-                </div>
-                <div class="feed-content">
-                  <div class="feed-main-info">
-                    <div class="feed-icon-label">
-                      <img src="assets/Formula.svg" alt="Formula" class="feed-svg-icon">
-                      <span class="feed-type">Formula</span>
-                    </div>
-                    <div class="feed-metric">
-                      <span class="volume-value">{{ getFormulaVolume(record) || 0 }}ml</span>
-                    </div>
-                  </div>
-                  <div class="feed-date">{{ getRecordDate(record) }}</div>
+                <div class="feed-method-row" *ngIf="getFeedTypes(record).includes('formula')">
+                  <img src="assets/Formula.svg" alt="" class="feed-method-icon">
+                  <span class="feed-method-name">Formula</span>
+                  <span class="feed-method-detail">{{ getFormulaVolume(record) || 0 }} ml</span>
                 </div>
               </div>
             </div>
