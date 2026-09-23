@@ -98,10 +98,8 @@ export class LoginPage implements OnInit, OnDestroy {
       try {
         const { email, password } = this.loginForm.value;
         await this.backendAuthService.login(email, password);
-        await loading.dismiss();
       } catch (error: any) {
         console.log(error);
-        await loading.dismiss();
         const toast = await this.toastController.create({
           message: error.message || 'Login failed. Please try again.',
           duration: 3000,
@@ -109,6 +107,9 @@ export class LoginPage implements OnInit, OnDestroy {
           position: 'top'
         });
         await toast.present();
+      } finally {
+        // dismiss in finally so a fast login/navigation never orphans the overlay
+        await loading.dismiss();
       }
     } else {
       this.markFormGroupTouched();
@@ -138,9 +139,7 @@ export class LoginPage implements OnInit, OnDestroy {
       try {
         const { otp } = this.otpForm.value;
         await this.backendAuthService.verify2FA(otp);
-        await loading.dismiss();
       } catch (error: any) {
-        await loading.dismiss();
         const toast = await this.toastController.create({
           message: error.message || 'OTP verification failed. Please try again.',
           duration: 3000,
@@ -148,6 +147,8 @@ export class LoginPage implements OnInit, OnDestroy {
           position: 'top'
         });
         await toast.present();
+      } finally {
+        await loading.dismiss();
       }
     } else {
       this.markOTPFormTouched();
@@ -163,8 +164,6 @@ export class LoginPage implements OnInit, OnDestroy {
 
     try {
       await this.backendAuthService.resendOTP();
-      await loading.dismiss();
-      
       const toast = await this.toastController.create({
         message: 'OTP sent successfully to your email.',
         duration: 3000,
@@ -173,7 +172,6 @@ export class LoginPage implements OnInit, OnDestroy {
       });
       await toast.present();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Failed to resend OTP. Please try again.',
         duration: 3000,
@@ -181,6 +179,8 @@ export class LoginPage implements OnInit, OnDestroy {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 
@@ -198,9 +198,7 @@ export class LoginPage implements OnInit, OnDestroy {
 
     try {
       await this.backendAuthService.signInWithGoogle();
-      await loading.dismiss();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Google sign-in not available. Please use email/password.',
         duration: 3000,
@@ -208,6 +206,8 @@ export class LoginPage implements OnInit, OnDestroy {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 
@@ -220,9 +220,7 @@ export class LoginPage implements OnInit, OnDestroy {
 
     try {
       await this.backendAuthService.signInWithFacebook();
-      await loading.dismiss();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Facebook sign-in not available. Please use email/password.',
         duration: 3000,
@@ -230,6 +228,8 @@ export class LoginPage implements OnInit, OnDestroy {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 

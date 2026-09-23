@@ -22,7 +22,9 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 
 .chat-container {
   // Fill the ion-content (already inset below the header and above the tab bar).
-  // Using 100dvh here overflowed past the bottom tab bar and caused the overlap.
+  // 100% chains off the dvh-bound scroll part below, so it shrinks with the
+  // keyboard on Chrome Android (interactive-widget=resizes-content) without
+  // overflowing past the bottom tab bar.
   height: 100%;
   display: flex;
   flex-direction: column;

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { ApiService } from '../../../services/api.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-forgot-password',
@@ -55,11 +56,11 @@ export class ForgotPasswordPage implements OnInit {
 
       const email = this.forgotPasswordForm.value.email;
 
-      this.apiService.forgotPassword(email).subscribe({
+      this.apiService.forgotPassword(email).pipe(
+        // finalize guarantees dismiss even if navigation tears down the subscription
+        finalize(() => { loading.dismiss(); this.isLoading = false; })
+      ).subscribe({
         next: async (response) => {
-          await loading.dismiss();
-          this.isLoading = false;
-          
           if (response.success) {
             const toast = await this.toastController.create({
               message: response.message || 'Password reset link sent to your email',
@@ -82,9 +83,6 @@ export class ForgotPasswordPage implements OnInit {
           }
         },
         error: async (error) => {
-          await loading.dismiss();
-          this.isLoading = false;
-          
           const toast = await this.toastController.create({
             message: error.error?.message || 'An error occurred. Please try again.',
             duration: 3000,

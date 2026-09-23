@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { ApiService } from '../../../services/api.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-reset-password',
@@ -72,9 +73,11 @@ export class ResetPasswordPage implements OnInit {
     });
     await loading.present();
 
-    this.apiService.validateResetToken(this.token).subscribe({
+    this.apiService.validateResetToken(this.token).pipe(
+      // finalize guarantees dismiss even if navigation tears down the subscription
+      finalize(() => loading.dismiss())
+    ).subscribe({
       next: async (response) => {
-        await loading.dismiss();
         if (response.success) {
           this.isValidToken = true;
         } else {
@@ -82,7 +85,6 @@ export class ResetPasswordPage implements OnInit {
         }
       },
       error: async (error) => {
-        await loading.dismiss();
         this.showInvalidTokenError();
       }
     });
@@ -141,11 +143,11 @@ export class ResetPasswordPage implements OnInit {
 
       const { newPassword, confirmPassword } = this.resetPasswordForm.value;
 
-      this.apiService.resetPassword(this.token, newPassword, confirmPassword).subscribe({
+      this.apiService.resetPassword(this.token, newPassword, confirmPassword).pipe(
+        // finalize guarantees dismiss even if navigation tears down the subscription
+        finalize(() => { loading.dismiss(); this.isLoading = false; })
+      ).subscribe({
         next: async (response) => {
-          await loading.dismiss();
-          this.isLoading = false;
-          
           if (response.success) {
             const toast = await this.toastController.create({
               message: response.message || 'Password reset successfully!',
@@ -168,9 +170,6 @@ export class ResetPasswordPage implements OnInit {
           }
         },
         error: async (error) => {
-          await loading.dismiss();
-          this.isLoading = false;
-          
           const toast = await this.toastController.create({
             message: error.error?.message || 'An error occurred. Please try again.',
             duration: 3000,
