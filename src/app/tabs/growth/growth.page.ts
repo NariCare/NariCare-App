@@ -1363,7 +1363,7 @@ export class GrowthPage implements OnInit {
     return date.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit',
-      hour12: false 
+      hour12: true 
     });
   }
 
@@ -1473,7 +1473,7 @@ export class GrowthPage implements OnInit {
     return dateObj.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit',
-      hour12: false 
+      hour12: true 
     });
   }
 

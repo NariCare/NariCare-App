@@ -176,23 +176,14 @@ export class BabyDetailPage implements OnInit {
           if (this.baby) {
             console.log('Baby Detail Page - Found baby:', this.baby);
           } else {
+            // Stale/mismatched baby id (e.g. pregnant mom with no matching baby).
+            // Route straight to growth; its empty state carries the message.
             console.warn(`Baby with ID ${this.babyId} not found in user's babies list`);
-            this.showToast('Baby not found. Returning to growth page.', 'warning');
-            setTimeout(() => {
-              this.router.navigate(['/tabs/growth'], { replaceUrl: true });
-            }, 2000);
+            this.router.navigate(['/tabs/growth'], { replaceUrl: true });
           }
         } else {
           console.warn('Baby Detail Page - User has no babies array or it\'s not an array');
-          // Check if user is expecting mother
-          const isExpectingMother = user && user.motherType === 'pregnant';
-          const message = isExpectingMother 
-            ? 'Baby tracking will be available after your little one arrives!'
-            : 'No babies found. Please add a baby first.';
-          this.showToast(message, 'info');
-          setTimeout(() => {
-            this.router.navigate(['/tabs/growth'], { replaceUrl: true });
-          }, 2000);
+          this.router.navigate(['/tabs/growth'], { replaceUrl: true });
         }
       } else if (this.babyId && (this.babyId === 'undefined' || this.babyId === 'null')) {
         console.warn('Baby Detail Page - Invalid baby ID detected, redirecting immediately');
