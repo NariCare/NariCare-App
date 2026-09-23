@@ -72,6 +72,7 @@
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ getCurrentWeight() }}</div>
+            <div class="stat-date" *ngIf="getLatestGrowthDate()">{{ getLatestGrowthDate() }}</div>
           </div>
         </div>
 
@@ -81,6 +82,7 @@
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ getCurrentHeight() }}</div>
+            <div class="stat-date" *ngIf="getLatestGrowthDate()">{{ getLatestGrowthDate() }}</div>
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { map, startWith, tap } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
@@ -228,7 +228,9 @@ export class BabyDetailPage implements OnInit {
     if (isBackendUser) {
       // Use backend services for all data
       this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId).pipe(startWith(null));
-      this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId);
+      this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId).pipe(
+        tap(records => this.cacheLatestWeight(records))
+      );
       this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId);
       this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId).pipe(startWith(null));
       this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(this.babyId).pipe(
@@ -237,7 +239,9 @@ export class BabyDetailPage implements OnInit {
     } else {
       // Fallback to local services
       this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId).pipe(startWith(null));
-      this.weightRecords$ = this.growthService.getWeightRecords(this.babyId);
+      this.weightRecords$ = this.growthService.getWeightRecords(this.babyId).pipe(
+        tap(records => this.cacheLatestWeight(records))
+      );
       this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
       this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId).pipe(startWith(null));
       this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId);
@@ -593,6 +597,23 @@ export class BabyDetailPage implements OnInit {
       console.error('Error formatting birth date:', error);
       return 'Invalid date';
     }
+  }
+
+  latestWeightRecord: any = null;
+
+  private cacheLatestWeight(records: any[] | null): void {
+    if (!records || records.length === 0) { this.latestWeightRecord = null; return; }
+    this.latestWeightRecord = [...records].sort((a, b) =>
+      new Date(b.record_date || b.date).getTime() - new Date(a.record_date || a.date).getTime()
+    )[0];
+  }
+
+  // Date of the most recent weight/height measurement, e.g. "Sep 22, 2026".
+  getLatestGrowthDate(): string {
+    const raw = this.latestWeightRecord?.record_date || this.latestWeightRecord?.date;
+    if (!raw) { return ''; }
+    const d = new Date(raw);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   getCurrentWeight(): string {
