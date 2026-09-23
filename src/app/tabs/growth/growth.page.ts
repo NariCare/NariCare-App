@@ -1151,7 +1151,27 @@ export class GrowthPage implements OnInit {
 
   getLastTrackTime(): string {
     if (!this.lastTrack || !this.lastTrack.time) return '--';
-    return this.lastTrack.time;
+    return DateOnlyUtil.to12Hour(this.lastTrack.time);
+  }
+
+  /** 12-hour wrapper for template use. */
+  to12Hour(time: string | null | undefined): string {
+    return DateOnlyUtil.to12Hour(time);
+  }
+
+  /**
+   * 12-hour start time for one method of a feed session. Falls back to any
+   * sibling method's time (older records only stored the direct start time),
+   * so a method never shows a stale or blank time.
+   */
+  feedMethodTime(record: any, method: 'direct' | 'expressed' | 'formula'): string {
+    const own = method === 'direct' ? record?.directFeedDetails?.startTime
+      : method === 'expressed' ? record?.expressedMilkDetails?.startTime
+      : record?.formulaDetails?.startTime;
+    const fallback = record?.directFeedDetails?.startTime
+      || record?.expressedMilkDetails?.startTime
+      || record?.formulaDetails?.startTime;
+    return DateOnlyUtil.to12Hour(own || fallback);
   }
 
   /** True when a feed has been logged (independent of whether it carries a time). */

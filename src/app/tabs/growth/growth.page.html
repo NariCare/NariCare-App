@@ -264,35 +264,35 @@
               <div class="recent-feeds-list">
                 <div *ngFor="let record of recentRecords | slice:0:3" class="feed-record-wrapper">
                   
-                  <!-- Direct Feed -->
+                  <!-- Breast Feed -->
                   <div *ngIf="record.directFeedDetails" class="feed-record direct-feed">
                     <div class="feed-time-container">
-                      <div class="feed-time">{{ record.directFeedDetails.startTime || '--' }}</div>
+                      <div class="feed-time">{{ feedMethodTime(record, 'direct') }}</div>
                     </div>
                     <div class="feed-content">
                       <div class="feed-main-info">
                         <div class="feed-icon-label">
-                          <img src="assets/Fed directly.svg" alt="Direct Feed" class="feed-svg-icon">
-                          <span class="feed-type">{{ record.directFeedDetails.breastSide | titlecase }}</span>
+                          <img src="assets/Fed directly.svg" alt="Breast Feed" class="feed-svg-icon">
+                          <span class="feed-type">Breast Feed</span>
                         </div>
                         <div class="feed-metric">
-                          <span class="pain-value">{{ record.directFeedDetails.painLevel || 0 }}/10</span>
+                          <span class="side-value">{{ record.directFeedDetails.breastSide | titlecase }}</span>
                         </div>
                       </div>
                       <div class="feed-date">{{ formatDate(record.date) }}</div>
                     </div>
                   </div>
 
-                  <!-- Expressed Milk Feed -->
+                  <!-- Express Milk -->
                   <div *ngIf="record.expressedMilkDetails" class="feed-record expressed-feed">
                     <div class="feed-time-container">
-                      <div class="feed-time">{{ formatTime(record.date) }}</div>
+                      <div class="feed-time">{{ feedMethodTime(record, 'expressed') }}</div>
                     </div>
                     <div class="feed-content">
                       <div class="feed-main-info">
                         <div class="feed-icon-label">
-                          <img src="assets/Pump.svg" alt="Expressed Milk" class="feed-svg-icon">
-                          <span class="feed-type">Expressed Milk</span>
+                          <img src="assets/Pump.svg" alt="Express Milk" class="feed-svg-icon">
+                          <span class="feed-type">Express Milk</span>
                         </div>
                         <div class="feed-metric">
                           <span class="volume-value">{{ record.expressedMilkDetails.quantity || 0 }}ml</span>
@@ -302,16 +302,16 @@
                     </div>
                   </div>
 
-                  <!-- Formula Feed -->
+                  <!-- Formula Milk -->
                   <div *ngIf="record.formulaDetails" class="feed-record formula-feed">
                     <div class="feed-time-container">
-                      <div class="feed-time">{{ formatTime(record.date) }}</div>
+                      <div class="feed-time">{{ feedMethodTime(record, 'formula') }}</div>
                     </div>
                     <div class="feed-content">
                       <div class="feed-main-info">
                         <div class="feed-icon-label">
-                          <img src="assets/Formula.svg" alt="Formula" class="feed-svg-icon">
-                          <span class="feed-type">Formula</span>
+                          <img src="assets/Formula.svg" alt="Formula Milk" class="feed-svg-icon">
+                          <span class="feed-type">Formula Milk</span>
                         </div>
                         <div class="feed-metric">
                           <span class="volume-value">{{ record.formulaDetails.quantity || 0 }}ml</span>

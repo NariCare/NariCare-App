@@ -448,9 +448,11 @@ export class BackendGrowthService {
         painLevel: backendData.direct_pain_level
       } : undefined,
       expressedMilkDetails: backendData.expressed_quantity ? {
+        startTime: backendData.expressed_start_time?.slice(0, 5),
         quantity: backendData.expressed_quantity
       } : undefined,
       formulaDetails: backendData.formula_quantity ? {
+        startTime: backendData.formula_start_time?.slice(0, 5),
         quantity: backendData.formula_quantity
       } : undefined,
       notes: backendData.notes,
