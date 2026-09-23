@@ -238,13 +238,13 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
   }
 
-  // Read the due date, falling back to the native input if the reactive control
-  // did not sync (ion-input type=date can fail to propagate on some platforms).
+  // Read the due date from the native input first (that is what the user sees on
+  // screen); ion-input type=date can fail to propagate to the reactive control,
+  // leaving them out of sync. Fall back to the control only if the input is gone.
   private readDueDate(): string {
-    const controlValue = this.personalInfoForm.get('dueDate')?.value;
-    if (controlValue) { return controlValue; }
     const native = document.querySelector('ion-input[formcontrolname="dueDate"] input') as HTMLInputElement | null;
-    return native?.value || '';
+    if (native && native.value) { return native.value; }
+    return this.personalInfoForm.get('dueDate')?.value || '';
   }
 
   async onSubmit() {
