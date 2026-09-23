@@ -644,22 +644,23 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 }
 
 .expert-help-banner {
-  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-  border-radius: 8px;
-  padding: 0.75rem;
-  margin: 0.75rem 1rem;
+  background: linear-gradient(135deg, #f4f2fe 0%, #fdf6f9 100%);
+  border-radius: 16px;
+  padding: 0.75rem 0.9rem;
+  margin: 0.5rem 0 0.75rem 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #ffcc02;
+  gap: 0.5rem;
+  border: 1px solid rgba(131, 131, 237, 0.18);
+  box-shadow: 0 4px 14px rgba(131, 131, 237, 0.08);
   position: relative;
   z-index: 1;
-  opacity: 0.9;
-  transition: opacity 0.3s ease;
+  transition: box-shadow 0.2s ease;
   min-height: 48px;
 
-  &:hover {
-    opacity: 1;
+  ion-icon {
+    color: $primary;
   }
 }
 
@@ -667,10 +668,11 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
 
   ion-icon {
     font-size: 1.2rem;
-    color: #ff9800;
+    color: $primary;
     margin-right: 0.5rem;
     flex-shrink: 0;
   }
@@ -723,32 +725,32 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 }
 
 .message-input-container {
-  padding: 10px 12px;
+  padding: 8px 12px;
 
   // Sits at the bottom of the flex column (not viewport-fixed, which floated it
-  // over the messages when the container was shorter than the screen). The soft
-  // fade lifts the pill off the message list.
+  // over the messages when the container was shorter than the screen).
   &.fixed-bottom {
     flex-shrink: 0;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom, 8px));
-    background: linear-gradient(180deg, rgba(250, 249, 255, 0) 0%, #faf9ff 40%);
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 6px));
+    background: #ffffff;
+    border-top: 1px solid rgba(226, 221, 245, 0.5);
   }
 }
 
 .message-input {
   display: flex;
-  align-items: flex-end;
+  align-items: center; // keep buttons and single-row text vertically centered
   background: #ffffff;
   border-radius: 26px;
-  padding: 7px;
-  gap: 8px;
+  padding: 5px 6px;
+  gap: 6px;
   border: 1px solid rgba(226, 221, 245, 0.9);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 8px 24px rgba(131, 131, 237, 0.12);
+  box-shadow: 0 4px 16px rgba(131, 131, 237, 0.1);
 
   &:focus-within {
     border-color: rgba(131, 131, 237, 0.55);
-    box-shadow: 0 8px 28px rgba(131, 131, 237, 0.2), 0 0 0 3px rgba(131, 131, 237, 0.1);
+    box-shadow: 0 4px 18px rgba(131, 131, 237, 0.16), 0 0 0 3px rgba(131, 131, 237, 0.1);
   }
 }
 
