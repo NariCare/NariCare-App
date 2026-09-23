@@ -486,8 +486,6 @@ export class RegisterPage implements OnInit {
           await this.persistPregnantOnboarding(formValue.goals);
         }
 
-        await loading.dismiss();
-
         const toast = await this.toastController.create({
           message: 'Account created successfully! Welcome to NariCare.',
           duration: 3000,
@@ -497,8 +495,6 @@ export class RegisterPage implements OnInit {
         await toast.present();
 
       } catch (error: any) {
-        await loading.dismiss();
-
         let errorMessage = 'Registration failed. Please try again.';
 
         if (error.error && error.error.details && Array.isArray(error.error.details)) {
@@ -516,6 +512,8 @@ export class RegisterPage implements OnInit {
         });
         await toast.present();
       } finally {
+        // dismiss in finally so a fast register/navigation never orphans the overlay
+        await loading.dismiss();
         this.submitting = false;
       }
     } else {
@@ -578,9 +576,7 @@ export class RegisterPage implements OnInit {
 
     try {
       await this.backendAuthService.signInWithGoogle();
-      await loading.dismiss();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Google sign-up failed. Please try again.',
         duration: 3000,
@@ -588,6 +584,8 @@ export class RegisterPage implements OnInit {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 
@@ -600,9 +598,7 @@ export class RegisterPage implements OnInit {
 
     try {
       await this.backendAuthService.signInWithFacebook();
-      await loading.dismiss();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Facebook sign-up failed. Please try again.',
         duration: 3000,
@@ -610,6 +606,8 @@ export class RegisterPage implements OnInit {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 

@@ -1246,8 +1246,6 @@ export class OnboardingPage implements OnInit, OnDestroy {
       // Clear local storage data since onboarding is complete
       this.clearLocalStorageData();
 
-      await loading.dismiss();
-      
       const toast = await this.toastController.create({
         message: 'Welcome to NariCare! Your comprehensive assessment is complete. You can now schedule consultations with our experts.',
         duration: 4000,
@@ -1260,14 +1258,15 @@ export class OnboardingPage implements OnInit, OnDestroy {
       this.router.navigate(['/tabs/dashboard']);
 
     } catch (error: any) {
-      await loading.dismiss();
-      
       const alert = await this.alertController.create({
         header: 'Onboarding Error',
         message: error.message || 'Failed to complete onboarding. Please try again.',
         buttons: ['OK']
       });
       await alert.present();
+    } finally {
+      // dismiss in finally so navigation to dashboard never orphans the overlay
+      await loading.dismiss();
     }
   }
 
