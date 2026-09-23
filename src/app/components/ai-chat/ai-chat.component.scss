@@ -754,10 +754,8 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   // composer rides up naturally.
   &.fixed-bottom {
     flex-shrink: 0;
-    position: sticky;
-    bottom: 0;
     z-index: 2;
-    padding-bottom: calc(8px + env(safe-area-inset-bottom, 6px));
+    padding-bottom: 8px;
     background: #ffffff;
     border-top: 1px solid rgba(226, 221, 245, 0.5);
   }
@@ -790,13 +788,15 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   --padding-top: 8px;
   --padding-bottom: 8px;
   font-size: 0.95rem;
-  max-height: 120px;
-  min-height: 20px;
+  max-height: none; // height is capped in JS (resizeMessageTextarea)
+  min-height: 40px;
   border: none;
   
   &::part(native) {
     border: none !important;
     box-shadow: none !important;
+    overflow-y: auto;
+    resize: none;
   }
   
   // Attempt to hide iOS keyboard accessory bar
@@ -1186,7 +1186,6 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 
   .message-input-container.fixed-bottom {
     padding: 0.75rem;
-    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
   }
 
   .message-input {

@@ -282,12 +282,15 @@
         <ion-icon name="library" slot="icon-only"></ion-icon>
       </ion-button>
       <ion-textarea
+        #messageTextarea
         [(ngModel)]="messageText"
         placeholder="Ask NariCare anything..."
         rows="1"
-        autoGrow="true"
         maxlength="500"
         (keydown)="onKeyDown($event)"
+        (compositionstart)="onCompositionStart()"
+        (compositionend)="onCompositionEnd()"
+        (ionInput)="onMessageInput()"
         class="message-textarea"
         enterkeyhint="send"
         autocomplete="off"

@@ -19,6 +19,7 @@ import { VideoPlayerModalComponent } from '../video-player-modal/video-player-mo
 export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   @ViewChild('messageInputContainer', { static: false }) messageInputContainer!: ElementRef;
+  @ViewChild('messageTextarea', { static: false }) messageTextarea!: ElementRef;
 
   chatbotMessages$: Observable<ChatbotMessageUI[]>;
   messageText = '';
@@ -26,6 +27,7 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   isInitializing = false;
   expertBannerDismissed = false;
   showDisclaimer = true;
+  private isComposing = false;
   
   // Expert notes integration
   showQuickAccess = false;
@@ -86,9 +88,9 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    // Keyboard handling is pure CSS now (interactive-widget=resizes-content +
-    // dvh flex layout). No per-keystroke JS: repositioning the textarea's
-    // ancestor mid-IME-composition corrupted GBoard and reversed typed text.
+    // Keyboard handling is pure CSS (interactive-widget=resizes-content +
+    // dvh flex layout). The textarea grows via a composition-safe resize,
+    // never mid-IME-composition, so Android IMEs don't reverse the text.
   }
 
   ngOnDestroy() {}
@@ -289,10 +291,46 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  onCompositionStart() {
+    this.isComposing = true;
+  }
+
+  onCompositionEnd() {
+    this.isComposing = false;
+    this.resizeMessageTextarea();
+  }
+
+  onMessageInput() {
+    // Resizing the textarea mid-composition reverses committed text on Android IMEs.
+    if (this.isComposing) {
+      return;
+    }
+    this.resizeMessageTextarea();
+  }
+
+  private resizeMessageTextarea() {
+    const host = this.messageTextarea?.nativeElement as HTMLElement | undefined;
+    const textarea = host?.shadowRoot?.querySelector('textarea') as HTMLTextAreaElement | undefined;
+    if (!textarea) {
+      return;
+    }
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+  }
+
+  private resetMessageTextarea() {
+    const host = this.messageTextarea?.nativeElement as HTMLElement | undefined;
+    const textarea = host?.shadowRoot?.querySelector('textarea') as HTMLTextAreaElement | undefined;
+    if (textarea) {
+      textarea.style.height = 'auto';
+    }
+  }
+
   async sendMessage() {
     if (this.messageText.trim()) {
       const messageToSend = this.messageText.trim();
       this.messageText = ''; // Clear input immediately
+      this.resetMessageTextarea();
       
       try {
         await this.chatbotService.sendMessage(messageToSend);
