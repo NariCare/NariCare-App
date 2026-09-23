@@ -367,10 +367,15 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 .message-content {
   display: flex;
   flex-direction: column;
-  max-width: 70%;
+  max-width: 78%;
   min-width: 0;
   position: relative;
   box-sizing: border-box;
+}
+
+// Suggestion chips need more room than a chat bubble, so let them span the row.
+.bot-message .message-content:has(.follow-up-options) {
+  max-width: 88%;
 }
 
 
@@ -446,18 +451,33 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 
 .follow-up-options {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 0.5rem;
   margin-top: 0.75rem;
+  width: 100%;
 }
 
 .follow-up-button {
-  --border-radius: 16px;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  height: 32px;
-  font-size: 0.8rem;
-  
+  --border-radius: 999px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+  height: auto;
+  min-height: 40px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: none;
+  max-width: 100%;
+  white-space: normal; // wrap long suggestion text instead of clipping
+
+  &::part(native) {
+    white-space: normal;
+    height: auto;
+    text-align: left;
+  }
+
   &:hover {
     transform: translateY(-1px);
   }
