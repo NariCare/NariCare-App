@@ -98,25 +98,21 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Web-only keyboard tracking. On native, Capacitor Keyboard resize:"body"
-  // shrinks the WebView so the fixed composer already rests on the keyboard.
-  // visualViewport lets mobile web browsers do the same without guesswork.
+  // The composer is a normal flex child of the chat column, so when the keyboard
+  // shrinks the viewport (Capacitor resize:"body" on native, visualViewport on
+  // web) the layout already keeps it above the keyboard. We only need to keep
+  // the latest messages in view; no manual transform (that pushed the in-flow
+  // input up into the middle and left a gap below it).
   private setupKeyboardHandling() {
     const vv = (window as any).visualViewport;
     if (!vv) return;
 
     this.viewportResizeHandler = () => {
       const overlap = window.innerHeight - vv.height - vv.offsetTop;
-      const container = this.messageInputContainer?.nativeElement;
-      if (!container) return;
-
       if (overlap > 80) {
-        // Lift the composer by the exact keyboard overlap (compositor-only).
-        container.style.transform = `translateY(-${overlap}px)`;
         document.body.classList.add('keyboard-visible');
         this.scrollToBottom();
       } else {
-        container.style.transform = '';
         document.body.classList.remove('keyboard-visible');
       }
     };
