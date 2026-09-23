@@ -152,9 +152,12 @@
                       <img src="assets/Fed directly.svg" alt="Direct Feed" class="feed-svg-icon">
                       <span class="feed-type">{{ getBreastSide(record) | titlecase }}</span>
                     </div>
+                    <!-- Pain metric removed per Komal, keep for later reuse -->
+                    <!--
                     <div class="feed-metric" *ngIf="getFeedPainLevel(record) !== null">
                       <span class="pain-value">{{ getFeedPainLevel(record) }}/10</span>
                     </div>
+                    -->
                   </div>
                   <div class="feed-date">{{ getRecordDate(record) }}</div>
                 </div>
@@ -439,8 +442,8 @@
             </div>
           </div>
 
-          <!-- Pain Level -->
-          <div class="form-section">
+          <!-- Pain Level - hidden per Komal, keep for later reuse -->
+          <div class="form-section" *ngIf="false">
             <h4>Pain</h4>
             <p class="section-note">Consider 0 is no pain and 10 is a lot of pain</p>
 
