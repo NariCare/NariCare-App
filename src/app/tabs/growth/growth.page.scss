@@ -303,9 +303,10 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 
 /* Tab Content */
 .tab-content {
-  min-height: 400px;
-  position: relative; // Enable absolute positioning for FAB within this container
-  padding-bottom: 80px; // Add space for FAB within the tab content
+  position: relative;
+  // No min-height: it forced the tab tall and left a big empty gap under a
+  // short list (e.g. one baby). The FAB is fixed to the viewport instead.
+  padding-bottom: 1rem;
 }
 
 /* My Babies Tab */
@@ -1325,19 +1326,19 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 /* Core Modal Components */
 /* Floating Add Baby Button - Inside Tab */
 .fab-wrapper {
-  position: absolute;
-  bottom: 20px; // Position relative to the tab content
+  // Fixed to the viewport (above the tab bar) so it does not force the tab
+  // content tall and leave an empty gap under a short list.
+  position: fixed;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   right: 20px;
   z-index: 100;
   pointer-events: none;
-  
+
   ion-fab-button {
     pointer-events: all;
   }
-  
-  // Adjust for different screen sizes
+
   @media (max-width: 768px) {
-    bottom: 16px;
     right: 16px;
   }
 }
