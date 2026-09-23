@@ -393,28 +393,9 @@ export class ProfilePage implements OnInit {
   }
 
   private editProfile() {
-    console.log('Profile Page - editProfile method called');
-    console.log('Profile Page - Current user:', this.user);
-    console.log('Profile Page - Current route:', this.router.url);
-    console.log('Profile Page - Navigating to personal-info');
-    
-    // Simple direct navigation first
-    console.log('Profile Page - Attempting direct navigation to /personal-info');
-    this.router.navigateByUrl('/personal-info').then(success => {
-      console.log('Profile Page - Direct navigation result:', success);
-      if (!success) {
-        console.error('Profile Page - Direct navigation failed, trying alternative');
-        // Alternative approach with manual URL change
-        setTimeout(() => {
-          console.log('Profile Page - Forcing navigation with location.href');
-          window.location.href = '/personal-info';
-        }, 100);
-      }
-    }).catch(error => {
-      console.error('Profile Page - Navigation error:', error);
-      // Force navigation
-      window.location.href = '/personal-info';
-    });
+    // A hard location.href fallback here used to reload the app to Home when the
+    // guard briefly blocked the first navigation, so keep it to a clean route.
+    this.router.navigate(['/personal-info']);
   }
 
   private async editBaby() {

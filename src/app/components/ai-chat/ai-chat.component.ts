@@ -109,11 +109,17 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.viewportResizeHandler = () => {
       const overlap = window.innerHeight - vv.height - vv.offsetTop;
+      const container = document.querySelector('.ai-chat-container') as HTMLElement | null;
       if (overlap > 80) {
+        // On web the layout height does not shrink for the on-screen keyboard,
+        // so the messages scroll out of view. Cap the chat height to the visible
+        // viewport so the flex column shrinks and the messages stay in view.
         document.body.classList.add('keyboard-visible');
-        this.scrollToBottom();
+        container?.style.setProperty('height', `${vv.height}px`);
+        setTimeout(() => this.scrollToBottom(), 50);
       } else {
         document.body.classList.remove('keyboard-visible');
+        container?.style.removeProperty('height');
       }
     };
 
