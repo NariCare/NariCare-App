@@ -4,6 +4,7 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
 import { BackendPumpingService, CreatePumpingRecordRequest } from '../../services/backend-pumping.service';
+import { BackendGrowthService } from '../../services/backend-growth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { PumpingRecord, PumpingSide } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
@@ -58,6 +59,7 @@ export class PumpingLogModalComponent implements OnInit {
     private growthService: GrowthTrackingService,
     private authService: AuthService,
     private backendPumpingService: BackendPumpingService,
+    private backendGrowthService: BackendGrowthService,
     private backendAuthService: BackendAuthService
   ) {
     this.pumpingForm = this.formBuilder.group({
@@ -397,6 +399,9 @@ export class PumpingLogModalComponent implements OnInit {
           };
 
           await this.backendPumpingService.createPumpingRecord(requestData).toPromise();
+          // Push the new session into the shared cache so the dashboard and
+          // baby-detail update immediately instead of after a manual reload.
+          this.backendGrowthService.refreshPumping(firstBaby.id);
         } else {
           // Use local storage (legacy) - use baby-123 fallback for local storage compatibility
           const record: Omit<PumpingRecord, 'id' | 'createdAt'> = {

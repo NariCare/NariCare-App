@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subscription } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { BackendGrowthService } from '../../services/backend-growth.service';
@@ -33,7 +33,7 @@ import { DateOnlyUtil } from '../../shared/utils/date-only.util';
   templateUrl: './growth.page.html',
   styleUrls: ['./growth.page.scss'],
 })
-export class GrowthPage implements OnInit {
+export class GrowthPage implements OnInit, OnDestroy {
   @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
   
   user: User | null = null;
@@ -45,6 +45,7 @@ export class GrowthPage implements OnInit {
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   pumpingRecords$: Observable<any[]> | null = null;
   pumpingRecords: any[] = [];
+  private pumpingSub?: Subscription;
   emotionRecords$: Observable<any[]> | null = null;
   emotionRecords: any[] = [];
   timelineData$: Observable<BabyTimelineData> | null = null;
@@ -163,6 +164,10 @@ export class GrowthPage implements OnInit {
     this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
   }
 
+  ngOnDestroy() {
+    this.pumpingSub?.unsubscribe();
+  }
+
   // Custom validator for decimal places
   decimalPlacesValidator(maxDecimals: number) {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -268,7 +273,9 @@ export class GrowthPage implements OnInit {
       // Use backend service - require at least one baby from API
       const firstBaby = this.user?.babies?.[0];
       if (firstBaby?.id) {
-        this.pumpingRecords$ = this.backendPumpingService.getRecentPumpingRecords(firstBaby.id, 10).pipe(
+        // Read through the shared reactive cache so a pump save pushes fresh data
+        // here automatically (no manual reload, no "0 sessions" until refresh).
+        this.pumpingRecords$ = this.backendGrowthService.getPumpingRecords(firstBaby.id).pipe(
           map(records => {
             this.pumpingRecords = records || []; // Store records for synchronous access
             return records;
@@ -279,8 +286,10 @@ export class GrowthPage implements OnInit {
             return of([]);
           })
         );
-        // Subscribe to update local records
-        this.pumpingRecords$.subscribe();
+        // Long-lived subscription keeps pumpingRecords in sync; drop the previous
+        // one so repeated loads do not stack subscriptions.
+        this.pumpingSub?.unsubscribe();
+        this.pumpingSub = this.pumpingRecords$.subscribe();
       } else {
         // If no baby available, show empty list
         console.log('No babies available. Pumping data will load after baby information is added.');

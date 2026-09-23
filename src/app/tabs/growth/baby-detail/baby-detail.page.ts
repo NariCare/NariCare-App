@@ -3,12 +3,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
-import { map, startWith, tap, shareReplay } from 'rxjs/operators';
+import { startWith, tap } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
 import { BackendGrowthService } from '../../../services/backend-growth.service';
-import { BackendPumpingService } from '../../../services/backend-pumping.service';
 import { WHOGrowthChartService } from '../../../services/who-growth-chart.service';
 import { WeightChartModalComponent } from '../../../components/weight-chart-modal/weight-chart-modal.component';
 import { FeedLogModalComponent } from '../../../components/feed-log-modal/feed-log-modal.component';
@@ -117,7 +116,6 @@ export class BabyDetailPage implements OnInit {
     private backendAuthService: BackendAuthService,
     private growthService: GrowthTrackingService,
     private backendGrowthService: BackendGrowthService,
-    private backendPumpingService: BackendPumpingService,
     private toastController: ToastController,
     private alertController: AlertController,
     private modalController: ModalController
@@ -237,51 +235,39 @@ export class BabyDetailPage implements OnInit {
     // Check if user is using backend services
     const isBackendUser = this.backendAuthService.getCurrentUser();
 
+    // The service owns caching now (one reactive subject per record type), so the
+    // component just subscribes. startWith(null) drives the per-tab skeleton until
+    // the first real emit; writes push fresh data through the same stream, so no
+    // manual rebuild is needed after a save.
     if (isBackendUser) {
-      // Use backend services for all data
       this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId).pipe(
         tap(() => this.feedLoaded = true),
-        shareReplay({ bufferSize: 1, refCount: false }),
         startWith(null)
       );
       this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId).pipe(
-        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; }),
-        shareReplay({ bufferSize: 1, refCount: false })
+        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; })
       );
-      this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
+      this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId);
       this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId).pipe(
         tap(() => this.diaperLoaded = true),
-        shareReplay({ bufferSize: 1, refCount: false }),
         startWith(null)
       );
-      this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(this.babyId).pipe(
-        map(response => response.records),
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
+      this.pumpingRecords$ = this.backendGrowthService.getPumpingRecords(this.babyId);
     } else {
       // Fallback to local services
       this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId).pipe(
         tap(() => this.feedLoaded = true),
-        shareReplay({ bufferSize: 1, refCount: false }),
         startWith(null)
       );
       this.weightRecords$ = this.growthService.getWeightRecords(this.babyId).pipe(
-        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; }),
-        shareReplay({ bufferSize: 1, refCount: false })
+        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; })
       );
-      this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
+      this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
       this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId).pipe(
         tap(() => this.diaperLoaded = true),
-        shareReplay({ bufferSize: 1, refCount: false }),
         startWith(null)
       );
-      this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId).pipe(
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
+      this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId);
     }
   }
 
