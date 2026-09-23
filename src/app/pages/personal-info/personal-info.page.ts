@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { TimezoneService, TimezoneOption } from '../../services/timezone.service';
 import { User } from '../../models/user.model';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-personal-info',
@@ -200,20 +201,63 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     this.personalInfoForm.markAsPristine();
     this.personalInfoForm.markAsUntouched();
 
-    // Motherhood journey (mother type + due date) is a one-time choice at
-    // registration; lock it once set so tracking data stays consistent.
-    if (user.motherType) {
-      this.personalInfoForm.get('motherType')?.disable();
+    // Mother type is derived from the due date, so it is always display-only.
+    // Due date drives the stage and is editable, but frozen once a baby exists.
+    this.personalInfoForm.get('motherType')?.disable();
+    if (this.hasBaby) {
       this.personalInfoForm.get('dueDate')?.disable();
+    } else {
+      this.personalInfoForm.get('dueDate')?.enable();
     }
   }
 
   get isMotherhoodJourneyLocked(): boolean {
     return !!this.user?.motherType;
   }
-  
+
+  // Once a baby is added the stage is settled, so the due date is frozen.
+  get hasBaby(): boolean {
+    return !!(this.user?.babies && this.user.babies.length > 0);
+  }
+
+  // ion-input type=date with formControlName alone does not always sync the
+  // native picker value back to the reactive control, so push it explicitly.
+  onDueDateChange(event: any) {
+    const value = event?.detail?.value ?? '';
+    this.personalInfoForm.get('dueDate')?.setValue(value);
+    this.personalInfoForm.get('dueDate')?.markAsDirty();
+  }
+
+  // Normalize a date input to YYYY-MM-DD; some platforms surface it as DD/MM/YYYY.
+  private formatDateForApi(dateValue: string): string {
+    if (!dateValue) { return ''; }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) { return dateValue; }
+    const dmy = dateValue.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (dmy) { return `${dmy[3]}-${dmy[2]}-${dmy[1]}`; }
+    const d = new Date(dateValue);
+    return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+  }
+
+  // Read the due date from the native input first (that is what the user sees on
+  // screen); ion-input type=date can fail to propagate to the reactive control,
+  // leaving them out of sync. Fall back to the control only if the input is gone.
+  private readDueDate(): string {
+    const native = document.querySelector('ion-input[formcontrolname="dueDate"] input') as HTMLInputElement | null;
+    if (native && native.value) { return native.value; }
+    return this.personalInfoForm.get('dueDate')?.value || '';
+  }
+
   async onSubmit() {
     if (this.personalInfoForm.valid) {
+      const rawDue = this.readDueDate();
+      const dueError = DateOnlyUtil.invalidDateMessage(this.formatDateForApi(rawDue));
+      if (dueError) {
+        const t = await this.toastController.create({
+          message: dueError, duration: 3000, color: 'danger', position: 'top'
+        });
+        await t.present();
+        return;
+      }
       const loading = await this.loadingController.create({
         message: 'Updating your information...',
         translucent: true
@@ -222,15 +266,19 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
       
       try {
         const formValue = this.personalInfoForm.value;
-        const updateData = {
+        const updateData: any = {
           firstName: formValue.firstName,
           lastName: formValue.lastName,
           phoneNumber: formValue.phoneNumber,
           whatsappNumber: formValue.whatsappNumber,
-          motherType: formValue.motherType,
-          dueDate: formValue.dueDate ? new Date(formValue.dueDate) : undefined,
           timezone: formValue.timezone
         };
+        // Send due date as a normalized YYYY-MM-DD string (the date input can
+        // surface DD/MM/YYYY on some platforms, which new Date() misparses).
+        const normalizedDue = this.formatDateForApi(rawDue);
+        if (normalizedDue) {
+          updateData.dueDate = normalizedDue;
+        }
         
         await this.backendAuthService.updateUserProfile(updateData);
         await loading.dismiss();

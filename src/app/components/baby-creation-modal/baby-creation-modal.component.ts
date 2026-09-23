@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors }
 import { ModalController, ToastController, LoadingController } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-baby-creation-modal',
@@ -60,8 +61,16 @@ export class BabyCreationModalComponent implements OnInit {
 
   async onSubmit() {
     if (this.babyForm.valid && !this.isSubmitting) {
+      const dobError = DateOnlyUtil.invalidDateMessage(this.formatDateForApi(this.babyForm.get('dateOfBirth')?.value));
+      if (dobError) {
+        const t = await this.toastController.create({
+          message: dobError, duration: 3000, color: 'danger', position: 'top'
+        });
+        await t.present();
+        return;
+      }
       this.isSubmitting = true; // Prevent multiple submissions
-      
+
       const loading = await this.loadingController.create({
         message: 'Adding baby...',
         translucent: true

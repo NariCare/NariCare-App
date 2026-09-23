@@ -185,16 +185,17 @@
           Motherhood Journey
         </h3>
 
-        <p class="section-note" *ngIf="isMotherhoodJourneyLocked">
-          <ion-icon name="lock-closed-outline"></ion-icon>
-          This was set when you joined and can't be changed. Contact support if it's wrong.
+        <p class="section-note">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span *ngIf="!hasBaby">Your stage is set from your due date: a future date means expecting, a past date means new mother. Update the due date and your app adjusts to match.</span>
+          <span *ngIf="hasBaby">Your due date is locked now that your baby has been added.</span>
         </p>
 
         <div class="form-group">
           <label class="form-label">Mother Type</label>
           <ion-item lines="none" class="select-item">
             <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-select formControlName="motherType" placeholder="Select your current stage">
+            <ion-select formControlName="motherType" placeholder="Set from your due date">
               <ion-select-option *ngFor="let type of motherTypes" [value]="type.value">
                 {{ type.label }}
               </ion-select-option>
@@ -202,14 +203,17 @@
           </ion-item>
         </div>
 
-        <div class="form-group" *ngIf="personalInfoForm.get('motherType')?.value === 'pregnant'">
+        <div class="form-group">
           <label class="form-label">Due Date</label>
           <ion-item lines="none" class="input-item">
             <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
             <ion-input
               formControlName="dueDate"
               type="date"
-              placeholder="Select your due date">
+              placeholder="Select your due date"
+              [disabled]="hasBaby"
+              (ionChange)="onDueDateChange($event)"
+              (ionInput)="onDueDateChange($event)">
             </ion-input>
           </ion-item>
         </div>

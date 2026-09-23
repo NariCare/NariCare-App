@@ -63,4 +63,23 @@ export class DateOnlyUtil {
 
     return d >= weekStart && d <= weekEnd;
   }
+
+  /**
+   * Validate a YYYY-MM-DD string is a real calendar date (rejects Sep 31, Feb 30).
+   * Returns a friendly error message, or null when valid.
+   */
+  static invalidDateMessage(value: string | null | undefined): string | null {
+    if (!value) return null;
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value).slice(0, 10));
+    if (!m) return 'Please enter the date as YYYY-MM-DD.';
+    const year = +m[1], month = +m[2], day = +m[3];
+    if (month < 1 || month > 12) return `${month} is not a valid month.`;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    if (day < 1 || day > daysInMonth) {
+      return `${months[month - 1]} ${year} only has ${daysInMonth} days.`;
+    }
+    return null;
+  }
 }
