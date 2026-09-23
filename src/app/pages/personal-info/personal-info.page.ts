@@ -238,9 +238,19 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     return isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
   }
 
+  // Read the due date, falling back to the native input if the reactive control
+  // did not sync (ion-input type=date can fail to propagate on some platforms).
+  private readDueDate(): string {
+    const controlValue = this.personalInfoForm.get('dueDate')?.value;
+    if (controlValue) { return controlValue; }
+    const native = document.querySelector('ion-input[formcontrolname="dueDate"] input') as HTMLInputElement | null;
+    return native?.value || '';
+  }
+
   async onSubmit() {
     if (this.personalInfoForm.valid) {
-      const dueError = DateOnlyUtil.invalidDateMessage(this.formatDateForApi(this.personalInfoForm.get('dueDate')?.value));
+      const rawDue = this.readDueDate();
+      const dueError = DateOnlyUtil.invalidDateMessage(this.formatDateForApi(rawDue));
       if (dueError) {
         const t = await this.toastController.create({
           message: dueError, duration: 3000, color: 'danger', position: 'top'
@@ -265,7 +275,7 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
         };
         // Send due date as a normalized YYYY-MM-DD string (the date input can
         // surface DD/MM/YYYY on some platforms, which new Date() misparses).
-        const normalizedDue = this.formatDateForApi(formValue.dueDate);
+        const normalizedDue = this.formatDateForApi(rawDue);
         if (normalizedDue) {
           updateData.dueDate = normalizedDue;
         }
