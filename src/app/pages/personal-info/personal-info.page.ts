@@ -240,7 +240,7 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
 
   async onSubmit() {
     if (this.personalInfoForm.valid) {
-      const dueError = DateOnlyUtil.invalidDateMessage(this.personalInfoForm.get('dueDate')?.value);
+      const dueError = DateOnlyUtil.invalidDateMessage(this.formatDateForApi(this.personalInfoForm.get('dueDate')?.value));
       if (dueError) {
         const t = await this.toastController.create({
           message: dueError, duration: 3000, color: 'danger', position: 'top'
