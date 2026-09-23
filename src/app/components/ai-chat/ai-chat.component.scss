@@ -8,8 +8,19 @@ $ink: #2d3748;
 $muted: #7a73a9;
 $font: var(--ion-font-family, 'Poppins', sans-serif);
 
+// The component host defaults to inline, which collapses height:100% inside.
+// Make it a flex-filling block so the container can own the column layout.
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
 .ai-chat-container {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -148,8 +159,8 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 1rem 10rem 1rem;
-  margin-bottom: 1rem;
+  padding: 0 1rem 1rem 1rem;
+  margin-bottom: 0;
   scroll-behavior: smooth;
   width: 100%;
   max-width: 100%;
@@ -696,16 +707,13 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   background: #ffffff;
   padding: 8px 12px;
   
+  // Sits at the bottom of the flex column (not viewport-fixed, which floated it
+  // over the messages when the container was shorter than the screen).
   &.fixed-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 800;
+    flex-shrink: 0;
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 8px));
     border-top: 1px solid #e2e8f0;
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
-    will-change: transform;
   }
 }
 

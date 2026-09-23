@@ -104,6 +104,9 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 
 .content-container {
   flex: 1;
+  min-height: 0; // allow the flex child (ai-chat) to own its own scroll
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -151,6 +154,8 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   &.ai-chat {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0; // let app-ai-chat's internal messages area scroll, not the page
     padding-bottom: 0;
     width: 100%;
     max-width: 100%;
