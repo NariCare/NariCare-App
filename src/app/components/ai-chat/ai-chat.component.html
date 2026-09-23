@@ -15,8 +15,8 @@
     </span>
   </div>
 
-  <!-- Medical Disclaimer -->
-  <div class="medical-disclaimer" *ngIf="showDisclaimer">
+  <!-- Medical Disclaimer - hidden per Komal for better screen management, keep for reuse -->
+  <!-- <div class="medical-disclaimer" *ngIf="showDisclaimer">
     <ion-icon name="warning" color="warning"></ion-icon>
     <div class="disclaimer-text">
       <strong>Medical Disclaimer:</strong> This AI provides educational information only. Always consult with a lactation consultant, pediatrician, or healthcare provider for personalized medical advice and concerns.
@@ -28,7 +28,7 @@
       class="close-disclaimer-button">
       <ion-icon name="close" slot="icon-only"></ion-icon>
     </ion-button>
-  </div>
+  </div> -->
 
 
   <!-- Messages Container -->
@@ -184,8 +184,8 @@
       </div>
     </div>
 
-    <!-- Expert Help Banner -->
-    <div class="expert-help-banner" *ngIf="shouldShowExpertBanner()">
+    <!-- Expert Help Banner - hidden per Komal for better screen management, keep for reuse -->
+    <!-- <div class="expert-help-banner" *ngIf="shouldShowExpertBanner()">
       <div class="banner-content">
         <ion-icon name="people"></ion-icon>
         <div class="banner-text">
@@ -193,9 +193,9 @@
         </div>
       </div>
       <div class="banner-actions">
-        <ion-button 
-          fill="clear" 
-          size="small" 
+        <ion-button
+          fill="clear"
+          size="small"
           (click)="dismissExpertBanner()"
           class="dismiss-button">
           <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -204,7 +204,7 @@
           Get Expert Help
         </ion-button>
       </div>
-    </div>
+    </div> -->
   </div>
 
   <!-- Expert Quick Access Panel -->
