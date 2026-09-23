@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
-import { map, startWith, tap } from 'rxjs/operators';
+import { map, startWith, tap, shareReplay } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
@@ -52,7 +52,22 @@ export class BabyDetailPage implements OnInit {
   diaperChangeRecords$: Observable<any[] | null> | null = null;
   pumpingRecords$: Observable<any[]> | null = null;
   private loadedBabyId: string | null = null;
-  
+
+  // Per-tab first-emit flags so the template can show a skeleton until data lands.
+  private feedLoaded = false;
+  private weightLoaded = false;
+  private diaperLoaded = false;
+
+  // True until the selected tab's primary stream has emitted at least once.
+  get loading(): boolean {
+    switch (this.selectedSubTab) {
+      case 'feed-tracks': return !this.feedLoaded;
+      case 'diaper-change': return !this.diaperLoaded;
+      case 'weight-size': return !this.weightLoaded;
+      default: return false;
+    }
+  }
+
   // Modal controls
   showAddRecordModal = false;
   showAddWeightModal = false;
@@ -214,29 +229,59 @@ export class BabyDetailPage implements OnInit {
     }
     this.loadedBabyId = this.babyId;
 
+    // Reset per-tab flags so the skeleton shows until each stream's first emit.
+    this.feedLoaded = false;
+    this.weightLoaded = false;
+    this.diaperLoaded = false;
+
     // Check if user is using backend services
     const isBackendUser = this.backendAuthService.getCurrentUser();
 
     if (isBackendUser) {
       // Use backend services for all data
-      this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId).pipe(startWith(null));
-      this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId).pipe(
-        tap(records => this.cacheLatestWeight(records))
+      this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId).pipe(
+        tap(() => this.feedLoaded = true),
+        shareReplay({ bufferSize: 1, refCount: false }),
+        startWith(null)
       );
-      this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId);
-      this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId).pipe(startWith(null));
+      this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId).pipe(
+        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; }),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId).pipe(
+        tap(() => this.diaperLoaded = true),
+        shareReplay({ bufferSize: 1, refCount: false }),
+        startWith(null)
+      );
       this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(this.babyId).pipe(
-        map(response => response.records)
+        map(response => response.records),
+        shareReplay({ bufferSize: 1, refCount: false })
       );
     } else {
       // Fallback to local services
-      this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId).pipe(startWith(null));
-      this.weightRecords$ = this.growthService.getWeightRecords(this.babyId).pipe(
-        tap(records => this.cacheLatestWeight(records))
+      this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId).pipe(
+        tap(() => this.feedLoaded = true),
+        shareReplay({ bufferSize: 1, refCount: false }),
+        startWith(null)
       );
-      this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
-      this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId).pipe(startWith(null));
-      this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId);
+      this.weightRecords$ = this.growthService.getWeightRecords(this.babyId).pipe(
+        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; }),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId).pipe(
+        tap(() => this.diaperLoaded = true),
+        shareReplay({ bufferSize: 1, refCount: false }),
+        startWith(null)
+      );
+      this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
     }
   }
 
