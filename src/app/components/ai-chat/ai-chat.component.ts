@@ -32,8 +32,8 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   quickAccessNotes: ExpertNote[] = [];
   quickAccessLinks: ExpertLink[] = [];
 
-  // Keyboard handling (web only; native uses Capacitor resize:body)
-  private viewportResizeHandler?: () => void;
+  // Keyboard handling (web/PWA only; native uses Capacitor resize:body)
+  private viewportHandler?: () => void;
 
   // ponytail: display-only timestamp for the static welcome bubble
   readonly welcomeTime = new Date();
@@ -93,41 +93,53 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.viewportResizeHandler && (window as any).visualViewport) {
-      (window as any).visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+    const vv = (window as any).visualViewport;
+    if (this.viewportHandler && vv) {
+      vv.removeEventListener('resize', this.viewportHandler);
+      vv.removeEventListener('scroll', this.viewportHandler);
     }
   }
 
-  // The composer is a normal flex child of the chat column, so when the keyboard
-  // shrinks the viewport (Capacitor resize:"body" on native, visualViewport on
-  // web) the layout already keeps it above the keyboard. We only need to keep
-  // the latest messages in view; no manual transform (that pushed the in-flow
-  // input up into the middle and left a gap below it).
+  // Mobile browsers (Chrome Android, iOS Safari, in-app PWA) do NOT shrink the
+  // layout viewport when the on-screen keyboard opens, and iOS ignores the
+  // interactive-widget meta entirely. The old flex column then kept full height
+  // while the browser scrolled the document up to reveal the focused input,
+  // leaving a white gap where the messages were and the composer floating in
+  // the middle. The one approach that works everywhere: pin the chat container
+  // to the visualViewport rectangle (position:fixed sized to vv.height/offset)
+  // while the keyboard is open, so it always fills exactly the visible area.
   private setupKeyboardHandling() {
     const vv = (window as any).visualViewport;
     if (!vv) return;
 
-    // Primary keyboard handling is CSS: the viewport meta uses
-    // interactive-widget=resizes-content, so the layout (100dvh/100%) shrinks
-    // when the keyboard opens and the flex column keeps the messages in view.
-    // This is a fallback for browsers that do not resize the layout: cap the
-    // outer chat wrapper (the real height owner) to the visible viewport.
-    this.viewportResizeHandler = () => {
-      const overlap = window.innerHeight - vv.height - vv.offsetTop;
-      const outer = document.querySelector('.chat-container') as HTMLElement | null;
-      const layoutResizes = Math.abs(window.innerHeight - vv.height) < 40; // browser already shrank layout
-      if (overlap > 80 && !layoutResizes) {
-        document.body.classList.add('keyboard-visible');
-        outer?.style.setProperty('height', `${vv.height}px`);
+    this.viewportHandler = () => {
+      const container = document.querySelector('.ai-chat-container') as HTMLElement | null;
+      if (!container) return;
+
+      // Keyboard height = layout viewport minus the visible viewport.
+      const keyboard = window.innerHeight - vv.height;
+      if (keyboard > 120) {
+        // Pin to the visible rectangle. offsetTop tracks any document scroll the
+        // browser applied to keep the input in view, so the box never drifts.
+        container.style.position = 'fixed';
+        container.style.top = `${vv.offsetTop}px`;
+        container.style.left = `${vv.offsetLeft}px`;
+        container.style.width = `${vv.width}px`;
+        container.style.height = `${vv.height}px`;
+        container.style.zIndex = '1000';
         setTimeout(() => this.scrollToBottom(), 50);
       } else {
-        document.body.classList.remove('keyboard-visible');
-        outer?.style.removeProperty('height');
-        if (overlap > 80) { setTimeout(() => this.scrollToBottom(), 50); }
+        container.style.removeProperty('position');
+        container.style.removeProperty('top');
+        container.style.removeProperty('left');
+        container.style.removeProperty('width');
+        container.style.removeProperty('height');
+        container.style.removeProperty('z-index');
       }
     };
 
-    vv.addEventListener('resize', this.viewportResizeHandler);
+    vv.addEventListener('resize', this.viewportHandler);
+    vv.addEventListener('scroll', this.viewportHandler);
   }
 
   private async initializeChatbot() {
