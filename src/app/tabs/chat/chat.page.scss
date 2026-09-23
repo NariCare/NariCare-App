@@ -10,16 +10,25 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 
 .chat-page-content {
   --background: #ffffff;
+  // Let the flex column inside own the height and scrolling (not ion-content),
+  // so the AI chat can pin its input and scroll messages without overlapping
+  // the bottom tab bar.
+  &::part(scroll) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 }
 
 .chat-container {
-  height: 100vh; /* Use viewport height instead of 100% */
-  height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  // Fill the ion-content (already inset below the header and above the tab bar).
+  // Using 100dvh here overflowed past the bottom tab bar and caused the overlap.
+  height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
   width: 100%;
-  max-width: 100vw; /* Ensure container doesn't exceed viewport width */
+  max-width: 100vw;
   position: relative;
 }
 
@@ -29,10 +38,10 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.5rem 1.25rem 2rem 1.25rem;
+  padding: 1.25rem 1.25rem 1.25rem 1.25rem;
   background: linear-gradient(180deg, $lavender-bg 0%, #ffffff 100%);
-  border-bottom-left-radius: 32px;
-  border-bottom-right-radius: 32px;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
   flex-shrink: 0;
 }
 
@@ -111,12 +120,13 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   overflow-x: hidden;
   width: 100%;
   max-width: 100%;
-  padding: 1rem;
+  padding: 0.75rem 1rem 0 1rem; // no bottom padding: the AI tab manages its own
 }
 
 /* Main Tab Selector (matches Tracker page pill pattern) */
 .main-tab-selector {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
   background: $lavender-bg;
   border-radius: 999px;
   padding: 4px;
