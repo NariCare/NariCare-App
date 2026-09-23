@@ -45,8 +45,8 @@ export class BackendGrowthService {
       if (response?.success) {
         // Transform the backend response to frontend format
         const transformedData = this.transformBackendFeedRecord(response.data);
-        // Optionally refresh local records
-        await this.refreshFeedRecords(record.babyId);
+        // Fire-and-forget: refreshing local records must not block the save/dismiss.
+        this.refreshFeedRecords(record.babyId);
         return transformedData;
       } else {
         throw new Error(response?.message || 'Failed to save feed record');

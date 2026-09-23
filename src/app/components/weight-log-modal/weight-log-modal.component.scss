@@ -7,24 +7,32 @@ $ink: #2d3748;
 $muted: #7a73a9;
 $font: var(--ion-font-family, 'Poppins', sans-serif);
 
+ion-content {
+  --background: #f6f5fb;
+}
+
 .feed-log-container {
-  padding: 0.5rem;
+  padding: 0.75rem 0.75rem 1.25rem;
 }
 
 .single-form {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem; // compact, matches feed/diaper logs
+  gap: 0.75rem;
 }
 
-/* Flat sections (no cards) to match the existing log modals */
+/* Each section is a clean white card for clear grouping */
 .form-section {
-  padding: 0 0.75rem;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1rem 1rem;
+  border: 1px solid rgba(226, 221, 245, 0.6);
+  box-shadow: 0 2px 10px rgba(131, 131, 237, 0.05);
 }
 
 .section-title {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.05rem;
+  margin: 0 0 0.15rem 0;
+  font-size: 1rem;
   font-weight: 700;
   color: $ink;
   text-align: left;
@@ -32,15 +40,17 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 }
 
 .section-description {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
   color: $muted;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   line-height: 1.35;
   font-family: $font;
 }
 
 .section-group + .section-group {
-  margin-top: 0.875rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(226, 221, 245, 0.5);
 }
 
 /* Baby Selection - Horizontal Layout matching Feed Type */
@@ -54,38 +64,37 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 }
 
 .baby-option {
-  background: #fffcf9; // Light coral background matching feed type
-  border-radius: 12px;
-  padding: 1rem 0.75rem;
+  background: $lavender-bg;
+  border-radius: 14px;
+  padding: 0.875rem 0.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border: 1px solid rgba(255, 158, 136, 0.2);
+  border: 1.5px solid transparent;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   position: relative;
   min-width: 90px;
   flex: 1;
-  font-family: 'Poppins', sans-serif;
-  
+  font-family: $font;
+
   &.selected {
-    border-color: #ff9e88;
-    background: #ffedf0;
-    transform: translateY(-1px);
+    border-color: $primary;
+    background: #ece9fb;
   }
-  
-  &:hover {
-    transform: translateY(-2px);
-    background: #fff5f7;
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 
 /* Selected Baby Info (when pre-selected) */
 .selected-baby-info {
-  background: linear-gradient(135deg, #f0f9ff, #ffffff);
-  border: 2px solid #bae6fd;
-  padding: 1rem 1.5rem;
+  background: $lavender-bg;
+  border: 1.5px solid $lavender-border;
+  padding: 0.875rem 1rem;
+  border-radius: 14px;
 }
 
 .selected-baby-display {
@@ -107,7 +116,7 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   
   ion-icon {
     font-size: 2rem;
-    color: #7a73a9; // Muted gray color matching feed type icons
+    color: $primary;
   }
 }
 
@@ -136,36 +145,17 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 
 .selected-icon {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  font-size: 1.2rem;
-  color: #ff9e88;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 1.15rem;
+  color: $primary;
   background: #ffffff;
   border-radius: 50%;
-  padding: 2px;
 }
 
-/* Main weight card styling */
+/* main-weight-card is now just a form-section card; groups separated above */
 .main-weight-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1rem 0.75rem;
-  border: 1px solid #f1f5f9;
-}
-
-/* Section groups within the main card */
-.section-group {
-  margin-bottom: 1rem;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-  
-  /* Add subtle separator between section groups */
-  &:not(:last-child) {
-    border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 1rem;
-  }
+  // card styling comes from .form-section
 }
 
 /* Save section - matches feed/diaper logs */
@@ -208,21 +198,29 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   font-family: 'Poppins', sans-serif;
 }
 
-/* Input Items - flat, matches feed/diaper logs */
+/* Input Items - lavender bordered with focus glow */
 .input-item {
-  --background: #f8fafc;
-  --border-radius: 8px;
+  --background: #faf9ff;
+  --border-radius: 12px;
   --padding-start: 12px;
   --padding-end: 12px;
-  --min-height: 44px;
+  --min-height: 46px;
   margin-bottom: 0.25rem;
+  border: 1px solid $lavender-border;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus-within {
+    border-color: rgba(131, 131, 237, 0.5);
+    box-shadow: 0 0 0 3px rgba(131, 131, 237, 0.1);
+  }
 
   &.notes-input {
     --min-height: auto;
 
     ion-textarea {
       --color: #{$ink};
-      --placeholder-color: #94a3b8;
+      --placeholder-color: #a49dc4;
     }
   }
 
@@ -230,11 +228,11 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   &.weight-input {
     text-align: center;
     --background: #ffffff;
-    border: 2px solid #e2e8f0;
-    transition: border-color 0.2s ease;
+    border: 1.5px solid $lavender-border;
 
     &:focus-within {
-      border-color: $primary;
+      border-color: rgba(131, 131, 237, 0.6);
+      box-shadow: 0 0 0 3px rgba(131, 131, 237, 0.12);
     }
 
     &.error {

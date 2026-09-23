@@ -1,19 +1,25 @@
+ion-content {
+  --background: #f6f5fb;
+}
+
 .feed-log-container {
-  padding: 0.5rem;
+  padding: 0.75rem 0.75rem 1.25rem;
 }
 
 /* Single form styles */
 .single-form {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem; // compacted from 1rem to reduce overall scroll
+  gap: 0.75rem;
 }
 
+/* Each section is a clean white card */
 .form-section {
-  // background: #ffffff;
-  // border-radius: 16px;
-  padding: 0 0.75rem;
-  // border: 1px solid #f1f5f9;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1rem;
+  border: 1px solid rgba(226, 221, 245, 0.6);
+  box-shadow: 0 2px 10px rgba(131, 131, 237, 0.05);
 }
 
 .section-title {
@@ -35,8 +41,8 @@
 
 /* Selected Baby Info (when pre-selected) */
 .selected-baby-info {
-  background: linear-gradient(135deg, #f0f9ff, #ffffff);
-  border: 2px solid #bae6fd;
+  background: #f4f2fe;
+  border: 2px solid #e2ddf5;
   padding: 0.75rem 1rem;
 }
 
@@ -106,12 +112,12 @@
   }
 }
 
-/* Notes section as separate card */
+/* Notes section - card styling comes from .form-section */
 .notes-section {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 0.875rem; // compacted from 1.5rem
-  border: 1px solid #f1f5f9;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
 }
 
 /* Save section styling */
@@ -190,7 +196,7 @@
   top: 0.75rem;
   right: 0.75rem;
   font-size: 1.2rem;
-  color: #ff9e88;
+  color: #8383ed;
   background: #ffffff;
   border-radius: 50%;
   padding: 2px;
@@ -207,14 +213,14 @@
 }
 
 .baby-option {
-  background: #fffcf9; // Light coral background matching feed type
+  background: #faf9ff; // Light coral background matching feed type
   border-radius: 16px;
   padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border: 1px solid rgba(255, 158, 136, 0.2);
+  border: 1px solid #e2ddf5;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -223,14 +229,14 @@
   font-family: 'Poppins', sans-serif;
   
   &.selected {
-    border-color: #ff9e88;
-    background: #ffedf0;
+    border-color: #8383ed;
+    background: #ece9fb;
     transform: translateY(-1px);
   }
   
   &:hover {
     transform: translateY(-2px);
-    background: #fff5f7;
+    background: #ece9fb;
   }
 }
 
@@ -245,14 +251,14 @@
 }
 
 .feed-type-option {
-  background: #fffcf9; // Light coral background matching Figma
+  background: #faf9ff; // Light coral background matching Figma
   border-radius: 16px;
   padding: 1.5rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border: 1px solid rgba(255, 158, 136, 0.2);
+  border: 1px solid #e2ddf5;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -261,14 +267,14 @@
   font-family: 'Poppins', sans-serif;
   
   &.selected {
-    border-color: #ff9e88;
-    background: #ffedf0;
+    border-color: #8383ed;
+    background: #ece9fb;
     transform: translateY(-1px);
   }
   
   &:hover {
     transform: translateY(-2px);
-    background: #fff5f7;
+    background: #ece9fb;
   }
 }
 
@@ -316,7 +322,7 @@
   top: 0.75rem;
   right: 0.75rem;
   font-size: 1.2rem;
-  color: #ff9e88;
+  color: #8383ed;
   background: #ffffff;
   border-radius: 50%;
   padding: 2px;
@@ -338,22 +344,22 @@
   flex-direction: column;
   align-items: center;
   padding: 1.25rem 0.75rem;
-  background: #fffcf9; // Match feed-type-option background
+  background: #faf9ff; // Match feed-type-option background
   border-radius: 16px;
-  border: 1px solid rgba(255, 158, 136, 0.2);
+  border: 1px solid #e2ddf5;
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: 'Poppins', sans-serif;
   
   &.selected {
-    border-color: #ff9e88;
-    background: #fff5f7;
+    border-color: #8383ed;
+    background: #ece9fb;
     transform: translateY(-1px);
   }
   
   &:hover {
     transform: translateY(-1px);
-    background: #fff8f5;
+    background: #f4f2fe;
   }
   
   .option-label {
@@ -432,10 +438,7 @@
 
 /* Quick Notes Section */
 .quick-notes-section {
-  // background: rgba(255, 255, 255, 0.8);
-  // border-radius: 16px;
-  // padding: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
   // border: 1px solid #f1f5f9;
 }
 

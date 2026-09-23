@@ -1176,13 +1176,11 @@ export class GrowthPage implements OnInit {
 
   getDailySummaryTracks(): number {
     if (!this.dailySummary) return 0;
-    
-    // Include all feed types: direct, expressed, and formula feeds
-    const directFeeds = this.dailySummary.totalDirectFeeds || 0;
-    const expressedFeeds = this.dailySummary.totalExpressedFeeds || 0;
-    const formulaFeeds = this.dailySummary.totalFormulaFeeds || 0;
-    
-    return directFeeds + expressedFeeds + formulaFeeds;
+
+    // Count feed SESSIONS, not methods: one feed log (a baby sitting down to a
+    // meal) is 1 feed even if it combines direct + expressed + formula. Summing
+    // the per-method counts over-counted (a triple feed showed as 3).
+    return this.dailySummary.recordsCount || 0;
   }
 
   getDailySummaryPain(): number {
