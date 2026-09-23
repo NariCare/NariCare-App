@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
-import { map, startWith, tap } from 'rxjs/operators';
+import { map, startWith, tap, shareReplay } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
@@ -31,6 +31,7 @@ import {
 import { User, Baby } from '../../../models/user.model';
 import { PumpingRecord } from '../../../models/growth-tracking.model';
 import { AgeCalculatorUtil } from '../../../shared/utils/age-calculator.util';
+import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-baby-detail',
@@ -51,7 +52,22 @@ export class BabyDetailPage implements OnInit {
   diaperChangeRecords$: Observable<any[] | null> | null = null;
   pumpingRecords$: Observable<any[]> | null = null;
   private loadedBabyId: string | null = null;
-  
+
+  // Per-tab first-emit flags so the template can show a skeleton until data lands.
+  private feedLoaded = false;
+  private weightLoaded = false;
+  private diaperLoaded = false;
+
+  // True until the selected tab's primary stream has emitted at least once.
+  get loading(): boolean {
+    switch (this.selectedSubTab) {
+      case 'feed-tracks': return !this.feedLoaded;
+      case 'diaper-change': return !this.diaperLoaded;
+      case 'weight-size': return !this.weightLoaded;
+      default: return false;
+    }
+  }
+
   // Modal controls
   showAddRecordModal = false;
   showAddWeightModal = false;
@@ -175,23 +191,14 @@ export class BabyDetailPage implements OnInit {
           if (this.baby) {
             console.log('Baby Detail Page - Found baby:', this.baby);
           } else {
+            // Stale/mismatched baby id (e.g. pregnant mom with no matching baby).
+            // Route straight to growth; its empty state carries the message.
             console.warn(`Baby with ID ${this.babyId} not found in user's babies list`);
-            this.showToast('Baby not found. Returning to growth page.', 'warning');
-            setTimeout(() => {
-              this.router.navigate(['/tabs/growth'], { replaceUrl: true });
-            }, 2000);
+            this.router.navigate(['/tabs/growth'], { replaceUrl: true });
           }
         } else {
           console.warn('Baby Detail Page - User has no babies array or it\'s not an array');
-          // Check if user is expecting mother
-          const isExpectingMother = user && user.motherType === 'pregnant';
-          const message = isExpectingMother 
-            ? 'Baby tracking will be available after your little one arrives!'
-            : 'No babies found. Please add a baby first.';
-          this.showToast(message, 'info');
-          setTimeout(() => {
-            this.router.navigate(['/tabs/growth'], { replaceUrl: true });
-          }, 2000);
+          this.router.navigate(['/tabs/growth'], { replaceUrl: true });
         }
       } else if (this.babyId && (this.babyId === 'undefined' || this.babyId === 'null')) {
         console.warn('Baby Detail Page - Invalid baby ID detected, redirecting immediately');
@@ -222,29 +229,59 @@ export class BabyDetailPage implements OnInit {
     }
     this.loadedBabyId = this.babyId;
 
+    // Reset per-tab flags so the skeleton shows until each stream's first emit.
+    this.feedLoaded = false;
+    this.weightLoaded = false;
+    this.diaperLoaded = false;
+
     // Check if user is using backend services
     const isBackendUser = this.backendAuthService.getCurrentUser();
 
     if (isBackendUser) {
       // Use backend services for all data
-      this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId).pipe(startWith(null));
-      this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId).pipe(
-        tap(records => this.cacheLatestWeight(records))
+      this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId).pipe(
+        tap(() => this.feedLoaded = true),
+        shareReplay({ bufferSize: 1, refCount: false }),
+        startWith(null)
       );
-      this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId);
-      this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId).pipe(startWith(null));
+      this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId).pipe(
+        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; }),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId).pipe(
+        tap(() => this.diaperLoaded = true),
+        shareReplay({ bufferSize: 1, refCount: false }),
+        startWith(null)
+      );
       this.pumpingRecords$ = this.backendPumpingService.getPumpingRecords(this.babyId).pipe(
-        map(response => response.records)
+        map(response => response.records),
+        shareReplay({ bufferSize: 1, refCount: false })
       );
     } else {
       // Fallback to local services
-      this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId).pipe(startWith(null));
-      this.weightRecords$ = this.growthService.getWeightRecords(this.babyId).pipe(
-        tap(records => this.cacheLatestWeight(records))
+      this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId).pipe(
+        tap(() => this.feedLoaded = true),
+        shareReplay({ bufferSize: 1, refCount: false }),
+        startWith(null)
       );
-      this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
-      this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId).pipe(startWith(null));
-      this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId);
+      this.weightRecords$ = this.growthService.getWeightRecords(this.babyId).pipe(
+        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; }),
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
+      this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId).pipe(
+        tap(() => this.diaperLoaded = true),
+        shareReplay({ bufferSize: 1, refCount: false }),
+        startWith(null)
+      );
+      this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId).pipe(
+        shareReplay({ bufferSize: 1, refCount: false })
+      );
     }
   }
 
@@ -635,16 +672,11 @@ export class BabyDetailPage implements OnInit {
   }
 
   getRecordTime(record: any): string {
-    // Handle transformed API data and local data
-    const startTime = record.directFeedDetails?.startTime || record.direct_start_time;
-    if (!startTime) return '--';
-    
-    // If time is in HH:MM:SS format, convert to HH:MM
-    if (typeof startTime === 'string' && startTime.includes(':')) {
-      return startTime.slice(0, 5); // Takes HH:MM from HH:MM:SS
-    }
-    
-    return startTime;
+    // Prefer the direct feed start time, then any method's start time.
+    const startTime = record.directFeedDetails?.startTime || record.direct_start_time
+      || record.expressedMilkDetails?.startTime || record.expressed_start_time
+      || record.formulaDetails?.startTime || record.formula_start_time;
+    return DateOnlyUtil.to12Hour(startTime);
   }
 
   getRecordDate(record: any): string {
@@ -654,7 +686,7 @@ export class BabyDetailPage implements OnInit {
   }
 
   getStoolTime(record: StoolRecord): string {
-    return record.time;
+    return DateOnlyUtil.to12Hour(record.time);
   }
 
   getStoolDate(record: StoolRecord): string {
@@ -662,16 +694,7 @@ export class BabyDetailPage implements OnInit {
   }
 
   getDiaperChangeTime(record: any): string {
-    // Handle both API format (record_time) and local format (time)
-    const time = record.record_time || record.time;
-    if (!time) return '--';
-    
-    // If time is in HH:MM:SS format, convert to HH:MM
-    if (typeof time === 'string' && time.includes(':')) {
-      return time.slice(0, 5); // Takes HH:MM from HH:MM:SS
-    }
-    
-    return time;
+    return DateOnlyUtil.to12Hour(record.record_time || record.time);
   }
 
   getDiaperChangeDate(record: any): string {

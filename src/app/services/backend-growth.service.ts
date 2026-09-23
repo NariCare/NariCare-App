@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject, of } from 'rxjs';
-import { tap, map, catchError } from 'rxjs/operators';
+import { tap, map, catchError, shareReplay } from 'rxjs/operators';
 import { ApiService, FeedRecordRequest, WeightRecordRequest, StoolRecordRequest, PumpingRecordRequest, DiaperChangeRequest, DiaperChangeRecord, DiaperChangeStats } from './api.service';
 import { GrowthRecord } from '../models/growth-tracking.model';
 import { DateOnlyUtil } from '../shared/utils/date-only.util';
@@ -10,8 +10,34 @@ import { DateOnlyUtil } from '../shared/utils/date-only.util';
 })
 export class BackendGrowthService {
   private recordsSubject = new BehaviorSubject<GrowthRecord[]>([]);
-  
+
+  // Per-baby record cache. Keyed "type:babyId"; each write invalidates its type
+  // so the next read refetches. shareReplay makes revisits paint instantly.
+  private recordCache = new Map<string, Observable<any[]>>();
+
   constructor(private apiService: ApiService) {}
+
+  private cached(type: string, babyId: string, build: () => Observable<any[]>): Observable<any[]> {
+    const key = `${type}:${babyId}`;
+    let stream = this.recordCache.get(key);
+    if (!stream) {
+      stream = build().pipe(shareReplay({ bufferSize: 1, refCount: false }));
+      this.recordCache.set(key, stream);
+    }
+    return stream;
+  }
+
+  private invalidate(type: string, babyId: string): void {
+    this.recordCache.delete(`${type}:${babyId}`);
+  }
+
+  // Drop every cached stream of a type (used when the write has no babyId to hand,
+  // e.g. diaper update/delete keyed only by recordId).
+  private invalidateType(type: string): void {
+    for (const key of Array.from(this.recordCache.keys())) {
+      if (key.startsWith(`${type}:`)) { this.recordCache.delete(key); }
+    }
+  }
 
   /**
    * Add a new feed record to the backend
@@ -45,6 +71,7 @@ export class BackendGrowthService {
       if (response?.success) {
         // Transform the backend response to frontend format
         const transformedData = this.transformBackendFeedRecord(response.data);
+        this.invalidate('feed', record.babyId);
         // Fire-and-forget: refreshing local records must not block the save/dismiss.
         this.refreshFeedRecords(record.babyId);
         return transformedData;
@@ -65,6 +92,7 @@ export class BackendGrowthService {
       const response = await this.apiService.createWeightRecord(record).toPromise();
       
       if (response?.success) {
+        this.invalidate('weight', record.babyId);
         // After successfully adding a weight record, refresh baby data to update current weight
         await this.refreshBabyCurrentWeight(record.babyId);
         return response.data;
@@ -108,8 +136,9 @@ export class BackendGrowthService {
   async addStoolRecord(record: StoolRecordRequest): Promise<any> {
     try {
       const response = await this.apiService.createStoolRecord(record).toPromise();
-      
+
       if (response?.success) {
+        this.invalidate('stool', record.babyId);
         return response.data;
       } else {
         throw new Error(response?.message || 'Failed to save stool record');
@@ -126,8 +155,9 @@ export class BackendGrowthService {
   async addPumpingRecord(record: PumpingRecordRequest): Promise<any> {
     try {
       const response = await this.apiService.createPumpingRecord(record).toPromise();
-      
+
       if (response?.success) {
+        if (record.babyId) { this.invalidate('pumping', record.babyId); }
         return response.data;
       } else {
         throw new Error(response?.message || 'Failed to save pumping record');
@@ -144,8 +174,9 @@ export class BackendGrowthService {
   async addDiaperChangeRecord(record: DiaperChangeRequest): Promise<any> {
     try {
       const response = await this.apiService.createDiaperChange(record).toPromise();
-      
+
       if (response?.success) {
+        if (record.babyId) { this.invalidate('diaper', record.babyId); }
         return response.data;
       } else {
         throw new Error(response?.message || 'Failed to save diaper change record');
@@ -160,7 +191,7 @@ export class BackendGrowthService {
    * Get feed records for a specific baby from backend
    */
   getFeedRecords(babyId: string): Observable<any[]> {
-    return this.apiService.getFeedRecords(babyId).pipe(
+    return this.cached('feed', babyId, () => this.apiService.getFeedRecords(babyId).pipe(
       map((response: any) => {
         if (response?.success && response.data) {
           // Transform each feed record from backend format to frontend format
@@ -172,14 +203,14 @@ export class BackendGrowthService {
         console.error('Error fetching feed records:', error);
         return of([]);
       })
-    );
+    ));
   }
 
   /**
    * Get weight records for a specific baby from backend
    */
   getWeightRecords(babyId: string): Observable<any[]> {
-    return this.apiService.getWeightRecords(babyId).pipe(
+    return this.cached('weight', babyId, () => this.apiService.getWeightRecords(babyId).pipe(
       map((response: any) => {
         if (response?.success && response.data) {
           // Sort weight records by date descending (most recent first)
@@ -195,7 +226,7 @@ export class BackendGrowthService {
         console.error('Error fetching weight records:', error);
         return of([]);
       })
-    );
+    ));
   }
 
   /**
@@ -219,7 +250,7 @@ export class BackendGrowthService {
    * Get stool records for a specific baby from backend
    */
   getStoolRecords(babyId: string): Observable<any[]> {
-    return this.apiService.getStoolRecords(babyId).pipe(
+    return this.cached('stool', babyId, () => this.apiService.getStoolRecords(babyId).pipe(
       map((response: any) => {
         if (response?.success && response.data) {
           return response.data;
@@ -230,14 +261,14 @@ export class BackendGrowthService {
         console.error('Error fetching stool records:', error);
         return of([]);
       })
-    );
+    ));
   }
 
   /**
    * Get pumping records for a specific baby from backend
    */
   getPumpingRecords(babyId: string): Observable<any[]> {
-    return this.apiService.getPumpingRecords(babyId).pipe(
+    return this.cached('pumping', babyId, () => this.apiService.getPumpingRecords(babyId).pipe(
       map((response: any) => {
         if (response?.success && response.data) {
           return response.data;
@@ -248,14 +279,14 @@ export class BackendGrowthService {
         console.error('Error fetching pumping records:', error);
         return of([]);
       })
-    );
+    ));
   }
 
   /**
    * Get diaper change records for a specific baby from backend
    */
   getDiaperChangeRecords(babyId: string, page?: number, limit?: number): Observable<DiaperChangeRecord[]> {
-    return this.apiService.getDiaperChanges(babyId, { page, limit }).pipe(
+    const build = () => this.apiService.getDiaperChanges(babyId, { page, limit }).pipe(
       map((response: any) => {
         if (response?.success && response.data) {
           return response.data;
@@ -267,6 +298,11 @@ export class BackendGrowthService {
         return of([]);
       })
     );
+    // Only cache the default unpaged list (the baby-detail view); paged calls bypass.
+    if (page === undefined && limit === undefined) {
+      return this.cached('diaper', babyId, build);
+    }
+    return build();
   }
 
   /**
@@ -293,8 +329,9 @@ export class BackendGrowthService {
   async updateDiaperChangeRecord(recordId: string, record: Partial<DiaperChangeRequest>): Promise<DiaperChangeRecord> {
     try {
       const response = await this.apiService.updateDiaperChange(recordId, record).toPromise();
-      
+
       if (response?.success) {
+        this.invalidateType('diaper');
         return response.data;
       } else {
         throw new Error(response?.message || 'Failed to update diaper change record');
@@ -311,8 +348,9 @@ export class BackendGrowthService {
   async deleteDiaperChangeRecord(recordId: string): Promise<boolean> {
     try {
       const response = await this.apiService.deleteDiaperChange(recordId).toPromise();
-      
+
       if (response?.success) {
+        this.invalidateType('diaper');
         return true;
       } else {
         throw new Error(response?.message || 'Failed to delete diaper change record');
@@ -383,11 +421,9 @@ export class BackendGrowthService {
    */
   private async refreshFeedRecords(babyId: string): Promise<void> {
     try {
-      const response = await this.apiService.getFeedRecords(babyId).toPromise();
-      if (response?.success && response.data) {
-        // Update local cache if needed
-        console.log('Feed records refreshed for baby:', babyId);
-      }
+      // Read through the cached getter so the rebuilt stream re-primes the Map;
+      // the next baby-detail visit then paints from cache instead of refetching.
+      await this.getFeedRecords(babyId).toPromise();
     } catch (error) {
       console.warn('Failed to refresh feed records:', error);
     }
@@ -412,9 +448,11 @@ export class BackendGrowthService {
         painLevel: backendData.direct_pain_level
       } : undefined,
       expressedMilkDetails: backendData.expressed_quantity ? {
+        startTime: backendData.expressed_start_time?.slice(0, 5),
         quantity: backendData.expressed_quantity
       } : undefined,
       formulaDetails: backendData.formula_quantity ? {
+        startTime: backendData.formula_start_time?.slice(0, 5),
         quantity: backendData.formula_quantity
       } : undefined,
       notes: backendData.notes,
