@@ -187,8 +187,7 @@
 
         <p class="section-note">
           <ion-icon name="information-circle-outline"></ion-icon>
-          <span *ngIf="!hasBaby">Your stage is set from your due date: a future date means expecting, a past date means new mother. Update the due date and your app adjusts to match.</span>
-          <span *ngIf="hasBaby">Your due date is locked now that your baby has been added.</span>
+          <span>Your due date is fixed and cannot be changed. Your stage is set from it: a future date means expecting, a past date means new mother.</span>
         </p>
 
         <div class="form-group">
@@ -206,14 +205,12 @@
         <div class="form-group">
           <label class="form-label">Due Date</label>
           <ion-item lines="none" class="input-item">
-            <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
+            <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
             <ion-input
               formControlName="dueDate"
               type="date"
               placeholder="Select your due date"
-              [disabled]="hasBaby"
-              (ionChange)="onDueDateChange($event)"
-              (ionInput)="onDueDateChange($event)">
+              [readonly]="true">
             </ion-input>
           </ion-item>
         </div>

@@ -202,13 +202,9 @@ export class PersonalInfoPage implements OnInit, OnDestroy {
     this.personalInfoForm.markAsUntouched();
 
     // Mother type is derived from the due date, so it is always display-only.
-    // Due date drives the stage and is editable, but frozen once a baby exists.
+    // Due date is a fixed date and never editable; the template marks it readonly
+    // (control stays enabled so its value still submits).
     this.personalInfoForm.get('motherType')?.disable();
-    if (this.hasBaby) {
-      this.personalInfoForm.get('dueDate')?.disable();
-    } else {
-      this.personalInfoForm.get('dueDate')?.enable();
-    }
   }
 
   get isMotherhoodJourneyLocked(): boolean {
