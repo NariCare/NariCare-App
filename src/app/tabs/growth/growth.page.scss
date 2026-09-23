@@ -14,9 +14,9 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 
 .content-container {
   padding: 1rem;
-  padding-bottom: 100px; // Bottom padding for tab bar navigation
-  min-height: 100vh;
-  min-height: 100dvh;
+  padding-bottom: 88px; // clear the bottom tab bar, no more
+  // No min-height: forcing full viewport height left a large empty gap at the
+  // bottom when the page content is short.
   background: #ffffff;
 }
 

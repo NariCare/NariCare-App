@@ -329,13 +329,13 @@ ion-content {
 
 .selection-indicator {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  font-size: 1.2rem;
+  top: 0.35rem;
+  right: 0.35rem;
+  font-size: 1rem;
   color: #8383ed;
   background: #ffffff;
   border-radius: 50%;
-  padding: 2px;
+  line-height: 1;
 }
 
 /* Responsive adjustments for baby selection and feed type grid */
