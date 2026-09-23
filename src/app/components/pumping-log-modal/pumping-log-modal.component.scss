@@ -1,23 +1,31 @@
+ion-content {
+  --background: #f6f5fb;
+}
+
 .feed-log-container {
-  padding: 0.5rem;
+  padding: 0.75rem 0.75rem 1.25rem;
 }
 
 /* Single form styles */
 .single-form {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem; // compact, matches feed/weight logs
+  gap: 0.75rem;
 }
 
 
 .form-section {
-  padding: 0 0.75rem;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1rem;
+  border: 1px solid rgba(226, 221, 245, 0.6);
+  box-shadow: 0 2px 10px rgba(131, 131, 237, 0.05);
 }
 
 .section-title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+  margin: 0 0 0.15rem 0;
+  font-size: 1rem;
+  font-weight: 700;
   color: #2d3748;
   text-align: left;
   font-family: 'Poppins', sans-serif;
@@ -41,16 +49,15 @@
 
 /* Section groups within the main card */
 .section-group {
-  margin-bottom: 2.5rem;
-  
+  margin-bottom: 1rem;
+
   &:last-child {
     margin-bottom: 0;
   }
-  
-  /* Add subtle separator between section groups */
+
   &:not(:last-child) {
-    border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(226, 221, 245, 0.5);
+    padding-bottom: 1rem;
   }
 }
 
@@ -144,23 +151,21 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.25rem 0.75rem;
-  background: #fffcf9; // Match feed-type-option background
-  border-radius: 16px;
-  border: 1px solid rgba(255, 158, 136, 0.2);
+  padding: 1rem 0.75rem;
+  background: #faf9ff;
+  border-radius: 14px;
+  border: 1.5px solid #e2ddf5;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   font-family: 'Poppins', sans-serif;
-  
+
   &.selected {
-    border-color: #ff9e88;
-    background: #fff5f7;
-    transform: translateY(-1px);
+    border-color: #8383ed;
+    background: #ece9fb;
   }
-  
-  &:hover {
-    transform: translateY(-1px);
-    background: #fff8f5;
+
+  &:active {
+    transform: scale(0.98);
   }
   
   .option-label {
@@ -310,7 +315,7 @@
 }
 
 .timer-display {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .timer-circle {
