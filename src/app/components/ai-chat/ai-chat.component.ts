@@ -93,6 +93,7 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
+    this.fullHeight = window.innerHeight; // keyboard-closed height, before any focus
     // Layout is CSS; body.keyboard-open only flips once per focus/keyboard change, never per keystroke.
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener('keyboardWillShow', () => this.setKeyboardOpen(true)).then(h => this.keyboardListeners.push(h));
@@ -108,6 +109,8 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onComposerFocus() {
     this.fullHeight = Math.max(this.fullHeight, window.innerHeight);
+    // Keyboard may already be up (refocus right after sending), so the shrink happened before this focus
+    this.sawShrink = window.innerHeight < this.fullHeight - 150;
     window.addEventListener('resize', this.onWindowResize);
     this.setKeyboardOpen(true);
     this.scrollToBottom(); // once per focus, after the viewport settles
