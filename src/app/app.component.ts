@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { BackendAuthService } from './services/backend-auth.service';
 import { NotificationService } from './services/notification.service';
 import { PushNotificationService } from './services/push-notification.service';
@@ -93,7 +95,7 @@ export class AppComponent implements OnInit {
     await this.platform.ready();
     
     // Check authentication status and redirect accordingly
-    await this.checkAuthAndRedirect();
+    this.checkAuthAndRedirect(); // not awaited: native splash should not wait on the profile fetch
     
     // Only use Capacitor plugins if running on a device
     if (this.platform.is('capacitor')) {
@@ -116,26 +118,14 @@ export class AppComponent implements OnInit {
       const hasToken = localStorage.getItem('naricare_token');
       
       if (hasToken) {
-        // Wait for BackendAuthService to initialize and validate the token
-        const checkAuth = async () => {
-          const currentUser = this.backendAuthService.getCurrentUser();
-          if (currentUser) {
-            this.navigateBasedOnUser(currentUser);
-          } else {
-            // Wait a bit longer for initialization
-            setTimeout(() => {
-              const user = this.backendAuthService.getCurrentUser();
-              if (user) {
-                this.navigateBasedOnUser(user);
-              } else {
-                // Token exists but user not loaded, redirect to login
-                this.router.navigate(['/auth/login'], { replaceUrl: true });
-              }
-            }, 500);
-          }
-        };
-        
-        await checkAuth();
+        // Wait for auth init (profile fetch can take >500ms) so a refresh stays on the current page
+        await firstValueFrom(this.backendAuthService.initialized$.pipe(filter(Boolean)));
+        const user = this.backendAuthService.getCurrentUser();
+        if (user) {
+          this.navigateBasedOnUser(user);
+        } else {
+          this.router.navigate(['/auth/login'], { replaceUrl: true });
+        }
       } else {
         // No token found, redirect to login only if not on auth pages
         const currentUrl = this.router.url;
@@ -172,7 +162,8 @@ export class AppComponent implements OnInit {
   }
 
   private navigateBasedOnUser(user: any) {
-    const currentUrl = this.router.url;
+    // router.url is still '/' while the guard holds the first navigation; the browser path is the real target
+    const currentUrl = this.router.navigated ? this.router.url : window.location.pathname;
     
     // Don't redirect if already on legitimate app pages
     if (currentUrl.includes('/tabs/') || 

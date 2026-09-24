@@ -16,24 +16,22 @@
 
     <!-- Today at a glance -->
     <section class="stats-card" [attr.aria-label]="statsDayLabel + ' feeding summary'">
+      <p class="stats-day">{{ statsDayLabel }}</p>
       <div class="stat">
         <span class="stat-icon" aria-hidden="true"><ion-icon name="list-outline"></ion-icon></span>
         <p class="stat-value">{{ loading ? '--' : stats.count }}</p>
         <p class="stat-label">Total Feeds</p>
-        <p class="stat-sub">{{ statsDayLabel }}</p>
       </div>
       <div class="stat">
         <span class="stat-icon pink" aria-hidden="true"><ion-icon name="time-outline"></ion-icon></span>
         <p class="stat-value">{{ loading ? '--' : stats.duration }}</p>
         <p class="stat-label">Total Duration</p>
-        <p class="stat-sub">{{ statsDayLabel }}</p>
       </div>
       <div class="stat">
         <span class="stat-icon" aria-hidden="true"><ion-icon name="water-outline"></ion-icon></span>
         <p class="stat-value">{{ loading ? '--' : stats.intake }}</p>
         <p class="stat-label">Total Intake</p>
         <p class="stat-sub">(Expressed + Formula)</p>
-        <p class="stat-sub">{{ statsDayLabel }}</p>
       </div>
       <div class="stat">
         <span class="stat-icon pink" aria-hidden="true"><ion-icon name="heart-outline"></ion-icon></span>
