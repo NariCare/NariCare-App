@@ -628,3 +628,31 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   padding: 1rem;
 }
 
+// Keyboard open on the AI tab: drop hero + segment so messages and composer get the height.
+// Class comes from ai-chat focus / native keyboard events; the media query is a fallback.
+@mixin ai-keyboard-collapse {
+  .chat-container.ai-active {
+    .chat-hero,
+    .main-tab-selector {
+      display: none;
+    }
+
+    .content-container {
+      padding-top: 0.25rem;
+    }
+
+    .tab-content.ai-chat {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
+}
+
+:host-context(body.keyboard-open) {
+  @include ai-keyboard-collapse;
+}
+
+@media (max-height: 520px) {
+  @include ai-keyboard-collapse;
+}
+

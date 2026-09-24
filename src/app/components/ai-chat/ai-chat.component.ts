@@ -2,6 +2,8 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } fr
 import { Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
 import { Observable } from 'rxjs';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
+import { Keyboard } from '@capacitor/keyboard';
 import { ChatbotService } from '../../services/chatbot.service';
 import { ChatbotMessageUI, ChatAttachment } from '../../models/chatbot.model';
 import { AuthService } from '../../services/auth.service';
@@ -20,6 +22,7 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   @ViewChild('messageInputContainer', { static: false }) messageInputContainer!: ElementRef;
   @ViewChild('messageTextarea', { static: false }) messageTextarea!: ElementRef;
+  private keyboardListeners: PluginListenerHandle[] = [];
 
   chatbotMessages$: Observable<ChatbotMessageUI[]>;
   messageText = '';
@@ -28,6 +31,7 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   expertBannerDismissed = false;
   showDisclaimer = true;
   private isComposing = false;
+  private initializedForUser: string | null = null;
   
   // Expert notes integration
   showQuickAccess = false;
@@ -62,8 +66,9 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
     authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       
-      // Initialize chatbot if user is available
-      if (user) {
+      // Initialize once per user; currentUser$ re-emits on profile refresh and used to re-run init
+      if (user && user.uid !== this.initializedForUser) {
+        this.initializedForUser = user.uid;
         this.initializeChatbot();
       }
     });
@@ -88,19 +93,51 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    // Keyboard handling is pure CSS (interactive-widget=resizes-content +
-    // dvh flex layout). The textarea grows via a composition-safe resize,
-    // never mid-IME-composition, so Android IMEs don't reverse the text.
+    // Layout is CSS; body.keyboard-open only flips once per focus/keyboard change, never per keystroke.
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener('keyboardWillShow', () => this.setKeyboardOpen(true)).then(h => this.keyboardListeners.push(h));
+      Keyboard.addListener('keyboardWillHide', () => this.setKeyboardOpen(false)).then(h => this.keyboardListeners.push(h));
+    }
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.keyboardListeners.forEach(h => h.remove());
+    window.removeEventListener('resize', this.onWindowResize);
+    this.setKeyboardOpen(false);
+  }
+
+  onComposerFocus() {
+    this.fullHeight = Math.max(this.fullHeight, window.innerHeight);
+    window.addEventListener('resize', this.onWindowResize);
+    this.setKeyboardOpen(true);
+    this.scrollToBottom(); // once per focus, after the viewport settles
+  }
+
+  onComposerBlur() {
+    window.removeEventListener('resize', this.onWindowResize);
+    this.sawShrink = false;
+    this.setKeyboardOpen(false);
+  }
+
+  // Android back button hides the keyboard without blurring; resize fires once per keyboard show/hide, not per keystroke
+  private fullHeight = 0;
+  private sawShrink = false; // iOS Safari never shrinks the layout viewport, so it keeps relying on blur
+  private onWindowResize = () => {
+    const shrunk = window.innerHeight < this.fullHeight - 150;
+    if (shrunk) this.sawShrink = true;
+    if (this.sawShrink) this.setKeyboardOpen(shrunk);
+  };
+
+  private setKeyboardOpen(open: boolean) {
+    document.body.classList.toggle('keyboard-open', open);
+  }
 
   private async initializeChatbot() {
     if (this.currentUser) {
       this.isInitializing = true;
       
       try {
-        const babyAge = this.currentUser.babies.length > 0 ? 
+        const babyAge = this.currentUser.babies?.length ? 
           this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
         
         // Try to use backend API first
@@ -117,7 +154,7 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
       } catch (error) {
         console.error('Failed to initialize chatbot:', error);
         // Fallback to legacy initialization
-        const babyAge = this.currentUser.babies.length > 0 ? 
+        const babyAge = this.currentUser.babies?.length ? 
           this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
         this.chatbotService.initializeChat(this.currentUser.uid, babyAge);
       } finally {
@@ -129,10 +166,12 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private calculateBabyAge(birthDate: Date): number {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
+  // Weeks since birth, or undefined when unknown, in the future (due date) or past the API's 0-260 range
+  private calculateBabyAge(birthDate: Date | string): number | undefined {
+    const born = new Date(birthDate);
+    if (isNaN(born.getTime())) return undefined;
+    const weeks = Math.floor((Date.now() - born.getTime()) / (1000 * 60 * 60 * 24 * 7));
+    return weeks >= 0 && weeks <= 260 ? weeks : undefined;
   }
 
 
