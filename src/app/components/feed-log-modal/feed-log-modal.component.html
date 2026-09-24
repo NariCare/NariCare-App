@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ isFastFeed ? 'Quick Feed Log' : 'Feed Log' }}</ion-title>
+    <ion-title>{{ editRecord ? 'Edit Feed Log' : (isFastFeed ? 'Quick Feed Log' : 'Feed Log') }}</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="closeModal()">
         <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -111,6 +111,16 @@
         <!-- Feed Details Section -->
         <div class="section-group" *ngIf="selectedFeedTypes.length > 0">
           <h2 class="section-title">Feed Details</h2>
+
+          <!-- Single Feed time replaced by per-type Start Time below; keep for reuse
+          <div class="form-group">
+            <label class="field-label" for="feed-time">Feed time</label>
+            <ion-item lines="none" class="input-item time-input">
+              <ion-input id="feed-time" formControlName="startTime" type="time"></ion-input>
+            </ion-item>
+            <p class="field-hint">Fed at different times? Save each as its own log.</p>
+          </div>
+          -->
           
           <!-- Direct Feeding Section -->
           <div class="conditional-section direct-feeding" *ngIf="isFeedTypeSelected('direct')">
@@ -120,9 +130,10 @@
             </div>
             
             <div class="form-group">
-              <label class="field-label">Start Time</label>
+              <label class="field-label" for="direct-start-time">Start Time</label>
               <ion-item lines="none" class="input-item time-input">
                 <ion-input
+                  id="direct-start-time"
                   formControlName="startTime"
                   type="time">
                 </ion-input>
@@ -198,15 +209,16 @@
             </div>
             
             <div class="form-group">
-              <label class="field-label">Start Time</label>
+              <label class="field-label" for="expressed-start-time">Start Time</label>
               <ion-item lines="none" class="input-item time-input">
                 <ion-input
-                  formControlName="startTime"
+                  id="expressed-start-time"
+                  formControlName="expressedStartTime"
                   type="time">
                 </ion-input>
               </ion-item>
             </div>
-            
+
             <div class="form-group">
               <label class="field-label">EBM Quantity Given</label>
               <div class="quantity-container">
@@ -243,15 +255,16 @@
             </div>
             
             <div class="form-group">
-              <label class="field-label">Start Time</label>
+              <label class="field-label" for="formula-start-time">Start Time</label>
               <ion-item lines="none" class="input-item time-input">
                 <ion-input
-                  formControlName="startTime"
+                  id="formula-start-time"
+                  formControlName="formulaStartTime"
                   type="time">
                 </ion-input>
               </ion-item>
             </div>
-            
+
             <div class="form-group">
               <label class="field-label">Formula Quantity Given</label>
               <div class="quantity-container">
@@ -357,7 +370,7 @@
           class="save-button">
           <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
           <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
-          {{ isSubmitting ? 'Saving...' : 'Log Feed' }}
+          {{ isSubmitting ? 'Saving...' : (editRecord ? 'Save changes' : 'Log Feed') }}
         </ion-button>
       </div>
     </form>

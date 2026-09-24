@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Pumping Log</ion-title>
+    <ion-title>{{ editRecord ? 'Edit Pumping Log' : 'Pumping Log' }}</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="closeModal()">
         <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -241,7 +241,7 @@
           class="save-button">
           <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
           <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
-          {{ isSubmitting ? 'Saving...' : 'Log' }}
+          {{ isSubmitting ? 'Saving...' : (editRecord ? 'Save changes' : 'Log') }}
         </ion-button>
       </div>
     </form>

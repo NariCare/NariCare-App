@@ -15,6 +15,7 @@ interface PredefinedNote {
 import { DiaperChangeRequest } from '../../services/api.service';
 import { User, Baby } from '../../models/user.model';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-diaper-log-modal',
@@ -71,7 +72,8 @@ export class DiaperLogModalComponent implements OnInit {
   ) {
     this.diaperForm = this.formBuilder.group({
       selectedBaby: ['', [Validators.required]],
-      date: [new Date().toISOString().split('T')[0], [Validators.required]],
+      date: [DateOnlyUtil.formatLocalDate(), [Validators.required]],
+      time: [this.getCurrentTime(), [Validators.required]],
       changeType: ['', [Validators.required]],
       wetness: [''],
       notes: ['']
@@ -108,7 +110,7 @@ export class DiaperLogModalComponent implements OnInit {
 
   getCurrentDate(): string {
     const now = new Date();
-    return now.toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate(now);
   }
 
   getDateLabel(date: Date): string {
@@ -222,7 +224,7 @@ export class DiaperLogModalComponent implements OnInit {
     
     this.selectedDate = selectedDate;
     this.diaperForm.patchValue({ 
-      date: selectedDate.toISOString().split('T')[0] 
+      date: DateOnlyUtil.formatLocalDate(selectedDate) 
     });
     this.showDatePicker = false;
   }
@@ -285,7 +287,7 @@ export class DiaperLogModalComponent implements OnInit {
         const record: DiaperChangeRequest = {
           babyId: this.selectedBabyLocal.id,
           recordDate: formValue.date, // Use selected date
-          recordTime: new Date().toTimeString().slice(0, 5), // HH:MM format
+          recordTime: formValue.time || this.getCurrentTime(), // HH:MM, user-picked
           changeType: this.selectedChangeType,
           wetnessLevel: this.selectedWetness || undefined,
           notes: formValue.notes || undefined,
@@ -303,7 +305,7 @@ export class DiaperLogModalComponent implements OnInit {
             babyId: this.selectedBabyLocal.id,
             recordedBy: this.user.uid,
             date: new Date(formValue.date),
-            time: new Date().toTimeString().slice(0, 5),
+            time: formValue.time || this.getCurrentTime(),
             type: this.selectedChangeType,
             wetness: this.selectedWetness || undefined,
             notes: formValue.notes,

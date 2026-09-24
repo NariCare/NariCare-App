@@ -22,6 +22,8 @@ interface PredefinedNote {
   styleUrls: ['./pumping-log-modal.component.scss']
 })
 export class PumpingLogModalComponent implements OnInit {
+  @Input() editRecord?: any; // pumping_records row; when set, the form saves via PUT instead of create
+  @Input() babyId?: string;
 
   pumpingForm: FormGroup;
   user: User | null = null;
@@ -91,6 +93,36 @@ export class PumpingLogModalComponent implements OnInit {
     });
 
     this.pumpingSideOptions = this.growthService.pumpingSideOptions;
+
+    if (this.editRecord) {
+      this.applyEditRecord();
+    }
+  }
+
+  // Accepts snake_case API rows or the camelCase local shape.
+  private applyEditRecord() {
+    const r = this.editRecord;
+    const dateStr = String(r.record_date || r.recordDate || r.date || '').slice(0, 10) || DateOnlyUtil.formatLocalDate();
+    const side = r.pumping_side || r.pumpingSide || null;
+    this.selectedPumpingSide = side;
+    this.pumpingForm.patchValue({
+      date: dateStr,
+      time: String(r.record_time || r.time || this.getCurrentTime()).slice(0, 5),
+      pumpingSide: side || '',
+      totalOutput: Number(r.total_output ?? r.totalOutput ?? 0),
+      duration: Number(r.duration_minutes ?? r.duration ?? 0),
+      notes: r.notes || ''
+    });
+
+    this.selectedDate = DateOnlyUtil.parseLocalDate(dateStr);
+    const offset = Math.round((DateOnlyUtil.parseLocalDate(DateOnlyUtil.formatLocalDate()).getTime() - this.selectedDate.getTime()) / 86400000);
+    const preset = ['today', 'yesterday', 'dayBefore'][offset];
+    if (preset) {
+      this.selectedDateOption = preset;
+    } else {
+      this.selectedDateOption = 'custom';
+      this.updateDateOptionsWithCustomDate();
+    }
   }
 
   getCurrentTime(): string {
@@ -374,8 +406,23 @@ export class PumpingLogModalComponent implements OnInit {
         // Try backend API first, fallback to local storage
         const backendUser = this.backendAuthService.getCurrentUser();
         const isBackendAuth = !!backendUser;
-        
-        if (isBackendAuth) {
+
+        if (this.editRecord) {
+          const babyId = this.editRecord.baby_id || this.editRecord.babyId || this.babyId || this.user.babies?.[0]?.id;
+          const times = this.calculateStartEndTime(formValue.time, formValue.duration);
+          await this.backendPumpingService.updatePumpingRecord(this.editRecord.id, {
+            babyId,
+            recordDate: formValue.date,
+            recordTime: formValue.time,
+            pumpingSide: this.selectedPumpingSide,
+            totalOutput: formValue.totalOutput,
+            durationMinutes: formValue.duration || undefined, // backend rejects 0
+            startTime: times.startTime || undefined,
+            endTime: times.endTime || undefined,
+            notes: formValue.notes || ''
+          }).toPromise();
+          this.backendGrowthService.refreshPumping(babyId);
+        } else if (isBackendAuth) {
           // Use backend API - require at least one baby from API
           const firstBaby = this.user.babies?.[0];
           if (!firstBaby?.id) {
@@ -422,7 +469,7 @@ export class PumpingLogModalComponent implements OnInit {
         }
         
         const toast = await this.toastController.create({
-          message: 'Pumping log saved successfully!',
+          message: this.editRecord ? 'Pumping session updated' : 'Pumping log saved successfully!',
           duration: 2000,
           color: 'success',
           position: 'top'

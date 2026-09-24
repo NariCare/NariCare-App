@@ -4,14 +4,20 @@ import { filter, map, catchError, take } from 'rxjs/operators';
 import { ApiService, FeedRecordRequest, WeightRecordRequest, StoolRecordRequest, PumpingRecordRequest, DiaperChangeRequest, DiaperChangeRecord, DiaperChangeStats } from './api.service';
 import { GrowthRecord } from '../models/growth-tracking.model';
 import { DateOnlyUtil } from '../shared/utils/date-only.util';
+import { BackendPumpingService } from './backend-pumping.service';
 
 // undefined = not loaded yet (show skeleton); array = loaded (empty array = empty state).
 type CacheState = any[] | undefined;
+
+export type HistoryType = 'feed' | 'diaper' | 'weight';
+interface HistoryPage { records: any[]; hasMore: boolean; }
 
 @Injectable({
   providedIn: 'root'
 })
 export class BackendGrowthService {
+  static readonly PAGE_SIZE = 30;
+
   // Single source of truth per "type:babyId". Reads return the subject so the
   // list paints instantly on revisit and every open screen updates the moment a
   // write pushes fresh data in - no component-level cache, no manual reload.
@@ -19,7 +25,7 @@ export class BackendGrowthService {
   private cacheBuilders = new Map<string, () => Observable<any[]>>();
   private inFlight = new Set<string>();
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private pumpingService: BackendPumpingService) {}
 
   private subjectFor(key: string): BehaviorSubject<CacheState> {
     let subject = this.cacheSubjects.get(key);
@@ -95,6 +101,83 @@ export class BackendGrowthService {
       subject.next([record, ...subject.value]);
     }
   }
+
+  // Paged history lists: page 1 feeds the cached subject; loadMore() appends later pages.
+  private pagers = new Map<string, (page: number) => Observable<HistoryPage>>();
+  private pageOf = new Map<string, number>();
+  private hasMoreSubjects = new Map<string, BehaviorSubject<boolean>>();
+  private loadingMore = new Set<string>();
+
+  private hasMoreFor(key: string): BehaviorSubject<boolean> {
+    let subject = this.hasMoreSubjects.get(key);
+    if (!subject) {
+      subject = new BehaviorSubject<boolean>(false);
+      this.hasMoreSubjects.set(key, subject);
+    }
+    return subject;
+  }
+
+  private toPage(response: any, mapRecord: (r: any) => any = r => r): HistoryPage {
+    const records = response?.success && Array.isArray(response.data) ? response.data.map(mapRecord) : [];
+    const p = response?.pagination;
+    const hasMore = p ? p.page < p.totalPages : records.length >= BackendGrowthService.PAGE_SIZE;
+    return { records, hasMore };
+  }
+
+  // Cached read whose builder always (re)loads page 1, so refresh() resets paging.
+  private paged(type: HistoryType, babyId: string, fetchPage: (page: number) => Observable<HistoryPage>): Observable<any[]> {
+    const key = `${type}:${babyId}`;
+    this.pagers.set(key, fetchPage);
+    return this.cached(type, babyId, () => fetchPage(1).pipe(
+      map(p => {
+        this.pageOf.set(key, 1);
+        this.hasMoreFor(key).next(p.hasMore);
+        return p.records;
+      }),
+      catchError(error => {
+        console.error(`Error fetching ${type} records:`, error);
+        this.hasMoreFor(key).next(false);
+        return of([]);
+      })
+    ));
+  }
+
+  /** True while older records exist beyond what the list holds. Call after the list getter. */
+  hasMore$(type: HistoryType, babyId: string): Observable<boolean> {
+    return this.hasMoreFor(`${type}:${babyId}`).asObservable();
+  }
+
+  /**
+   * Fetch the next older page and append it to the list observable (deduped by id).
+   * No-op if the list is not loaded yet, nothing more exists, or a load is in flight.
+   */
+  async loadMore(type: HistoryType, babyId: string): Promise<void> {
+    const key = `${type}:${babyId}`;
+    const fetchPage = this.pagers.get(key);
+    const subject = this.cacheSubjects.get(key);
+    if (!fetchPage || !subject || subject.value === undefined) { return; }
+    if (!this.hasMoreFor(key).value || this.loadingMore.has(key)) { return; }
+
+    const next = (this.pageOf.get(key) || 1) + 1;
+    this.loadingMore.add(key);
+    try {
+      const page = await fetchPage(next).pipe(take(1)).toPromise();
+      const current = subject.value || [];
+      const seen = new Set(current.map((r: any) => r?.id));
+      subject.next([...current, ...(page?.records || []).filter((r: any) => !seen.has(r?.id))]);
+      this.pageOf.set(key, next);
+      this.hasMoreFor(key).next(!!page?.hasMore);
+    } catch (error) {
+      // Keep hasMore as-is so the user can retry.
+      console.error(`Failed to load more ${key}:`, error);
+    } finally {
+      this.loadingMore.delete(key);
+    }
+  }
+
+  loadMoreFeeds(babyId: string): Promise<void> { return this.loadMore('feed', babyId); }
+  loadMoreDiapers(babyId: string): Promise<void> { return this.loadMore('diaper', babyId); }
+  loadMoreWeights(babyId: string): Promise<void> { return this.loadMore('weight', babyId); }
 
   /**
    * Add a new feed record to the backend
@@ -255,42 +338,21 @@ export class BackendGrowthService {
    * Get feed records for a specific baby from backend
    */
   getFeedRecords(babyId: string): Observable<any[]> {
-    return this.cached('feed', babyId, () => this.apiService.getFeedRecords(babyId).pipe(
-      map((response: any) => {
-        if (response?.success && response.data) {
-          // Transform each feed record from backend format to frontend format
-          return response.data.map((record: any) => this.transformBackendFeedRecord(record));
-        }
-        return [];
-      }),
-      catchError(error => {
-        console.error('Error fetching feed records:', error);
-        return of([]);
-      })
-    ));
+    return this.paged('feed', babyId, page =>
+      this.apiService.getFeedRecords(babyId, BackendGrowthService.PAGE_SIZE, page).pipe(
+        map(response => this.toPage(response, r => this.transformBackendFeedRecord(r)))
+      ));
   }
 
   /**
    * Get weight records for a specific baby from backend
    */
   getWeightRecords(babyId: string): Observable<any[]> {
-    return this.cached('weight', babyId, () => this.apiService.getWeightRecords(babyId).pipe(
-      map((response: any) => {
-        if (response?.success && response.data) {
-          // Sort weight records by date descending (most recent first)
-          return response.data.sort((a: any, b: any) => {
-            const dateA = new Date(a.record_date || a.date);
-            const dateB = new Date(b.record_date || b.date);
-            return dateB.getTime() - dateA.getTime();
-          });
-        }
-        return [];
-      }),
-      catchError(error => {
-        console.error('Error fetching weight records:', error);
-        return of([]);
-      })
-    ));
+    // Server orders newest first (record_date DESC, created_at DESC).
+    return this.paged('weight', babyId, page =>
+      this.apiService.getWeightRecords(babyId, page, BackendGrowthService.PAGE_SIZE).pipe(
+        map(response => this.toPage(response))
+      ));
   }
 
   /**
@@ -352,13 +414,64 @@ export class BackendGrowthService {
    */
   refreshPumping(babyId: string): void {
     this.refresh('pumping', babyId);
+    this.pumpingService.reloadHistory(babyId);
+  }
+
+  /** Re-fetch the shared feed list so every open screen updates. */
+  refreshFeeds(babyId: string): void {
+    this.refresh('feed', babyId);
+  }
+
+  /** Replace a feed log (all types) via PUT /tracker/feed/:id; unselected types are cleared. */
+  async updateFeedRecord(id: string, babyId: string, record: Partial<GrowthRecord>, recordDate: string): Promise<any> {
+    const d = record.directFeedDetails, e = record.expressedMilkDetails, f = record.formulaDetails;
+    const payload = {
+      recordDate: String(recordDate || '').slice(0, 10) || DateOnlyUtil.formatLocalDate(),
+      feedTypes: record.feedTypes || [],
+      directStartTime: d?.startTime || null,
+      directBreastSide: d?.breastSide || null,
+      directDuration: d?.duration ?? null,
+      directPainLevel: d?.painLevel ?? null,
+      expressedStartTime: e?.startTime || null,
+      expressedQuantity: e?.quantity ?? null,
+      formulaStartTime: f?.startTime || null,
+      formulaQuantity: f?.quantity ?? null,
+      notes: record.notes ?? null
+    };
+    try {
+      const response = await this.apiService.updateFeedRecord(id, payload).toPromise();
+      if (!response?.success) { throw new Error(response?.message || 'Failed to update feed record'); }
+      this.refresh('feed', babyId);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating feed record:', error);
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  async deleteFeedRecord(id: string, babyId: string): Promise<void> {
+    try {
+      const response = await this.apiService.deleteFeedRecord(id).toPromise();
+      if (!response?.success) { throw new Error(response?.message || 'Failed to delete feed record'); }
+      this.refresh('feed', babyId);
+    } catch (error: any) {
+      console.error('Error deleting feed record:', error);
+      throw new Error(this.getErrorMessage(error));
+    }
   }
 
   /**
    * Get diaper change records for a specific baby from backend
    */
   getDiaperChangeRecords(babyId: string, page?: number, limit?: number): Observable<DiaperChangeRecord[]> {
-    const build = () => this.apiService.getDiaperChanges(babyId, { page, limit }).pipe(
+    // Default unpaged call is the cached, load-more-able list (baby-detail view).
+    if (page === undefined && limit === undefined) {
+      return this.paged('diaper', babyId, p =>
+        this.apiService.getDiaperChanges(babyId, { page: p, limit: BackendGrowthService.PAGE_SIZE }).pipe(
+          map(response => this.toPage(response))
+        ));
+    }
+    return this.apiService.getDiaperChanges(babyId, { page, limit }).pipe(
       map((response: any) => {
         if (response?.success && response.data) {
           return response.data;
@@ -370,11 +483,6 @@ export class BackendGrowthService {
         return of([]);
       })
     );
-    // Only cache the default unpaged list (the baby-detail view); paged calls bypass.
-    if (page === undefined && limit === undefined) {
-      return this.cached('diaper', babyId, build);
-    }
-    return build();
   }
 
   /**
@@ -494,24 +602,42 @@ export class BackendGrowthService {
   private transformBackendFeedRecord(backendData: any): any {
     if (!backendData) return null;
 
+    // record_date arrives as "YYYY-MM-DD" or UTC-midnight ISO; the first 10 chars are the calendar day.
+    const recordDate = backendData.record_date ? String(backendData.record_date).slice(0, 10) : '';
+    // Each feed type has its own start time; older rows without one fall back to save time
+    const hhmm = (v: any) => String(v || '').slice(0, 5);
+    const created = backendData.created_at ? new Date(backendData.created_at) : null;
+    const savedAt = created && !isNaN(created.getTime()) ? `${String(created.getHours()).padStart(2, '0')}:${String(created.getMinutes()).padStart(2, '0')}` : '';
+    const directTime = hhmm(backendData.direct_start_time);
+    const expressedTime = hhmm(backendData.expressed_start_time);
+    const formulaTime = hhmm(backendData.formula_start_time);
+    const time = [directTime, expressedTime, formulaTime].filter(Boolean).sort()[0] || savedAt;
+    const types: string[] = Array.isArray(backendData.feed_types) ? backendData.feed_types : [];
+    const hasDirect = types.length ? types.includes('direct') : !!backendData.direct_start_time;
+    const date = recordDate ? DateOnlyUtil.parseLocalDate(recordDate) : new Date(backendData.created_at);
+    const [hh, mm] = time.split(':').map(Number);
+    if (recordDate && !isNaN(hh)) { date.setHours(hh, mm || 0, 0, 0); }
+
     return {
       id: backendData.id,
       babyId: backendData.baby_id,
       recordedBy: backendData.recorded_by,
-      date: new Date(backendData.record_date),
+      date, // local date + feed start time, for sorting
+      recordDate, // local "YYYY-MM-DD", for day grouping
+      time, // "HH:MM" feed start time ('' if none)
       feedTypes: this.determineFeedTypes(backendData),
-      directFeedDetails: backendData.direct_start_time ? {
-        startTime: backendData.direct_start_time?.slice(0, 5), // Remove seconds
+      directFeedDetails: hasDirect ? {
+        startTime: directTime || time,
         breastSide: backendData.direct_breast_side,
         duration: backendData.direct_duration,
         painLevel: backendData.direct_pain_level
       } : undefined,
       expressedMilkDetails: backendData.expressed_quantity ? {
-        startTime: backendData.expressed_start_time?.slice(0, 5),
+        startTime: expressedTime || directTime || time,
         quantity: backendData.expressed_quantity
       } : undefined,
       formulaDetails: backendData.formula_quantity ? {
-        startTime: backendData.formula_start_time?.slice(0, 5),
+        startTime: formulaTime || directTime || time,
         quantity: backendData.formula_quantity
       } : undefined,
       notes: backendData.notes,
@@ -529,8 +655,9 @@ export class BackendGrowthService {
    * Determine feed types from backend data structure
    */
   private determineFeedTypes(backendData: any): ('direct' | 'expressed' | 'formula')[] {
+    if (Array.isArray(backendData.feed_types) && backendData.feed_types.length) return backendData.feed_types;
     const feedTypes: ('direct' | 'expressed' | 'formula')[] = [];
-    
+
     if (backendData.direct_start_time) {
       feedTypes.push('direct');
     }
@@ -601,14 +728,9 @@ export class BackendGrowthService {
         };
       }
 
-      // Filter records from last 24 hours
-      const now = new Date();
-      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      
-      const dailyRecords = feedRecords.filter(record => {
-        const recordDate = new Date(record.date);
-        return recordDate >= yesterday;
-      });
+      // Today = local calendar day (was a rolling 24h window, which counted last night as "today")
+      const today = DateOnlyUtil.formatLocalDate();
+      const dailyRecords = feedRecords.filter(record => (record.recordDate || DateOnlyUtil.formatLocalDate(new Date(record.date))) === today);
 
       // Calculate totals
       const totalDirectFeeds = dailyRecords.filter(record => 
