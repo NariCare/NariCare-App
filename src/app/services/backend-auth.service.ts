@@ -117,8 +117,9 @@ export class BackendAuthService {
       const response = await this.apiService.register(userData).toPromise();
       
       if (response?.success && response.data) {
-        // API returns user data directly in response.data, not response.data.user
-        const user = this.transformUserData(response.data);
+        // Register returns camelCase fields (userId, firstName) that transformUserData can't read; load the real profile
+        const profile = await this.apiService.getUserProfile().toPromise().catch(() => null);
+        const user = this.transformUserData(profile?.success && profile.data ? profile.data : { ...response.data, id: (response.data as any).userId });
         this.setCurrentUser(user);
         
         // Navigate to dashboard (onboarding temporarily disabled)

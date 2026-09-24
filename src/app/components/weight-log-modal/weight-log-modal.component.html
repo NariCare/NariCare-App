@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Weight Log</ion-title>
+    <ion-title>Growth Log</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="closeModal()">
         <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -30,7 +30,7 @@
       <!-- Baby Selection (only if multiple babies and no baby pre-selected) -->
       <div class="form-section baby-selection" *ngIf="shouldShowBabySelectionForWeight()">
         <h2 class="section-title">Select Baby</h2>
-        <p class="section-description">Which baby are you logging this weight for?</p>
+        <p class="section-description">Which baby are you logging this growth record for?</p>
         
         <div class="baby-selection-grid">
           <div 
@@ -55,8 +55,8 @@
         
         <!-- Date & Time Section -->
         <div class="section-group">
-          <h2 class="section-title">Date & Time</h2>
-          <p class="section-description">When was this weight recorded?</p>
+          <h2 class="section-title">Date</h2>
+          <p class="section-description">When was this measured?</p>
           
           <div class="datetime-group">
             <div class="form-group">
@@ -72,13 +72,13 @@
                     id="weightDate" 
                     formControlName="date"
                     presentation="date"
-                    max="2025-12-31"
                     min="2020-01-01">
                   </ion-datetime>
                 </ng-template>
               </ion-modal>
             </div>
             
+            <!-- Time picker hidden: weight_records has no time column; entries order by save time. Keep for reuse.
             <div class="form-group">
               <label class="field-label">Time</label>
               <ion-item lines="none" class="input-item">
@@ -97,6 +97,7 @@
                 </ng-template>
               </ion-modal>
             </div>
+            -->
           </div>
         </div>
 
@@ -124,12 +125,37 @@
           </div>
         </div>
 
+        <!-- Height Section -->
+        <div class="section-group">
+          <h2 class="section-title">📏 Height</h2>
+          <p class="section-description">Enter the baby's height in centimeters (optional)</p>
+
+          <div class="form-group">
+            <label class="field-label" for="growth-height">Height (cm)</label>
+            <ion-item lines="none" class="input-item weight-input" [class.error]="weightForm.get('height')?.invalid && weightForm.get('height')?.touched">
+              <ion-input
+                id="growth-height"
+                formControlName="height"
+                type="number"
+                step="0.1"
+                min="20"
+                max="150"
+                placeholder="e.g., 52.5"
+                inputmode="decimal">
+              </ion-input>
+            </ion-item>
+            <div class="error-message" *ngIf="weightForm.get('height')?.invalid && weightForm.get('height')?.touched">
+              Please enter a valid height (20 - 150 cm)
+            </div>
+          </div>
+        </div>
+
         </div>
 
       <!-- Notes Section -->
       <div class="form-section notes-section">
         <h2 class="section-title">Notes</h2>
-        <p class="section-description">Add any additional notes about this weight measurement (optional)</p>
+        <p class="section-description">Add any additional notes about this measurement (optional)</p>
 
         <div class="form-group">
           <label class="field-label">Your Notes</label>
@@ -171,7 +197,7 @@
           class="save-button">
           <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
           <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
-          {{ isSubmitting ? 'Saving...' : 'Save Weight Record' }}
+          {{ isSubmitting ? 'Saving...' : 'Save Growth Record' }}
         </ion-button>
       </div>
 

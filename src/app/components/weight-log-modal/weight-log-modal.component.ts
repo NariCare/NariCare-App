@@ -6,6 +6,7 @@ import { BackendAuthService } from '../../services/backend-auth.service';
 import { AuthService } from '../../services/auth.service';
 import { WeightRecord } from '../../models/growth-tracking.model';
 import { WeightRecordRequest } from '../../services/api.service';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 import { User, Baby } from '../../models/user.model';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 
@@ -56,6 +57,7 @@ export class WeightLogModalComponent implements OnInit {
       date: [this.getCurrentDate()],
       time: [this.getCurrentTime()],
       weight: ['', [Validators.required, this.weightValidator]],
+      height: ['', [Validators.min(20), Validators.max(150)]],
       notes: ['']
     });
   }
@@ -85,8 +87,7 @@ export class WeightLogModalComponent implements OnInit {
   }
 
   getCurrentDate(): string {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
   }
 
   getCurrentTime(): string {
@@ -102,12 +103,16 @@ export class WeightLogModalComponent implements OnInit {
         updates.weight = this.prefilledData.weight;
       }
       
+      if (this.prefilledData.height) {
+        updates.height = this.prefilledData.height;
+      }
+
       if (this.prefilledData.notes) {
         updates.notes = this.prefilledData.notes;
       }
       
       if (this.prefilledData.date) {
-        updates.date = new Date(this.prefilledData.date).toISOString().split('T')[0];
+        updates.date = DateOnlyUtil.formatLocalDate(new Date(this.prefilledData.date));
         updates.time = new Date(this.prefilledData.date).toTimeString().slice(0, 5);
       }
       
@@ -247,13 +252,12 @@ export class WeightLogModalComponent implements OnInit {
       try {
         const formValue = this.weightForm.value;
         
-        // Combine date and time into a single Date object
-        const dateTimeString = `${formValue.date}T${formValue.time}:00`;
-        const recordDate = new Date(dateTimeString);
-        
+        const height = parseFloat(formValue.height);
         const record: WeightRecordRequest = {
           babyId: selectedBaby.id,
+          recordDate: String(formValue.date).slice(0, 10), // was built but never sent, so every entry landed on today
           weight: parseFloat(formValue.weight),
+          ...(isNaN(height) ? {} : { height }),
           notes: formValue.notes || '',
         };
 
@@ -268,7 +272,7 @@ export class WeightLogModalComponent implements OnInit {
         }
         
         const toast = await this.toastController.create({
-          message: 'Weight record saved successfully!',
+          message: 'Growth record saved successfully!',
           duration: 2000,
           color: 'success',
           position: 'top'
@@ -285,7 +289,7 @@ export class WeightLogModalComponent implements OnInit {
         console.error('Error saving weight record:', error);
         this.isSubmitting = false; // Re-enable submission on error
         
-        let errorMessage = 'Failed to save weight record. Please try again.';
+        let errorMessage = 'Failed to save growth record. Please try again.';
         if (error?.message) {
           errorMessage = error.message;
         }

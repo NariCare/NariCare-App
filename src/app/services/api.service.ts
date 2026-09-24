@@ -81,6 +81,7 @@ export interface WeightRecordRequest {
   height?: number;
   notes?: string;
   date?: string; // ISO date string for when the measurement was taken
+  recordDate?: string; // local YYYY-MM-DD, read by the backend
 }
 
 export interface StoolRecordRequest {
@@ -561,13 +562,28 @@ export class ApiService {
     }).pipe(catchError(this.handleError));
   }
 
-  getFeedRecords(babyId: string, limit: number = 20): Observable<ApiResponse<any[]>> {
+  // Paginated full history, newest first. Response carries `pagination: { page, limit, total, totalPages }`.
+  getFeedRecords(babyId: string, limit: number = 20, page: number = 1): Observable<ApiResponse<any[]>> {
     const params = new HttpParams()
-      .set('limit', limit.toString());
+      .set('limit', limit.toString())
+      .set('page', page.toString());
 
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/recent/${babyId}`, {
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/feed/${babyId}`, {
       headers: this.getAuthHeaders(),
       params
+    }).pipe(catchError(this.handleError));
+  }
+
+  // Flat camelCase fields (directStartTime, expressedQuantity, ...); null clears a column.
+  updateFeedRecord(id: string, data: Record<string, any>): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/tracker/feed/${id}`, data, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  deleteFeedRecord(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/tracker/feed/${id}`, {
+      headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
@@ -577,9 +593,14 @@ export class ApiService {
     }).pipe(catchError(this.handleError));
   }
 
-  getWeightRecords(babyId: string): Observable<ApiResponse<any[]>> {
+  getWeightRecords(babyId: string, page?: number, limit?: number): Observable<ApiResponse<any[]>> {
+    let params = new HttpParams();
+    if (page) params = params.set('page', page.toString());
+    if (limit) params = params.set('limit', limit.toString());
+
     return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/weight/${babyId}`, {
-      headers: this.getAuthHeaders()
+      headers: this.getAuthHeaders(),
+      params
     }).pipe(catchError(this.handleError));
   }
 
@@ -599,17 +620,14 @@ export class ApiService {
   }
 
   createPumpingRecord(pumpingData: PumpingRecordRequest): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/tracker/pumping-records`, pumpingData, {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/pumping-records`, pumpingData, {
       headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
   getPumpingRecords(babyId: string): Observable<ApiResponse<any[]>> {
-    const params = new HttpParams().set('babyId', babyId);
-
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/pumping-records`, {
-      headers: this.getAuthHeaders(),
-      params
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/pumping-records/baby/${babyId}`, {
+      headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 

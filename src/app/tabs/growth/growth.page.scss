@@ -265,37 +265,70 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   }
 }
 
+// Text-safe primary: #8383ed on white is ~3.3:1, this is ~4.9:1
+$primary-strong: #6464d3;
+$muted-strong: #5f5890;
+
+/* Track section wrapper */
+.track-section {
+  background: #faf9ff;
+  border: 1px solid $lavender-border;
+  border-radius: 24px;
+  padding: 12px;
+  margin-bottom: 1.5rem;
+}
+
 /* Main Tab Selector */
 .main-tab-selector {
-  margin-bottom: 2rem;
-  background: $lavender-bg;
+  margin-bottom: 12px;
+  background: #f1eefd;
+  border: 1px solid $lavender-border;
   border-radius: 999px;
   padding: 4px;
-  box-shadow: none;
-  border: none;
 
-  // Scoped override: this page uses the purple pill toggle style rather than
-  // the app-wide peach segment (defined in global.scss) used elsewhere.
+  // Scoped override of the app-wide peach segment in global.scss
   ion-segment.main-tabs-segment {
     --background: transparent !important;
     background: transparent !important;
 
     ion-segment-button {
       --border-radius: 999px !important;
+      --indicator-color: transparent;
+      --padding-start: 8px;
+      --padding-end: 8px;
       border-radius: 999px !important;
-      --color: #{$muted} !important;
-      color: $muted !important;
+      min-height: 44px;
+      --color: #{$muted-strong} !important;
+      color: $muted-strong !important;
       font-weight: 600 !important;
+      text-transform: none;
+      letter-spacing: 0;
+
+      ion-icon {
+        font-size: 1.15rem;
+        margin: 0 6px 0 0;
+      }
+
+      ion-label {
+        font-size: 0.9rem;
+        white-space: nowrap;
+      }
 
       &.segment-button-checked {
-        --background: #{$primary} !important;
-        background: $primary !important;
+        --background: #{$primary-strong} !important;
+        background: $primary-strong !important;
         --color: #ffffff !important;
         color: #ffffff !important;
 
-        ion-label {
+        ion-label,
+        ion-icon {
           color: #ffffff !important;
         }
+      }
+
+      &:focus-visible {
+        outline: 2px solid $primary-strong;
+        outline-offset: 2px;
       }
     }
   }
@@ -304,78 +337,138 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 /* Tab Content */
 .tab-content {
   position: relative;
-  // No min-height: it forced the tab tall and left a big empty gap under a
-  // short list (e.g. one baby). The FAB is fixed to the viewport instead.
   padding-bottom: 1rem;
+}
+
+.track-section .tab-content {
+  padding-bottom: 0;
 }
 
 /* My Babies Tab */
 .baby-cards-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 12px;
+}
+
+// Shared button reset for the tappable cards
+.baby-card,
+.add-baby-card {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  font-family: $font;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-strong;
+    outline-offset: 2px;
+  }
 }
 
 .baby-card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid #f1f5f9;
-  font-family: 'Poppins', sans-serif;
-
-  &:hover {
-    transform: translateY(-1px);
-  }
+  border: 1px solid $lavender-border;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(131, 131, 237, 0.08);
 
   .baby-avatar {
-    width: 44px;
-    height: 44px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
+    background: $lavender-bg;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 1rem;
     flex-shrink: 0;
-
-    ion-icon {
-      font-size: 1.4rem;
-      color: #ffffff;
-    }
   }
 
   .baby-info {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-    h3 {
-      margin: 0 0 0.25rem 0;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #2d3748;
-      font-family: 'Poppins', sans-serif;
-    }
+  .baby-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $ink;
+    overflow-wrap: anywhere;
+  }
 
-    .baby-age {
-      margin: 0;
-      font-size: 0.875rem;
-      color: #6b7280;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .baby-weight {
-      margin: 0;
-      font-size: 0.875rem;
-      color: #6b7280;
-      font-family: 'Poppins', sans-serif;
-    }
+  .baby-age,
+  .baby-weight {
+    font-size: 0.875rem;
+    color: #6b7280;
   }
 
   .baby-arrow {
-    color: #d1d5db;
-    font-size: 1.1rem;
+    flex-shrink: 0;
+    color: $muted;
+    font-size: 1.25rem;
+  }
+}
+
+.add-baby-card {
+  margin-top: 12px;
+  background: transparent;
+  border: 1.5px dashed #c9c3ec;
+  border-radius: 20px;
+  padding: 16px;
+  min-height: 72px;
+
+  .add-baby-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: $lavender-bg;
+    color: $primary-strong;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.5rem;
+  }
+
+  .add-baby-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .add-baby-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $primary-strong;
+  }
+
+  .add-baby-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .baby-card,
+  .add-baby-card {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
   }
 }
 

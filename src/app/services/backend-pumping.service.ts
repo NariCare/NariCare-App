@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { map, catchError, filter, take } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { environment } from '../../environments/environment';
 
@@ -261,6 +261,71 @@ export class BackendPumpingService {
       map(response => response.data),
       catchError(this.handleError)
     );
+  }
+
+  // Paged, cached history per baby (See-all page). undefined = not loaded yet.
+  static readonly PAGE_SIZE = 30;
+  private history = new Map<string, { list: BehaviorSubject<PumpingRecord[] | undefined>; hasMore: BehaviorSubject<boolean>; page: number; busy: boolean }>();
+
+  private historyState(babyId: string) {
+    let s = this.history.get(babyId);
+    if (!s) {
+      s = { list: new BehaviorSubject<PumpingRecord[] | undefined>(undefined), hasMore: new BehaviorSubject<boolean>(false), page: 0, busy: false };
+      this.history.set(babyId, s);
+    }
+    return s;
+  }
+
+  private fetchHistoryPage(babyId: string, page: number): Promise<PumpingRecordsResponse | undefined> {
+    return this.getPumpingRecords(babyId, { page, limit: BackendPumpingService.PAGE_SIZE }).pipe(take(1)).toPromise();
+  }
+
+  /** Newest-first history; loads page 1 on first subscribe and emits on every refresh. */
+  history$(babyId: string): Observable<PumpingRecord[]> {
+    const s = this.historyState(babyId);
+    if (s.list.value === undefined && !s.busy) { this.reloadHistory(babyId, true); }
+    return s.list.pipe(filter((v): v is PumpingRecord[] => v !== undefined));
+  }
+
+  historyHasMore$(babyId: string): Observable<boolean> {
+    return this.historyState(babyId).hasMore.asObservable();
+  }
+
+  /** Re-fetch page 1 of an already-open history (no-op unless loaded or forced). */
+  async reloadHistory(babyId: string, force = false): Promise<void> {
+    const s = this.history.get(babyId);
+    if (!s || (!force && s.list.value === undefined)) { return; }
+    s.busy = true;
+    try {
+      const res = await this.fetchHistoryPage(babyId, 1);
+      s.page = 1;
+      s.hasMore.next(!!res?.pagination && res.pagination.page < res.pagination.totalPages);
+      s.list.next(res?.records || []);
+    } catch {
+      s.hasMore.next(false);
+      if (s.list.value === undefined) { s.list.next([]); }
+    } finally {
+      s.busy = false;
+    }
+  }
+
+  /** Append the next older page (deduped by id). */
+  async loadMoreHistory(babyId: string): Promise<void> {
+    const s = this.history.get(babyId);
+    if (!s || s.busy || !s.hasMore.value || s.list.value === undefined) { return; }
+    s.busy = true;
+    try {
+      const res = await this.fetchHistoryPage(babyId, s.page + 1);
+      const current = s.list.value || [];
+      const seen = new Set(current.map(r => r.id));
+      s.list.next([...current, ...(res?.records || []).filter(r => !seen.has(r.id))]);
+      s.page += 1;
+      s.hasMore.next(!!res?.pagination && res.pagination.page < res.pagination.totalPages);
+    } catch (error) {
+      console.error('Failed to load more pumping records:', error);
+    } finally {
+      s.busy = false;
+    }
   }
 
   private handleError(error: any): Observable<never> {

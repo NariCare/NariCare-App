@@ -1,0 +1,138 @@
+<ion-header class="history-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/growth" text="" aria-label="Back"></ion-back-button>
+    </ion-buttons>
+    <div class="header-text">
+      <h1>Pumping Sessions</h1>
+      <p>Track your pumping journey and milk output</p>
+    </div>
+    <span class="header-art" slot="end" aria-hidden="true"><img src="assets/Mother_icon.svg" alt=""></span>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="history-content">
+  <div class="history-body">
+
+    <!-- Today at a glance -->
+    <section class="stats-card" [attr.aria-label]="statsDayLabel + ' pumping summary'">
+      <div class="stat">
+        <span class="stat-icon" aria-hidden="true"><ion-icon name="list-outline"></ion-icon></span>
+        <p class="stat-value">{{ loading ? '--' : stats.count }}</p>
+        <p class="stat-label">Sessions</p>
+        <p class="stat-sub">{{ statsDayLabel }}</p>
+      </div>
+      <div class="stat">
+        <span class="stat-icon pink" aria-hidden="true"><ion-icon name="time-outline"></ion-icon></span>
+        <p class="stat-value">{{ loading ? '--' : stats.duration }}</p>
+        <p class="stat-label">Total Duration</p>
+        <p class="stat-sub">{{ statsDayLabel }}</p>
+      </div>
+      <div class="stat">
+        <span class="stat-icon" aria-hidden="true"><ion-icon name="water-outline"></ion-icon></span>
+        <p class="stat-value">{{ loading ? '--' : stats.output }}</p>
+        <p class="stat-label">Total Output</p>
+        <p class="stat-sub">{{ statsDayLabel }}</p>
+      </div>
+      <div class="stat">
+        <span class="stat-icon pink" aria-hidden="true"><ion-icon name="heart-outline"></ion-icon></span>
+        <p class="stat-value">{{ loading ? '--' : stats.last }}</p>
+        <p class="stat-label">Last Session</p>
+        <p class="stat-sub" *ngIf="!loading">{{ stats.lastSub }}</p>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-chips" role="radiogroup" aria-label="Filter by pumping side">
+        <button type="button" class="chip" role="radio" *ngFor="let f of filters"
+                [class.active]="filter === f.value" [attr.aria-checked]="filter === f.value"
+                (click)="setFilter(f.value)">{{ f.label }}</button>
+      </div>
+      <div class="date-row">
+        <button type="button" class="date-button" [class.active]="!!selectedDate" (click)="openDateSheet()"
+                [attr.aria-label]="selectedDate ? 'Showing ' + selectedDateLabel + '. Change date' : 'Select date'">
+          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+          {{ selectedDateLabel }}
+        </button>
+        <button type="button" class="date-clear" *ngIf="selectedDate" (click)="clearDate()" aria-label="Clear date filter">
+          <ion-icon name="close" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Skeleton -->
+    <div *ngIf="loading" aria-busy="true" aria-label="Loading pumping sessions">
+      <div class="skeleton-row" *ngFor="let i of [1, 2, 3, 4]">
+        <ion-skeleton-text animated class="sk-circle"></ion-skeleton-text>
+        <div class="sk-lines">
+          <ion-skeleton-text animated style="width: 40%; height: 14px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 65%; height: 12px"></ion-skeleton-text>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <ng-container *ngIf="!loading">
+      <section class="day-group" *ngFor="let g of groups; trackBy: trackGroup" [attr.aria-label]="g.label">
+        <div class="day-head">
+          <h2 class="day-pill">{{ g.label }}</h2>
+          <span class="day-meta">{{ g.meta }}</span>
+        </div>
+        <ul class="timeline">
+          <li class="timeline-item" *ngFor="let r of g.rows; trackBy: trackRow">
+            <span class="rail-dot" aria-hidden="true"></span>
+            <button type="button" class="row" (click)="onRowTap(r)" [attr.aria-label]="r.aria">
+              <span class="row-icon" aria-hidden="true"><img src="assets/Pump.svg" alt=""></span>
+              <span class="row-main">
+                <span class="row-time">{{ r.time }}</span>
+                <span class="row-label">{{ r.label }}</span>
+              </span>
+              <span class="row-meta">
+                <span class="ml-pill">{{ r.ml }} mL</span>
+                <span class="row-value muted">
+                  <ion-icon name="time-outline" aria-hidden="true"></ion-icon>{{ r.duration }}
+                </span>
+              </span>
+              <ion-icon name="chevron-forward" class="row-chevron" aria-hidden="true"></ion-icon>
+            </button>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Empty states -->
+      <div class="empty-state" *ngIf="!groups.length">
+        <img src="assets/Pump sessions.svg" alt="" aria-hidden="true">
+        <ng-container *ngIf="isFiltered; else noSessions">
+          <h2>No sessions match</h2>
+          <p>Try another side or date.</p>
+          <button type="button" class="empty-action" (click)="clearFilters()">Clear filters</button>
+        </ng-container>
+        <ng-template #noSessions>
+          <h2>No pumping sessions yet</h2>
+          <p>Sessions you log will show up here, grouped by day.</p>
+        </ng-template>
+      </div>
+
+      <button type="button" class="load-older" *ngIf="hasMore" (click)="loadOlder()" [disabled]="loadingMore">
+        <ion-spinner name="crescent" *ngIf="loadingMore" aria-hidden="true"></ion-spinner>
+        {{ loadingMore ? 'Loading...' : 'Load older sessions' }}
+      </button>
+    </ng-container>
+  </div>
+
+  <!-- Date filter sheet -->
+  <ion-modal [isOpen]="dateSheetOpen" (didDismiss)="dateSheetOpen = false" [initialBreakpoint]="0.75" [breakpoints]="[0, 0.75, 1]">
+    <ng-template>
+      <div class="date-sheet-body">
+        <h2 id="pumping-date-title">Select date</h2>
+        <ion-datetime presentation="date" [max]="today" [value]="pendingDate" (ionChange)="onDatePicked($event)"
+                      aria-labelledby="pumping-date-title"></ion-datetime>
+        <div class="date-sheet-actions">
+          <button type="button" class="secondary" (click)="clearDate()">Clear</button>
+          <button type="button" class="primary" (click)="applyDate()">Show this day</button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>
