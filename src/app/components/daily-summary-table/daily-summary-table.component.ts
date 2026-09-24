@@ -22,7 +22,8 @@ export class DailySummaryTableComponent {
     { short: 'Pump*', full: 'Pumping sessions' },
     { short: 'Pumped', full: 'Pumped output in mL' },
     { short: 'Formula', full: 'Formula intake in mL' },
-    { short: 'Pee', full: 'Wet diapers' }
+    { short: 'Pee', full: 'Wet diapers' },
+    { short: 'Poop', full: 'Poop count' }
   ];
   rows: Row[] = [];
 
@@ -32,7 +33,7 @@ export class DailySummaryTableComponent {
       const date = DateOnlyUtil.parseLocalDate(d.date);
       const cells = d.hasData
         ? [String(d.feeding.directSessions), fmtAvg(d.feeding.averageDurationMinutes), String(d.pumping.sessions),
-          `${d.pumping.outputMl} mL`, `${d.feeding.formulaMl} mL`, String(d.diapers.pee)]
+          `${d.pumping.outputMl} mL`, `${d.feeding.formulaMl} mL`, String(d.diapers.pee), String(d.additional.poop)]
         : this.headers.map(() => '-');
       const label = formatDate(date, 'EEEE d MMMM', 'en-US');
       const aria = `${label}${d.hasData ? '' : ', nothing logged'}. Open day details`;

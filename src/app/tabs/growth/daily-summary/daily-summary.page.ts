@@ -1,32 +1,132 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { formatDate } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { TrackerSummaryService } from '../../../services/tracker-summary.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
-import { DailySummaryDay, PUMPING_DEFINITION, fmtAvg } from '../../../models/daily-summary.model';
+import {
+  CALENDAR_DAY_NOTE, CareMetric, DailySummaryDay, PUMPING_DEFINITION, addDays, careMetrics, dayLine, emptyDay, fmtDay, shareText, summaryShareText
+} from '../../../models/daily-summary.model';
 
 type Range = 7 | 14 | 30;
-type Dir = 'up' | 'down' | 'same';
+interface RecentRow { date: string; label: string; line: string; parts: string[]; hasData: boolean; aria: string; }
 
-interface Metric { label: string; value: string; unit?: string; img?: string; icon?: string; tone: 'pink' | 'lavender'; }
-interface Compare { label: string; value: string; dir: Dir; delta: string; aria: string; }
+@Component({
+  selector: 'app-daily-summary',
+  templateUrl: './daily-summary.page.html',
+  styleUrls: ['../feeds-history/history-page.scss', './ds-common.scss', './daily-summary.page.scss']
+})
+export class DailySummaryPage implements OnInit, OnDestroy {
+  readonly today = DateOnlyUtil.formatLocalDate();
+  readonly definition = PUMPING_DEFINITION;
+  readonly calendarNote = CALENDAR_DAY_NOTE;
+  readonly ranges: Range[] = [7, 14, 30];
 
-const addDays = (date: string, n: number): string => {
-  const d = DateOnlyUtil.parseLocalDate(date);
-  return DateOnlyUtil.formatLocalDate(new Date(d.getFullYear(), d.getMonth(), d.getDate() + n));
-};
+  babyId = '';
+  selectedDate = this.today;
+  range: Range = 7;
+  loading = true;
+  loaded = false;
+  error = false;
+  showInfo = false;
 
-const emptyDay = (date: string): DailySummaryDay => ({
-  date, hasData: false,
-  feeding: { directSessions: 0, averageDurationMinutes: null, formulaMl: 0 },
-  pumping: { sessions: 0, outputMl: 0 },
-  diapers: { pee: 0 },
-  additional: { poop: 0, expressedMilkGivenMl: 0 }
-});
+  selected: DailySummaryDay = emptyDay(this.today);
+  care: CareMetric[] = [];
+  chartDays: DailySummaryDay[] = [];
+  recent: RecentRow[] = [];
 
+  private days = new Map<string, DailySummaryDay>();
+  private loadedFrom = this.today;
+  private sub = new Subscription();
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private summary: TrackerSummaryService,
+    private auth: BackendAuthService,
+    private toast: ToastController
+  ) {}
+
+  ngOnInit(): void {
+    this.babyId = this.route.snapshot.paramMap.get('babyId') || '';
+    if (!this.babyId) { this.router.navigate(['/tabs/growth']); return; }
+    this.load(addDays(this.today, -29), this.today);
+  }
+
+  ngOnDestroy(): void { this.sub.unsubscribe(); }
+
+  get isToday(): boolean { return this.selectedDate === this.today; }
+  get dateLabel(): string { return fmtDay(this.selectedDate, 'd MMMM y'); }
+  get daySub(): string { return this.isToday ? 'Today (so far)' : fmtDay(this.selectedDate, 'EEEE'); }
+  get careTitle(): string { return this.isToday ? "Today's care" : `Care on ${fmtDay(this.selectedDate, 'd MMM')}`; }
+
+  retry(): void {
+    if (!this.days.size) { this.load(addDays(this.today, -29), this.today); return; }
+    this.load(addDays(this.loadedFrom, -14), addDays(this.loadedFrom, -1));
+  }
+
+  step(n: number): void { this.select(addDays(this.selectedDate, n)); }
+
+  pick(ev: Event): void {
+    const v = (ev.target as HTMLInputElement).value;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) this.select(v);
+  }
+
+  setRange(r: Range): void { this.range = r; this.rebuild(); }
+
+  openDay(date: string): void { this.router.navigate(['/tabs/growth/daily-summary', this.babyId, 'day', date]); }
+  openHistory(): void { this.router.navigate(['/tabs/growth/daily-summary', this.babyId, 'history']); }
+
+  async share(): Promise<void> {
+    const name = this.auth.getCurrentUser()?.babies?.find((b: any) => b.id === this.babyId)?.name;
+    const msg = await shareText(summaryShareText(this.chartDays, name, `last ${this.range} days`));
+    if (msg) this.showToast(msg);
+  }
+
+  private select(date: string): void {
+    if (date > this.today) return;
+    this.selectedDate = date;
+    if (date < this.loadedFrom) this.load(addDays(date, -7), addDays(this.loadedFrom, -1));
+    this.rebuild();
+  }
+
+  private load(from: string, to: string): void {
+    this.loading = !this.days.size;
+    this.error = false;
+    this.sub.add(this.summary.getDailySummary(this.babyId, from, to).subscribe({
+      next: r => {
+        r.days.forEach(d => this.days.set(d.date, d));
+        if (from < this.loadedFrom) this.loadedFrom = from;
+        this.loading = false;
+        this.loaded = true;
+        this.rebuild();
+      },
+      error: () => { this.loading = false; this.error = true; }
+    }));
+  }
+
+  private dayOf(date: string): DailySummaryDay { return this.days.get(date) || emptyDay(date); }
+
+  private rebuild(): void {
+    this.selected = this.dayOf(this.selectedDate);
+    this.care = careMetrics(this.selected);
+    this.chartDays = Array.from({ length: this.range }, (_, i) => this.dayOf(addDays(this.today, -i)));
+    this.recent = Array.from({ length: 5 }, (_, i) => {
+      const d = this.dayOf(addDays(this.today, -(i + 1)));
+      const label = fmtDay(d.date, 'EEE, d MMM');
+      const line = dayLine(d);
+      return { date: d.date, label, line, parts: line.split(' · '), hasData: d.hasData, aria: `${fmtDay(d.date, 'EEEE d MMMM')}, ${line}. Open day details` };
+    });
+  }
+
+  private async showToast(message: string): Promise<void> {
+    const t = await this.toast.create({ message, duration: 2500, position: 'bottom' });
+    await t.present();
+  }
+}
+
+/* Legacy page class before the 4-screen redesign, kept for reuse (overview, comparison row, details sheet).
 @Component({
   selector: 'app-daily-summary',
   templateUrl: './daily-summary.page.html',
@@ -203,3 +303,5 @@ export class DailySummaryPage implements OnInit, OnDestroy {
     await t.present();
   }
 }
+
+*/

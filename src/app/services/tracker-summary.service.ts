@@ -6,7 +6,7 @@ import { environment } from '../../environments/environment';
 import { ApiService } from './api.service';
 import { BackendGrowthService } from './backend-growth.service';
 import { DateOnlyUtil } from '../shared/utils/date-only.util';
-import { DailySummaryRange, DailySummaryResponse, TodaySummaryState } from '../models/daily-summary.model';
+import { DailySummaryRange, DailySummaryResponse, DayTimeline, DayTimelineResponse, TodaySummaryState } from '../models/daily-summary.model';
 
 const LOADING: TodaySummaryState = { loading: true, error: false, day: null };
 
@@ -25,6 +25,17 @@ export class TrackerSummaryService {
       map(res => {
         if (!res?.success || !res.data) throw new Error('Daily summary request failed');
         return { ...res.data, days: res.data.days || [] };
+      })
+    );
+  }
+
+  getDayTimeline(babyId: string, date: string): Observable<DayTimeline> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${this.apiService.getToken()}` });
+    const params = new HttpParams().set('date', date);
+    return this.http.get<DayTimelineResponse>(`${this.baseUrl}/tracker/day-timeline/${babyId}`, { headers, params }).pipe(
+      map(res => {
+        if (!res?.success || !res.data) throw new Error('Day timeline request failed');
+        return { ...res.data, events: res.data.events || [] };
       })
     );
   }

@@ -10,7 +10,6 @@
     <ion-buttons slot="end">
       <button type="button" class="ds-share" (click)="share()" [disabled]="loading || error" aria-label="Share summary">
         <ion-icon name="share-social-outline" aria-hidden="true"></ion-icon>
-        <span>Share</span>
       </button>
     </ion-buttons>
   </ion-toolbar>
@@ -19,24 +18,25 @@
 <ion-content class="history-content">
   <div class="history-body">
 
-    <!-- Date navigator -->
+    <!-- Date navigator; the pill opens the native date picker -->
     <nav class="ds-nav" aria-label="Choose day">
       <button type="button" class="ds-nav-step" (click)="step(-1)" aria-label="Previous day">
         <ion-icon name="chevron-back" aria-hidden="true"></ion-icon>
       </button>
-      <button type="button" class="ds-nav-date" (click)="openDay()" [attr.aria-label]="dateLabel + ', ' + daySub + '. Open day details'">
+      <label class="ds-nav-date">
         <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-        <span class="ds-nav-text">
+        <span class="ds-nav-text" aria-hidden="true">
           <span class="ds-nav-main">{{ dateLabel }}</span>
           <span class="ds-nav-sub">{{ daySub }}</span>
         </span>
-      </button>
+        <input type="date" class="ds-nav-input" [value]="selectedDate" [max]="today" (change)="pick($event)"
+               [attr.aria-label]="'Choose day, showing ' + dateLabel + ', ' + daySub">
+      </label>
       <button type="button" class="ds-nav-step" (click)="step(1)" [disabled]="isToday" aria-label="Next day">
         <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
       </button>
     </nav>
 
-    <!-- Error -->
     <div role="alert" *ngIf="error">
       <button type="button" class="ds-error" (click)="retry()">
         <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
@@ -44,7 +44,85 @@
       </button>
     </div>
 
-    <!-- Overview -->
+    <!-- Care for the selected day -->
+    <section class="gv-card" aria-labelledby="ds-care-title" *ngIf="!error || loaded">
+      <div class="ds-head">
+        <h2 id="ds-care-title">{{ careTitle }}</h2>
+        <div class="ds-head-actions">
+          <button type="button" class="ds-info" (click)="showInfo = !showInfo" [attr.aria-expanded]="showInfo"
+                  aria-controls="ds-care-info" aria-label="About these numbers">
+            <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+          </button>
+          <button type="button" class="ds-link" (click)="openDay(selectedDate)" *ngIf="!loading">
+            Details <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+      </div>
+      <div class="ds-note ds-info-note" id="ds-care-info" *ngIf="showInfo">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <div>
+          <p>{{ definition }}</p>
+          <p>{{ calendarNote }}</p>
+        </div>
+      </div>
+      <p class="ds-empty" *ngIf="!loading && !selected.hasData">{{ isToday ? 'Nothing logged yet today' : 'Nothing logged on this day' }}</p>
+      <div class="ds-grid" *ngIf="loading" aria-busy="true" aria-label="Loading care summary">
+        <div class="ds-metric" *ngFor="let i of [1, 2, 3, 4, 5]">
+          <ion-skeleton-text animated class="ds-skel-tile"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 40%; height: 22px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 70%; height: 12px"></ion-skeleton-text>
+        </div>
+      </div>
+      <ul class="ds-grid" *ngIf="!loading" [class.is-empty]="!selected.hasData">
+        <li class="ds-metric" *ngFor="let m of care" [ngClass]="m.tone">
+          <span class="ds-tile" [ngClass]="m.tone" aria-hidden="true">
+            <img *ngIf="m.img" [src]="m.img" alt="">
+            <ion-icon *ngIf="m.icon" [name]="m.icon"></ion-icon>
+          </span>
+          <span class="ds-metric-text">
+            <span class="ds-metric-value">{{ m.value }}<small *ngIf="m.unit"> {{ m.unit }}</small></span>
+            <span class="ds-metric-label">{{ m.label }}</span>
+          </span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Pattern chart -->
+    <section class="gv-card" aria-labelledby="ds-pattern-title" *ngIf="loaded">
+      <div class="ds-head">
+        <h2 id="ds-pattern-title">{{ range }}-day pattern</h2>
+      </div>
+      <div class="filter-chips ds-ranges" role="radiogroup" aria-label="Pattern range">
+        <button type="button" class="chip" role="radio" *ngFor="let r of ranges"
+                [class.active]="range === r" [attr.aria-checked]="range === r"
+                [attr.aria-label]="'Last ' + r + ' days'" (click)="setRange(r)">{{ r }}D</button>
+      </div>
+      <app-daily-summary-chart [days]="chartDays"></app-daily-summary-chart>
+    </section>
+
+    <!-- Recent days -->
+    <section class="gv-card" aria-labelledby="ds-recent-title" *ngIf="loaded">
+      <div class="ds-head">
+        <h2 id="ds-recent-title">Recent days</h2>
+        <button type="button" class="ds-link" (click)="openHistory()">
+          See all <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <ul class="ds-recent">
+        <li *ngFor="let r of recent">
+          <button type="button" class="ds-recent-row" (click)="openDay(r.date)" [attr.aria-label]="r.aria">
+            <span class="ds-recent-text">
+              <span class="ds-recent-date">{{ r.label }}</span>
+              <span class="ds-recent-line" [class.muted]="!r.hasData"><span *ngFor="let p of r.parts; let last = last">{{ p }}{{ last ? '' : ' · ' }}</span></span>
+            </span>
+            <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+          </button>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Legacy overview, comparison, history table and details sheet, kept for reuse (table now lives on Detailed History)
+    [Overview]
     <section class="gv-card ds-section" aria-labelledby="ds-overview-title" *ngIf="loaded || loading">
       <div class="ds-head">
         <h2 id="ds-overview-title">{{ isToday ? "Today's Overview" : 'Overview' }}</h2>
@@ -67,7 +145,7 @@
       <p class="ds-empty" *ngIf="!loading && !selected.hasData">Nothing logged for this day.</p>
     </section>
 
-    <!-- Compared with the previous day, neutral styling on purpose -->
+    [Compared with the previous day, neutral styling on purpose]
     <section class="ds-compare" *ngIf="loaded && !loading && compare" aria-labelledby="ds-compare-title">
       <h2 id="ds-compare-title">{{ compareTitle }}</h2>
       <ul>
@@ -81,7 +159,7 @@
       </ul>
     </section>
 
-    <!-- Daily History -->
+    [Daily History]
     <section class="ds-section" aria-labelledby="ds-history-title" *ngIf="loaded || loading">
       <div class="ds-head">
         <h2 id="ds-history-title">Daily History</h2>
@@ -96,9 +174,8 @@
     </section>
 
     <p class="ds-foot">These numbers are for each calendar day, from midnight to midnight.</p>
-  </div>
 
-  <!-- Day details sheet -->
+  [Day details sheet]
   <ion-modal [isOpen]="detailsOpen" (didDismiss)="detailsOpen = false" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85, 1]">
     <ng-template>
       <div class="ds-sheet">
@@ -141,4 +218,6 @@
     <span class="ds-row-label">{{ m.label }}</span>
     <span class="ds-row-value">{{ m.value }}<small *ngIf="m.unit && m.value !== '-'"> {{ m.unit }}</small></span>
   </ng-template>
+    -->
+  </div>
 </ion-content>
