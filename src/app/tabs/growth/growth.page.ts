@@ -40,7 +40,7 @@ export interface PumpJourney { today: number; lastTime: string; latestMl: number
 @Component({
   selector: 'app-growth',
   templateUrl: './growth.page.html',
-  styleUrls: ['./growth.page.scss'],
+  styleUrls: ['./growth.page.scss', './growth-journey.scss'],
 })
 export class GrowthPage implements OnInit, OnDestroy {
   @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
