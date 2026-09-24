@@ -12,6 +12,14 @@ const routes: Routes = [
     loadChildren: () => import('./baby-detail/baby-detail.module').then(m => m.BabyDetailPageModule)
   },
   {
+    path: 'feeds/:babyId',
+    loadChildren: () => import('./feeds-history/feeds-history.module').then(m => m.FeedsHistoryPageModule)
+  },
+  {
+    path: 'pumping/:babyId',
+    loadChildren: () => import('./pumping-history/pumping-history.module').then(m => m.PumpingHistoryPageModule)
+  },
+  {
     path: 'timeline',
     loadChildren: () => import('./timeline/timeline.module').then(m => m.TimelinePageModule)
   },

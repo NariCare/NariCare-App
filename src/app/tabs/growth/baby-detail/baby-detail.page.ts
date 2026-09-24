@@ -3,11 +3,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable } from 'rxjs';
-import { startWith, tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { GrowthTrackingService } from '../../../services/growth-tracking.service';
-import { BackendGrowthService } from '../../../services/backend-growth.service';
+import { BackendGrowthService, HistoryType } from '../../../services/backend-growth.service';
+import { ActivityLog, ActivityRow, recordAt, timeAgo, toFeedLog } from '../../../components/activity-log/activity-log.component';
 import { WHOGrowthChartService } from '../../../services/who-growth-chart.service';
 import { WeightChartModalComponent } from '../../../components/weight-chart-modal/weight-chart-modal.component';
 import { FeedLogModalComponent } from '../../../components/feed-log-modal/feed-log-modal.component';
@@ -15,8 +16,7 @@ import { DiaperLogModalComponent } from '../../../components/diaper-log-modal/di
 import { WeightLogModalComponent } from '../../../components/weight-log-modal/weight-log-modal.component';
 import { BabyEditModalComponent } from '../../../components/baby-edit-modal/baby-edit-modal.component';
 import { 
-  GrowthRecord, 
-  WeightRecord, 
+  GrowthRecord,
   StoolRecord,
   DiaperChangeRecord,
   BreastSide,
@@ -31,6 +31,28 @@ import { User, Baby } from '../../../models/user.model';
 import { PumpingRecord } from '../../../models/growth-tracking.model';
 import { AgeCalculatorUtil } from '../../../shared/utils/age-calculator.util';
 import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
+import { formatDate } from '@angular/common';
+
+interface ChartSeries { path: string; pts: { x: number; y: number }[]; tag: { x: number; y: number; w: number; text: string } }
+export interface GrowthChart { weight?: ChartSeries; height?: ChartSeries; ticks: { x: number; label: string; anchor: string }[]; label: string }
+
+// Chart plot box in viewBox units (320 x 150); right gutter holds the end-value tags
+const PLOT = { left: 8, right: 252, top: 14, bottom: 116 };
+const kg = (v: any) => { const n = parseFloat((+v).toFixed(2)); return Number.isInteger(n) ? n.toFixed(1) : String(n); };
+const cm = (v: any) => String(parseFloat((+v).toFixed(1)));
+
+interface WeekBar { x: number; y: number; w: number; h: number; v: number; cls: string }
+export interface WeekChart { days: { x: number; label: string; today: boolean; bars: WeekBar[] }[]; legend: { cls: string; label: string }[]; label: string; total: number }
+export interface StatCard { value: string; sub: string }
+export interface TrackerOverview { updated: string; last: StatCard; today: StatCard; week: WeekChart }
+interface WeekSeries { cls: string; label: string; count: (r: any) => number }
+
+// Bar chart plot box in the same 320 x 150 viewBox as the growth chart; top leaves room for value labels
+const WEEK = { left: 8, right: 312, top: 24, bottom: 116 };
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+const agoValue = (at: Date, timed: boolean) => (timed ? timeAgo(at) : formatDate(at, 'd MMM', 'en-US'));
+const feedTime = (r: any): string | undefined => r.time || [r.directFeedDetails?.startTime, r.expressedMilkDetails?.startTime, r.formulaDetails?.startTime].filter(Boolean).sort()[0];
+const diaperType = (r: any): string => r.change_type || r.type || r.changeType;
 
 @Component({
   selector: 'app-baby-detail',
@@ -43,29 +65,21 @@ export class BabyDetailPage implements OnInit {
   babyId: string = '';
   selectedSubTab: 'weight-size' | 'feed-tracks' | 'diaper-change' | 'pumping-tracks' | 'stool-tracks' = 'weight-size';
   
-  // Data observables. Feed/diaper emit null first (loading) so the empty
-  // state only shows once the list has actually loaded and is empty.
-  growthRecords$: Observable<any[] | null> | null = null;
-  weightRecords$: Observable<WeightRecord[]> | null = null;
+  // Data observables. The template shows a skeleton while `| async` is still null.
+  growthRecords$: Observable<any[]> | null = null;
+  weightRecords$: Observable<any[]> | null = null;
   stoolRecords$: Observable<StoolRecord[]> | null = null;
-  diaperChangeRecords$: Observable<any[] | null> | null = null;
+  diaperChangeRecords$: Observable<any[]> | null = null;
   pumpingRecords$: Observable<any[]> | null = null;
   private loadedBabyId: string | null = null;
-
-  // Per-tab first-emit flags so the template can show a skeleton until data lands.
-  private feedLoaded = false;
-  private weightLoaded = false;
-  private diaperLoaded = false;
-
-  // True until the selected tab's primary stream has emitted at least once.
-  get loading(): boolean {
-    switch (this.selectedSubTab) {
-      case 'feed-tracks': return !this.feedLoaded;
-      case 'diaper-change': return !this.diaperLoaded;
-      case 'weight-size': return !this.weightLoaded;
-      default: return false;
-    }
-  }
+  feedLog$: Observable<ActivityLog> | null = null;
+  diaperLog$: Observable<ActivityLog> | null = null;
+  weightLog$: Observable<ActivityLog> | null = null;
+  growthChart$: Observable<GrowthChart | null> | null = null;
+  feedOverview$: Observable<TrackerOverview> | null = null;
+  diaperOverview$: Observable<TrackerOverview> | null = null;
+  hasMore: Partial<Record<HistoryType, Observable<boolean>>> = {};
+  loadingOlder: Partial<Record<HistoryType, boolean>> = {};
 
   // Modal controls
   showAddRecordModal = false;
@@ -227,48 +241,205 @@ export class BabyDetailPage implements OnInit {
     }
     this.loadedBabyId = this.babyId;
 
-    // Reset per-tab flags so the skeleton shows until each stream's first emit.
-    this.feedLoaded = false;
-    this.weightLoaded = false;
-    this.diaperLoaded = false;
-
     // Check if user is using backend services
     const isBackendUser = this.backendAuthService.getCurrentUser();
 
-    // The service owns caching now (one reactive subject per record type), so the
-    // component just subscribes. startWith(null) drives the per-tab skeleton until
-    // the first real emit; writes push fresh data through the same stream, so no
-    // manual rebuild is needed after a save.
+    // The service owns caching (one reactive subject per record type); writes push
+    // fresh data through the same stream, so no manual rebuild is needed after a save.
     if (isBackendUser) {
-      this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId).pipe(
-        tap(() => this.feedLoaded = true),
-        startWith(null)
-      );
+      this.growthRecords$ = this.backendGrowthService.getFeedRecords(this.babyId);
       this.weightRecords$ = this.backendGrowthService.getWeightRecords(this.babyId).pipe(
-        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; })
+        tap(records => this.cacheLatestWeight(records))
       );
       this.stoolRecords$ = this.backendGrowthService.getStoolRecords(this.babyId);
-      this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId).pipe(
-        tap(() => this.diaperLoaded = true),
-        startWith(null)
-      );
+      this.diaperChangeRecords$ = this.backendGrowthService.getDiaperChangeRecords(this.babyId);
       this.pumpingRecords$ = this.backendGrowthService.getPumpingRecords(this.babyId);
     } else {
       // Fallback to local services
-      this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId).pipe(
-        tap(() => this.feedLoaded = true),
-        startWith(null)
-      );
+      this.growthRecords$ = this.growthService.getGrowthRecords(this.babyId);
       this.weightRecords$ = this.growthService.getWeightRecords(this.babyId).pipe(
-        tap(records => { this.cacheLatestWeight(records); this.weightLoaded = true; })
+        tap(records => this.cacheLatestWeight(records))
       );
       this.stoolRecords$ = this.growthService.getStoolRecords(this.babyId);
-      this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId).pipe(
-        tap(() => this.diaperLoaded = true),
-        startWith(null)
-      );
+      this.diaperChangeRecords$ = this.growthService.getDiaperChangeRecords(this.babyId);
       this.pumpingRecords$ = this.growthService.getPumpingRecords(this.babyId);
     }
+
+    this.feedLog$ = this.growthRecords$.pipe(map(toFeedLog));
+    this.diaperLog$ = this.diaperChangeRecords$.pipe(map(records => this.toDiaperLog(records)));
+    this.weightLog$ = this.weightRecords$.pipe(map(records => this.toWeightLog(records)));
+    this.growthChart$ = this.weightRecords$.pipe(map(records => this.toGrowthChart(records)));
+    // Stats use the loaded page (30 newest records), which covers today and the last 7 days in normal use
+    this.feedOverview$ = this.growthRecords$.pipe(map(records => this.toFeedOverview(records)));
+    this.diaperOverview$ = this.diaperChangeRecords$.pipe(map(records => this.toDiaperOverview(records)));
+    if (isBackendUser) {
+      this.hasMore = {
+        feed: this.backendGrowthService.hasMore$('feed', this.babyId),
+        diaper: this.backendGrowthService.hasMore$('diaper', this.babyId),
+        weight: this.backendGrowthService.hasMore$('weight', this.babyId)
+      };
+    }
+  }
+
+  async loadOlder(type: HistoryType): Promise<void> {
+    this.loadingOlder[type] = true;
+    try {
+      if (type === 'feed') await this.backendGrowthService.loadMoreFeeds(this.babyId);
+      else if (type === 'diaper') await this.backendGrowthService.loadMoreDiapers(this.babyId);
+      else await this.backendGrowthService.loadMoreWeights(this.babyId);
+    } finally {
+      this.loadingOlder[type] = false;
+    }
+  }
+
+  private toDiaperLog(records: any[]): ActivityLog {
+    const rows: ActivityRow[] = (records || []).map(r => {
+      const time = r.record_time || r.time;
+      const wetness = r.wetness_level || r.wetness || r.wetnessLevel;
+      // Compact rows only show the value, so it carries type + wetness
+      const type = this.getDiaperChangeType(r);
+      return {
+        icon: 'assets/Diaper change.svg', iconAlt: 'Diaper change',
+        at: recordAt(r.record_date || r.date, time), time: time ? DateOnlyUtil.to12Hour(time) : undefined,
+        value: wetness ? `${type} · ${wetness[0].toUpperCase()}${wetness.slice(1)}` : type
+      };
+    }).sort((a, b) => b.at.getTime() - a.at.getTime());
+    return { rows, summary: rows.length ? `Last change ${timeAgo(rows[0].at, !!rows[0].time)} · ${rows[0].value}` : '' };
+  }
+
+  /** Per-day counts for the last 7 local days (today rightmost), one bar per series. */
+  private toWeekBars(records: any[], dayOf: (r: any) => Date, series: WeekSeries[], noun: string): WeekChart {
+    const now = new Date();
+    const days = [6, 5, 4, 3, 2, 1, 0].map(i => new Date(now.getFullYear(), now.getMonth(), now.getDate() - i));
+    const keys = days.map(d => DateOnlyUtil.formatLocalDate(d));
+    const sums = days.map(() => series.map(() => 0));
+    let total = 0;
+    for (const r of records || []) {
+      const i = keys.indexOf(DateOnlyUtil.formatLocalDate(dayOf(r)));
+      if (i < 0) continue;
+      total++;
+      series.forEach((s, j) => (sums[i][j] += s.count(r)));
+    }
+    const max = Math.max(1, ...sums.flat());
+    const slot = (WEEK.right - WEEK.left) / 7, bw = series.length > 1 ? 12 : 20, gap = 3;
+    const group = series.length * bw + (series.length - 1) * gap;
+    const labels = days.map((d, i) => (i === 6 ? 'Today' : formatDate(d, 'EEE', 'en-US')));
+    return {
+      total,
+      legend: series.map(s => ({ cls: s.cls, label: s.label })),
+      days: days.map((_, i) => {
+        const cx = WEEK.left + slot * (i + 0.5);
+        const bars = series.map((s, j) => {
+          const v = sums[i][j], h = v ? Math.max(3, (v / max) * (WEEK.bottom - WEEK.top)) : 2;
+          return { x: +(cx - group / 2 + j * (bw + gap)).toFixed(1), y: +(WEEK.bottom - h).toFixed(1), w: bw, h: +h.toFixed(1), v, cls: v ? s.cls : 'zero' };
+        });
+        return { x: +cx.toFixed(1), label: labels[i], today: i === 6, bars };
+      }),
+      label: `${noun} per day, last 7 days: ${labels.map((l, i) => `${l} ${series.map((s, j) => `${sums[i][j]} ${s.label.toLowerCase()}`).join(', ')}`).join('; ')}.`
+    };
+  }
+
+  private toFeedOverview(records: any[]): TrackerOverview {
+    const list = (records || [])
+      .filter(r => r.directFeedDetails || r.expressedMilkDetails?.quantity || r.formulaDetails?.quantity)
+      .map(r => ({ r, t: feedTime(r), at: recordAt(r.recordDate || r.date, feedTime(r)) }))
+      .sort((a, b) => b.at.getTime() - a.at.getTime());
+    const week = this.toWeekBars(list, x => x.at, [{ cls: 'primary', label: 'Feeds', count: () => 1 }], 'Feeds');
+    const today = list.filter(x => DateOnlyUtil.isSameLocalDay(x.at, new Date()));
+    const ml = today.reduce((n, x) => n + (+x.r.expressedMilkDetails?.quantity || 0) + (+x.r.formulaDetails?.quantity || 0), 0);
+    const min = today.reduce((n, x) => n + (+x.r.directFeedDetails?.duration || 0), 0);
+    const todayCard = { value: plural(today.length, 'feed'), sub: [ml && `${ml} mL`, min && `${min} min`].filter(Boolean).join(' · ') };
+    const last = list[0];
+    if (!last) return { updated: '', last: { value: '--', sub: '' }, today: todayCard, week };
+    const side = list.find(x => x.r.directFeedDetails?.breastSide)?.r.directFeedDetails.breastSide;
+    const date = formatDate(last.at, 'dd MMM yyyy', 'en-US');
+    return { updated: date, last: { value: agoValue(last.at, !!last.t), sub: side ? `Last side: ${side}` : date }, today: todayCard, week };
+  }
+
+  private toDiaperOverview(records: any[]): TrackerOverview {
+    const wet = (r: any) => (['pee', 'both'].includes(diaperType(r)) ? 1 : 0);
+    const dirty = (r: any) => (['poop', 'both'].includes(diaperType(r)) ? 1 : 0);
+    const list = (records || [])
+      .map(r => ({ r, t: r.record_time || r.time, at: recordAt(r.record_date || r.date, r.record_time || r.time) }))
+      .sort((a, b) => b.at.getTime() - a.at.getTime());
+    const week = this.toWeekBars(list, x => x.at, [
+      { cls: 'primary', label: 'Pee', count: x => wet(x.r) },
+      { cls: 'lavender', label: 'Poop', count: x => dirty(x.r) }
+    ], 'Diaper changes');
+    const today = list.filter(x => DateOnlyUtil.isSameLocalDay(x.at, new Date()));
+    const todayCard = {
+      value: plural(today.length, 'change'),
+      sub: today.length ? `${today.reduce((n, x) => n + wet(x.r), 0)} pee · ${today.reduce((n, x) => n + dirty(x.r), 0)} poop` : ''
+    };
+    const last = list[0];
+    if (!last) return { updated: '', last: { value: '--', sub: '' }, today: todayCard, week };
+    const type = ({ pee: 'Pee', poop: 'Poop', both: 'Both' } as Record<string, string>)[diaperType(last.r)] || '--';
+    const wetness: string = last.r.wetness_level || last.r.wetness || last.r.wetnessLevel || '';
+    return {
+      updated: formatDate(last.at, 'dd MMM yyyy', 'en-US'),
+      last: { value: agoValue(last.at, !!last.t), sub: wetness ? `${type} · ${wetness[0].toUpperCase()}${wetness.slice(1)}` : type },
+      today: todayCard, week
+    };
+  }
+
+  private toWeightLog(records: any[]): ActivityLog {
+    const rows: ActivityRow[] = (records || []).map(r => {
+      // No time column on weight_records: save time orders same-day entries, newest first
+      const saved = r.created_at ? new Date(r.created_at) : null;
+      const time = saved && !isNaN(saved.getTime()) ? DateOnlyUtil.formatLocalTime(saved) : undefined;
+      return {
+        icon: 'assets/Weight.svg', iconAlt: 'Growth', at: recordAt(r.record_date || r.date, time),
+        time: time ? DateOnlyUtil.to12Hour(time) : undefined, label: r.notes || undefined,
+        value: `${r.weight} kg${r.height ? ` · ${r.height} cm` : ''}`
+      };
+    });
+    // Birth weight lives on the baby profile, not in weight_records.
+    if (this.baby?.birthWeight && this.baby.dateOfBirth) {
+      const bh = this.baby.birthHeight;
+      rows.push({ icon: 'assets/Weight.svg', iconAlt: 'Birth', at: recordAt(this.baby.dateOfBirth), label: 'Birth record', value: `${this.baby.birthWeight} kg${bh ? ` · ${bh} cm` : ''}` });
+    }
+    rows.sort((a, b) => b.at.getTime() - a.at.getTime());
+    return { rows, summary: rows.length ? `Latest ${rows[0].value}` : '' };
+  }
+
+  /** Weight + height line chart geometry; each series has its own y scale. Null when under 2 points. */
+  private toGrowthChart(records: any[]): GrowthChart | null {
+    const pts = (records || []).map(r => ({ at: recordAt(r.record_date || r.date).getTime(), w: +r.weight || 0, h: +r.height || 0 }));
+    const b = this.baby;
+    if (b?.dateOfBirth && (b.birthWeight || b.birthHeight)) pts.push({ at: recordAt(b.dateOfBirth).getTime(), w: +b.birthWeight || 0, h: +b.birthHeight || 0 });
+    const valid = pts.filter(p => !isNaN(p.at)).sort((a, c) => a.at - c.at);
+    const ws = valid.filter(p => p.w), hs = valid.filter(p => p.h);
+    if (ws.length < 2 && hs.length < 2) return null;
+    const t0 = valid[0].at, span = valid[valid.length - 1].at - t0 || 1;
+    const X = (at: number) => PLOT.left + ((at - t0) / span) * (PLOT.right - PLOT.left);
+    const series = (list: typeof valid, key: 'w' | 'h', text: (v: number) => string): ChartSeries | undefined => {
+      if (!list.length) return undefined;
+      const vals = list.map(p => p[key]), lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.12 || 1;
+      const Y = (v: number) => PLOT.bottom - ((v - lo + pad) / (hi - lo + 2 * pad)) * (PLOT.bottom - PLOT.top);
+      const xy = list.map(p => ({ x: +X(p.at).toFixed(1), y: +Y(p[key]).toFixed(1) }));
+      const last = xy[xy.length - 1], label = text(vals[vals.length - 1]), w = label.length * 6.4 + 12;
+      return { pts: xy, path: xy.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' '), tag: { x: Math.min(last.x + 8, 318 - w), y: last.y, w, text: label } };
+    };
+    const weight = series(ws, 'w', v => `${kg(v)} kg`), height = series(hs, 'h', v => `${cm(v)} cm`);
+    // Keep the two end tags from overlapping and inside the plot
+    const clamp = (y: number) => Math.min(PLOT.bottom, Math.max(PLOT.top, y));
+    if (weight) weight.tag.y = clamp(weight.tag.y);
+    if (height) height.tag.y = clamp(height.tag.y);
+    if (weight && height && Math.abs(weight.tag.y - height.tag.y) < 20) {
+      const [top, bottom] = weight.tag.y <= height.tag.y ? [weight, height] : [height, weight];
+      const mid = clamp((top.tag.y + bottom.tag.y) / 2);
+      top.tag.y = Math.min(Math.max(PLOT.top, mid - 10), PLOT.bottom - 20);
+      bottom.tag.y = top.tag.y + 20;
+    }
+    const fmt = span > 730 * 864e5 ? 'yyyy' : span > 300 * 864e5 ? 'MMM yy' : 'd MMM';
+    const ticks = [0, 1, 2, 3].map(i => ({
+      x: +(PLOT.left + (i / 3) * (PLOT.right - PLOT.left)).toFixed(1),
+      label: formatDate(t0 + (i / 3) * span, fmt, 'en-US'),
+      anchor: i === 0 ? 'start' : i === 3 ? 'end' : 'middle'
+    }));
+    const latest = [weight && `weight ${weight.tag.text}`, height && `height ${height.tag.text}`].filter(Boolean).join(', ');
+    const range = `${formatDate(t0, 'd MMM y', 'en-US')} to ${formatDate(t0 + span, 'd MMM y', 'en-US')}`;
+    return { weight, height, ticks, label: `Growth chart from ${range}. Latest ${latest}.` };
   }
 
   goBack() {
@@ -611,11 +782,8 @@ export class BabyDetailPage implements OnInit {
       return 'Birth date unknown';
     }
     try {
-      return new Date(this.baby.dateOfBirth).toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
+      // recordAt keeps date-only DOBs on their local day (no UTC shift)
+      return formatDate(recordAt(this.baby.dateOfBirth), 'dd MMM yyyy', 'en-US');
     } catch (error) {
       console.error('Error formatting birth date:', error);
       return 'Invalid date';
@@ -623,20 +791,26 @@ export class BabyDetailPage implements OnInit {
   }
 
   latestWeightRecord: any = null;
+  latestHeight: number | null = null;
 
   private cacheLatestWeight(records: any[] | null): void {
     if (!records || records.length === 0) { this.latestWeightRecord = null; return; }
-    this.latestWeightRecord = [...records].sort((a, b) =>
-      new Date(b.record_date || b.date).getTime() - new Date(a.record_date || a.date).getTime()
-    )[0];
+    // Same order as the list: record day, then save time, newest first
+    const key = (r: any) => [String(r.record_date || r.date || '').slice(0, 10), String(r.created_at || '')];
+    const sorted = [...records].sort((a, b) => {
+      const [da, ca] = key(a), [db, cb] = key(b);
+      return db.localeCompare(da) || new Date(cb).getTime() - new Date(ca).getTime();
+    });
+    this.latestWeightRecord = sorted[0];
+    this.latestHeight = sorted.find(r => r.height)?.height ?? null;
   }
 
-  // Date of the most recent weight/height measurement, e.g. "Sep 22, 2026".
+  // Date of the most recent weight/height measurement, e.g. "22 Sep 2026".
   getLatestGrowthDate(): string {
     const raw = this.latestWeightRecord?.record_date || this.latestWeightRecord?.date;
     if (!raw) { return ''; }
-    const d = new Date(raw);
-    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const d = recordAt(raw);
+    return isNaN(d.getTime()) ? '' : formatDate(d, 'dd MMM yyyy', 'en-US');
   }
 
   getCurrentWeight(): string {
@@ -644,8 +818,8 @@ export class BabyDetailPage implements OnInit {
       console.warn('getCurrentWeight: No baby available');
       return '--';
     }
-    const weight = this.baby.currentWeight || this.baby.birthWeight;
-    return weight ? `${weight}kg` : '--';
+    const weight = this.latestWeightRecord?.weight || this.baby.currentWeight || this.baby.birthWeight;
+    return weight ? `${kg(weight)} kg` : '--';
   }
 
   getCurrentHeight(): string {
@@ -653,8 +827,8 @@ export class BabyDetailPage implements OnInit {
       console.warn('getCurrentHeight: No baby available');
       return '--';
     }
-    const height = this.baby.currentHeight || this.baby.birthHeight;
-    return height ? `${height}cm` : '--';
+    const height = this.latestHeight || this.baby.currentHeight || this.baby.birthHeight;
+    return height ? `${cm(height)} cm` : '--';
   }
 
   getRecordTime(record: any): string {
@@ -693,9 +867,9 @@ export class BabyDetailPage implements OnInit {
     // Handle both API format (change_type) and local format (type)
     const type = record.change_type || record.type || record.changeType;
     switch (type) {
-      case 'pee': return 'Wet';
-      case 'poop': return 'Dirty';
-      case 'both': return 'Wet & Dirty';
+      case 'pee': return 'Pee';
+      case 'poop': return 'Poop';
+      case 'both': return 'Pee & Poop';
       default: return '--';
     }
   }

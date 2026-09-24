@@ -1,0 +1,61 @@
+<div class="activity-log" [class.is-compact]="compact">
+  <p class="log-summary" *ngIf="summary">{{ summary }}</p>
+
+  <div class="log-day" *ngFor="let g of groups">
+    <h4 class="day-label">{{ g.day }}</h4>
+    <ul class="log-rows">
+      <li *ngFor="let r of g.rows">
+        <button *ngIf="r.onClick; else plainRow" type="button" class="log-row" (click)="r.onClick!()">
+          <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: r }"></ng-container>
+          <ion-icon name="chevron-forward" class="row-chevron" aria-hidden="true"></ion-icon>
+        </button>
+        <ng-template #plainRow>
+          <div class="log-row">
+            <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: r }"></ng-container>
+          </div>
+        </ng-template>
+      </li>
+    </ul>
+  </div>
+
+  <ng-template #rowBody let-r>
+    <span class="log-compact" *ngIf="compact; else blockCard" [class.untimed]="!r.time">
+      <img *ngIf="!r.time" [src]="r.icon" [alt]="r.iconAlt" class="row-icon" width="24" height="24">
+      <span class="compact-main">
+        <span class="row-time" *ngIf="r.time">{{ r.time }}</span>
+        <span class="compact-label" *ngIf="!r.time && r.label">{{ r.label }}</span>
+        <span class="card-date">{{ r.at | date: 'dd MMM y' }}</span>
+      </span>
+      <span class="row-value" *ngIf="r.value">{{ r.value }}</span>
+    </span>
+    <ng-template #blockCard>
+    <span class="log-card">
+      <span class="card-head">
+        <span class="row-time" *ngIf="r.time">{{ r.time }}</span>
+        <span class="card-date">{{ r.at | date: 'MMM d, y' }}</span>
+      </span>
+      <span class="card-line" *ngFor="let it of (r.items || [r])">
+        <img [src]="it.icon" [alt]="it.iconAlt" class="row-icon" width="24" height="24">
+        <span class="row-main">
+          <span class="row-label" *ngIf="it.label">{{ it.label }}<span class="item-time" *ngIf="r.items && it.time">{{ it.time }}</span></span>
+          <span class="row-bar" *ngIf="it.barRatio != null" aria-hidden="true">
+            <span class="row-bar-fill" [style.width.%]="it.barRatio * 100"></span>
+          </span>
+        </span>
+        <span class="row-value" *ngIf="it.value">{{ it.value }}</span>
+      </span>
+    </span>
+    </ng-template>
+  </ng-template>
+
+  <button *ngIf="canCollapse" type="button" class="log-action" [attr.aria-expanded]="expanded" (click)="toggle()">
+    {{ expanded ? 'Show less' : 'Show more' }}
+    <ion-icon [name]="expanded ? 'chevron-up' : 'chevron-down'" aria-hidden="true"></ion-icon>
+  </button>
+
+  <button *ngIf="hasMore && (expanded || !canCollapse)" type="button" class="log-action log-older"
+          [disabled]="loadingMore" (click)="older()">
+    <ion-spinner *ngIf="loadingMore" name="dots" aria-hidden="true"></ion-spinner>
+    {{ loadingMore ? 'Loading older entries' : 'Load older entries' }}
+  </button>
+</div>

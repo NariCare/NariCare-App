@@ -3,14 +3,15 @@
     // --background: linear-gradient(135deg, #a8dadc 0%, #b8e6e8 100%);
     --color: #ffffff;
     --border-width: 0;
-    --min-height: 120px;
-    padding: 1rem 0;
+    --min-height: 88px;
+    padding: 0.5rem 0;
   }
 }
 
 .header-title {
   text-align: center;
   color: #ffffff;
+  white-space: normal; // subtitle wraps on narrow phones instead of truncating
 
   h1 {
     margin: 0 0 0.25rem 0;
@@ -29,6 +30,13 @@
     margin: 0;
     font-size: 0.9rem;
     opacity: 0.8;
+  }
+
+  .header-sub {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.4;
   }
 }
 
@@ -97,12 +105,136 @@
   }
 }
 
+// Text-safe primary, matches growth.page $primary-strong (~4.9:1 on white)
+$primary-strong: #6464d3;
+$muted-strong: #5f5890;
+$ink: #2d3748;
+$lavender-border: #ece9fb;
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Baby summary card */
+.baby-summary-card {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 32px);
+  margin: 16px 16px 0;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid $lavender-border;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(100, 100, 211, 0.08);
+  font: inherit;
+  text-align: left;
+  color: $ink;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+}
+
+.summary-avatar {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #f1eefd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.summary-meta {
+  flex: 0 1 auto;
+  max-width: 45%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: $muted-strong;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-chevron { flex: 0 0 auto; font-size: 20px; color: $muted-strong; }
+
+/* Sub-tabs: rounded pill segmented control */
 .sub-tabs-container {
-  // background: linear-gradient(135deg, #a8dadc 0%, #b8e6e8 100%);
+  margin: 16px 16px 0;
+  padding: 4px;
+  background: #f1eefd;
+  border: 1px solid $lavender-border;
+  border-radius: 999px;
+}
+
+// Scoped override of the app-wide peach segment in global.scss
+ion-segment.sub-tabs-segment {
+  --background: transparent !important;
+  background: transparent !important;
+
+  ion-segment-button {
+    --border-radius: 999px !important;
+    --indicator-color: transparent;
+    --padding-start: 6px;
+    --padding-end: 6px;
+    --background-focused: transparent !important;
+    --background-activated: transparent !important;
+    border-radius: 999px !important;
+    margin: 0 !important;
+    min-height: 44px !important;
+    --color: #{$muted-strong} !important;
+    color: $muted-strong !important;
+    font-weight: 600 !important;
+    text-transform: none;
+    letter-spacing: 0;
+
+    ion-label { font-size: 0.875rem !important; white-space: nowrap; }
+
+    &.ion-focused:not(.segment-button-checked),
+    &.ion-activated:not(.segment-button-checked) {
+      --background: transparent !important;
+      background: transparent !important;
+    }
+
+    &.segment-button-checked {
+      --background: #{$primary-strong} !important;
+      background: $primary-strong !important;
+      --color: #ffffff !important;
+      color: #ffffff !important;
+
+      ion-label { color: #ffffff !important; }
+    }
+
+    &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+  }
+}
+
+/* Previous sub-tab styles, kept for reuse
+.sub-tabs-container {
   padding: 2px;
   background: white;
 }
-
 .sub-tabs-segment {
   --background: rgba(255, 255, 255, 0.2);
   --color-checked: #2d3748;
@@ -111,31 +243,209 @@
   --indicator-color: transparent;
   border-radius: 12px;
   overflow: hidden;
-
-  ion-segment-button {
-    --color: rgba(255, 255, 255, 0.8);
-    --color-checked: #2d3748;
-    --background-checked: #ffffff;
-    --border-radius: 8px;
-    font-weight: 600;
-    margin: 0.25rem;
-    min-height: 44px;
-    transition: all 0.2s ease;
-
-    ion-label {
-      font-size: 0.9rem;
-    }
-
-    &:hover {
-      --color: #ffffff;
-    }
-  }
 }
+*/
 
 .tab-content {
-  padding: 1.5rem 1rem;
+  padding: 1.5rem 12px;
   min-height: 400px;
 }
+
+/* Growth tab: overview */
+.overview-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 12px;
+}
+
+.overview-title { margin: 0; font-size: 1.0625rem; font-weight: 700; color: $ink; }
+.overview-updated { font-size: 0.75rem; color: $muted-strong; }
+
+.growth-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.growth-stat {
+  appearance: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  font: inherit;
+  text-align: left;
+  color: $ink;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+
+  &.weight, &.pink { background: #fdf0f5; border-color: #f8dde8; }
+  &.height, &.lavender { background: #f4f2fe; border-color: $lavender-border; }
+
+  // Info-only card: same box as the button cards, no press affordance
+  &.is-static { cursor: default; &:active { transform: none; } }
+}
+
+.growth-stat-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+
+  ion-icon { font-size: 1.25rem; }
+  .height-svg { width: 1.25rem; height: 1.25rem; }
+  img { width: 22px; height: 22px; }
+
+  .weight &, .pink & { background: #f9d5e3; color: #a3285f; }
+  .height &, .lavender & { background: #e0dbfa; color: $primary-strong; }
+}
+
+.growth-stat-label { font-size: 0.8125rem; font-weight: 600; color: $muted-strong; }
+
+.growth-stat-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.growth-stat-date { font-size: 0.75rem; color: $muted-strong; }
+
+.growth-stat-go {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: $muted-strong;
+
+  ion-icon { font-size: 16px; }
+}
+
+.add-growth-button {
+  --border-color: #{$primary-strong};
+  --color: #{$primary-strong};
+  --border-radius: 14px;
+  --border-width: 1.5px;
+  margin: 16px 0;
+  height: 48px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Growth history card */
+.records-section.history-card {
+  padding: 16px 10px;
+  border-radius: 20px;
+  border-color: $lavender-border;
+  box-shadow: 0 4px 16px rgba(100, 100, 211, 0.06);
+}
+
+.history-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.history-titles { min-width: 0; }
+.history-title { margin: 0; font-size: 1.0625rem; font-weight: 700; color: $ink; }
+.history-sub { margin: 2px 0 0; font-size: 0.8125rem; color: $muted-strong; font-variant-numeric: tabular-nums; }
+
+.view-chart-link {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  margin: -10px -6px 0 0;
+  padding: 0 6px;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $primary-strong;
+  cursor: pointer;
+
+  ion-icon { font-size: 16px; }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+}
+
+.growth-chart {
+  margin: 8px 0 0;
+
+  svg { display: block; height: auto; overflow: visible; }
+
+  .grid { stroke: #eeecf8; stroke-width: 1; }
+  .line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .line.weight { stroke: $primary-strong; }
+  .line.height { stroke: #8f84d9; stroke-dasharray: 5 4; }
+  .dot { stroke: #ffffff; stroke-width: 1.5; }
+  .dot.weight { fill: $primary-strong; }
+  .dot.height { fill: #8f84d9; }
+  .tag.weight { fill: $primary-strong; }
+  .tag.height { fill: #ece9fb; stroke: #8f84d9; stroke-width: 1; }
+  .tag-text { fill: #ffffff; font-size: 11px; font-weight: 700; }
+  .tag-text.height { fill: #4f4598; }
+  .tick { fill: $muted-strong; font-size: 11px; }
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: $muted-strong;
+}
+
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+
+  &.weight { background: $primary-strong; }
+  &.height { background: #ece9fb; border: 2px dashed #8f84d9; }
+  &.primary { background: $primary-strong; border-radius: 3px; }
+  &.lavender { background: #8f84d9; border-radius: 3px; }
+}
+
+/* 7-day bar chart (Feed + Diaper tabs), shares .growth-chart grid + tick styles */
+.week-chart {
+  .bar.primary { fill: $primary-strong; }
+  .bar.lavender { fill: #8f84d9; }
+  .bar.zero { fill: #e6e3f6; }
+  .bar-value { fill: $ink; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tick.today { fill: $primary-strong; font-weight: 700; }
+}
+
+.recent-title { margin: 20px 0 8px; font-size: 0.9375rem; font-weight: 700; color: $ink; }
 
 .tab-actions-section {
   margin-bottom: 2rem;
@@ -223,6 +533,12 @@
 
     ion-icon {
       font-size: 1.375rem;
+      color: #ffffff;
+    }
+
+    .height-svg {
+      width: 1.375rem;
+      height: 1.375rem;
       color: #ffffff;
     }
   }
