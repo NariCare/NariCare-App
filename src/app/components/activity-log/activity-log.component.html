@@ -48,7 +48,7 @@
     </ng-template>
   </ng-template>
 
-  <button *ngIf="canCollapse" type="button" class="log-action" [attr.aria-expanded]="expanded" (click)="toggle()">
+  <button *ngIf="canCollapse && showToggle" type="button" class="log-action" [attr.aria-expanded]="expanded" (click)="toggle()">
     {{ expanded ? 'Show less' : 'Show more' }}
     <ion-icon [name]="expanded ? 'chevron-up' : 'chevron-down'" aria-hidden="true"></ion-icon>
   </button>

@@ -4,7 +4,7 @@ import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
 /** Shared helpers for the Feeds and Pumping See-all pages. */
 export interface DayGroup<T> { key: string; label: string; rows: T[]; }
 
-export const fmtMinutes = (n: number): string => (n >= 60 ? `${Math.floor(n / 60)}h ${n % 60}m` : `${n}m`);
+export const fmtMinutes = (n: number): string => (n >= 60 ? `${Math.floor(n / 60)} hr${n % 60 ? ` ${n % 60} min` : ''}` : `${n} min`); // "8 min", "1 hr 5 min"
 
 export const sideLabel = (s: string | null | undefined): string =>
   s === 'both' ? 'Both sides' : s ? `${s[0].toUpperCase()}${s.slice(1)} side` : 'Session';

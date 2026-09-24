@@ -1370,7 +1370,7 @@ export class GrowthPage implements OnInit, OnDestroy {
       const times: (string | undefined)[] = [];
       if (d) {
         const side = d.breastSide === 'both' ? 'both sides' : d.breastSide ? `${d.breastSide} side` : '';
-        lines.push({ key: `f${i}d`, icon: 'assets/Fed directly.svg', iconAlt: 'Direct breastfeed', label: side ? `Direct, ${side}` : 'Direct', value: d.duration ? `${d.duration}m` : undefined });
+        lines.push({ key: `f${i}d`, icon: 'assets/Fed directly.svg', iconAlt: 'Direct breastfeed', label: side ? `Direct, ${side}` : 'Direct', value: d.duration ? `${d.duration} min` : undefined });
         times.push(d.startTime);
       }
       if (e?.quantity) {

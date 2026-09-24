@@ -44,7 +44,7 @@ export function timeAgo(at: Date, hasTime = true): string {
   return `${Math.floor(mins / 1440)}d ago`;
 }
 
-const minutes = (n: number) => (n >= 60 ? `${Math.floor(n / 60)}h ${n % 60}m` : `${n}m`);
+const minutes = (n: number) => (n >= 60 ? `${Math.floor(n / 60)} hr${n % 60 ? ` ${n % 60} min` : ''}` : `${n} min`); // "8 min", "1 hr 5 min"
 const sideLabel = (s: string) => (s === 'both' ? 'Both sides' : s ? `${s[0].toUpperCase()}${s.slice(1)} side` : undefined);
 
 /** One block per feed log, one line per feed type inside it. Shared by growth + baby-detail. */
@@ -89,6 +89,7 @@ export class ActivityLogComponent implements OnChanges {
   @Input() rows: ActivityRow[] = [];
   @Input() summary = '';
   @Input() collapsedCount = 5;
+  @Input() showToggle = true; // off when the parent renders its own See all
   @Input() hasMore: boolean | null = false;
   @Input() loadingMore = false;
   @Input() compact = false; // one line per row (time, date, value) instead of the block card

@@ -251,9 +251,11 @@ export class BackendGrowthService {
   private async refreshBabyCurrentWeight(babyId: string): Promise<void> {
     try {
       const weightRecords = await this.firstValue(this.getWeightRecords(babyId));
-      if (weightRecords && weightRecords.length > 0) {
+      // Height-only records have weight: null, skip them
+      const withWeight = (weightRecords || []).filter((r: any) => r.weight != null);
+      if (withWeight.length > 0) {
         // Sort weight records by date descending to get most recent
-        const sortedRecords = weightRecords.sort((a: any, b: any) => {
+        const sortedRecords = withWeight.sort((a: any, b: any) => {
           const dateA = new Date(a.record_date || a.date);
           const dateB = new Date(b.record_date || b.date);
           return dateB.getTime() - dateA.getTime();
@@ -361,11 +363,8 @@ export class BackendGrowthService {
   async getMostRecentWeight(babyId: string): Promise<number | null> {
     try {
       const weightRecords = await this.firstValue(this.getWeightRecords(babyId));
-      if (weightRecords && weightRecords.length > 0) {
-        // Records are already sorted by date descending, so first one is most recent
-        return weightRecords[0].weight;
-      }
-      return null;
+      // Records are already sorted by date descending; skip height-only rows
+      return weightRecords?.find((r: any) => r.weight != null)?.weight ?? null;
     } catch (error) {
       console.error('Error getting most recent weight:', error);
       return null;
