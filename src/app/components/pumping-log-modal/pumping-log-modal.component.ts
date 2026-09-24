@@ -9,6 +9,7 @@ import { BackendAuthService } from '../../services/backend-auth.service';
 import { PumpingRecord, PumpingSide } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
 import { DateOnlyUtil } from '../../shared/utils/date-only.util';
+import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 
 interface PredefinedNote {
   id: string;
@@ -123,6 +124,17 @@ export class PumpingLogModalComponent implements OnInit {
       this.selectedDateOption = 'custom';
       this.updateDateOptionsWithCustomDate();
     }
+  }
+
+  // Baby the save path writes to (edit: record's baby, create: first baby)
+  get displayBaby(): Baby | undefined {
+    const babies = this.user?.babies || [];
+    const id = this.editRecord ? (this.editRecord.baby_id || this.editRecord.babyId || this.babyId) : undefined;
+    return babies.find(b => b.id === id) || babies[0];
+  }
+
+  calculateBabyAge(baby: Baby): string {
+    return AgeCalculatorUtil.calculateBabyAge(baby.dateOfBirth);
   }
 
   getCurrentTime(): string {

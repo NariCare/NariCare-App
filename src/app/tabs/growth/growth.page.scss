@@ -87,7 +87,7 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
 /* 2x2 Grid for top row */
 .tracker-cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr)); // minmax(0) stops long words widening a column at 320px
   gap: 1rem;
   margin-bottom: 1rem;
 }
@@ -100,7 +100,7 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start; // top-aligned so icons line up across cards (was center)
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.2s ease;
   border: 1.5px solid transparent;
@@ -118,6 +118,7 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   .tracker-icon {
     width: 40px;
     height: 40px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -262,6 +263,18 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
       background: #db2777;
       color: #ffffff;
     }
+  }
+}
+
+// 320px: tighter padding, arrow gets its own row so text can use full width
+@media (max-width: 359px) {
+  .tracker-cards-grid { gap: 0.75rem; }
+
+  .tracker-card {
+    padding: 1rem 0.875rem 2.75rem;
+
+    .tracker-description { padding-right: 0; }
+    .tracker-arrow-badge { bottom: 0.75rem; right: 0.75rem; }
   }
 }
 
@@ -517,7 +530,7 @@ $muted-strong: #5f5890;
 /* Breastfeeding History Tab */
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr)); // minmax(0) stops long words widening a column at 320px
   gap: 1rem;
   margin-bottom: 2rem;
 }

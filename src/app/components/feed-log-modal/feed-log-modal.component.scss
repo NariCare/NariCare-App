@@ -39,51 +39,7 @@
   text-align: left;
 }
 
-/* Quantity / duration: value, slider, preset chips */
-.quantity-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  background: #faf9ff;
-  border: 1.5px solid $lavender-border;
-  border-radius: 12px;
-}
-
-// Beats the !important purple pill in global.scss
-.quantity-container .quantity-display {
-  background: transparent !important;
-  color: $ink !important;
-  font-weight: 600 !important;
-  font-size: 1.25rem;
-  font-variant-numeric: tabular-nums;
-  font-family: $font;
-}
-
-.quantity-slider {
-  width: 100%;
-  padding: 0;
-  --bar-background: #{$lavender-border};
-  --bar-background-active: #{$primary-strong};
-  --knob-background: #{$primary-strong};
-  --knob-size: 24px;
-
-  ion-label {
-    font-size: 0.75rem;
-    color: $muted;
-  }
-}
-
-.preset-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-
-  .preset-chip {
-    min-width: 64px;
-    flex: 0 0 auto;
-  }
-}
+/* Quantity / duration control moved to ../log-form.scss (shared with Pumping) */
 
 /* Quick notes (template gated off, kept for reuse) */
 .notes-category {

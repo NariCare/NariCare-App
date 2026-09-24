@@ -186,11 +186,8 @@
           <div class="form-group">
             <ion-item lines="none" class="input-item">
               <ion-icon name="time-outline" slot="start" class="input-icon"></ion-icon>
-              <ion-input
-                formControlName="weightTime"
-                type="time"
-                placeholder="Measurement time">
-              </ion-input>
+              <!-- <ion-input formControlName="weightTime" type="time" placeholder="Measurement time"></ion-input> -->
+              <app-time-field label="Measurement time" placeholder="Measurement time" formControlName="weightTime"></app-time-field>
             </ion-item>
           </div>
         </div>
