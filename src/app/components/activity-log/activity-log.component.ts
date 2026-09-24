@@ -62,7 +62,7 @@ export function toFeedLog(records: any[]): ActivityLog {
       icon: 'assets/Fed directly.svg', iconAlt: 'Breastfeed', label: `Direct${d.breastSide ? `, ${sideLabel(d.breastSide)!.toLowerCase()}` : ''}`,
       value: d.duration ? minutes(d.duration) : undefined, barRatio: d.duration ? d.duration / maxMin : undefined, time: t12(d.startTime)
     });
-    if (e) items.push({ icon: 'assets/Pump.svg', iconAlt: 'Expressed breast milk', label: 'Breast milk', value: `${e} mL`, barRatio: e / maxMl, time: t12(r.expressedMilkDetails?.startTime) });
+    if (e) items.push({ icon: 'assets/Pump.svg', iconAlt: 'Expressed milk', label: 'Expressed milk', value: `${e} mL`, barRatio: e / maxMl, time: t12(r.expressedMilkDetails?.startTime) });
     if (f) items.push({ icon: 'assets/Formula.svg', iconAlt: 'Formula', label: 'Formula', value: `${f} mL`, barRatio: f / maxMl, time: t12(r.formulaDetails?.startTime) });
     if (!items.length) continue;
     // Header shows the earliest start time in the log; the mapper sets r.time to that

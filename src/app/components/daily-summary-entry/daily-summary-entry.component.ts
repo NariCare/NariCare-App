@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { DailySummaryDay, plural } from '../../models/daily-summary.model';
+import { DailySummaryDay } from '../../models/daily-summary.model';
 
 @Component({
   selector: 'app-daily-summary-entry',
@@ -17,8 +17,7 @@ export class DailySummaryEntryComponent {
     if (this.error) return "Couldn't load summary. Tap to retry.";
     const d = this.day;
     if (!d?.hasData) return 'Nothing logged yet today';
-    // "full pump" = both sides, 30+ min, so it isn't confused with My Journey's count of every pump
-    return [plural(d.feeding.directSessions, 'direct feed'), plural(d.pumping.sessions, 'full pump'), `${d.diapers.pee} pee`].join(' · ');
+    return `Direct Feed ${d.feeding.directSessions} · Pumps ${d.pumping.sessions} · Pee ${d.diapers.pee}`;
   }
 
   get aria(): string {

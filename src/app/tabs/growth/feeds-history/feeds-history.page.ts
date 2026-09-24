@@ -36,7 +36,7 @@ export class FeedsHistoryPage implements OnInit, OnDestroy {
   readonly filters: { value: FeedFilter; label: string }[] = [
     { value: 'all', label: 'All' },
     { value: 'direct', label: 'Direct' },
-    { value: 'expressed', label: 'Breast milk' },
+    { value: 'expressed', label: 'Expressed milk' },
     { value: 'formula', label: 'Formula' }
   ];
 
@@ -159,7 +159,7 @@ export class FeedsHistoryPage implements OnInit, OnDestroy {
         const side = d.breastSide === 'both' ? 'both sides' : d.breastSide ? `${d.breastSide} side` : '';
         add('direct', d.startTime, 'assets/Fed directly.svg', side ? `Direct, ${side}` : 'Direct', 'time-outline', d.duration ? fmtMinutes(d.duration) : '--');
       }
-      if (e?.quantity) add('expressed', e.startTime, 'assets/Pump.svg', 'Breast milk', 'water-outline', `${e.quantity} mL`);
+      if (e?.quantity) add('expressed', e.startTime, 'assets/Pump.svg', 'Expressed milk', 'water-outline', `${e.quantity} mL`);
       if (f?.quantity) add('formula', f.startTime, 'assets/Formula.svg', 'Formula', 'water-outline', `${f.quantity} mL`);
     }
     return rows.sort((a, b) => b.at.getTime() - a.at.getTime());
