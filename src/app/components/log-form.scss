@@ -1,0 +1,373 @@
+/* Shared form design for Growth, Feed and Diaper log modals */
+$primary: #8383ed;
+$primary-hover: #7676d1;
+$primary-strong: #6464d3;
+$primary-tint: #ece9fb;
+$lavender-bg: #f4f2fe;
+$lavender-border: #e2ddf5;
+$ink: #2d3748;
+$muted: #5f5890;
+$placeholder: #8a84ad;
+$font: var(--ion-font-family, 'Poppins', sans-serif);
+
+ion-content {
+  --background: #f6f5fb;
+}
+
+.feed-log-container {
+  padding: 12px 12px 20px;
+}
+
+.single-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* White rounded field card */
+.form-section {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(226, 221, 245, 0.6);
+  box-shadow: 0 2px 10px rgba(131, 131, 237, 0.05);
+}
+
+.section-title {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $ink;
+  font-family: $font;
+}
+
+.section-description {
+  margin: 0 0 12px;
+  color: $muted;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  font-family: $font;
+}
+
+.section-group + .section-group {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(226, 221, 245, 0.5);
+}
+
+.form-group {
+  margin-bottom: 16px;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+/* One small bold label per field */
+.field-label {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: $ink;
+  font-family: $font;
+}
+
+/* Selected baby card */
+.selected-baby-info {
+  background: $lavender-bg;
+  border: 1.5px solid $lavender-border;
+  padding: 14px 16px;
+  border-radius: 14px;
+}
+
+.selected-baby-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.baby-avatar {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.baby-info {
+  flex: 1;
+  min-width: 0;
+
+  h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $ink;
+    line-height: 1.3;
+    font-family: $font;
+  }
+
+  p {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: $muted;
+    line-height: 1.3;
+    font-family: $font;
+  }
+}
+
+.selected-icon {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 1.15rem;
+  color: $primary-strong;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+.selected-baby-display .selected-icon {
+  position: static;
+  flex-shrink: 0;
+}
+
+/* Baby picker (multiple babies) */
+.baby-selection-grid {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.baby-option {
+  position: relative;
+  flex: 1;
+  min-width: 96px;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 12px 8px;
+  background: #faf9ff;
+  border: 1.5px solid $lavender-border;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: $font;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &.selected {
+    border-color: $primary-strong;
+    background: $primary-tint;
+  }
+}
+
+/* Inputs: white, lavender border, focus glow */
+.input-item {
+  --background: #ffffff;
+  --border-radius: 12px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --min-height: 50px;
+  --color: #{$ink};
+  --placeholder-color: #{$placeholder};
+  --placeholder-opacity: 1;
+  border: 1.5px solid $lavender-border;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus-within {
+    border-color: rgba(131, 131, 237, 0.6);
+    box-shadow: 0 0 0 3px rgba(131, 131, 237, 0.12);
+  }
+
+  &.error { border-color: #ef4444; }
+
+  ion-input {
+    min-height: 48px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.notes-input {
+    --min-height: auto;
+
+    ion-textarea {
+      --color: #{$ink};
+      --placeholder-color: #{$placeholder};
+      --placeholder-opacity: 1;
+      font-size: 1rem;
+    }
+  }
+}
+
+// Placeholder lives on Ionic's native input, outside view encapsulation
+:host ::ng-deep .input-item .native-input::placeholder,
+:host ::ng-deep .input-item .native-textarea::placeholder {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 0.8rem;
+  margin-top: 8px;
+}
+
+/* Date chips: segmented pill row */
+.date-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.date-chip,
+.preset-chip {
+  appearance: none;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1.5px solid $lavender-border;
+  background: #ffffff;
+  color: $muted;
+  font-family: $font;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+
+  &.selected {
+    background: $primary-strong;
+    border-color: $primary-strong;
+    color: #ffffff;
+  }
+
+  &:active:not(.selected) { background: $lavender-bg; }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+}
+
+.custom-date-picker {
+  margin-top: 12px;
+
+  .date-input {
+    --min-height: auto;
+    --padding-start: 4px;
+    --padding-end: 4px;
+  }
+
+  ion-datetime { margin: 0 auto; }
+}
+
+/* Option tiles (feed type, change type, breast side, wetness) */
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.option-tile {
+  appearance: none;
+  position: relative;
+  min-height: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 6px;
+  background: #faf9ff;
+  border: 1.5px solid $lavender-border;
+  border-radius: 14px;
+  color: $ink;
+  font-family: $font;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &.compact { min-height: 64px; }
+
+  &.selected {
+    border-color: $primary-strong;
+    background: $primary-tint;
+  }
+
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+
+  .tile-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 32px;
+    color: $muted;
+
+    ion-icon { font-size: 1.6rem; }
+    svg { width: 26px; height: 26px; }
+  }
+
+  &.selected .tile-icon { color: $primary-strong; }
+
+  .tile-check {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 1.05rem;
+    color: $primary-strong;
+    background: #ffffff;
+    border-radius: 50%;
+  }
+}
+
+/* Full-width primary save button */
+.save-section {
+  padding: 8px 12px;
+}
+
+.save-section .save-button {
+  --background: #6464d3; // darker than $primary so white text passes 4.5:1
+  --background-hover: #5656c2;
+  --border-radius: 12px;
+  --color: #ffffff;
+  width: 100%;
+  height: 56px;
+  margin: 0;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-family: $font;
+
+  &[disabled],
+  &.button-disabled {
+    --background: #e2e8f0;
+    --color: #64748b;
+    opacity: 1;
+  }
+}
+
+// Keep "Yesterday, Sep 24" on one line at 320px
+@media (max-width: 359px) {
+  .date-chip { padding: 6px 4px; font-size: 0.75rem; letter-spacing: -0.01em; }
+}
+
+@media (min-width: 768px) {
+  .feed-log-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option-tile, .date-chip, .preset-chip, .baby-option, .input-item { transition: none; }
+}

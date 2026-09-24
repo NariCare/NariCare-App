@@ -1,6 +1,7 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Diaper Change Log</ion-title>
+    <!-- <ion-title>Diaper Change Log</ion-title> -->
+    <ion-title>Diaper Log</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="closeModal()">
         <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -55,27 +56,29 @@
         
         <!-- Date Selection -->
         <div class="section-group">
-          <h2 class="section-title">Date</h2>
-          <p class="section-description">When did this diaper change occur?</p>
-          
+          <!-- <h2 class="section-title">Date</h2>
+          <p class="section-description">When did this diaper change occur?</p> -->
+          <span class="field-label" id="diaper-date-label">Date</span>
+
           <div class="date-selection-container">
-            <div class="date-options-grid">
-              <ion-button 
+            <div class="date-options-grid" role="group" aria-labelledby="diaper-date-label">
+              <button
+                type="button"
                 *ngFor="let option of dateOptions"
-                fill="outline" 
-                size="small"
                 (click)="selectDateOption(option.value)"
                 [class.selected]="selectedDateOption === option.value"
-                class="date-option-button">
+                [attr.aria-pressed]="selectedDateOption === option.value"
+                class="date-chip">
                 {{ option.label }}
-              </ion-button>
+              </button>
             </div>
             
             <!-- Custom Date Picker - Only shown when "Other" is selected -->
             <div class="custom-date-picker" *ngIf="showDatePicker && selectedDateOption === 'other'">
               <ion-item lines="none" class="input-item date-input">
-                <ion-label position="stacked">Select Date</ion-label>
+                <!-- <ion-label position="stacked">Select Date</ion-label> -->
                 <ion-datetime
+                  aria-label="Select date"
                   formControlName="date"
                   presentation="date"
                   [max]="getCurrentDate()"
@@ -95,43 +98,53 @@
 
         <!-- Change Type Selection -->
         <div class="section-group">
-          <h2 class="section-title">Change Type</h2>
-          <p class="section-description">What type of diaper change was it?</p>
-          
-          <div class="feed-type-grid">
-            <div 
+          <!-- <h2 class="section-title">Change Type</h2>
+          <p class="section-description">What type of diaper change was it?</p> -->
+          <span class="field-label" id="change-type-label">Change type</span>
+
+          <div class="option-grid" role="group" aria-labelledby="change-type-label">
+            <button
+              type="button"
               *ngFor="let changeType of changeTypeOptions"
-              class="feed-type-option"
+              class="option-tile"
               [class.selected]="selectedChangeType === changeType.value"
+              [attr.aria-pressed]="selectedChangeType === changeType.value"
               (click)="selectChangeType(changeType.value)">
-              <div class="feed-type-icon">
-                <span class="emoji-icon">{{ changeType.icon }}</span>
-              </div>
-              <div class="feed-type-content">
-                <h4>{{ changeType.label }}</h4>
-                <!-- <p>{{ changeType.description }}</p> -->
-              </div>
-              <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="selectedChangeType === changeType.value"></ion-icon>
-            </div>
+              <span class="tile-icon" aria-hidden="true">
+                <!-- <span class="emoji-icon">{{ changeType.icon }}</span> -->
+                <ion-icon name="water-outline" *ngIf="changeType.value !== 'poop'"></ion-icon>
+                <svg *ngIf="changeType.value !== 'pee'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8.6 10.5c-.5-2.2 1.1-4 3.4-4 .9 0 1.4-.9 1-2 1.8.6 2.9 2.2 2.5 4 .1.7 0 1.4-.4 2"/>
+                  <path d="M6 15c-.8-2.5.9-4.5 3-4.5h6c2.1 0 3.8 2 3 4.5"/>
+                  <path d="M5 15h14c1.9 0 3.2 1.6 2.8 3.2-.3 1.1-1.3 1.8-2.4 1.8H4.6c-1.1 0-2.1-.7-2.4-1.8C1.8 16.6 3.1 15 5 15z"/>
+                </svg>
+              </span>
+              <span>{{ changeType.label }}</span>
+              <!-- <p>{{ changeType.description }}</p> -->
+              <ion-icon name="checkmark-circle" class="tile-check" aria-hidden="true" *ngIf="selectedChangeType === changeType.value"></ion-icon>
+            </button>
           </div>
         </div>
 
         <!-- Wetness Level (only for pee or both) -->
         <div class="section-group" *ngIf="shouldShowWetnessStep() && selectedChangeType">
-          <h2 class="section-title">Wetness Level</h2>
-          <p class="section-description">How wet was the diaper?</p>
-          
-          <div class="selection-grid wetness-level-grid">
-            <div 
+          <!-- <h2 class="section-title">Wetness Level</h2>
+          <p class="section-description">How wet was the diaper?</p> -->
+          <span class="field-label" id="wetness-label">Wetness</span>
+
+          <div class="option-grid" role="group" aria-labelledby="wetness-label">
+            <button
+              type="button"
               *ngFor="let wetness of wetnessOptions"
-              class="selection-option"
+              class="option-tile compact"
               [class.selected]="selectedWetness === wetness.value"
+              [attr.aria-pressed]="selectedWetness === wetness.value"
               (click)="selectWetness(wetness.value)">
-              <div class="option-icon">
+              <span class="tile-icon" aria-hidden="true">
                 <ion-icon name="water" [class]="'wetness-' + wetness.value"></ion-icon>
-              </div>
-              <span class="option-label">{{ wetness.label }}</span>
-            </div>
+              </span>
+              <span>{{ wetness.label }}</span>
+            </button>
           </div>
         </div>
 
@@ -139,16 +152,19 @@
 
       <!-- Notes Section - Separate Card -->
       <div class="form-section notes-section">
-        <h2 class="section-title">Notes</h2>
-        <p class="section-description">Add any additional details about the diaper change (optional)</p>
+        <!-- <h2 class="section-title">Notes</h2>
+        <p class="section-description">Add any additional details about the diaper change (optional)</p> -->
 
         <div class="form-group">
-          <label class="field-label">Your Notes</label>
+          <!-- <label class="field-label">Your Notes</label> -->
+          <label class="field-label" for="diaper-notes">Notes</label>
           <ion-item lines="none" class="input-item notes-input">
+            <!-- placeholder="Write any additional details about the diaper change..." -->
             <ion-textarea
+              id="diaper-notes"
               formControlName="notes"
-              placeholder="Write any additional details about the diaper change..."
-              rows="4"
+              placeholder="Optional"
+              rows="3"
               autoGrow="true">
             </ion-textarea>
           </ion-item>
@@ -182,7 +198,7 @@
           class="save-button">
           <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
           <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
-          {{ isSubmitting ? 'Saving...' : 'Save Diaper Change' }}
+          {{ isSubmitting ? 'Saving...' : 'Save diaper change' }}
         </ion-button>
       </div>
     </form>

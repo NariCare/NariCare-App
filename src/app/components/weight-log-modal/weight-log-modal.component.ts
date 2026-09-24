@@ -30,6 +30,7 @@ export class WeightLogModalComponent implements OnInit {
   selectedWeightBaby: Baby | null = null;
   selectedPredefinedWeightNotes: string[] = [];
   isSubmitting = false; // Track submission state
+  showEmptyError = false;
 
   weightPredefinedNotes: PredefinedWeightNote[] = [
     { id: '1', text: 'Growth spurt period', indicator: 'yellow' },
@@ -56,7 +57,8 @@ export class WeightLogModalComponent implements OnInit {
       selectedBaby: ['', [Validators.required]],
       date: [this.getCurrentDate()],
       time: [this.getCurrentTime()],
-      weight: ['', [Validators.required, this.weightValidator]],
+      // Weight and height are each optional; canSave() requires at least one
+      weight: ['', [this.weightValidator]],
       height: ['', [Validators.min(20), Validators.max(150)]],
       notes: ['']
     });
@@ -231,16 +233,37 @@ export class WeightLogModalComponent implements OnInit {
       return false;
     }
     
-    const weightValue = this.weightForm.get('weight')?.value;
-    if (!weightValue || this.weightForm.get('weight')?.invalid) {
+    // const weightValue = this.weightForm.get('weight')?.value;
+    // if (!weightValue || this.weightForm.get('weight')?.invalid) {
+    //   return false;
+    // }
+    const weight = this.weightForm.get('weight'), height = this.weightForm.get('height');
+    if (weight?.invalid || height?.invalid) {
       return false;
     }
-    
-    return true;
+
+    return this.hasGrowthValue();
+  }
+
+  private hasValue(name: 'weight' | 'height'): boolean {
+    const v = this.weightForm.get(name)?.value;
+    return v !== '' && v != null && !isNaN(parseFloat(v));
+  }
+
+  hasGrowthValue(): boolean {
+    return this.hasValue('weight') || this.hasValue('height');
+  }
+
+  // Save stays enabled when both fields are empty; only a baby or a range error blocks it
+  canSubmit(): boolean {
+    const weight = this.weightForm.get('weight'), height = this.weightForm.get('height');
+    return !!this.getSelectedWeightBaby() && !weight?.invalid && !height?.invalid;
   }
 
   async saveWeightRecord() {
-    if (this.weightForm.valid && this.user && !this.isSubmitting) {
+    this.showEmptyError = !this.hasGrowthValue();
+    if (this.showEmptyError) return;
+    if (this.weightForm.valid && this.canSave() && this.user && !this.isSubmitting) {
       this.isSubmitting = true; // Prevent multiple submissions
       
       const selectedBaby = this.getSelectedWeightBaby();
@@ -252,12 +275,13 @@ export class WeightLogModalComponent implements OnInit {
       try {
         const formValue = this.weightForm.value;
         
-        const height = parseFloat(formValue.height);
+        const weight = this.hasValue('weight') ? parseFloat(formValue.weight) : undefined;
+        const height = this.hasValue('height') ? parseFloat(formValue.height) : undefined;
         const record: WeightRecordRequest = {
           babyId: selectedBaby.id,
           recordDate: String(formValue.date).slice(0, 10), // was built but never sent, so every entry landed on today
-          weight: parseFloat(formValue.weight),
-          ...(isNaN(height) ? {} : { height }),
+          ...(weight === undefined ? {} : { weight }),
+          ...(height === undefined ? {} : { height }),
           notes: formValue.notes || '',
         };
 
@@ -282,7 +306,7 @@ export class WeightLogModalComponent implements OnInit {
         await this.modalController.dismiss({ 
           saved: true, 
           babyId: selectedBaby.id,
-          newWeight: parseFloat(formValue.weight)
+          newWeight: weight
         });
 
       } catch (error: any) {
