@@ -65,6 +65,15 @@ $chip-ink: #4f4598;
 }
 
 /* Stats strip */
+.stats-day {
+  grid-column: 1 / -1;
+  margin: 0 0 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $muted-strong;
+  text-align: center;
+}
+
 .stats-card {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
