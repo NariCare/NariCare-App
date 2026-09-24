@@ -185,6 +185,12 @@
     <div class="tab-content" *ngIf="selectedMainTab === 'mothers-journey' && !isPregnantNoBaby()">
 
       <!-- My Journey redesign: summary cards, feeding and pumping journeys -->
+      <!-- Baby switcher, only when the account has more than one baby -->
+      <div class="mj-babies" role="radiogroup" aria-label="Show journey for" *ngIf="(user?.babies?.length ?? 0) > 1">
+        <button type="button" class="mj-baby-chip" role="radio" *ngFor="let b of user!.babies; trackBy: trackBaby"
+                [class.active]="b.id === journeyBabyId" [attr.aria-checked]="b.id === journeyBabyId"
+                (click)="selectJourneyBaby(b)">{{ b.name }}</button>
+      </div>
       <!-- Daily Summary entry for the journey baby -->
       <app-daily-summary-entry *ngIf="journeyBabyId && (trackerSummary.today$(journeyBabyId!) | async) as s" style="margin-bottom: 12px"
                                [day]="s.day" [loading]="s.loading" [error]="s.error"
@@ -198,7 +204,7 @@
             <span class="mj-summary-text">
               <ion-skeleton-text *ngIf="journeyBabyId && !vm.feed" animated class="mj-skel-value"></ion-skeleton-text>
               <span class="mj-summary-value" *ngIf="!journeyBabyId || vm.feed">{{ vm.feed?.today ?? 0 }}</span>
-              <span class="mj-summary-label">Today's Feeds</span>
+              <span class="mj-summary-label">Today's feeds</span>
             </span>
           </button>
           <button type="button" class="mj-summary-card mj-lavender" (click)="openPumpSeeAll()"

@@ -30,6 +30,7 @@ import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 import { RecordActionsService } from '../../services/record-actions.service';
 import { TrackerSummaryService } from '../../services/tracker-summary.service';
+import { ActiveBabyService } from '../../services/active-baby.service';
 
 interface JourneyRow { key: string; at: Date; time: string; icon: string; iconAlt: string; label: string; value?: string; record: any; }
 interface JourneyDay { label: string; rows: JourneyRow[]; }
@@ -63,6 +64,7 @@ export class GrowthPage implements OnInit, OnDestroy {
   pumpJourney: PumpJourney | null = null;
   readonly ringCircumference = 2 * Math.PI * 42;
   private pumpingSub?: Subscription;
+  private activeBabySub?: Subscription;
   emotionRecords$: Observable<any[]> | null = null;
   emotionRecords: any[] = [];
   timelineData$: Observable<BabyTimelineData> | null = null;
@@ -119,6 +121,7 @@ export class GrowthPage implements OnInit, OnDestroy {
     public router: Router,
     private apiService: ApiService,
     private recordActions: RecordActionsService,
+    private activeBaby: ActiveBabyService,
     public trackerSummary: TrackerSummaryService
   ) {
     // Daily tracking form
@@ -169,6 +172,12 @@ export class GrowthPage implements OnInit, OnDestroy {
       }
     });
     
+    // Follow the baby picked elsewhere (baby detail page) while this tab stays cached
+    this.activeBabySub = this.activeBaby.activeBabyId$.subscribe(id => {
+      const baby = this.user?.babies?.find(b => b.id === id);
+      if (baby && baby.id !== this.selectedBaby?.id) this.loadJourney(baby);
+    });
+
     // Subscribe to timeline data for synchronous access
     this.timelineData$?.subscribe(data => {
       this.currentTimelineData = data;
@@ -185,6 +194,38 @@ export class GrowthPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.pumpingSub?.unsubscribe();
+    this.activeBabySub?.unsubscribe();
+  }
+
+  private viewEntered = false;
+
+  // Refetch babies on return so a baby added or deleted elsewhere never stays the journey baby
+  ionViewWillEnter(): void {
+    if (this.viewEntered && this.user) this.loadUserBabies();
+    this.viewEntered = true;
+  }
+
+  /** Switcher tap: remember the baby and reload every My Journey source for it. */
+  selectJourneyBaby(baby: Baby): void {
+    if (baby.id === this.selectedBaby?.id) return;
+    this.activeBaby.set(baby.id);
+    this.loadJourney(baby);
+  }
+
+  trackBaby(_: number, baby: Baby): string {
+    return baby.id;
+  }
+
+  /** Single entry point so feeds, pumping, summary and timeline always share one baby. */
+  private loadJourney(baby: Baby): void {
+    this.selectedBaby = baby;
+    this.lastTrack = null;
+    this.dailySummary = null;
+    this.pumpJourney = null;
+    this.loadTrackingData(baby.id);
+    this.loadTimelineData(baby.dateOfBirth);
+    this.loadSummaryData(baby.id);
+    this.loadPumpingData();
   }
 
   // Custom validator for decimal places
@@ -211,13 +252,11 @@ export class GrowthPage implements OnInit, OnDestroy {
     // Use backend service if user is authenticated with backend, otherwise use local service
     const isBackendUser = this.backendAuthService.getCurrentUser();
     
-    if (isBackendUser) {
-      this.lastTrack = await this.backendGrowthService.getLastFeedingRecord(babyId);
-      this.dailySummary = await this.backendGrowthService.getDailySummary(babyId);
-    } else {
-      this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
-      this.dailySummary = await this.growthService.getDailySummary(babyId);
-    }
+    const svc = isBackendUser ? this.backendGrowthService : this.growthService;
+    const [lastTrack, dailySummary] = await Promise.all([svc.getLastFeedingRecord(babyId), svc.getDailySummary(babyId)]);
+    if (babyId !== this.journeyBabyId) return; // baby switched while loading
+    this.lastTrack = lastTrack;
+    this.dailySummary = dailySummary;
   }
 
   private loadTrackingData(babyId: string) {
@@ -265,22 +304,22 @@ export class GrowthPage implements OnInit, OnDestroy {
               birthWeight: baby.birthWeight || baby.birth_weight,
               birthHeight: baby.birthHeight || baby.birth_height,
               currentWeight: mostRecentWeight || baby.currentWeight || baby.current_weight || baby.birthWeight,
-              currentHeight: baby.currentHeight || baby.current_height
+              currentHeight: baby.currentHeight || baby.current_height,
+              createdAt: baby.createdAt || baby.created_at
             };
           }));
           
           this.user.babies = babies;
 
-          // If we have babies and no selected baby, select the first one
-          if (this.user.babies.length > 0 && !this.selectedBaby) {
-            this.selectedBaby = this.user.babies[0];
-            this.loadTrackingData(this.selectedBaby.id);
-            this.loadTimelineData(this.selectedBaby.dateOfBirth);
-            this.loadSummaryData(this.selectedBaby.id);
+          // Keep the current journey baby if still listed, else the remembered or newest one
+          const keep = babies.find(b => b.id === this.selectedBaby?.id);
+          const pick = keep || this.activeBaby.resolve(babies);
+          if (pick && !keep) {
+            this.loadJourney(pick);
+          } else {
+            if (keep) this.selectedBaby = keep;
+            this.loadPumpingData();
           }
-          
-          // Reload pumping data now that we have valid baby IDs
-          this.loadPumpingData();
         }
       }
     } catch (error) {
@@ -325,7 +364,7 @@ export class GrowthPage implements OnInit, OnDestroy {
       }
     } else {
       // Use local service - fallback to 'baby-123' for local storage compatibility
-      const babyId = this.user?.babies?.[0]?.id || 'baby-123';
+      const babyId = this.journeyBabyId || 'baby-123';
       this.pumpingRecords$ = this.growthService.getPumpingRecords(babyId).pipe(
         map(records => {
           this.pumpingRecords = records || [];
@@ -334,8 +373,8 @@ export class GrowthPage implements OnInit, OnDestroy {
           return records;
         })
       );
-      // Subscribe to update local records
-      this.pumpingRecords$.subscribe();
+      this.pumpingSub?.unsubscribe();
+      this.pumpingSub = this.pumpingRecords$.subscribe();
     }
   }
 
@@ -1320,9 +1359,9 @@ export class GrowthPage implements OnInit, OnDestroy {
     return { rows, summary: rows.length ? `Last session ${timeAgo(rows[0].at, !!rows[0].time)}` : '' };
   }
 
-  /** Baby used for See-all routes and row actions: selected, else first. */
+  /** The one baby every My Journey source, link and row action uses. */
   get journeyBabyId(): string | undefined {
-    return this.selectedBaby?.id || this.user?.babies?.[0]?.id;
+    return this.selectedBaby?.id;
   }
 
   openFeedsSeeAll(): void {

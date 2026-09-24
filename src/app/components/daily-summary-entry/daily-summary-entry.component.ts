@@ -17,7 +17,8 @@ export class DailySummaryEntryComponent {
     if (this.error) return "Couldn't load summary. Tap to retry.";
     const d = this.day;
     if (!d?.hasData) return 'Nothing logged yet today';
-    return [plural(d.feeding.directSessions, 'direct feed'), plural(d.pumping.sessions, 'pump'), `${d.diapers.pee} pee`].join(' · ');
+    // "full pump" = both sides, 30+ min, so it isn't confused with My Journey's count of every pump
+    return [plural(d.feeding.directSessions, 'direct feed'), plural(d.pumping.sessions, 'full pump'), `${d.diapers.pee} pee`].join(' · ');
   }
 
   get aria(): string {
