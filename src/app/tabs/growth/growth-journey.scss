@@ -50,6 +50,35 @@ $mj-pink: #e0679a;
   &.mj-lavender { background: $lavender-bg; }
 }
 
+.mj-babies {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.mj-baby-chip {
+  @include mj-pressable;
+  flex: 0 0 auto;
+  min-height: 44px;
+  max-width: 60vw;
+  padding: 0 18px;
+  border: 1.5px solid $lavender-border;
+  border-radius: 999px;
+  background: #ffffff;
+  color: $muted-strong;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &.active { background: $primary-strong; border-color: $primary-strong; color: #ffffff; }
+}
+
 .mj-summary {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
