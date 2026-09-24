@@ -1,861 +1,222 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
-import { WHOGrowthChartService } from '../../services/who-growth-chart.service';
-import { WeightRecord } from '../../models/growth-tracking.model';
-import { BabyGrowthPoint } from '../../models/who-growth-data.model';
+import { AfterViewInit, Component, ElementRef, Input, NgZone, OnChanges, OnDestroy, ViewChild } from '@angular/core';
 import * as Highcharts from 'highcharts';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
+import { GrowthKind, Sex, formatPercentile, whoCurve, whoPercentile } from '../../shared/utils/who-lms.util';
+
+interface ChartPoint { ageDays: number; month: number; value: number; date: Date; isBirth: boolean; percentile: number | null; }
+
+const CURVES = [3, 15, 50, 85, 97];
+const DAY_MS = 86400000;
+const DAYS_PER_MONTH = 30.4375;
 
 @Component({
   selector: 'app-weight-chart',
   templateUrl: './weight-chart.component.html',
   styleUrls: ['./weight-chart.component.scss']
 })
-export class WeightChartComponent implements OnInit, OnChanges, AfterViewInit {
-  @Input() weightRecords: WeightRecord[] = [];
-  @Input() babyGender: 'male' | 'female' = 'female';
-  @Input() babyBirthDate: Date = new Date();
+export class WeightChartComponent implements OnChanges, AfterViewInit, OnDestroy {
+  @Input() weightRecords: any[] = [];
+  @Input() babyGender: Sex = 'female';
+  @Input() babyBirthDate: Date | string = new Date();
   @Input() babyBirthWeight: number | null = null;
-  @ViewChild('chartContainer', { static: false }) chartContainer!: ElementRef;
+  @Input() babyBirthHeight: number | null = null;
+  @Input() kind: GrowthKind = 'weight';
+  @ViewChild('chartContainer', { static: false }) chartContainer?: ElementRef<HTMLDivElement>;
 
-  chart: any;
-  currentPercentile: number = 50;
-  percentileInterpretation: any = {};
-  isLoading = true;
-  chartError = '';
+  points: ChartPoint[] = [];
+  ageMonths = 0;
+  private chart?: Highcharts.Chart;
+  private resizeObserver?: ResizeObserver;
+  private viewReady = false;
 
-  constructor(private whoService: WHOGrowthChartService) {}
+  constructor(private zone: NgZone) {}
 
-  /** True when there is anything to plot: a logged weight, or a recorded birth weight. */
-  get hasChartData(): boolean {
-    return (this.weightRecords && this.weightRecords.length > 0)
-      || (!!this.babyBirthWeight && this.babyBirthWeight > 0);
+  get unit(): string { return this.kind === 'weight' ? 'kg' : 'cm'; }
+  get outOfRange(): boolean { return this.ageMonths > 60; }
+  get sexLabel(): string { return this.babyGender === 'male' ? 'Boy' : 'Girl'; }
+
+  get summary(): string {
+    const last = this.points[this.points.length - 1];
+    const what = this.kind === 'weight' ? 'Weight' : 'Height';
+    if (!last) return `${what} chart with WHO percentile curves. No entries yet.`;
+    const pct = last.percentile != null ? `, ${this.sexLabel} percentile ${formatPercentile(last.percentile)}` : '';
+    return `${what} chart, ${this.points.length} entries. Latest ${last.value} ${this.unit} on ${this.formatDate(last.date)}${pct}.`;
   }
 
-  ngOnInit() {
+  ngOnChanges() {
+    this.buildPoints();
+    if (this.viewReady) this.render();
   }
 
   ngAfterViewInit() {
-    
-    // Initialize chart immediately after view init
-    if (this.chartContainer?.nativeElement) {
-      this.initializeChart();
-    } else {
-      // Fallback: wait for container to be available
-      setTimeout(() => {
-        if (this.chartContainer?.nativeElement) {
-          this.initializeChart();
-        } else {
-          this.chartError = 'Chart container element not found in DOM';
-          this.isLoading = false;
+    this.viewReady = true;
+    this.buildPoints();
+    this.render();
+    if (this.chartContainer && typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => this.chart?.reflow());
+      this.resizeObserver.observe(this.chartContainer.nativeElement);
+    }
+  }
+
+  ngOnDestroy() {
+    this.resizeObserver?.disconnect();
+    this.chart?.destroy();
+  }
+
+  private dob(): Date {
+    const d = DateOnlyUtil.parseLocalDate(this.babyBirthDate as any);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  private buildPoints() {
+    const dob = this.dob();
+    const today = new Date();
+    this.ageMonths = Math.max(0, (today.getTime() - dob.getTime()) / DAY_MS / DAYS_PER_MONTH);
+    const field = this.kind === 'weight' ? 'weight' : 'height';
+    const pts: ChartPoint[] = [];
+    for (const r of this.weightRecords || []) {
+      const raw = r?.[field];
+      const value = typeof raw === 'string' ? parseFloat(raw) : raw;
+      const dateRaw = r?.record_date || r?.date;
+      if (value == null || !(value > 0) || !dateRaw) continue;
+      const parsed = DateOnlyUtil.parseLocalDate(dateRaw);
+      const date = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+      pts.push(this.makePoint(date, value, false, dob));
+    }
+    const birth = this.kind === 'weight' ? this.babyBirthWeight : this.babyBirthHeight;
+    if (birth && birth > 0 && !pts.some(p => p.ageDays === 0)) pts.push(this.makePoint(dob, Number(birth), true, dob));
+    this.points = pts.filter(p => p.ageDays >= 0 && !isNaN(p.ageDays)).sort((a, b) => a.ageDays - b.ageDays);
+  }
+
+  private makePoint(date: Date, value: number, isBirth: boolean, dob: Date): ChartPoint {
+    const ageDays = Math.round((date.getTime() - dob.getTime()) / DAY_MS);
+    return { ageDays, month: ageDays / DAYS_PER_MONTH, value, date, isBirth, percentile: whoPercentile(this.kind, this.babyGender, ageDays, value) };
+  }
+
+  private cssVar(name: string, fallback: string): string {
+    const el = this.chartContainer?.nativeElement;
+    return (el && getComputedStyle(el).getPropertyValue(name).trim()) || fallback;
+  }
+
+  private render() {
+    this.chart?.destroy();
+    this.chart = undefined;
+    const el = this.chartContainer?.nativeElement;
+    if (!el) return;
+    if (this.outOfRange) { this.renderEntriesOnly(el); return; }
+
+    const maxMonth = Math.min(60, Math.max(12, Math.ceil(this.ageMonths) + 2));
+    const tick = maxMonth <= 12 ? 1 : maxMonth <= 24 ? 3 : 6;
+    const ink = this.cssVar('--wc-ink', '#334155');
+    const muted = this.cssVar('--wc-muted', '#64748b');
+    const curve = this.cssVar('--wc-curve', '#b8c4d4');
+    const median = this.cssVar('--wc-median', '#64748b');
+    const grid = this.cssVar('--wc-grid', '#eef2f7');
+    const brand = this.cssVar('--wc-point', '#8383ed');
+    const surface = this.cssVar('--wc-surface', '#ffffff');
+    const self = this;
+
+    const curveSeries: Highcharts.SeriesLineOptions[] = CURVES.map(p => {
+      const data = whoCurve(this.kind, this.babyGender, p, maxMonth).map(c => [c.month, c.value]);
+      return {
+        type: 'line', name: `${p}%`, data, enableMouseTracking: false, zIndex: p === 50 ? 2 : 1,
+        color: p === 50 ? median : curve, lineWidth: p === 50 ? 2 : 1, marker: { enabled: false },
+        dataLabels: {
+          enabled: true, crop: false, overflow: 'allow', align: 'left', verticalAlign: 'middle', x: 4, y: 0,
+          formatter: function () { return (this as any).point.index === data.length - 1 ? `${p}%` : null; },
+          style: { color: p === 50 ? ink : muted, fontSize: '11px', fontWeight: p === 50 ? '600' : '400', textOutline: 'none' }
         }
-      }, 100);
-    }
-  }
+      } as Highcharts.SeriesLineOptions;
+    });
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['weightRecords'] || changes['babyGender'] || changes['babyBirthDate'] || changes['babyBirthWeight']) {
-      if (this.chart) {
-        this.updateChart();
-      } else if (this.chartContainer?.nativeElement) {
-        this.initializeChart();
-      }
-    }
-  }
-
-  public initializeChart() {
-    
-    this.isLoading = true;
-    this.chartError = '';
-
-    if (!this.chartContainer || !this.chartContainer.nativeElement) {
-      console.error('Chart container not available:', {
-        hasViewChild: !!this.chartContainer,
-        hasNativeElement: !!this.chartContainer?.nativeElement,
-        elementId: this.chartContainer?.nativeElement?.id
-      });
-      this.chartError = 'Chart container element not found. Please try refreshing the page.';
-      this.isLoading = false;
-      return;
-    }
-
-    // Check if Highcharts is available
-    if (typeof Highcharts === 'undefined') {
-      console.error('Highcharts is not available');
-      this.chartError = 'Chart library not loaded. Please refresh the page.';
-      this.isLoading = false;
-      return;
-    }
-
-    try {
-      this.createChart();
-    } catch (error) {
-      console.error('Error initializing chart:', error);
-      this.chartError = 'Failed to initialize chart: ' + (error as Error).message;
-      this.isLoading = false;
-    }
-  }
-
-  /**
-   * Get smart X-axis configuration based on baby's current age
-   */
-  private getSmartXAxisConfig(): any {
-    const currentAgeInWeeks = this.getCurrentBabyAgeInWeeks();
-    
-    // Determine smart zoom level based on age
-    let minAge: number, maxAge: number, tickInterval: number;
-    let timeUnit: 'weeks' | 'months';
-    
-    if (currentAgeInWeeks <= 8) {
-      // Newborn phase (0-8 weeks): Show weekly view
-      minAge = 0;
-      maxAge = Math.max(12, currentAgeInWeeks + 4);
-      tickInterval = 1;
-      timeUnit = 'weeks';
-    } else if (currentAgeInWeeks <= 26) {
-      // Infant phase (2-6 months): Show monthly view
-      minAge = 0;
-      maxAge = Math.max(30, currentAgeInWeeks + 8);
-      tickInterval = 4; // Every month (4 weeks)
-      timeUnit = 'months';
-    } else if (currentAgeInWeeks <= 52) {
-      // Baby phase (6-12 months): Show 2-month intervals
-      minAge = 0;
-      maxAge = Math.max(60, currentAgeInWeeks + 12);
-      tickInterval = 8; // Every 2 months
-      timeUnit = 'months';
-    } else {
-      // Toddler phase (12+ months): Show 3-month intervals
-      minAge = 0;
-      maxAge = Math.max(104, currentAgeInWeeks + 16);
-      tickInterval = 12; // Every 3 months
-      timeUnit = 'months';
-    }
-
-    // Capture timeUnit in closure for formatter
-    const selectedTimeUnit = timeUnit;
-
-    return {
-      title: { 
-        text: selectedTimeUnit === 'weeks' ? 'Baby\'s Age (weeks)' : 'Baby\'s Age (months)',
-        style: { color: '#64748b', fontWeight: '500' }
-      },
-      min: minAge,
-      max: maxAge,
-      tickInterval: tickInterval,
-      gridLineWidth: 1,
-      gridLineColor: '#f1f5f9',
-      labels: {
-        style: { color: '#64748b', fontSize: '12px' },
-        formatter: function() {
-          const weeks = this.value as number;
-          
-          if (weeks === 0) return 'Birth';
-          
-          if (selectedTimeUnit === 'weeks') {
-            // Show numbered weeks: 1, 2, 3, 4...
-            return weeks.toString();
-          } else {
-            // Show numbered months: 1, 2, 3, 4...
-            const months = Math.floor(weeks / 4.345); // ~weeks per month, matches SD-line placement
-            if (months === 0) return 'Birth';
-            return months.toString();
-          }
-        }
-      }
+    const babySeries: Highcharts.SeriesLineOptions = {
+      type: 'line', name: this.kind === 'weight' ? 'Weight' : 'Height', zIndex: 5, color: brand, lineWidth: 2,
+      data: this.points.map((p, i) => ({ x: p.month, y: p.value, custom: { i } })),
+      marker: { enabled: true, symbol: 'circle', radius: 5, fillColor: brand, lineColor: surface, lineWidth: 2, states: { hover: { radiusPlus: 2 } } },
+      states: { hover: { lineWidthPlus: 0 }, inactive: { opacity: 1 } },
+      stickyTracking: false
     };
-  }
 
-  /**
-   * Get smart Y-axis configuration based on baby's age and weight data
-   */
-  private getSmartYAxisConfig(): any {
-    const currentAgeInWeeks = this.getCurrentBabyAgeInWeeks();
-    const babyGrowthPoints = this.convertToGrowthPoints();
-    
-    // Get WHO chart data for age-appropriate weight range
-    const chartData = this.whoService.getWeightChart(this.babyGender);
-    const ageRange = this.getSmartXAxisConfig();
-    
-    // Smart weight range and tick intervals based on age
-    let minWeight: number, maxWeight: number, tickInterval: number;
-    
-    if (currentAgeInWeeks <= 8) {
-      // Newborn phase (0-8 weeks): Focus on smaller weight changes
-      minWeight = 2.0;
-      maxWeight = 6.0;
-      tickInterval = 0.5; // Every 500g
-    } else if (currentAgeInWeeks <= 26) {
-      // Infant phase (2-6 months): Rapid growth period
-      minWeight = 3.0;
-      maxWeight = 9.0;
-      tickInterval = 1.0; // Every 1kg
-    } else if (currentAgeInWeeks <= 52) {
-      // Baby phase (6-12 months): Steady growth
-      minWeight = 5.0;
-      maxWeight = 12.0;
-      tickInterval = 1.0; // Every 1kg
-    } else {
-      // Toddler phase (12+ months): Broader range
-      minWeight = 7.0;
-      maxWeight = 15.0;
-      tickInterval = 2.0; // Every 2kg
-    }
-    
-    // Refine based on WHO data for the visible age range
-    if (chartData && chartData.data) {
-      const relevantData = chartData.data.filter(point => 
-        point.ageInWeeks >= ageRange.min && point.ageInWeeks <= ageRange.max
-      );
-      
-      if (relevantData.length > 0) {
-        // Use 5th and 95th percentiles for a focused view
-        const minWeights = relevantData.map(p => p.p5);
-        const maxWeights = relevantData.map(p => p.p95);
-        
-        const whoMinWeight = Math.min(...minWeights);
-        const whoMaxWeight = Math.max(...maxWeights);
-        
-        // Adjust range based on WHO data with smart padding
-        const padding = currentAgeInWeeks <= 8 ? 0.3 : 
-                       currentAgeInWeeks <= 26 ? 0.5 : 1.0;
-        
-        minWeight = Math.min(minWeight, whoMinWeight - padding);
-        maxWeight = Math.max(maxWeight, whoMaxWeight + padding);
-        
-        // Include baby's actual weights if available
-        if (babyGrowthPoints.length > 0) {
-          const babyWeights = babyGrowthPoints.map(p => p.value);
-          const babyMinWeight = Math.min(...babyWeights);
-          const babyMaxWeight = Math.max(...babyWeights);
-          
-          // Ensure baby's data is visible with extra padding
-          minWeight = Math.min(minWeight, babyMinWeight - padding);
-          maxWeight = Math.max(maxWeight, babyMaxWeight + padding);
-        }
-        
-        // Round to appropriate intervals based on age
-        if (currentAgeInWeeks <= 8) {
-          // Round to 0.2kg for newborns (more precision)
-          minWeight = Math.max(1.5, Math.floor(minWeight * 5) / 5);
-          maxWeight = Math.min(8.0, Math.ceil(maxWeight * 5) / 5);
-        } else if (currentAgeInWeeks <= 26) {
-          // Round to 0.5kg for infants
-          minWeight = Math.max(2.0, Math.floor(minWeight * 2) / 2);
-          maxWeight = Math.min(12.0, Math.ceil(maxWeight * 2) / 2);
-        } else {
-          // Round to 1kg for older babies
-          minWeight = Math.max(3.0, Math.floor(minWeight));
-          maxWeight = Math.min(20.0, Math.ceil(maxWeight));
-        }
-      }
-    }
-
-    return {
-      title: { 
-        text: 'Weight (kg)',
-        style: { color: '#64748b', fontWeight: '500' }
-      },
-      min: minWeight,
-      max: maxWeight,
-      tickInterval: tickInterval,
-      gridLineWidth: 1,
-      gridLineColor: '#f1f5f9',
-      labels: {
-        style: { color: '#64748b', fontSize: '12px' },
-        formatter: function() {
-          const weight = this.value as number;
-          // Smart formatting based on weight range
-          if (weight < 10) {
-            return `${weight.toFixed(1)}kg`; // Show 1 decimal for weights under 10kg
-          } else {
-            return `${Math.round(weight)}kg`; // Show whole numbers for larger weights
-          }
-        }
-      }
-    };
-  }
-
-  /**
-   * Calculate baby's current age in weeks
-   */
-  private getCurrentBabyAgeInWeeks(): number {
-    if (!this.babyBirthDate) return 0;
-    
-    const now = new Date();
-    const birthDate = new Date(this.babyBirthDate);
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    return Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
-  }
-
-  private createChart() {
-    
-    try {
-      // Validate data first
-      if (!this.babyBirthDate || !this.babyGender) {
-        throw new Error('Missing baby birth date or gender');
-      }
-
-      const babyGrowthPoints = this.convertToGrowthPoints();
-      const that = this;
-      
-      // Validate WHO service
-      if (!this.whoService) {
-        throw new Error('WHO Growth Chart Service not available');
-      }
-
-      const chartData = this.whoService.getWeightChart(this.babyGender);
-
-      if (!chartData || !chartData.data || chartData.data.length === 0) {
-        throw new Error('WHO chart data is not available');
-      }
-      
-      // Create basic chart configuration
-      const chartOptions: Highcharts.Options = {
-        chart: {
-          type: 'line',
-          height: 400,
-          backgroundColor: '#fef7f7',
-          animation: false,
-          borderRadius: 12,
-          spacing: [20, 20, 20, 20]
+    this.zone.runOutsideAngular(() => {
+      this.chart = Highcharts.chart(el, {
+        chart: { backgroundColor: 'transparent', spacing: [12, 4, 8, 4], marginRight: 40, animation: false, style: { fontFamily: 'inherit' } },
+        title: { text: undefined }, credits: { enabled: false }, legend: { enabled: false }, exporting: { enabled: false } as any,
+        accessibility: { enabled: false } as any,
+        xAxis: {
+          min: 0, max: maxMonth, tickInterval: tick, gridLineWidth: 1, gridLineColor: grid, lineColor: grid, tickLength: 0,
+          title: { text: 'Age (months)', style: { color: muted, fontSize: '11px' } },
+          labels: { style: { color: muted, fontSize: '11px' } }
         },
-        title: {
-          text: ``,
-          style: { 
-            fontSize: '18px', 
-            fontWeight: '600',
-            color: '#8383ed',
-            fontFamily: 'Inter, sans-serif'
-          }
-        },
-        subtitle: {
-          text: '',
-          style: {
-            fontSize: '14px',
-            color: '#64748b',
-            fontFamily: 'Inter, sans-serif'
-          }
-        },
-        xAxis: this.getSmartXAxisConfig(),
-        yAxis: this.getSmartYAxisConfig(),
-        legend: {
-          enabled: true,
-          align: 'center',
-          verticalAlign: 'bottom',
-          layout: 'horizontal',
-          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-          borderRadius: 8,
-          padding: 12,
-          margin: 20,
-          itemStyle: {
-            color: '#64748b',
-            fontSize: '11px',
-            fontWeight: '500'
-          }
-        },
-        series: [],
-        plotOptions: {
-          line: {
-            animation: false,
-            marker: { enabled: false },
-            lineWidth: 2
-          },
-          scatter: {
-            animation: false,
-            marker: {
-              symbol: 'circle',
-              radius: 8
-            }
-          }
+        yAxis: {
+          title: { text: this.unit, style: { color: muted, fontSize: '11px' } }, gridLineColor: grid, tickPixelInterval: 48,
+          startOnTick: true, endOnTick: true, labels: { style: { color: muted, fontSize: '11px' } }
         },
         tooltip: {
-          shared: false,
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          borderColor: '#8383ed',
-          borderRadius: 8,
-          shadow: true,
-          formatter: function() {
-            if ((this as any).series.name === 'Your Baby\'s Weight') {
-              const weeks = (this as any).x;
-              const weight = (this as any).y;
-              const percentile = (this as any).point.percentile || 50;
-              
-              // Smart age display based on current age
-              const currentAge = that.getCurrentBabyAgeInWeeks();
-              let ageText: string;
-              
-              if (weeks === 0) {
-                ageText = 'At birth';
-              } else if (currentAge <= 8) {
-                // Show weeks for newborns
-                ageText = `${weeks} week${weeks === 1 ? '' : 's'} old`;
-              } else {
-                // Show months for older babies
-                const months = Math.floor(weeks / 4.345); // ~weeks per month, matches SD-line placement
-                ageText = months === 0 ? 'Birth' : `${months} month${months === 1 ? '' : 's'} old`;
-              }
-              
-              let percentileText = that.getPercentileMessage(percentile);
-              
-              return `<div style="text-align: center; padding: 4px;">
-                        <div style="font-weight: 600; color: #8383ed; margin-bottom: 4px;">💕 Your Baby</div>
-                        <div style="margin-bottom: 2px;"><strong>${ageText}</strong></div>
-                        <div style="margin-bottom: 2px;">Weight: <strong>${weight}kg</strong></div>
-                        <div style="color: #10b981; font-weight: 500;">${percentileText}</div>
-                      </div>`;
-            }
-            
-            const seriesName = (this as any).series.name;
-            const friendlyName = that.getFriendlyPercentileName(seriesName);
-            return `<div style="text-align: center; padding: 4px;">
-                      <div style="font-weight: 500; margin-bottom: 2px;">${friendlyName}</div>
-                      <div>Weight: <strong>${(this as any).y}kg</strong></div>
-                    </div>`;
-          }
+          useHTML: true, outside: false, backgroundColor: surface, borderColor: grid, borderRadius: 12, shadow: true, padding: 0,
+          hideDelay: 0, followTouchMove: false,
+          formatter: function () { return self.cardHtml((this as any).point?.options?.custom?.i); }
         },
-        credits: { enabled: false },
-        colors: ['#fecaca', '#fed7aa', '#fde68a', '#d9f99d', '#10b981', '#7dd3fc', '#a78bfa', '#f9a8d4', '#fca5a5']
-      };
-
-      // Add WHO weight-for-age z-score (SD) curves, filtered to the visible age range.
-      const xAxisConfig = this.getSmartXAxisConfig();
-      const zLines = this.whoService.getWeightZScoreLines(this.babyGender);
-
-      zLines.forEach(line => {
-        const seriesData = line.points.filter(([weeks]) =>
-          weeks >= xAxisConfig.min && weeks <= xAxisConfig.max
-        );
-
-        const series: Highcharts.SeriesLineOptions = {
-          name: line.label,
-          type: 'line',
-          data: seriesData,
-          color: line.color,
-          lineWidth: line.isMedian ? 3 : 1.5,
-          dashStyle: line.isMedian ? 'Solid' : 'ShortDash',
-          marker: { enabled: false },
-          enableMouseTracking: true,
-          zIndex: line.isMedian ? 5 : 1
-        };
-        chartOptions.series!.push(series);
+        plotOptions: { series: { animation: false, findNearestPointBy: 'xy' } },
+        series: [...curveSeries, babySeries]
       });
-
-      // Add baby's weight data if available
-      if (babyGrowthPoints.length > 0) {
-        const babySeries: Highcharts.SeriesScatterOptions = {
-          name: 'Your Baby\'s Weight',
-          type: 'scatter',
-          data: babyGrowthPoints.map(point => ({
-            x: point.ageInWeeks,
-            y: point.value,
-            percentile: point.percentile
-          })),
-          color: '#8383ed',
-          marker: {
-            radius: 8,
-            fillColor: '#8383ed',
-            lineColor: '#ffffff',
-            lineWidth: 3,
-            symbol: 'circle'
-          },
-          zIndex: 10,
-          tooltip: {
-            pointFormatter: function() {
-              return `Your baby's weight: <b>${this.y}kg</b>`;
-            }
-          }
-        };
-        chartOptions.series!.push(babySeries);
-      }
-
-      
-      // Ensure container has proper dimensions
-      if (this.chartContainer.nativeElement.offsetWidth === 0) {
-        this.chartContainer.nativeElement.style.width = '100%';
-        this.chartContainer.nativeElement.style.height = '400px';
-      }
-      
-      this.chart = Highcharts.chart(this.chartContainer.nativeElement, chartOptions);
-      
-      this.updatePercentileInfo(babyGrowthPoints);
-      this.isLoading = false;
-      
-    } catch (error) {
-      console.error('Error creating chart:', error);
-      try {
-        this.createSimplifiedChart();
-      } catch (fallbackError) {
-        console.error('Fallback chart also failed:', fallbackError);
-        this.chartError = 'Failed to create chart: ' + (error as Error).message;
-        this.isLoading = false;
-      }
-    }
+    });
   }
 
-  private createSimplifiedChart() {
-    
-    const babyGrowthPoints = this.convertToGrowthPoints();
-    
-    // Create a very basic chart with just the essentials
-    const simpleOptions: Highcharts.Options = {
-      chart: {
-        type: 'line',
-        height: 400,
-        backgroundColor: '#fef7f7'
-      },
-      title: {
-        text: `${this.babyGender === 'male' ? 'Boy' : 'Girl'}'s Weight Growth`
-      },
-      xAxis: {
-        title: { text: 'Age (weeks)' },
-        min: 0,
-        max: 52
-      },
-      yAxis: {
-        title: { text: 'Weight (kg)' },
-        min: 0,
-        max: 15
-      },
-      series: [],
-      credits: { enabled: false }
-    };
-
-    // Add just the WHO median (0 SD) line and baby's data
-    try {
-      const medianLine = this.whoService.getWeightZScoreLines(this.babyGender).find(l => l.isMedian);
-      if (medianLine) {
-        const medianSeries: Highcharts.SeriesLineOptions = {
-          name: 'On track (median)',
-          type: 'line',
-          data: medianLine.points,
-          color: medianLine.color,
-          lineWidth: 2,
-          marker: { enabled: false }
-        };
-        simpleOptions.series!.push(medianSeries);
-      }
-
-      // Add baby's weight data if available
-      if (babyGrowthPoints.length > 0) {
-        const babySeries: Highcharts.SeriesScatterOptions = {
-          name: 'Your Baby',
-          type: 'scatter',
-          data: babyGrowthPoints.map(point => [point.ageInWeeks, point.value]),
-          color: '#8383ed',
-          marker: {
-            radius: 6,
-            fillColor: '#8383ed',
-            lineColor: '#ffffff',
-            lineWidth: 2
-          }
-        };
-        simpleOptions.series!.push(babySeries);
-      }
-    } catch (seriesError) {
-      console.warn('Could not add data series, showing empty chart:', seriesError);
-    }
-
-    this.chart = Highcharts.chart(this.chartContainer.nativeElement, simpleOptions);
-    
-    this.updatePercentileInfo(babyGrowthPoints);
-    this.isLoading = false;
+  // Over 5 years: no WHO reference, so plot the entries by date only
+  private renderEntriesOnly(el: HTMLElement) {
+    const muted = this.cssVar('--wc-muted', '#64748b');
+    const grid = this.cssVar('--wc-grid', '#eef2f7');
+    const brand = this.cssVar('--wc-point', '#8383ed');
+    const surface = this.cssVar('--wc-surface', '#ffffff');
+    const self = this;
+    this.zone.runOutsideAngular(() => {
+      this.chart = Highcharts.chart(el, {
+        chart: { backgroundColor: 'transparent', spacing: [12, 8, 8, 4], animation: false, style: { fontFamily: 'inherit' } },
+        title: { text: undefined }, credits: { enabled: false }, legend: { enabled: false }, accessibility: { enabled: false } as any,
+        // Day labels, at least a week of range so same-day entries don't render as a time axis
+        xAxis: { type: 'datetime', minRange: 7 * DAY_MS, minTickInterval: DAY_MS, gridLineWidth: 1, gridLineColor: grid, lineColor: grid, tickLength: 0,
+          labels: { format: '{value:%e %b}', style: { color: muted, fontSize: '11px' } } },
+        yAxis: { title: { text: this.unit, style: { color: muted, fontSize: '11px' } }, gridLineColor: grid, tickPixelInterval: 48, labels: { style: { color: muted, fontSize: '11px' } } },
+        tooltip: {
+          useHTML: true, outside: false, backgroundColor: surface, borderColor: grid, borderRadius: 12, shadow: true, padding: 0, hideDelay: 0,
+          formatter: function () { return self.cardHtml((this as any).point?.options?.custom?.i); }
+        },
+        plotOptions: { series: { animation: false } },
+        series: [{
+          type: 'line', name: this.kind === 'weight' ? 'Weight' : 'Height', color: brand, lineWidth: 2, linecap: 'round',
+          // Birth point years back would squash recent entries into one corner, so skip it here
+          data: this.points.map((p, i) => ({ x: p.date.getTime(), y: p.value, custom: { i }, birth: p.isBirth })).filter(d => !d.birth).map(({ birth, ...d }) => d),
+          marker: { enabled: true, symbol: 'circle', radius: 5, fillColor: brand, lineColor: surface, lineWidth: 2 }
+        } as Highcharts.SeriesLineOptions]
+      });
+    });
   }
 
-  private getMotherFriendlyPercentileName(percentile: number): string {
-    switch (percentile) {
-      case 10: return '🌱 Smaller babies (10th)';
-      case 25: return '🌿 Below average (25th)';
-      case 50: return '🌟 Average babies (50th)';
-      case 75: return '🌳 Above average (75th)';
-      case 90: return '🌲 Bigger babies (90th)';
-      default: return `${percentile}th percentile`;
-    }
+  private cardHtml(i: number): string {
+    const p = this.points[i];
+    if (!p) return '';
+    const pct = p.percentile != null ? formatPercentile(p.percentile) : '--';
+    return `<div class="wc-card">
+      <div class="wc-card-date">${this.formatDate(p.date)}${p.isBirth ? ' &middot; Birth' : ''}</div>
+      <div class="wc-card-value">${p.value} ${this.unit}</div>
+      ${p.percentile != null ? `<div class="wc-card-row">${this.sexLabel} percentile <b>${pct}</b></div>` : ''}
+      <div class="wc-card-meta">Age ${this.formatAge(p.date)}${p.percentile != null ? ' &middot; WHO' : ''}</div>
+    </div>`;
   }
 
-  private getMotherFriendlyColor(percentile: number): string {
-    switch (percentile) {
-      case 10: return '#fbbf24';  // Warm yellow
-      case 25: return '#a3e635';  // Light green
-      case 50: return '#10b981';  // Strong green (average)
-      case 75: return '#06b6d4';  // Cyan
-      case 90: return '#8b5cf6';  // Purple
-      default: return '#6b7280';
-    }
+  private formatDate(d: Date): string {
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
-  public getPercentileMessage(percentile: number): string {
-    if (percentile >= 50) {
-      return `Growing beautifully! ${percentile}th percentile 🌟`;
-    } else if (percentile >= 25) {
-      return `Healthy growth pattern! ${percentile}th percentile 💚`;
-    } else {
-      return `Growing at their own pace! ${percentile}th percentile 🌱`;
-    }
-  }
-
-  public getFriendlyPercentileName(seriesName: string): string {
-    if (seriesName.includes('10th')) return '🌱 Smaller babies';
-    if (seriesName.includes('25th')) return '🌿 Below average';
-    if (seriesName.includes('50th')) return '🌟 Average babies';
-    if (seriesName.includes('75th')) return '🌳 Above average';
-    if (seriesName.includes('90th')) return '🌲 Bigger babies';
-    return seriesName;
-  }
-
-  private updateChart() {
-    if (!this.chart) {
-      this.createChart();
-      return;
-    }
-
-    try {
-      const babyGrowthPoints = this.convertToGrowthPoints();
-      
-      // Find and update baby's data series. Name must match createChart's
-      // series name ('Your Baby\'s Weight'), else a duplicate series is added.
-      const babySeriesIndex = this.chart.series.findIndex((s: any) => s.name === 'Your Baby\'s Weight');
-
-      if (babySeriesIndex >= 0 && babyGrowthPoints.length > 0) {
-        const newData = babyGrowthPoints.map(point => ({
-          x: point.ageInWeeks,
-          y: point.value,
-          percentile: point.percentile
-        }));
-        this.chart.series[babySeriesIndex].setData(newData);
-      } else if (babyGrowthPoints.length > 0) {
-        // Add baby series if it doesn't exist
-        this.chart.addSeries({
-          name: 'Your Baby\'s Weight',
-          type: 'scatter',
-          data: babyGrowthPoints.map(point => ({
-            x: point.ageInWeeks,
-            y: point.value,
-            percentile: point.percentile
-          })),
-          color: '#8383ed',
-          marker: {
-            radius: 6,
-            fillColor: '#8383ed',
-            lineColor: '#ffffff',
-            lineWidth: 2
-          },
-          zIndex: 10
-        });
-      }
-
-      this.updatePercentileInfo(babyGrowthPoints);
-    } catch (error) {
-      console.error('Error updating chart:', error);
-    }
-  }
-
-  private convertToGrowthPoints(): BabyGrowthPoint[] {
-    const hasRecords = !!this.weightRecords && this.weightRecords.length > 0;
-    const hasBirthWeight = !!this.babyBirthWeight && this.babyBirthWeight > 0;
-
-    if (!hasRecords && !hasBirthWeight) {
-      return [];
-    }
-
-    try {
-      const growthPoints: BabyGrowthPoint[] = [];
-
-      // Seed an age-0 point from the baby's recorded birth weight so the chart
-      // plots something even before any weight record is logged.
-      if (hasBirthWeight) {
-        const birthDate = new Date(this.babyBirthDate);
-        growthPoints.push({
-          ageInWeeks: 0,
-          value: this.babyBirthWeight as number,
-          percentile: this.whoService.calculatePercentile(0, this.babyBirthWeight as number, this.babyGender),
-          date: birthDate
-        });
-      }
-
-      if (hasRecords) {
-        const normalizedRecords = this.weightRecords
-          .map(record => this.normalizeWeightRecord(record))
-          .filter(record => record !== null) as { date: Date; weight: number }[];
-
-        for (const record of normalizedRecords) {
-          const birthDate = new Date(this.babyBirthDate);
-          const ageInWeeks = this.whoService.calculateAgeInWeeks(birthDate, record.date);
-          // Avoid a duplicate age-0 point if a logged record lands on the birth date.
-          if (hasBirthWeight && ageInWeeks === 0) {
-            continue;
-          }
-          growthPoints.push({
-            ageInWeeks,
-            value: record.weight,
-            percentile: this.whoService.calculatePercentile(ageInWeeks, record.weight, this.babyGender),
-            date: record.date
-          });
-        }
-      }
-
-      return growthPoints.sort((a, b) => a.ageInWeeks - b.ageInWeeks);
-    } catch (error) {
-      console.error('Error converting weight records to growth points:', error);
-      return [];
-    }
-  }
-
-  private updatePercentileInfo(growthPoints: BabyGrowthPoint[]) {
-    if (growthPoints.length > 0) {
-      const latestPoint = growthPoints[growthPoints.length - 1];
-      this.currentPercentile = latestPoint.percentile || 50;
-      this.percentileInterpretation = this.whoService.getPercentileInterpretation(this.currentPercentile);
-    } else {
-      this.currentPercentile = 50;
-      this.percentileInterpretation = {
-        status: 'No Data',
-        message: 'Add weight records to see growth analysis',
-        color: '#94a3b8'
-      };
-    }
-  }
-
-  private getPercentileColor(percentile: number): string {
-    switch (percentile) {
-      case 3: return '#ef4444';   // Red
-      case 5: return '#f97316';   // Orange
-      case 10: return '#f59e0b';  // Amber
-      case 25: return '#84cc16';  // Light green
-      case 50: return '#10b981';  // Green - median
-      case 75: return '#06b6d4';  // Cyan
-      case 90: return '#3b82f6';  // Blue
-      case 95: return '#8b5cf6';  // Purple
-      case 97: return '#ec4899';  // Pink
-      default: return '#6b7280'; // Gray
-    }
-  }
-
-  getSimplePercentileMessage(): string {
-    if (this.currentPercentile >= 75) return '🌟 Growing Great!';
-    if (this.currentPercentile >= 50) return '💚 Perfect Growth';
-    if (this.currentPercentile >= 25) return '🌱 Healthy Growth';
-    return '💕 Growing Beautifully';
-  }
-
-  getMotherFriendlyStatus(): string {
-    if (this.currentPercentile >= 75) return 'Thriving! 🌟';
-    if (this.currentPercentile >= 50) return 'Perfect! 💚';
-    if (this.currentPercentile >= 25) return 'Healthy! 🌱';
-    if (this.currentPercentile >= 10) return 'Growing Well! 💕';
-    return 'Unique Growth! 🌸';
-  }
-
-  getMotherFriendlyTrend(): string {
-    const points = this.convertToGrowthPoints();
-    if (points.length < 2) return 'Just getting started! 🌱';
-
-    const recent = points.slice(-2);
-    const percentileChange = recent[1].percentile! - recent[0].percentile!;
-
-    if (Math.abs(percentileChange) < 5) {
-      return 'Steady & beautiful! 💕';
-    } else if (percentileChange > 0) {
-      return 'Growing stronger! 🌟';
-    } else {
-      return 'Finding their pace! 🌸';
-    }
-  }
-
-  getMotherFriendlyWeightGain(): string {
-    const points = this.convertToGrowthPoints();
-    if (points.length < 2) return 'Track more to see! 📈';
-
-    const recent = points.slice(-2);
-    const weightGain = recent[1].value - recent[0].value;
-    const weeksDiff = recent[1].ageInWeeks - recent[0].ageInWeeks;
-    
-    if (weeksDiff === 0) return 'Same week 📅';
-    
-    const weeklyGain = weightGain / weeksDiff;
-    const gramsPerWeek = Math.round(weeklyGain * 1000);
-    
-    if (gramsPerWeek >= 150) return `${gramsPerWeek}g/week 🌟`;
-    if (gramsPerWeek >= 100) return `${gramsPerWeek}g/week 💚`;
-    return `${gramsPerWeek}g/week 🌱`;
-  }
-
-  getEncouragingTitle(): string {
-    if (this.currentPercentile >= 75) return 'Your Baby is Thriving! 🌟';
-    if (this.currentPercentile >= 50) return 'Perfect Growth Journey! 💚';
-    if (this.currentPercentile >= 25) return 'Healthy & Happy! 🌱';
-    if (this.currentPercentile >= 10) return 'Growing Beautifully! 💕';
-    return 'Every Baby is Unique! 🌸';
-  }
-
-  getEncouragingMessage(): string {
-    if (this.currentPercentile >= 75) {
-      return 'Your little one is growing wonderfully! They\'re bigger than most babies their age, which is perfectly healthy. Keep up the great work, mama! 🌟';
-    } else if (this.currentPercentile >= 50) {
-      return 'Your baby is growing at a perfect pace! They\'re right in the sweet spot with most other babies. You\'re doing an amazing job! 💚';
-    } else if (this.currentPercentile >= 25) {
-      return 'Your baby is growing beautifully at their own pace! Every baby is different, and yours is developing just right. Trust your instincts! 🌱';
-    } else if (this.currentPercentile >= 10) {
-      return 'Your little one is growing at their own special pace! Some babies are naturally smaller, and that\'s completely normal. Keep loving and feeding them! 💕';
-    } else {
-      return 'Your baby is unique and special! While they\'re smaller than average, many healthy babies grow this way. Consider chatting with your pediatrician for reassurance. 🌸';
-    }
-  }
-
-  getGrowthTrend(): string {
-    const points = this.convertToGrowthPoints();
-    if (points.length < 2) return 'Not enough data';
-
-    const recent = points.slice(-2);
-    const percentileChange = recent[1].percentile! - recent[0].percentile!;
-
-    if (Math.abs(percentileChange) < 5) {
-      return 'Steady growth pattern';
-    } else if (percentileChange > 0) {
-      return 'Increasing growth velocity';
-    } else {
-      return 'Decreasing growth velocity';
-    }
-  }
-
-  getWeightGain(): string {
-    const points = this.convertToGrowthPoints();
-    if (points.length < 2) return 'N/A';
-
-    const recent = points.slice(-2);
-    const weightGain = recent[1].value - recent[0].value;
-    const weeksDiff = recent[1].ageInWeeks - recent[0].ageInWeeks;
-    
-    if (weeksDiff === 0) return 'N/A';
-    
-    const weeklyGain = weightGain / weeksDiff;
-    return `${(weeklyGain * 1000).toFixed(0)}g/week`;
-  }
-
-  /**
-   * Normalize weight record format to handle both API and local formats
-   */
-  private normalizeWeightRecord(record: any): { date: Date; weight: number } | null {
-    try {
-      // Handle date field - API uses 'record_date', local uses 'date'
-      const dateValue = record.record_date || record.date;
-      if (!dateValue) {
-        console.warn('No date found in record:', record);
-        return null;
-      }
-      
-      // Handle weight field - API uses string, local uses number
-      const weightValue = typeof record.weight === 'string' ? parseFloat(record.weight) : record.weight;
-      if (!weightValue || isNaN(weightValue) || weightValue <= 0) {
-        console.warn('Invalid weight in record:', record);
-        return null;
-      }
-
-      return {
-        date: new Date(dateValue),
-        weight: weightValue
-      };
-    } catch (error) {
-      console.warn('Error normalizing weight record:', record, error);
-      return null;
-    }
+  /** Calendar age like "1y 2d" or "3m 12d". */
+  private formatAge(date: Date): string {
+    const dob = this.dob();
+    let y = date.getFullYear() - dob.getFullYear();
+    let m = date.getMonth() - dob.getMonth();
+    let d = date.getDate() - dob.getDate();
+    if (d < 0) { m -= 1; d += new Date(date.getFullYear(), date.getMonth(), 0).getDate(); }
+    if (m < 0) { y -= 1; m += 12; }
+    const parts = [y && `${y}y`, m && `${m}m`, d && `${d}d`].filter(Boolean);
+    return parts.length ? parts.join(' ') : '0d';
   }
 }

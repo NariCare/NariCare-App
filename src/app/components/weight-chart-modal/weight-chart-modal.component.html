@@ -1,21 +1,39 @@
-<ion-header>
+<ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>{{ babyName }}'s Growth Chart</ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="closeModal()">
-        <ion-icon name="close" slot="icon-only"></ion-icon>
-      </ion-button>
+    <ion-buttons slot="start">
+      <button type="button" class="gm-back" (click)="closeModal()" aria-label="Back">
+        <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+      </button>
     </ion-buttons>
+    <div class="gm-title">
+      <h2>Growth</h2>
+      <span class="gm-sub" *ngIf="babyName">{{ babyName }}</span>
+    </div>
   </ion-toolbar>
+  <div class="gm-tabs" role="tablist" aria-label="Chart type">
+    <button type="button" role="tab" [attr.aria-selected]="kind === 'weight'" [class.on]="kind === 'weight'" (click)="kind = 'weight'">Weight</button>
+    <button type="button" role="tab" [attr.aria-selected]="kind === 'height'" [class.on]="kind === 'height'" (click)="kind = 'height'">Height</button>
+  </div>
+  <!-- Previous ion-segment tabs, kept for reuse
+  <ion-toolbar class="gm-seg-bar">
+    <ion-segment [value]="kind" (ionChange)="onKindChange($event)" aria-label="Chart type">
+      <ion-segment-button value="weight"><ion-label>Weight</ion-label></ion-segment-button>
+      <ion-segment-button value="height"><ion-label>Height</ion-label></ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+  -->
 </ion-header>
 
-<ion-content>
-  <div class="weight-chart-modal-container">
+<ion-content [scrollY]="false">
+  <div class="gm-body">
     <app-weight-chart
+      [kind]="kind"
       [weightRecords]="weightRecords"
       [babyGender]="babyGender"
       [babyBirthDate]="babyBirthDate"
-      [babyBirthWeight]="babyBirthWeight">
+      [babyBirthWeight]="babyBirthWeight"
+      [babyBirthHeight]="babyBirthHeight">
     </app-weight-chart>
+    <p class="gm-source">Source: WHO Child Growth Standards</p>
   </div>
 </ion-content>

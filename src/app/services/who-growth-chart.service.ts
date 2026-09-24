@@ -293,44 +293,58 @@ export class WHOGrowthChartService {
   getPercentileInterpretation(percentile: number): { status: string; message: string; color: string } {
     if (percentile < 2) {
       return {
-        status: 'Severely Underweight',
-        message: 'Below 2nd percentile. Immediate pediatric consultation needed.',
+        // status: 'Severely Underweight',
+        // message: 'Below 2nd percentile. Immediate pediatric consultation needed.',
+        status: 'Below 2nd percentile',
+        message: 'Below the 2nd WHO percentile. Share this chart at your next pediatric visit.',
         color: '#dc2626'
       };
     } else if (percentile < 3) {
       return {
-        status: 'Underweight',
-        message: 'Below 3rd percentile. Consult your pediatrician.',
+        // status: 'Underweight',
+        // message: 'Below 3rd percentile. Consult your pediatrician.',
+        status: 'Below 3rd percentile',
+        message: 'Below the 3rd WHO percentile. Share this chart at your next pediatric visit.',
         color: '#ef4444'
       };
     } else if (percentile < 10) {
       return {
-        status: 'Low Weight',
-        message: 'Below 10th percentile. Monitor closely and discuss with doctor.',
+        // status: 'Low Weight',
+        // message: 'Below 10th percentile. Monitor closely and discuss with doctor.',
+        status: 'Below 10th percentile',
+        message: 'Between the 3rd and 10th WHO percentiles.',
         color: '#f97316'
       };
     } else if (percentile <= 90) {
       return {
-        status: 'Normal Weight',
-        message: 'Weight is within normal range for age.',
+        // status: 'Normal Weight',
+        // message: 'Weight is within normal range for age.',
+        status: '10th to 90th percentile',
+        message: 'Between the 10th and 90th WHO percentiles for age.',
         color: '#10b981'
       };
     } else if (percentile <= 97) {
       return {
-        status: 'High Weight',
-        message: 'Above 90th percentile. Monitor growth pattern.',
+        // status: 'High Weight',
+        // message: 'Above 90th percentile. Monitor growth pattern.',
+        status: 'Above 90th percentile',
+        message: 'Between the 90th and 97th WHO percentiles.',
         color: '#f59e0b'
       };
     } else if (percentile <= 98) {
       return {
-        status: 'Very High Weight',
-        message: 'Above 97th percentile. Consult your pediatrician.',
+        // status: 'Very High Weight',
+        // message: 'Above 97th percentile. Consult your pediatrician.',
+        status: 'Above 97th percentile',
+        message: 'Above the 97th WHO percentile. Share this chart at your next pediatric visit.',
         color: '#ef4444'
       };
     } else {
       return {
-        status: 'Extremely High Weight',
-        message: 'Above 98th percentile. Immediate pediatric consultation needed.',
+        // status: 'Extremely High Weight',
+        // message: 'Above 98th percentile. Immediate pediatric consultation needed.',
+        status: 'Above 98th percentile',
+        message: 'Above the 98th WHO percentile. Share this chart at your next pediatric visit.',
         color: '#be185d'
       };
     }
@@ -368,11 +382,13 @@ export class WHOGrowthChartService {
     const clamped = Math.max(0, Math.min(60, ageInMonths));
     // Nearest monthly row (WHO data is monthly).
     const row = rows.reduce((a, b) => Math.abs(b.month - clamped) < Math.abs(a.month - clamped) ? b : a);
-    if (weight < row.sd3neg) return { label: 'Well below range', message: 'Below -3 SD. Please consult your pediatrician.', color: '#ef4444' };
+    // if (weight < row.sd3neg) return { label: 'Well below range', message: 'Below -3 SD. Please consult your pediatrician.', color: '#ef4444' };
+    if (weight < row.sd3neg) return { label: 'Below -3 SD', message: 'Below -3 SD on the WHO chart. Share this chart at your next pediatric visit.', color: '#ef4444' };
     if (weight < row.sd2neg) return { label: 'Low', message: 'Between -3 and -2 SD. Discuss with your doctor.', color: '#f59e0b' };
     if (weight <= row.sd2) return { label: 'On track', message: 'Within the healthy WHO range (-2 to +2 SD).', color: '#10b981' };
     if (weight <= row.sd3) return { label: 'High', message: 'Between +2 and +3 SD. Monitor growth pattern.', color: '#6366f1' };
-    return { label: 'Well above range', message: 'Above +3 SD. Please consult your pediatrician.', color: '#a855f7' };
+    // return { label: 'Well above range', message: 'Above +3 SD. Please consult your pediatrician.', color: '#a855f7' };
+    return { label: 'Above +3 SD', message: 'Above +3 SD on the WHO chart. Share this chart at your next pediatric visit.', color: '#a855f7' };
   }
 
   calculateAgeInWeeks(birthDate: Date, measurementDate: Date): number {
@@ -387,7 +403,8 @@ export class WHOGrowthChartService {
   // Helper method to get weight recommendations based on current percentile
   getWeightGuidance(currentPercentile: number, previousPercentile?: number): string {
     if (previousPercentile && Math.abs(currentPercentile - previousPercentile) > 25) {
-      return 'Significant percentile change detected. Please discuss with your pediatrician.';
+      // return 'Significant percentile change detected. Please discuss with your pediatrician.';
+      return 'Percentile changed noticeably between the last two entries. Worth mentioning at your next pediatric visit.';
     }
 
     if (currentPercentile < 10) {
