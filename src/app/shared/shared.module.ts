@@ -26,6 +26,8 @@ import { BabyEditModalComponent } from '../components/baby-edit-modal/baby-edit-
 import { AiChatComponent } from '../components/ai-chat/ai-chat.component';
 import { ActivityLogComponent } from '../components/activity-log/activity-log.component';
 import { TimeFieldComponent } from '../components/time-field/time-field.component';
+import { DailySummaryEntryComponent } from '../components/daily-summary-entry/daily-summary-entry.component';
+import { DailySummaryTableComponent } from '../components/daily-summary-table/daily-summary-table.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +53,9 @@ import { TimeFieldComponent } from '../components/time-field/time-field.componen
     BabyEditModalComponent,
     AiChatComponent,
     ActivityLogComponent,
-    TimeFieldComponent
+    TimeFieldComponent,
+    DailySummaryEntryComponent,
+    DailySummaryTableComponent
   ],
   imports: [
     CommonModule,
@@ -83,7 +87,9 @@ import { TimeFieldComponent } from '../components/time-field/time-field.componen
     BabyEditModalComponent,
     AiChatComponent,
     ActivityLogComponent,
-    TimeFieldComponent
+    TimeFieldComponent,
+    DailySummaryEntryComponent,
+    DailySummaryTableComponent
   ]
 })
 export class SharedModule { }

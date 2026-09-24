@@ -375,18 +375,21 @@ export class BackendGrowthService {
    * Get stool records for a specific baby from backend
    */
   getStoolRecords(babyId: string): Observable<any[]> {
-    return this.cached('stool', babyId, () => this.apiService.getStoolRecords(babyId).pipe(
-      map((response: any) => {
-        if (response?.success && response.data) {
-          return response.data;
-        }
-        return [];
-      }),
-      catchError(error => {
-        console.error('Error fetching stool records:', error);
-        return of([]);
-      })
-    ));
+    // No backend stool route (poop is tracked via diaper changes); skip the call that always 404s
+    return of([]);
+    // Previous call, kept for reuse if a stool route is added:
+    // return this.cached('stool', babyId, () => this.apiService.getStoolRecords(babyId).pipe(
+    // map((response: any) => {
+    // if (response?.success && response.data) {
+    // return response.data;
+    // }
+    // return [];
+    // }),
+    // catchError(error => {
+    // console.error('Error fetching stool records:', error);
+    // return of([]);
+    // })
+    // ));
   }
 
   /**

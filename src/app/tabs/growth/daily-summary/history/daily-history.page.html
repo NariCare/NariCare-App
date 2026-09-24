@@ -1,0 +1,50 @@
+<ion-header class="history-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="backHref" text="" aria-label="Back"></ion-back-button>
+    </ion-buttons>
+    <div class="header-text">
+      <h1>Detailed History</h1>
+      <p>Day by day, {{ rangeLabel }}</p>
+    </div>
+    <ion-buttons slot="end">
+      <button type="button" class="ds-share" (click)="share()" [disabled]="loading || error" aria-label="Share history">
+        <ion-icon name="share-social-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="history-content">
+  <div class="history-body">
+    <div class="filter-chips" role="radiogroup" aria-label="History range">
+      <button type="button" class="chip" role="radio" *ngFor="let r of ranges"
+              [class.active]="range === r.value" [attr.aria-checked]="range === r.value"
+              [attr.aria-label]="r.aria" (click)="setRange(r.value)">{{ r.label }}</button>
+    </div>
+
+    <div role="alert" *ngIf="error">
+      <button type="button" class="ds-error" (click)="retry()">
+        <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+        Couldn't load history. Tap to retry.
+      </button>
+    </div>
+
+    <section class="dh-table" aria-label="Daily history" *ngIf="!error">
+      <app-daily-summary-table [days]="history" [loading]="loading" (dayTap)="openDay($event)"></app-daily-summary-table>
+      <p class="dh-hint">Tap a day to see its timeline. Scroll sideways for more columns.</p>
+    </section>
+
+    <ul class="dh-notes" aria-label="About these numbers">
+      <li *ngFor="let n of notes">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <span>{{ n }}</span>
+      </li>
+    </ul>
+
+    <button type="button" class="dh-export" (click)="exportCsv()" [disabled]="loading || error || exporting">
+      <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
+      Export as CSV
+    </button>
+  </div>
+</ion-content>

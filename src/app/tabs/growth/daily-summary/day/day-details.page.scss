@@ -1,0 +1,132 @@
+// Day Details page; shared pieces live in ds-common.scss
+$primary-strong: #6464d3;
+$muted-strong: #5f5890;
+$ink: #2d3748;
+$lavender-border: #ece9fb;
+$lavender-tint: #f4f2fe;
+
+.dd-rows {
+  margin: -4px 0 -8px;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 8px 0;
+  }
+
+  li + li { border-top: 1px solid $lavender-border; }
+}
+
+.dd-value {
+  min-width: 5.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  small { font-size: 0.8125rem; font-weight: 600; color: $muted-strong; }
+}
+
+.dd-label { flex: 1; min-width: 0; font-size: 0.875rem; color: $muted-strong; }
+.is-empty .dd-value { color: $muted-strong; font-weight: 600; }
+.dd-skel-tile { width: 36px; height: 36px; border-radius: 12px; }
+
+// Filter chip wraps a native select so it stays keyboard and screen reader friendly
+.dd-filter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin: -8px 0;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: $lavender-tint;
+  color: $primary-strong;
+  font-size: 0.8125rem;
+  font-weight: 700;
+
+  ion-icon { font-size: 14px; }
+  &:focus-within { outline: 2px solid $primary-strong; outline-offset: 2px; }
+
+  select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    border: 0;
+    font-size: 16px; // avoids iOS zoom
+    cursor: pointer;
+  }
+}
+
+.dd-timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0 0 16px;
+  }
+
+  li:last-child { padding-bottom: 0; }
+  li:last-child .dd-rail::after { display: none; }
+}
+
+// Dot on a vertical line joining consecutive events
+.dd-rail {
+  position: relative;
+  flex: 0 0 12px;
+  align-self: stretch;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 22px;
+    bottom: -16px;
+    left: 5px;
+    width: 2px;
+    border-radius: 1px;
+    background: $lavender-border;
+  }
+}
+
+.dd-dot {
+  position: absolute;
+  top: 12px;
+  left: 1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: $primary-strong;
+
+  &.pink { background: #d9487f; }
+  &.yellow { background: #c98d0b; }
+  &.green { background: #3f9e6e; }
+  &.brown { background: #8b5a34; }
+}
+
+.dd-ev-text { display: flex; flex: 1; flex-direction: column; gap: 1px; min-width: 0; padding-top: 1px; }
+.dd-ev-time { font-size: 0.75rem; font-weight: 600; color: $muted-strong; font-variant-numeric: tabular-nums; }
+.dd-ev-title { font-size: 0.9375rem; font-weight: 700; color: $ink; }
+.dd-ev-detail { font-size: 0.8125rem; color: $muted-strong; overflow-wrap: anywhere; }
+
+.dd-ev-value {
+  flex: 0 0 auto;
+  max-width: 40%;
+  padding-top: 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: $ink;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

@@ -71,6 +71,11 @@
     </div>
     </div>
 
+    <!-- Daily Summary entry, shown on all three tabs -->
+    <app-daily-summary-entry *ngIf="babyId && (trackerSummary.today$(babyId) | async) as s" style="margin: 12px 12px 0"
+                             [day]="s.day" [loading]="s.loading" [error]="s.error"
+                             (open)="openDailySummary()" (retry)="trackerSummary.retryToday(babyId)"></app-daily-summary-entry>
+
     <!-- Weight and Size Tab -->
     <div class="tab-content" *ngIf="selectedSubTab === 'weight-size'">
       <!-- Previous growth overview + stat cards, kept for reuse
