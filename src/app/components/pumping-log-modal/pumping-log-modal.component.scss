@@ -1,443 +1,53 @@
-ion-content {
-  --background: #f6f5fb;
-}
+/* Pumping Log modal: shared log form design lives in ../log-form.scss */
+@use '../log-form' as *;
 
-.feed-log-container {
-  padding: 0.75rem 0.75rem 1.25rem;
-}
+// Manual / Timer switch reuses .date-chip from log-form
+.duration-mode-selector { margin-bottom: 12px; }
 
-/* Single form styles */
-.single-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-
-.form-section {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 1rem;
-  border: 1px solid rgba(226, 221, 245, 0.6);
-  box-shadow: 0 2px 10px rgba(131, 131, 237, 0.05);
-}
-
-.section-title {
-  margin: 0 0 0.15rem 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #2d3748;
-  text-align: left;
-  font-family: 'Poppins', sans-serif;
-}
-
-.section-description {
-  margin: 0 0 0.5rem 0;
-  color: #7a73a9;
-  font-size: 0.82rem;
-  line-height: 1.35;
-  font-family: 'Poppins', sans-serif;
-}
-
-/* Main pumping card styling */
-.main-pumping-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 2rem 1.5rem;
-  border: 1px solid #f1f5f9;
-}
-
-/* Section groups within the main card */
-.section-group {
-  margin-bottom: 1rem;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  &:not(:last-child) {
-    border-bottom: 1px solid rgba(226, 221, 245, 0.5);
-    padding-bottom: 1rem;
-  }
-}
-
-/* Notes section as separate card */
-/* Flat notes section to match the other log modals */
-.notes-section {
-  padding: 0 0.75rem;
-}
-
-/* Save section styling */
-.save-section {
-  text-align: center;
-  padding: 0.5rem 0.75rem;
-}
-
-.save-section .save-button {
-  --background: #8383ed;
-  --background-hover: #7676d1;
-  --border-radius: 12px;
-  --color: #ffffff;
-  height: 56px;
-  font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: 0.025em;
-  font-family: 'Poppins', sans-serif;
-
-  &:disabled {
-    --background: #e2e8f0;
-    --color: #94a3b8;
-  }
-}
-
-.form-group {
-  margin-bottom: 1rem;
-  
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.field-label {
-  display: block;
-  margin-bottom: 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #2d3748;
-  font-family: 'Poppins', sans-serif;
-}
-
-.input-item {
-  --background: #f8fafc;
-  --border-radius: 8px;
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --min-height: 44px;
-  margin-bottom: 0.25rem;
-
-  &.time-input {
-    text-align: center;
-    
-    ion-input {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #8383ed;
-      text-align: center;
-    }
-  }
-
-  &.notes-input {
-    --min-height: auto;
-    
-    ion-textarea {
-      --color: #2d3748;
-      --placeholder-color: #94a3b8;
-    }
-  }
-}
-
-/* Selection Grids */
-.selection-grid {
-  display: grid;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  
-  &.pumping-side-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.selection-option {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem 0.75rem;
-  background: #faf9ff;
-  border-radius: 14px;
-  border: 1.5px solid #e2ddf5;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: 'Poppins', sans-serif;
-
-  &.selected {
-    border-color: #8383ed;
-    background: #ece9fb;
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-  
-  .option-label {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #2d3748;
-    text-align: center;
-    margin-top: 0.5rem;
-    font-family: 'Poppins', sans-serif;
-  }
-}
-
-.option-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0.5rem;
-  
-  ion-icon {
-    font-size: 1.8rem;
-    color: #7a73a9;
-  }
-}
-
-/* Quantity Controls */
-.quantity-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 12px;
-}
-
-.quantity-display {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: #8383ed;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  font-weight: 700;
-  font-family: 'Poppins', sans-serif;
-}
-
-.quantity-slider {
-  width: 100%;
-  --bar-background: #e2e8f0;
-  --bar-background-active: #8383ed;
-  --knob-background: #8383ed;
-  --knob-size: 24px;
-}
-
-.preset-buttons {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.preset-button {
-  --border-radius: 20px;
-  --border-color: #ff9e88;
-  --color: #ff9e88;
-  height: 36px;
-  font-size: 0.85rem;
-  min-width: 65px;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  
-  &:hover {
-    --background: rgba(255, 158, 136, 0.1);
-  }
-}
-
-/* Date Selection */
-.date-selection-container {
-  .date-options-grid {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-  }
-  
-  .date-option-button {
-    --border-radius: 20px;
-    --border-color: #8383ed;
-    --color: #8383ed;
-    height: 36px;
-    font-size: 0.85rem;
-    min-width: 80px;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 500;
-    
-    &.selected {
-      --background: #8383ed !important;
-      --color: #ffffff !important;
-      --border-color: #8383ed !important;
-      opacity: 1 !important;
-    }
-    
-    &:hover:not(.selected) {
-      --background: rgba(131, 131, 237, 0.1);
-    }
-  }
-  
-  .custom-date-picker {
-    margin-top: 1rem;
-    
-    .date-input {
-      background: #f8f9fa;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-      margin-bottom: 0;
-    }
-  }
-}
-
-/* Duration Mode */
-.duration-mode-selector {
-  margin-bottom: 1.5rem;
-
-  ion-segment {
-    --background: #f8fafc;
-    --color-checked: #8383ed;
-    --background-checked: #ffffff;
-    --border-radius: 8px;
-  }
-}
-
-.manual-duration {
-  .form-group {
-    margin-bottom: 0;
-  }
-}
-
+/* Timer mode */
 .timer-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: #faf9ff;
+  border: 1.5px solid $lavender-border;
+  border-radius: 12px;
   text-align: center;
-}
-
-.timer-display {
-  margin-bottom: 1rem;
 }
 
 .timer-circle {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #8383ed, #9999f0);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  color: #ffffff;
-  border: 4px solid rgba(255, 255, 255, 0.3);
+  gap: 2px;
 
   .timer-time {
-    font-size: 1.8rem;
-    font-weight: 700;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: $ink;
+    font-family: $font;
   }
 
   .timer-label {
-    font-size: 0.7rem;
-    opacity: 0.9;
-    letter-spacing: 1px;
+    font-size: 0.75rem;
     font-weight: 600;
-    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.06em;
+    color: $muted;
+    font-family: $font;
   }
 }
 
-.timer-controls {
-  .start-timer-button {
-    --background: #10b981;
-    --background-hover: #059669;
-    --border-radius: 12px;
-    --color: #ffffff;
-    height: 52px;
-    font-weight: 600;
-  }
+.timer-controls ion-button {
+  --border-radius: 12px;
+  --color: #ffffff;
+  height: 48px;
+  margin: 0;
+  font-weight: 600;
+  text-transform: none;
+  font-family: $font;
 
-  .stop-timer-button {
-    --background: #ef4444;
-    --background-hover: #dc2626;
-    --border-radius: 12px;
-    --color: #ffffff;
-    height: 52px;
-    font-weight: 600;
-  }
-}
-
-
-/* Quick Notes Section */
-.quick-notes-section {
-  // background: rgba(255, 255, 255, 0.8);
-  // border-radius: 16px;
-  // padding: 1.5rem;
-  margin-bottom: 2rem;
-  // border: 1px solid #f1f5f9;
-}
-
-.predefined-notes-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.predefined-note-chip {
-  --background: #ffffff;
-  --color: #64748b;
-  --border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid #e2e8f0;
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-
-  &.selected {
-    --background: #8383ed;
-    --color: #ffffff;
-    border-color: #d81b60;
-  }
-
-  &:hover {
-    transform: translateY(-1px);
-  }
-
-  &.note-red.selected {
-    --background: #dc2626;
-    --color: #ffffff;
-    border-color: #b91c1c;
-  }
-
-  &.note-yellow.selected {
-    --background: #f59e0b;
-    --color: #ffffff;
-    border-color: #d97706;
-  }
-}
-
-.note-selected-icon {
-  font-size: 1rem;
-  color: currentColor;
-  flex-shrink: 0;
-}
-
-/* Responsive Design */
-@media (min-width: 768px) {
-  .feed-log-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  .preset-buttons {
-    gap: 0.75rem;
-  }
-
-  .predefined-notes-grid {
-    gap: 0.75rem;
-  }
+  &.start-timer-button { --background: #{$primary-strong}; --background-hover: #5656c2; }
+  &.stop-timer-button { --background: #dc2626; --background-hover: #b91c1c; }
 }

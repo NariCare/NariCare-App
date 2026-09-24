@@ -12,33 +12,49 @@
 <ion-content>
   <div class="feed-log-container">
     <form [formGroup]="pumpingForm" class="feed-form single-form">
-      
+
+      <!-- Selected Baby Info -->
+      <div class="form-section selected-baby-info" *ngIf="displayBaby as baby">
+        <div class="selected-baby-display">
+          <div class="baby-avatar">
+            <app-custom-icon [babyGender]="baby.gender || 'male'" size="32px"></app-custom-icon>
+          </div>
+          <div class="baby-info">
+            <h3>{{ baby.name }}</h3>
+            <p>{{ calculateBabyAge(baby) }}</p>
+          </div>
+          <ion-icon name="checkmark-circle" class="selected-icon" aria-hidden="true"></ion-icon>
+        </div>
+      </div>
+
       <!-- Main Pumping Card -->
       <div class="form-section main-pumping-card">
         
         <!-- Date Selection -->
         <div class="section-group">
-          <h2 class="section-title">Date</h2>
-          <p class="section-description">When did this pumping session occur?</p>
-          
+          <!-- <h2 class="section-title">Date</h2>
+          <p class="section-description">When did this pumping session occur?</p> -->
+          <span class="field-label" id="pumping-date-label">Date</span>
+
           <div class="date-selection-container">
-            <div class="date-options-grid">
-              <ion-button 
+            <div class="date-options-grid" role="group" aria-labelledby="pumping-date-label">
+              <button
+                type="button"
                 *ngFor="let option of dateOptions"
-                fill="outline" 
-                size="small"
                 (click)="selectDateOption(option.value)"
                 [class.selected]="selectedDateOption === option.value"
-                class="date-option-button">
+                [attr.aria-pressed]="selectedDateOption === option.value"
+                class="date-chip">
                 {{ option.label }}
-              </ion-button>
+              </button>
             </div>
             
             <!-- Custom Date Picker - Only shown when "Other" is selected -->
             <div class="custom-date-picker" *ngIf="showDatePicker && selectedDateOption === 'other'">
               <ion-item lines="none" class="input-item date-input">
-                <ion-label position="stacked">Select Date</ion-label>
+                <!-- <ion-label position="stacked">Select Date</ion-label> -->
                 <ion-datetime
+                  aria-label="Select date"
                   formControlName="date"
                   presentation="date"
                   [max]="getCurrentDate()"
@@ -51,76 +67,78 @@
 
         <!-- Time of Pumping -->
         <div class="section-group">
-          <h2 class="section-title">Time of Pumping</h2>
-          <p class="section-description">What time did you start pumping?</p>
-          
+          <!-- <h2 class="section-title">Time of Pumping</h2>
+          <p class="section-description">What time did you start pumping?</p> -->
+
           <div class="form-group">
-            <label class="field-label">Start Time</label>
+            <label class="field-label" for="pumping-time">Start time</label>
             <ion-item lines="none" class="input-item time-input">
-              <ion-input
-                formControlName="time"
-                type="time"
-                placeholder="Current time">
-              </ion-input>
+              <!-- <ion-input formControlName="time" type="time" placeholder="Current time"></ion-input> -->
+              <app-time-field inputId="pumping-time" label="Start time" formControlName="time"></app-time-field>
             </ion-item>
           </div>
         </div>
 
         <!-- Pumping Side Selection -->
         <div class="section-group">
-          <h2 class="section-title">Pumping Side</h2>
-          <p class="section-description">Which side(s) did you pump?</p>
-          
-          <div class="selection-grid pumping-side-grid">
-            <div 
+          <!-- <h2 class="section-title">Pumping Side</h2>
+          <p class="section-description">Which side(s) did you pump?</p> -->
+          <span class="field-label" id="pumping-side-label">Pumping side</span>
+
+          <div class="option-grid" role="group" aria-labelledby="pumping-side-label">
+            <button
+              type="button"
               *ngFor="let side of pumpingSideOptions"
-              class="selection-option"
+              class="option-tile compact"
               [class.selected]="selectedPumpingSide === side.value"
+              [attr.aria-pressed]="selectedPumpingSide === side.value"
               (click)="selectPumpingSide(side.value)">
-              <div class="option-icon">
-                <ion-icon [name]="side.icon"></ion-icon>
-              </div>
-              <span class="option-label">{{ side.label }}</span>
-            </div>
+              <span>{{ side.label }}</span>
+              <ion-icon name="checkmark-circle" class="tile-check" aria-hidden="true" *ngIf="selectedPumpingSide === side.value"></ion-icon>
+            </button>
           </div>
         </div>
 
         <!-- Total Output -->
         <div class="section-group">
-          <h2 class="section-title">Total Output</h2>
-          <p class="section-description">How much milk did you pump in total?</p>
-          
+          <!-- <h2 class="section-title">Total Output</h2>
+          <p class="section-description">How much milk did you pump in total?</p> -->
+          <span class="field-label" id="pumping-output-label">Total output (mL)</span>
+
           <div class="quantity-container">
-            <div class="quantity-display">{{ pumpingForm.get('totalOutput')?.value || 0 }}ml</div>
+            <div class="quantity-display" aria-live="polite">{{ pumpingForm.get('totalOutput')?.value || 0 }} mL</div>
             <ion-range
               formControlName="totalOutput"
               min="0"
               max="500"
               step="5"
-              color="secondary"
+              color="primary"
               (ionChange)="onOutputChange($event)"
-              class="quantity-slider">
-              <ion-label slot="start">0ml</ion-label>
-              <ion-label slot="end">500ml</ion-label>
+              class="quantity-slider"
+              aria-labelledby="pumping-output-label">
+              <ion-label slot="start">0 mL</ion-label>
+              <ion-label slot="end">500 mL</ion-label>
             </ion-range>
             <div class="preset-buttons">
-              <ion-button 
+              <button
+                type="button"
                 *ngFor="let preset of outputPresets"
-                fill="outline" 
-                size="small"
                 (click)="setOutput(preset)"
-                class="preset-button">
-                {{ preset }}ml
-              </ion-button>
+                [class.selected]="pumpingForm.get('totalOutput')?.value === preset"
+                class="preset-chip">
+                {{ preset }} mL
+              </button>
             </div>
           </div>
         </div>
 
         <!-- Duration Section -->
         <div class="section-group">
-          <h2 class="section-title">Duration</h2>
-          <p class="section-description">How long did the pumping session last?</p>
-          
+          <!-- <h2 class="section-title">Duration</h2>
+          <p class="section-description">How long did the pumping session last?</p> -->
+          <span class="field-label" id="pumping-duration-label">Duration (min)</span>
+
+          <!-- ion-segment replaced by log-form chips (global segment style is peach); keep for reuse
           <div class="duration-mode-selector">
             <ion-segment [(ngModel)]="isTimerMode" [ngModelOptions]="{standalone: true}">
               <ion-segment-button [value]="false">
@@ -131,33 +149,39 @@
               </ion-segment-button>
             </ion-segment>
           </div>
+          -->
+          <div class="date-options-grid duration-mode-selector" role="group" aria-labelledby="pumping-duration-label">
+            <button type="button" class="date-chip" [class.selected]="!isTimerMode" [attr.aria-pressed]="!isTimerMode" (click)="isTimerMode = false">Manual entry</button>
+            <button type="button" class="date-chip" [class.selected]="isTimerMode" [attr.aria-pressed]="isTimerMode" (click)="isTimerMode = true">Timer</button>
+          </div>
 
           <!-- Manual Duration Entry -->
           <div class="manual-duration" *ngIf="!isTimerMode">
             <div class="form-group">
-              <label class="field-label">Duration (minutes)</label>
+              <!-- <label class="field-label">Duration (minutes)</label> -->
               <div class="quantity-container">
-                <div class="quantity-display">{{ pumpingForm.get('duration')?.value || 0 }}</div>
+                <div class="quantity-display" aria-live="polite">{{ pumpingForm.get('duration')?.value || 0 }} min</div>
                 <ion-range
                   formControlName="duration"
                   min="0"
                   max="60"
                   step="1"
-                  color="secondary"
+                  color="primary"
                   (ionChange)="onDurationChange($event)"
-                  class="quantity-slider">
-                  <ion-label slot="start">0min</ion-label>
-                  <ion-label slot="end">60min</ion-label>
+                  class="quantity-slider"
+                  aria-labelledby="pumping-duration-label">
+                  <ion-label slot="start">0 min</ion-label>
+                  <ion-label slot="end">60 min</ion-label>
                 </ion-range>
                 <div class="preset-buttons">
-                  <ion-button 
+                  <button
+                    type="button"
                     *ngFor="let preset of durationPresets"
-                    fill="outline" 
-                    size="small"
                     (click)="setDuration(preset)"
-                    class="preset-button">
-                    {{ preset }}min
-                  </ion-button>
+                    [class.selected]="pumpingForm.get('duration')?.value === preset"
+                    class="preset-chip">
+                    {{ preset }} min
+                  </button>
                 </div>
               </div>
             </div>
@@ -198,16 +222,19 @@
 
       <!-- Notes Section - Separate Card -->
       <div class="form-section notes-section">
-        <h2 class="section-title">Notes</h2>
-        <p class="section-description">Add any additional details about this pumping session (optional)</p>
+        <!-- <h2 class="section-title">Notes</h2>
+        <p class="section-description">Add any additional details about this pumping session (optional)</p> -->
 
         <div class="form-group">
-          <label class="field-label">Your Notes</label>
+          <!-- <label class="field-label">Your Notes</label> -->
+          <label class="field-label" for="pumping-notes">Notes</label>
           <ion-item lines="none" class="input-item notes-input">
+            <!-- placeholder="Any notes about this pumping session..." -->
             <ion-textarea
+              id="pumping-notes"
               formControlName="notes"
-              placeholder="Any notes about this pumping session..."
-              rows="4"
+              placeholder="Optional"
+              rows="3"
               autoGrow="true">
             </ion-textarea>
           </ion-item>
@@ -241,7 +268,7 @@
           class="save-button">
           <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
           <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
-          {{ isSubmitting ? 'Saving...' : (editRecord ? 'Save changes' : 'Log') }}
+          {{ isSubmitting ? 'Saving...' : (editRecord ? 'Save changes' : 'Save pumping session') }}
         </ion-button>
       </div>
     </form>

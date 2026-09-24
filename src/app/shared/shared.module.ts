@@ -25,6 +25,7 @@ import { BabySelectionModalComponent } from '../components/baby-selection-modal/
 import { BabyEditModalComponent } from '../components/baby-edit-modal/baby-edit-modal.component';
 import { AiChatComponent } from '../components/ai-chat/ai-chat.component';
 import { ActivityLogComponent } from '../components/activity-log/activity-log.component';
+import { TimeFieldComponent } from '../components/time-field/time-field.component';
 import { DailySummaryEntryComponent } from '../components/daily-summary-entry/daily-summary-entry.component';
 import { DailySummaryTableComponent } from '../components/daily-summary-table/daily-summary-table.component';
 
@@ -52,6 +53,7 @@ import { DailySummaryTableComponent } from '../components/daily-summary-table/da
     BabyEditModalComponent,
     AiChatComponent,
     ActivityLogComponent,
+    TimeFieldComponent,
     DailySummaryEntryComponent,
     DailySummaryTableComponent
   ],
@@ -85,6 +87,7 @@ import { DailySummaryTableComponent } from '../components/daily-summary-table/da
     BabyEditModalComponent,
     AiChatComponent,
     ActivityLogComponent,
+    TimeFieldComponent,
     DailySummaryEntryComponent,
     DailySummaryTableComponent
   ]

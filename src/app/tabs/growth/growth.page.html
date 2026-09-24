@@ -71,8 +71,8 @@
           <div class="tracker-icon">
             <app-custom-icon trackerType="weight" size="40px"></app-custom-icon>
           </div>
-          <span class="tracker-label">Weight</span>
-          <span class="tracker-description">Monitor your baby's growth</span>
+          <span class="tracker-label">Growth</span>
+          <span class="tracker-description">Track your baby's weight and height</span>
           <div class="tracker-arrow-badge" aria-hidden="true">
             <ion-icon name="chevron-forward"></ion-icon>
           </div>
@@ -853,13 +853,10 @@
             
             <div class="form-row">
               <div class="form-group half-width">
-                <label class="field-label">Start</label>
+                <label class="field-label" for="growth-start-time">Start</label>
                 <ion-item lines="none" class="input-item time-input">
-                  <ion-input
-                    formControlName="startTime"
-                    type="time"
-                    [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
-                  </ion-input>
+                  <!-- <ion-input formControlName="startTime" type="time" [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched"> </ion-input> -->
+                  <app-time-field inputId="growth-start-time" label="Start time" formControlName="startTime" [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched"></app-time-field>
                 </ion-item>
                 <div class="error-message" *ngIf="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
                   {{ getErrorMessage('startTime') }}
@@ -867,13 +864,10 @@
               </div>
               
               <div class="form-group half-width">
-                <label class="field-label">End</label>
+                <label class="field-label" for="growth-end-time">End</label>
                 <ion-item lines="none" class="input-item time-input">
-                  <ion-input
-                    formControlName="endTime"
-                    type="time"
-                    [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
-                  </ion-input>
+                  <!-- <ion-input formControlName="endTime" type="time" [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched"> </ion-input> -->
+                  <app-time-field inputId="growth-end-time" label="End time" formControlName="endTime" [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched"></app-time-field>
                 </ion-item>
                 <div class="error-message" *ngIf="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
                   {{ getErrorMessage('endTime') }}

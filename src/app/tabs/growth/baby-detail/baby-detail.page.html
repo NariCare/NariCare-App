@@ -886,20 +886,18 @@
 
             <div class="form-row">
               <div class="form-group half-width">
-                <label class="field-label">Start</label>
+                <label class="field-label" for="detail-start-time">Start</label>
                 <ion-item lines="none" class="input-item time-input">
-                  <ion-input formControlName="startTime" type="time"
-                    [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
-                  </ion-input>
+                  <!-- <ion-input formControlName="startTime" type="time" [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched"> </ion-input> -->
+                  <app-time-field inputId="detail-start-time" label="Start time" formControlName="startTime" [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched"></app-time-field>
                 </ion-item>
               </div>
 
               <div class="form-group half-width">
-                <label class="field-label">End</label>
+                <label class="field-label" for="detail-end-time">End</label>
                 <ion-item lines="none" class="input-item time-input">
-                  <ion-input formControlName="endTime" type="time"
-                    [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
-                  </ion-input>
+                  <!-- <ion-input formControlName="endTime" type="time" [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched"> </ion-input> -->
+                  <app-time-field inputId="detail-end-time" label="End time" formControlName="endTime" [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched"></app-time-field>
                 </ion-item>
               </div>
             </div>
