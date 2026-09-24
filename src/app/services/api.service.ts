@@ -77,7 +77,7 @@ export interface FeedRecordRequest {
 
 export interface WeightRecordRequest {
   babyId: string;
-  weight: number;
+  weight?: number; // optional when height is sent
   height?: number;
   notes?: string;
   date?: string; // ISO date string for when the measurement was taken

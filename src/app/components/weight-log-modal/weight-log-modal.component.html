@@ -55,8 +55,8 @@
         
         <!-- Date & Time Section -->
         <div class="section-group">
-          <h2 class="section-title">Date</h2>
-          <p class="section-description">When was this measured?</p>
+          <!-- <h2 class="section-title">Date</h2>
+          <p class="section-description">When was this measured?</p> -->
           
           <div class="datetime-group">
             <div class="form-group">
@@ -72,7 +72,8 @@
                     id="weightDate" 
                     formControlName="date"
                     presentation="date"
-                    min="2020-01-01">
+                    min="2020-01-01"
+                    [max]="getCurrentDate()">
                   </ion-datetime>
                 </ng-template>
               </ion-modal>
@@ -103,19 +104,20 @@
 
         <!-- Weight Section -->
         <div class="section-group">
-          <h2 class="section-title">⚖️ Weight</h2>
-          <p class="section-description">Enter the baby's weight in kilograms (up to 3 decimal places)</p>
-          
+          <!-- <h2 class="section-title">⚖️ Weight</h2>
+          <p class="section-description">Enter the baby's weight in kilograms, up to 3 decimal places (optional)</p> -->
+
           <div class="form-group">
-            <label class="field-label">Weight (kg) *</label>
+            <label class="field-label" for="growth-weight">Weight (kg)</label>
             <ion-item lines="none" class="input-item weight-input" [class.error]="weightForm.get('weight')?.invalid && weightForm.get('weight')?.touched">
               <ion-input
+                id="growth-weight"
                 formControlName="weight"
                 type="number"
                 step="0.001"
                 min="0.001"
                 max="50"
-                placeholder="e.g., 4.250"
+                placeholder="e.g. 4.25"
                 inputmode="decimal">
               </ion-input>
             </ion-item>
@@ -127,8 +129,8 @@
 
         <!-- Height Section -->
         <div class="section-group">
-          <h2 class="section-title">📏 Height</h2>
-          <p class="section-description">Enter the baby's height in centimeters (optional)</p>
+          <!-- <h2 class="section-title">📏 Height</h2>
+          <p class="section-description">Enter the baby's height in centimeters (optional)</p> -->
 
           <div class="form-group">
             <label class="field-label" for="growth-height">Height (cm)</label>
@@ -140,7 +142,7 @@
                 step="0.1"
                 min="20"
                 max="150"
-                placeholder="e.g., 52.5"
+                placeholder="e.g. 52.5"
                 inputmode="decimal">
               </ion-input>
             </ion-item>
@@ -148,21 +150,26 @@
               Please enter a valid height (20 - 150 cm)
             </div>
           </div>
+          <!-- <p class="section-description growth-hint" *ngIf="!hasGrowthValue()">Enter weight, height or both.</p> -->
+          <div class="error-message growth-empty-error" role="alert" *ngIf="showEmptyError && !hasGrowthValue()">
+            Enter weight, height or both
+          </div>
         </div>
 
         </div>
 
       <!-- Notes Section -->
       <div class="form-section notes-section">
-        <h2 class="section-title">Notes</h2>
-        <p class="section-description">Add any additional notes about this measurement (optional)</p>
+        <!-- <h2 class="section-title">Notes</h2>
+        <p class="section-description">Add any additional notes about this measurement (optional)</p> -->
 
         <div class="form-group">
-          <label class="field-label">Your Notes</label>
+          <label class="field-label" for="growth-notes">Notes</label>
           <ion-item lines="none" class="input-item notes-input">
             <ion-textarea
+              id="growth-notes"
               formControlName="notes"
-              placeholder="Write any additional details about the weight measurement..."
+              placeholder="Optional"
               rows="3"
               autoGrow="true">
             </ion-textarea>
@@ -193,11 +200,11 @@
         <ion-button 
           expand="block" 
           (click)="saveWeightRecord()"
-          [disabled]="!canSave() || isSubmitting"
+          [disabled]="!canSubmit() || isSubmitting"
           class="save-button">
           <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
           <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
-          {{ isSubmitting ? 'Saving...' : 'Save Growth Record' }}
+          {{ isSubmitting ? 'Saving...' : 'Save growth record' }}
         </ion-button>
       </div>
 

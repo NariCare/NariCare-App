@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import * as Highcharts from 'highcharts';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { BackendAuthService } from '../../../services/backend-auth.service';
@@ -31,6 +32,7 @@ import { User, Baby } from '../../../models/user.model';
 import { PumpingRecord } from '../../../models/growth-tracking.model';
 import { AgeCalculatorUtil } from '../../../shared/utils/age-calculator.util';
 import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
+import { whoPercentile, formatPercentile, whoCurve, GrowthKind } from '../../../shared/utils/who-lms.util';
 import { formatDate } from '@angular/common';
 
 interface ChartSeries { path: string; pts: { x: number; y: number }[]; tag: { x: number; y: number; w: number; text: string } }
@@ -41,9 +43,31 @@ const PLOT = { left: 8, right: 252, top: 14, bottom: 116 };
 const kg = (v: any) => { const n = parseFloat((+v).toFixed(2)); return Number.isInteger(n) ? n.toFixed(1) : String(n); };
 const cm = (v: any) => String(parseFloat((+v).toFixed(1)));
 
+export type GrowthRange = '6M' | '1Y' | '3Y' | '5Y' | 'All';
+interface GrowthPt { at: number; w: number | null; h: number | null }
+interface Spark { line: string; area: string; end: { x: number; y: number } }
+export interface GrowthData { pts: GrowthPt[]; spark: Partial<Record<GrowthKind, Spark>> }
+export interface GrowthChartView { w: [number, number][]; h: [number, number][]; label: string }
+const RANGE_MONTHS: Record<GrowthRange, number> = { '6M': 6, '1Y': 12, '3Y': 36, '5Y': 60, All: 0 };
+const DAY_MS = 864e5, MONTH_MS = 30.4375 * DAY_MS;
+const WEIGHT_COLOR = '#e0679a', HEIGHT_COLOR = '#6464d3';
+
+/** Sparkline paths in a 64 x 28 box: line, closed area, end dot. Undefined under 2 values. */
+function sparkline(vals: number[]): Spark | undefined {
+  if (vals.length < 2) return undefined;
+  const W = 64, H = 28, P = 3, lo = Math.min(...vals), hi = Math.max(...vals);
+  const xy = vals.map((v, i) => ({
+    x: +(P + (i / (vals.length - 1)) * (W - 2 * P)).toFixed(1),
+    y: +(hi === lo ? H / 2 : H - P - ((v - lo) / (hi - lo)) * (H - 2 * P)).toFixed(1)
+  }));
+  const line = xy.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' ');
+  const end = xy[xy.length - 1];
+  return { line, area: `${line} L${end.x} ${H} L${xy[0].x} ${H} Z`, end };
+}
+
 interface WeekBar { x: number; y: number; w: number; h: number; v: number; cls: string }
 export interface WeekChart { days: { x: number; label: string; today: boolean; bars: WeekBar[] }[]; legend: { cls: string; label: string }[]; label: string; total: number }
-export interface StatCard { value: string; sub: string }
+export interface StatCard { value: string; sub: string; empty?: boolean }
 export interface TrackerOverview { updated: string; last: StatCard; today: StatCard; week: WeekChart }
 interface WeekSeries { cls: string; label: string; count: (r: any) => number }
 
@@ -57,9 +81,9 @@ const diaperType = (r: any): string => r.change_type || r.type || r.changeType;
 @Component({
   selector: 'app-baby-detail',
   templateUrl: './baby-detail.page.html',
-  styleUrls: ['./baby-detail.page.scss'],
+  styleUrls: ['./baby-detail.page.scss', './baby-detail-growth.scss'],
 })
-export class BabyDetailPage implements OnInit {
+export class BabyDetailPage implements OnInit, OnDestroy {
   user: User | null = null;
   baby: Baby | null = null;
   babyId: string = '';
@@ -76,6 +100,19 @@ export class BabyDetailPage implements OnInit {
   diaperLog$: Observable<ActivityLog> | null = null;
   weightLog$: Observable<ActivityLog> | null = null;
   growthChart$: Observable<GrowthChart | null> | null = null;
+  growthData$: Observable<GrowthData> | null = null;
+  readonly growthKinds = ['weight', 'height'] as const;
+  readonly growthRanges: GrowthRange[] = ['6M', '1Y', '3Y', '5Y', 'All'];
+  growthRange: GrowthRange = 'All';
+  showWhoMedian = false;
+  showAllGrowth = false;
+  showAllLog = { feed: false, diaper: false };
+  showGrowthInfo = false;
+  growthChartView: GrowthChartView | null = null;
+  private growthPts: GrowthPt[] = [];
+  private hc?: Highcharts.Chart;
+  private hcEl?: HTMLElement;
+  private hcResize?: ResizeObserver;
   feedOverview$: Observable<TrackerOverview> | null = null;
   diaperOverview$: Observable<TrackerOverview> | null = null;
   hasMore: Partial<Record<HistoryType, Observable<boolean>>> = {};
@@ -132,7 +169,8 @@ export class BabyDetailPage implements OnInit {
     private backendGrowthService: BackendGrowthService,
     private toastController: ToastController,
     private alertController: AlertController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private zone: NgZone
   ) {
     // Initialize forms
     this.addRecordForm = this.formBuilder.group({
@@ -268,7 +306,11 @@ export class BabyDetailPage implements OnInit {
     this.feedLog$ = this.growthRecords$.pipe(map(toFeedLog));
     this.diaperLog$ = this.diaperChangeRecords$.pipe(map(records => this.toDiaperLog(records)));
     this.weightLog$ = this.weightRecords$.pipe(map(records => this.toWeightLog(records)));
-    this.growthChart$ = this.weightRecords$.pipe(map(records => this.toGrowthChart(records)));
+    // this.growthChart$ = this.weightRecords$.pipe(map(records => this.toGrowthChart(records)));
+    this.growthData$ = this.weightRecords$.pipe(
+      map(records => this.toGrowthData(records)),
+      tap(d => { this.growthPts = d.pts; this.refreshGrowthChart(); })
+    );
     // Stats use the loaded page (30 newest records), which covers today and the last 7 days in normal use
     this.feedOverview$ = this.growthRecords$.pipe(map(records => this.toFeedOverview(records)));
     this.diaperOverview$ = this.diaperChangeRecords$.pipe(map(records => this.toDiaperOverview(records)));
@@ -348,9 +390,11 @@ export class BabyDetailPage implements OnInit {
     const today = list.filter(x => DateOnlyUtil.isSameLocalDay(x.at, new Date()));
     const ml = today.reduce((n, x) => n + (+x.r.expressedMilkDetails?.quantity || 0) + (+x.r.formulaDetails?.quantity || 0), 0);
     const min = today.reduce((n, x) => n + (+x.r.directFeedDetails?.duration || 0), 0);
-    const todayCard = { value: plural(today.length, 'feed'), sub: [ml && `${ml} mL`, min && `${min} min`].filter(Boolean).join(' · ') };
+    const todayCard = today.length
+      ? { value: plural(today.length, 'feed'), sub: [ml && `${ml} mL`, min && `${min} min`].filter(Boolean).join(' · ') }
+      : { value: 'No feeds today', sub: '', empty: true };
     const last = list[0];
-    if (!last) return { updated: '', last: { value: '--', sub: '' }, today: todayCard, week };
+    if (!last) return { updated: '', last: { value: 'No feeds yet', sub: '', empty: true }, today: todayCard, week };
     const side = list.find(x => x.r.directFeedDetails?.breastSide)?.r.directFeedDetails.breastSide;
     const date = formatDate(last.at, 'dd MMM yyyy', 'en-US');
     return { updated: date, last: { value: agoValue(last.at, !!last.t), sub: side ? `Last side: ${side}` : date }, today: todayCard, week };
@@ -367,12 +411,11 @@ export class BabyDetailPage implements OnInit {
       { cls: 'lavender', label: 'Poop', count: x => dirty(x.r) }
     ], 'Diaper changes');
     const today = list.filter(x => DateOnlyUtil.isSameLocalDay(x.at, new Date()));
-    const todayCard = {
-      value: plural(today.length, 'change'),
-      sub: today.length ? `${today.reduce((n, x) => n + wet(x.r), 0)} pee · ${today.reduce((n, x) => n + dirty(x.r), 0)} poop` : ''
-    };
+    const todayCard = today.length
+      ? { value: plural(today.length, 'change'), sub: `${today.reduce((n, x) => n + wet(x.r), 0)} pee · ${today.reduce((n, x) => n + dirty(x.r), 0)} poop` }
+      : { value: 'No changes today', sub: '', empty: true };
     const last = list[0];
-    if (!last) return { updated: '', last: { value: '--', sub: '' }, today: todayCard, week };
+    if (!last) return { updated: '', last: { value: 'No changes yet', sub: '', empty: true }, today: todayCard, week };
     const type = ({ pee: 'Pee', poop: 'Poop', both: 'Both' } as Record<string, string>)[diaperType(last.r)] || '--';
     const wetness: string = last.r.wetness_level || last.r.wetness || last.r.wetnessLevel || '';
     return {
@@ -390,7 +433,7 @@ export class BabyDetailPage implements OnInit {
       return {
         icon: 'assets/Weight.svg', iconAlt: 'Growth', at: recordAt(r.record_date || r.date, time),
         time: time ? DateOnlyUtil.to12Hour(time) : undefined, label: r.notes || undefined,
-        value: `${r.weight} kg${r.height ? ` · ${r.height} cm` : ''}`
+        value: [r.weight != null && `${r.weight} kg`, r.height && `${r.height} cm`].filter(Boolean).join(' · ')
       };
     });
     // Birth weight lives on the baby profile, not in weight_records.
@@ -402,7 +445,8 @@ export class BabyDetailPage implements OnInit {
     return { rows, summary: rows.length ? `Latest ${rows[0].value}` : '' };
   }
 
-  /** Weight + height line chart geometry; each series has its own y scale. Null when under 2 points. */
+  /* Previous SVG chart builder, replaced by the Highcharts growth history chart; kept for reuse
+  // Weight + height line chart geometry; each series has its own y scale. Null when under 2 points.
   private toGrowthChart(records: any[]): GrowthChart | null {
     const pts = (records || []).map(r => ({ at: recordAt(r.record_date || r.date).getTime(), w: +r.weight || 0, h: +r.height || 0 }));
     const b = this.baby;
@@ -441,6 +485,7 @@ export class BabyDetailPage implements OnInit {
     const range = `${formatDate(t0, 'd MMM y', 'en-US')} to ${formatDate(t0 + span, 'd MMM y', 'en-US')}`;
     return { weight, height, ticks, label: `Growth chart from ${range}. Latest ${latest}.` };
   }
+  */
 
   goBack() {
     this.router.navigate(['/tabs/growth']);
@@ -492,7 +537,8 @@ export class BabyDetailPage implements OnInit {
     modal.onDidDismiss().then((result) => {
       if (result.data?.saved) {
         // Immediately update the baby's current weight in the UI
-        if (result.data.babyId && result.data.newWeight && this.baby?.id === result.data.babyId) {
+        // newWeight is undefined on height-only saves
+        if (result.data.babyId && result.data.newWeight != null && this.baby?.id === result.data.babyId) {
           this.baby.currentWeight = result.data.newWeight;
         }
         
@@ -674,7 +720,7 @@ export class BabyDetailPage implements OnInit {
     }
   }
 
-  async openWeightChartModal() {
+  async openWeightChartModal(kind: GrowthKind = 'weight') {
     if (!this.baby) {
       this.showToast('Baby data not available', 'warning');
       return;
@@ -690,26 +736,22 @@ export class BabyDetailPage implements OnInit {
     }
 
     try {
-      // Get the current weight records
-      const subscription = this.weightRecords$.subscribe(async (weightRecords) => {
-        console.log('Opening weight chart modal with records:', weightRecords);
-        
-        const modal = await this.modalController.create({
-          component: WeightChartModalComponent,
-          componentProps: {
-            weightRecords: weightRecords || [],
-            babyGender: this.baby!.gender,
-            babyBirthDate: this.baby!.dateOfBirth,
-            babyBirthWeight: this.baby!.birthWeight ?? null,
-            babyName: this.baby!.name
-          },
-          cssClass: 'weight-chart-modal'
-        });
-        await modal.present();
-        
-        // Unsubscribe after opening the modal
-        subscription.unsubscribe();
+      // Read the current records once; an open subscription reopened the chart on every cache refresh
+      const weightRecords = await firstValueFrom(this.weightRecords$);
+      const modal = await this.modalController.create({
+        component: WeightChartModalComponent,
+        componentProps: {
+          weightRecords: weightRecords || [],
+          babyGender: this.baby!.gender,
+          babyBirthDate: this.baby!.dateOfBirth,
+          babyBirthWeight: this.baby!.birthWeight ?? null,
+          babyBirthHeight: this.baby!.birthHeight ?? null,
+          babyName: this.baby!.name,
+          kind
+        },
+        cssClass: 'weight-chart-modal'
       });
+      await modal.present();
     } catch (error) {
       console.error('Error opening weight chart modal:', error);
       this.showToast('Error loading weight chart', 'danger');
@@ -790,27 +832,227 @@ export class BabyDetailPage implements OnInit {
     }
   }
 
+  latestRecord: any = null;
   latestWeightRecord: any = null;
+  latestHeightRecord: any = null;
   latestHeight: number | null = null;
+  prevWeightRecord: any = null;
+  prevHeightRecord: any = null;
 
   private cacheLatestWeight(records: any[] | null): void {
-    if (!records || records.length === 0) { this.latestWeightRecord = null; return; }
     // Same order as the list: record day, then save time, newest first
     const key = (r: any) => [String(r.record_date || r.date || '').slice(0, 10), String(r.created_at || '')];
-    const sorted = [...records].sort((a, b) => {
+    const sorted = [...(records || [])].sort((a, b) => {
       const [da, ca] = key(a), [db, cb] = key(b);
       return db.localeCompare(da) || new Date(cb).getTime() - new Date(ca).getTime();
     });
-    this.latestWeightRecord = sorted[0];
-    this.latestHeight = sorted.find(r => r.height)?.height ?? null;
+    this.latestRecord = sorted[0] ?? null;
+    this.latestWeightRecord = sorted.find(r => r.weight) ?? null;
+    this.latestHeightRecord = sorted.find(r => r.height) ?? null;
+    this.prevWeightRecord = sorted.filter(r => r.weight)[1] ?? null;
+    this.prevHeightRecord = sorted.filter(r => r.height)[1] ?? null;
+    this.latestHeight = this.latestHeightRecord?.height ?? null;
   }
 
-  // Date of the most recent weight/height measurement, e.g. "22 Sep 2026".
-  getLatestGrowthDate(): string {
-    const raw = this.latestWeightRecord?.record_date || this.latestWeightRecord?.date;
+  private formatRecordDate(r: any): string {
+    const raw = r?.record_date || r?.date;
     if (!raw) { return ''; }
     const d = recordAt(raw);
     return isNaN(d.getTime()) ? '' : formatDate(d, 'dd MMM yyyy', 'en-US');
+  }
+
+  // Date of the most recent weight/height measurement, e.g. "22 Sep 2026".
+  getLatestGrowthDate(): string { return this.formatRecordDate(this.latestRecord); }
+  getLatestWeightDate(): string { return this.formatRecordDate(this.latestWeightRecord); }
+  getLatestHeightDate(): string { return this.formatRecordDate(this.latestHeightRecord); }
+
+  // "35.0 kg" -> { n: '35.0', u: 'kg' } so the unit can be styled smaller
+  valueParts(v: string): { n: string; u: string } {
+    const m = /^(.*?)\s*(kg|cm|ago|feeds?|changes?)$/.exec(v || ''); // small unit after the big number
+    return m ? { n: m[1], u: m[2] } : { n: v || '--', u: '' };
+  }
+
+  // Compact card meta, e.g. { date: '23 Sep', pct: '50th', delta: '+0.3 kg' }
+  growthStatMeta(kind: 'weight' | 'height'): { date: string; pct: string; delta: string; up: boolean } {
+    const r = kind === 'weight' ? this.latestWeightRecord : this.latestHeightRecord;
+    const prev = kind === 'weight' ? this.prevWeightRecord : this.prevHeightRecord;
+    const raw = r?.record_date || r?.date;
+    const at = raw ? recordAt(raw) : null;
+    if (!at || isNaN(at.getTime())) { return { date: '', pct: '', delta: '', up: false }; }
+    const date = formatDate(at, at.getFullYear() === new Date().getFullYear() ? 'd MMM' : 'd MMM yyyy', 'en-US');
+    const value = +r[kind];
+    let pct = '';
+    const b = this.baby, sex = b?.gender;
+    if (b?.dateOfBirth && (sex === 'male' || sex === 'female')) {
+      const dob = recordAt(b.dateOfBirth);
+      const ageDays = Math.round((at.getTime() - dob.getTime()) / 86400000); // round absorbs DST hour shifts
+      const p = ageDays >= 0 ? whoPercentile(kind, sex, ageDays, value) : null;
+      pct = p == null ? '' : formatPercentile(p);
+    }
+    const diff = prev ? value - +prev[kind] : NaN;
+    const unit = kind === 'weight' ? 'kg' : 'cm';
+    const tiny = kind === 'weight' ? 0.05 : 0.5; // no "+0 cm since last" line
+    const delta = isNaN(diff) || Math.abs(diff) < tiny ? '' : `${diff >= 0 ? '+' : '-'}${kind === 'weight' ? kg(Math.abs(diff)) : cm(Math.abs(diff))} ${unit}`;
+    return { date, pct, delta, up: diff > 0 };
+  }
+
+  /** Baby age in fractional months today, null without a valid DOB. */
+  private babyAgeMonths(): number | null {
+    const dob = this.baby?.dateOfBirth ? recordAt(this.baby.dateOfBirth).getTime() : NaN;
+    return isNaN(dob) ? null : (Date.now() - dob) / MONTH_MS;
+  }
+
+  // WHO standards cover 0-60 months and need a known sex
+  get whoAvailable(): boolean {
+    const age = this.babyAgeMonths(), sex = this.baby?.gender;
+    return age != null && age <= 60 && (sex === 'male' || sex === 'female');
+  }
+
+  private toGrowthData(records: any[]): GrowthData {
+    const num = (v: any) => (+v > 0 ? +v : null);
+    const pts: GrowthPt[] = (records || []).map(r => ({ at: recordAt(r.record_date || r.date).getTime(), w: num(r.weight), h: num(r.height) }));
+    const b = this.baby, age = this.babyAgeMonths();
+    // Birth point squashes the axis for babies over 5 years, so it is skipped there
+    if (b?.dateOfBirth && age != null && age <= 60 && (num(b.birthWeight) || num(b.birthHeight))) {
+      pts.push({ at: recordAt(b.dateOfBirth).getTime(), w: num(b.birthWeight), h: num(b.birthHeight) });
+    }
+    const sorted = pts.filter(p => !isNaN(p.at)).sort((a, c) => a.at - c.at);
+    const last8 = (key: 'w' | 'h') => sorted.filter(p => p[key] != null).slice(-8).map(p => p[key] as number);
+    return { pts: sorted, spark: { weight: sparkline(last8('w')), height: sparkline(last8('h')) } };
+  }
+
+  setGrowthRange(r: GrowthRange): void {
+    this.growthRange = r;
+    this.refreshGrowthChart();
+  }
+
+  toggleWhoMedian(): void {
+    this.showWhoMedian = !this.showWhoMedian;
+    this.renderGrowthChart();
+  }
+
+  private refreshGrowthChart(): void {
+    const months = RANGE_MONTHS[this.growthRange];
+    const from = new Date();
+    from.setHours(0, 0, 0, 0);
+    from.setMonth(from.getMonth() - months);
+    const pts = months ? this.growthPts.filter(p => p.at >= from.getTime()) : this.growthPts;
+    const w = pts.filter(p => p.w != null).map(p => [p.at, p.w] as [number, number]);
+    const h = pts.filter(p => p.h != null).map(p => [p.at, p.h] as [number, number]);
+    if (!w.length && !h.length) {
+      this.growthChartView = null;
+    } else {
+      const d = (t: number) => formatDate(t, 'd MMM y', 'en-US');
+      const latest = [w.length && `weight ${kg(w[w.length - 1][1])} kg`, h.length && `height ${cm(h[h.length - 1][1])} cm`].filter(Boolean).join(', ');
+      this.growthChartView = { w, h, label: `Growth chart from ${d(pts[0].at)} to ${d(pts[pts.length - 1].at)}. Latest ${latest}.` };
+    }
+    this.renderGrowthChart();
+  }
+
+  // Container appears/disappears with the range and sub-tab; render on attach, destroy on detach
+  @ViewChild('growthHc') set growthHc(ref: ElementRef<HTMLElement> | undefined) {
+    const el = ref?.nativeElement;
+    if (el === this.hcEl) return;
+    this.destroyGrowthChart();
+    this.hcEl = el;
+    if (!el) return;
+    this.zone.runOutsideAngular(() => {
+      this.hcResize = new ResizeObserver(() => this.hc?.reflow());
+      this.hcResize.observe(el);
+    });
+    this.renderGrowthChart();
+  }
+
+  /** WHO median sampled across [x0, x1], clipped to 0-60 months from DOB. */
+  private whoMedian(kind: GrowthKind, x0: number, x1: number): [number, number][] {
+    const sex = this.baby?.gender as 'male' | 'female';
+    const dob = recordAt(this.baby!.dateOfBirth).getTime();
+    const lo = Math.max(x0, dob), hi = Math.min(x1, dob + 60 * MONTH_MS);
+    if (hi <= lo) return [];
+    const grid = whoCurve(kind, sex, 50, 60, 0.25);
+    const at = (t: number) => {
+      const m = (t - dob) / MONTH_MS / 0.25, i = Math.min(Math.floor(m), grid.length - 2), f = m - i;
+      return +(grid[i].value + (grid[i + 1].value - grid[i].value) * f).toFixed(2);
+    };
+    return Array.from({ length: 25 }, (_, i) => { const t = lo + ((hi - lo) * i) / 24; return [t, at(t)] as [number, number]; });
+  }
+
+  private renderGrowthChart(): void {
+    this.hc?.destroy();
+    this.hc = undefined;
+    const el = this.hcEl, v = this.growthChartView;
+    if (!el || !v) return;
+    const xs = [...v.w, ...v.h].map(p => p[0]), x0 = Math.min(...xs), x1 = Math.max(...xs);
+    const muted = '#5f5890';
+    const fill = (rgb: string): Highcharts.GradientColorObject => ({
+      linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
+      stops: [[0, `rgba(${rgb},0.22)`], [1, `rgba(${rgb},0)`]]
+    });
+    // Only the newest point carries a value pill; weight sits above its point, height below
+    const withTag = (data: [number, number][], text: string, bg: string, border: string, ink: string, dy: number) =>
+      data.map((p, i): Highcharts.PointOptionsObject => i < data.length - 1 ? { x: p[0], y: p[1] } : {
+        x: p[0], y: p[1],
+        dataLabels: {
+          enabled: true, format: text, backgroundColor: bg, borderColor: border, borderWidth: 1, borderRadius: 9,
+          padding: 4, y: dy, crop: false, overflow: 'justify', allowOverlap: true,
+          style: { color: ink, fontSize: '11px', fontWeight: '700', textOutline: 'none' }
+        }
+      });
+    const series: Highcharts.SeriesOptionsType[] = [];
+    if (v.w.length) {
+      series.push({ type: 'area', name: 'Weight', yAxis: 0, color: WEIGHT_COLOR, fillColor: fill('224,103,154'), tooltip: { valueSuffix: ' kg' },
+        data: withTag(v.w, `${kg(v.w[v.w.length - 1][1])} kg`, '#fdf0f5', WEIGHT_COLOR, '#a3285f', -10) });
+    }
+    if (v.h.length) {
+      series.push({ type: 'area', name: 'Height', yAxis: 1, color: HEIGHT_COLOR, fillColor: fill('100,100,211'), tooltip: { valueSuffix: ' cm' },
+        data: withTag(v.h, `${cm(v.h[v.h.length - 1][1])} cm`, '#f4f2fe', HEIGHT_COLOR, '#4f4598', 28) });
+    }
+    if (this.showWhoMedian && this.whoAvailable) {
+      const who = (kind: GrowthKind, yAxis: number, color: string): Highcharts.SeriesOptionsType => ({
+        type: 'line', name: `WHO 50th ${kind}`, yAxis, color, dashStyle: 'ShortDash', lineWidth: 1.5,
+        marker: { enabled: false }, enableMouseTracking: false, data: this.whoMedian(kind, x0, x1)
+      });
+      if (v.w.length) series.push(who('weight', 0, WEIGHT_COLOR));
+      if (v.h.length) series.push(who('height', 1, HEIGHT_COLOR));
+    }
+    const axisLabels = { style: { color: muted, fontSize: '11px' } };
+    const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.zone.runOutsideAngular(() => {
+      this.hc = Highcharts.chart(el, {
+        chart: { height: 220, spacing: [16, 4, 8, 6], backgroundColor: 'transparent', style: { fontFamily: 'inherit' } },
+        title: { text: undefined },
+        credits: { enabled: false },
+        legend: { enabled: false },
+        accessibility: { enabled: false }, // container carries role="img" + summary; records list is the table view
+        xAxis: {
+          type: 'datetime', minRange: 7 * DAY_MS, tickLength: 0, lineColor: '#e6e3f6',
+          crosshair: { color: '#d9d4f5' },
+          labels: { ...axisLabels, format: x1 - x0 > 730 * DAY_MS ? '{value:%Y}' : '{value:%e %b}' }
+        },
+        yAxis: [
+          { title: { text: null }, gridLineColor: '#eeecf8', tickAmount: 4, showEmpty: false, labels: { ...axisLabels, format: '{value} kg' } },
+          { title: { text: null }, opposite: true, gridLineWidth: 0, tickAmount: 4, showEmpty: false, labels: { ...axisLabels, format: '{value} cm' } }
+        ],
+        tooltip: { shared: true, xDateFormat: '%e %b %Y', borderRadius: 10, borderColor: '#ece9fb', backgroundColor: '#ffffff', style: { color: '#2d3748', fontSize: '12px' } },
+        plotOptions: {
+          series: { animation: !still, marker: { enabled: true, symbol: 'circle', radius: 4, lineWidth: 2, lineColor: '#ffffff' }, states: { hover: { lineWidthPlus: 0 } } },
+          area: { threshold: null, lineWidth: 2 }
+        },
+        series
+      });
+    });
+  }
+
+  private destroyGrowthChart(): void {
+    this.hcResize?.disconnect();
+    this.hcResize = undefined;
+    this.hc?.destroy();
+    this.hc = undefined;
+    this.hcEl = undefined;
+  }
+
+  ngOnDestroy(): void {
+    this.destroyGrowthChart();
   }
 
   getCurrentWeight(): string {

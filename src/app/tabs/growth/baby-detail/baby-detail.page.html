@@ -35,7 +35,7 @@
     </div>
     -->
 
-    <!-- Baby summary card, opens the existing edit action -->
+    <!-- Baby summary card, commented out for the Growth redesign; kept for reuse
     <button type="button" class="baby-summary-card" (click)="onEditClick()">
       <span class="summary-avatar" aria-hidden="true">
         <app-custom-icon [babyGender]="baby?.gender || 'male'" size="40px"></app-custom-icon>
@@ -48,34 +48,90 @@
       <ion-icon name="chevron-forward" class="summary-chevron" aria-hidden="true"></ion-icon>
       <span class="sr-only">Edit details</span>
     </button>
+    -->
 
     <!-- Sub-tabs -->
+    <!-- Purple band behind the tabs card so it overlaps the header -->
+    <div class="tabs-band">
     <div class="sub-tabs-container">
       <ion-segment [(ngModel)]="selectedSubTab" (ionChange)="onSubTabChange($event)" class="sub-tabs-segment">
         <ion-segment-button value="weight-size">
           <ion-label>Growth</ion-label>
         </ion-segment-button>
         <ion-segment-button value="feed-tracks">
-          <ion-label>Feed Tracking</ion-label>
+          <ion-label>Feed Log</ion-label>
         </ion-segment-button>
         <ion-segment-button value="diaper-change">
-          <ion-label>Diapers</ion-label>
+          <ion-label>Diaper Log</ion-label>
         </ion-segment-button>
         <!-- <ion-segment-button value="pumping-tracks">
           <ion-label>Pumping</ion-label>
         </ion-segment-button> -->
       </ion-segment>
     </div>
+    </div>
 
     <!-- Weight and Size Tab -->
     <div class="tab-content" *ngIf="selectedSubTab === 'weight-size'">
-
-      <!-- Growth overview -->
+      <!-- Previous growth overview + stat cards, kept for reuse
       <div class="overview-head">
         <h2 class="overview-title">Growth overview</h2>
         <span class="overview-updated" *ngIf="getLatestGrowthDate()">Last updated {{ getLatestGrowthDate() }}</span>
       </div>
 
+      <div class="growth-stats">
+        <div class="growth-stat gs-v weight is-static" *ngIf="growthStatMeta('weight') as m">
+          <div class="gs-head">
+            <span class="growth-stat-tile" aria-hidden="true"><ion-icon name="scale"></ion-icon></span>
+            <span class="growth-stat-label">Weight</span>
+          </div>
+          <div class="gs-value" *ngIf="valueParts(getCurrentWeight()) as v">{{ v.n }}<small *ngIf="v.u"> {{ v.u }}</small></div>
+          <div class="gs-meta" *ngIf="m.date">{{ m.date }}<span class="gs-pct" *ngIf="m.pct">{{ m.pct }} %ile</span></div>
+          <div class="gs-delta" *ngIf="m.delta">{{ m.delta }} since last</div>
+        </div>
+        <div class="growth-stat gs-v height is-static" *ngIf="growthStatMeta('height') as m">
+          <div class="gs-head">
+            <span class="growth-stat-tile" aria-hidden="true">
+              <svg class="height-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3h8M8 21h8M12 3v18M9 6l3-3 3 3M9 18l3 3 3-3"/>
+              </svg>
+            </span>
+            <span class="growth-stat-label">Height</span>
+          </div>
+          <div class="gs-value" *ngIf="valueParts(getCurrentHeight()) as v">{{ v.n }}<small *ngIf="v.u"> {{ v.u }}</small></div>
+          <div class="gs-meta" *ngIf="m.date">{{ m.date }}<span class="gs-pct" *ngIf="m.pct">{{ m.pct }} %ile</span></div>
+          <div class="gs-delta" *ngIf="m.delta">{{ m.delta }} since last</div>
+        </div>
+      </div>
+      -->
+      <!-- Previous compact stat cards (icon beside text), kept for reuse
+      <div class="growth-stats">
+        <div class="growth-stat weight is-static" *ngIf="growthStatMeta('weight') as m">
+          <span class="growth-stat-tile" aria-hidden="true"><ion-icon name="scale"></ion-icon></span>
+          <span class="growth-stat-body">
+            <span class="growth-stat-label">Weight</span>
+            <span class="growth-stat-value">{{ getCurrentWeight() }}</span>
+            <span class="growth-stat-date" *ngIf="m.date">{{ m.date }}<span class="growth-stat-pct" *ngIf="m.pct"> · {{ m.pct }} percentile</span></span>
+            <span class="growth-stat-delta" *ngIf="m.delta">{{ m.delta }} since last</span>
+          </span>
+        </div>
+        <div class="growth-stat height is-static" *ngIf="growthStatMeta('height') as m">
+          <span class="growth-stat-tile" aria-hidden="true">
+            <svg class="height-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3h8M8 21h8M12 3v18M9 6l3-3 3 3M9 18l3 3 3-3"/>
+            </svg>
+          </span>
+          <span class="growth-stat-body">
+            <span class="growth-stat-label">Height</span>
+            <span class="growth-stat-value">{{ getCurrentHeight() }}</span>
+            <span class="growth-stat-date" *ngIf="m.date">{{ m.date }}<span class="growth-stat-pct" *ngIf="m.pct"> · {{ m.pct }} percentile</span></span>
+            <span class="growth-stat-delta" *ngIf="m.delta">{{ m.delta }} since last</span>
+          </span>
+        </div>
+      </div>
+
+      -->
+      <!-- Previous tappable stat cards with chevron, kept for reuse
       <div class="growth-stats">
         <button type="button" class="growth-stat weight" (click)="openWeightChartModal()">
           <span class="growth-stat-tile" aria-hidden="true"><ion-icon name="scale"></ion-icon></span>
@@ -98,12 +154,7 @@
           <span class="sr-only">Open growth chart</span>
         </button>
       </div>
-
-      <ion-button expand="block" fill="outline" class="add-growth-button" (click)='onAddRecordClick()'>
-        <ion-icon name="add" slot="start" aria-hidden="true"></ion-icon>
-        Add growth record
-      </ion-button>
-
+      -->
       <!-- Previous actions + stat cards, kept for reuse
       <div class="tab-actions-section">
         <ion-button expand="block" fill="solid" class="see-charts-button" (click)='openWeightChartModal()'>
@@ -147,8 +198,13 @@
           [babyBirthDate]="baby.dateOfBirth">
         </app-weight-chart>
       </div> -->
-
-      <!-- Growth history: chart + recent records -->
+      <!-- Previous add button position, kept for reuse
+      <ion-button expand="block" fill="outline" class="add-growth-button" (click)='onAddRecordClick()'>
+        <ion-icon name="add" slot="start" aria-hidden="true"></ion-icon>
+        Add growth record
+      </ion-button>
+      -->
+      <!-- Previous growth history card with SVG mini chart, kept for reuse
       <section class="records-section history-card" aria-labelledby="growth-history-title">
         <div class="history-head">
           <div class="history-titles">
@@ -160,7 +216,6 @@
           </button>
         </div>
 
-        <!-- async subscribes unconditionally; null = still loading -->
         <ng-container *ngIf="{ log: weightLog$ | async, chart: growthChart$ | async, more: hasMore.weight ? (hasMore.weight | async) : false } as vm">
           <figure class="growth-chart" *ngIf="vm.chart as c">
             <svg viewBox="0 0 320 150" width="100%" role="img" [attr.aria-label]="c.label">
@@ -193,6 +248,121 @@
                             [hasMore]="vm.more" [loadingMore]="!!loadingOlder.weight" (loadMore)="loadOlder('weight')"></app-activity-log>
           <ng-container *ngIf="vm.log && !vm.log.rows.length" [ngTemplateOutlet]="noWeightRecords"></ng-container>
         </ng-container>
+        </section>
+      -->
+      <!-- async subscribes unconditionally; null = still loading -->
+      <ng-container *ngIf="{ log: weightLog$ | async, g: growthData$ | async, more: hasMore.weight ? (hasMore.weight | async) : false } as vm">
+      <ng-container *ngIf="{ weight: growthStatMeta('weight'), height: growthStatMeta('height') } as meta">
+
+      <!-- Growth overview -->
+      <section class="gv-card" aria-labelledby="growth-overview-title">
+        <div class="gv-head">
+          <h2 id="growth-overview-title" class="overview-title">Growth overview</h2>
+          <button type="button" class="gv-info" aria-label="About growth percentiles" aria-controls="growth-info"
+                  [attr.aria-expanded]="showGrowthInfo" (click)="showGrowthInfo = !showGrowthInfo">
+            <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+          </button>
+          <span class="gv-updated" *ngIf="getLatestGrowthDate()">Last updated {{ getLatestGrowthDate() }}</span>
+        </div>
+        <p id="growth-info" class="gv-info-text" [hidden]="!showGrowthInfo">Percentiles compare with WHO growth standards for babies up to 5 years.</p>
+
+        <div class="gv-stats">
+          <button type="button" *ngFor="let k of growthKinds" class="gv-stat" [ngClass]="k" (click)="openWeightChartModal(k)">
+            <span class="gv-top">
+              <span class="growth-stat-tile gv-tile" aria-hidden="true">
+                <ion-icon *ngIf="k === 'weight'" name="scale"></ion-icon>
+                <svg *ngIf="k === 'height'" class="height-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 3h8M8 21h8M12 3v18M9 6l3-3 3 3M9 18l3 3 3-3"/>
+                </svg>
+              </span>
+              <span class="gv-titles">
+                <span class="gv-label">{{ k === 'weight' ? 'Weight' : 'Height' }}</span>
+                <span class="gv-sub">Current</span>
+              </span>
+              <ion-icon name="chevron-forward" class="gv-chev" aria-hidden="true"></ion-icon>
+            </span>
+            <span class="gv-mid">
+              <span class="gv-value" *ngIf="valueParts(k === 'weight' ? getCurrentWeight() : getCurrentHeight()) as v">{{ v.n }}<small *ngIf="v.u"> {{ v.u }}</small></span>
+              <svg *ngIf="vm.g?.spark?.[k] as s" class="gv-spark" viewBox="0 0 64 28" aria-hidden="true" focusable="false">
+                <path [attr.d]="s.area" class="area"></path>
+                <path [attr.d]="s.line" class="line"></path>
+                <circle [attr.cx]="s.end.x" [attr.cy]="s.end.y" r="2.5" class="dot"></circle>
+              </svg>
+            </span>
+            <span class="gv-delta" *ngIf="meta[k].delta" [class.up]="meta[k].up">
+              <ion-icon [name]="meta[k].up ? 'arrow-up' : 'arrow-down'" aria-hidden="true"></ion-icon>{{ meta[k].delta }} since last
+            </span>
+            <span class="gv-date" *ngIf="meta[k].date">{{ meta[k].date }}</span>
+            <span class="sr-only">, open {{ k }} chart</span>
+          </button>
+        </div>
+
+        <div class="gv-pct" *ngIf="meta.weight.pct || meta.height.pct">
+          <span class="gv-pct-icon" aria-hidden="true"><ion-icon name="stats-chart"></ion-icon></span>
+          <span class="gv-pct-text">
+            <span class="gv-pct-title">Growth percentile</span>
+            <span class="gv-pct-sub">Based on WHO standards</span>
+          </span>
+          <span class="gv-pills">
+            <span class="gv-pill weight" *ngIf="meta.weight.pct">Weight: <b>{{ meta.weight.pct }} Percentile</b></span>
+            <span class="gv-pill height" *ngIf="meta.height.pct">Height: <b>{{ meta.height.pct }} Percentile</b></span>
+          </span>
+        </div>
+      </section>
+
+      <ion-button expand="block" fill="outline" class="add-growth-button" (click)='onAddRecordClick()'>
+        <ion-icon name="add" slot="start" aria-hidden="true"></ion-icon>
+        Add growth record
+      </ion-button>
+
+      <!-- Growth history: Highcharts dual-axis chart + recent records -->
+      <section class="records-section history-card gh-card" aria-labelledby="growth-history-title">
+        <div class="history-head">
+          <div class="history-titles">
+            <h3 id="growth-history-title" class="history-title">Growth history</h3>
+            <p class="history-sub">Track how weight and height change over time</p>
+            <!-- <p class="history-sub" *ngIf="getCurrentWeight() !== '--' || getCurrentHeight() !== '--'">Latest · {{ getCurrentWeight() }} · {{ getCurrentHeight() }}</p> -->
+          </div>
+          <button type="button" class="view-chart-link" (click)="openWeightChartModal('weight')">
+            View chart <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+
+        <ng-container *ngIf="vm.g?.pts?.length">
+          <div class="gh-ranges" role="group" aria-label="Chart time range">
+            <button type="button" *ngFor="let r of growthRanges" class="gh-range" [class.active]="r === growthRange"
+                    [attr.aria-pressed]="r === growthRange" (click)="setGrowthRange(r)">{{ r }}</button>
+          </div>
+          <figure class="gh-chart" *ngIf="growthChartView as c; else emptyRange">
+            <div #growthHc class="gh-hc" role="img" [attr.aria-label]="c.label"></div>
+            <figcaption class="gh-foot">
+              <span class="gh-legend" aria-hidden="true">
+                <span class="gh-key"><span class="gh-dot weight"></span>Weight (kg)</span>
+                <span class="gh-key"><span class="gh-dot height"></span>Height (cm)</span>
+                <span class="gh-key" *ngIf="showWhoMedian && whoAvailable"><span class="gh-dash"></span>WHO median</span>
+              </span>
+              <button type="button" class="gh-who" *ngIf="whoAvailable" [class.on]="showWhoMedian"
+                      [attr.aria-pressed]="showWhoMedian" (click)="toggleWhoMedian()">
+                <ion-icon [name]="showWhoMedian ? 'checkmark' : 'add'" aria-hidden="true"></ion-icon>WHO 50th percentile
+              </button>
+            </figcaption>
+          </figure>
+          <ng-template #emptyRange><p class="gh-empty">No entries in this range</p></ng-template>
+        </ng-container>
+
+        <div class="gh-recent-head" *ngIf="!vm.log || vm.log.rows.length">
+          <h4 class="recent-title">Recent records</h4>
+          <button type="button" class="view-chart-link gh-see-all" *ngIf="(vm.log?.rows?.length || 0) > 5"
+                  [attr.aria-expanded]="showAllGrowth" (click)="showAllGrowth = !showAllGrowth">
+            {{ showAllGrowth ? 'Show less' : 'See all' }} <ion-icon [name]="showAllGrowth ? 'chevron-up' : 'chevron-forward'" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+        <div class="skeleton-list" *ngIf="!vm.log" aria-hidden="true">
+          <div class="skeleton-row" *ngFor="let s of [1,2,3]"></div>
+        </div>
+        <app-activity-log *ngIf="vm.log?.rows?.length" [rows]="vm.log!.rows" [compact]="true" [collapsedCount]="showAllGrowth ? 1000 : 5" [showToggle]="false"
+                          [hasMore]="vm.more" [loadingMore]="!!loadingOlder.weight" (loadMore)="loadOlder('weight')"></app-activity-log>
+        <ng-container *ngIf="vm.log && !vm.log.rows.length" [ngTemplateOutlet]="noWeightRecords"></ng-container>
         <!-- Previous weight list, kept for reuse
          async subscribes unconditionally; null = still loading 
         <ng-container *ngIf="{ rows: weightRecords$ | async } as vm">
@@ -231,13 +401,22 @@
 
         -->
         <ng-template #noWeightRecords>
+          <!-- Previous plain empty state, kept for reuse
           <div class="empty-records">
             <ion-icon name="scale"></ion-icon>
             <h4>No growth records yet</h4>
             <p>Start tracking by clicking the "Add growth record" button above</p>
           </div>
+          -->
+          <div class="gv-empty">
+            <span class="gv-empty-icon" aria-hidden="true"><ion-icon name="scale"></ion-icon></span>
+            <h4 class="gv-empty-title">No growth records yet</h4>
+            <p class="gv-empty-text">Log the first one with Add growth record.</p>
+          </div>
         </ng-template>
       </section>
+      </ng-container>
+      </ng-container>
     </div>
 
     <!-- Feed Tracks Tab -->
@@ -245,7 +424,7 @@
     <div class="tab-content" *ngIf="selectedSubTab === 'feed-tracks'">
       <ng-container *ngIf="{ ov: feedOverview$ | async, log: feedLog$ | async, more: hasMore.feed ? (hasMore.feed | async) : false } as vm">
 
-      <!-- Feed overview -->
+      <!-- Previous feed overview + compact stat cards, kept for reuse
       <div class="overview-head">
         <h2 class="overview-title">Feed overview</h2>
         <span class="overview-updated" *ngIf="vm.ov?.updated">Last updated {{ vm.ov!.updated }}</span>
@@ -254,17 +433,34 @@
       <div class="growth-stats">
         <div class="growth-stat pink is-static">
           <span class="growth-stat-tile" aria-hidden="true"><img src="assets/Fed directly.svg" alt="" width="22" height="22"></span>
-          <span class="growth-stat-label">Last feeding</span>
-          <span class="growth-stat-value">{{ vm.ov?.last?.value || '--' }}</span>
-          <span class="growth-stat-date" *ngIf="vm.ov?.last?.sub">{{ vm.ov!.last.sub }}</span>
+          <span class="growth-stat-body">
+            <span class="growth-stat-label">Last feeding</span>
+            <span class="growth-stat-value">{{ vm.ov?.last?.value || '--' }}</span>
+            <span class="growth-stat-date" *ngIf="vm.ov?.last?.sub">{{ vm.ov!.last.sub }}</span>
+          </span>
         </div>
         <div class="growth-stat lavender is-static">
           <span class="growth-stat-tile" aria-hidden="true"><img src="assets/Formula.svg" alt="" width="22" height="22"></span>
-          <span class="growth-stat-label">Today</span>
-          <span class="growth-stat-value">{{ vm.ov?.today?.value || '--' }}</span>
-          <span class="growth-stat-date" *ngIf="vm.ov?.today?.sub">{{ vm.ov!.today.sub }}</span>
+          <span class="growth-stat-body">
+            <span class="growth-stat-label">Today</span>
+            <span class="growth-stat-value">{{ vm.ov?.today?.value || '--' }}</span>
+            <span class="growth-stat-date" *ngIf="vm.ov?.today?.sub">{{ vm.ov!.today.sub }}</span>
+          </span>
         </div>
       </div>
+      -->
+
+      <!-- Feed overview, same card system as Growth -->
+      <section class="gv-card" aria-labelledby="feed-overview-title">
+        <div class="gv-head">
+          <h2 id="feed-overview-title" class="overview-title">Feed overview</h2>
+          <span class="gv-updated" *ngIf="vm.ov?.updated">Last updated {{ vm.ov!.updated }}</span>
+        </div>
+        <div class="gv-stats">
+          <ng-container *ngTemplateOutlet="trackerStat; context: { c: vm.ov?.last, tone: 'weight', label: 'Last feeding', sub: 'Most recent', img: 'fed' }"></ng-container>
+          <ng-container *ngTemplateOutlet="trackerStat; context: { c: vm.ov?.today, tone: 'height', label: 'Today', sub: 'So far', img: 'bottle' }"></ng-container>
+        </div>
+      </section>
 
       <ion-button expand="block" fill="outline" class="add-growth-button" (click)='onAddRecordClick()'>
         <ion-icon name="add" slot="start" aria-hidden="true"></ion-icon>
@@ -291,11 +487,18 @@
 
         <ng-container *ngIf="vm.ov?.week?.total" [ngTemplateOutlet]="weekChart" [ngTemplateOutletContext]="{ $implicit: vm.ov!.week }"></ng-container>
 
-        <h4 class="recent-title">Recent records</h4>
+        <!-- <h4 class="recent-title">Recent records</h4> -->
+        <div class="gh-recent-head" *ngIf="!vm.log || vm.log.rows.length">
+          <h4 class="recent-title">Recent records</h4>
+          <button type="button" class="view-chart-link gh-see-all" *ngIf="(vm.log?.rows?.length || 0) > 5"
+                  [attr.aria-expanded]="showAllLog.feed" (click)="showAllLog.feed = !showAllLog.feed">
+            {{ showAllLog.feed ? 'Show less' : 'See all' }} <ion-icon [name]="showAllLog.feed ? 'chevron-up' : 'chevron-forward'" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
         <div class="skeleton-list" *ngIf="!vm.log" aria-hidden="true">
           <div class="skeleton-row" *ngFor="let s of [1,2,3]"></div>
         </div>
-        <app-activity-log *ngIf="vm.log?.rows?.length" [rows]="vm.log!.rows"
+        <app-activity-log *ngIf="vm.log?.rows?.length" [rows]="vm.log!.rows" [collapsedCount]="showAllLog.feed ? 1000 : 5" [showToggle]="false"
                           [hasMore]="vm.more" [loadingMore]="!!loadingOlder.feed" (loadMore)="loadOlder('feed')"></app-activity-log>
         <ng-container *ngIf="vm.log && !vm.log.rows.length" [ngTemplateOutlet]="noFeedRecords"></ng-container>
         <!-- Previous feed cards (with "1 feed" chip), kept for reuse
@@ -342,9 +545,16 @@
         -->
 
         <ng-template #noFeedRecords>
+          <!-- Previous plain empty state, kept for reuse
           <div class="empty-records">
             <h4>No feed records yet</h4>
             <p>Start tracking by clicking the "Add Feed Record" button above</p>
+          </div>
+          -->
+          <div class="gv-empty">
+            <span class="gv-empty-icon" aria-hidden="true"><span class="gv-glyph fed"></span></span>
+            <h4 class="gv-empty-title">No feeds yet</h4>
+            <p class="gv-empty-text">Log the first one with Add feed record.</p>
           </div>
         </ng-template>
       </section>
@@ -356,7 +566,7 @@
     <div class="tab-content" *ngIf="selectedSubTab === 'diaper-change'">
       <ng-container *ngIf="{ ov: diaperOverview$ | async, log: diaperLog$ | async, more: hasMore.diaper ? (hasMore.diaper | async) : false } as vm">
 
-      <!-- Diaper overview -->
+      <!-- Previous diaper overview + compact stat cards, kept for reuse
       <div class="overview-head">
         <h2 class="overview-title">Diaper overview</h2>
         <span class="overview-updated" *ngIf="vm.ov?.updated">Last updated {{ vm.ov!.updated }}</span>
@@ -365,17 +575,34 @@
       <div class="growth-stats">
         <div class="growth-stat pink is-static">
           <span class="growth-stat-tile" aria-hidden="true"><img src="assets/Diaper change.svg" alt="" width="22" height="22"></span>
-          <span class="growth-stat-label">Last change</span>
-          <span class="growth-stat-value">{{ vm.ov?.last?.value || '--' }}</span>
-          <span class="growth-stat-date" *ngIf="vm.ov?.last?.sub">{{ vm.ov!.last.sub }}</span>
+          <span class="growth-stat-body">
+            <span class="growth-stat-label">Last change</span>
+            <span class="growth-stat-value">{{ vm.ov?.last?.value || '--' }}</span>
+            <span class="growth-stat-date" *ngIf="vm.ov?.last?.sub">{{ vm.ov!.last.sub }}</span>
+          </span>
         </div>
         <div class="growth-stat lavender is-static">
           <span class="growth-stat-tile" aria-hidden="true"><ion-icon name="water"></ion-icon></span>
-          <span class="growth-stat-label">Today</span>
-          <span class="growth-stat-value">{{ vm.ov?.today?.value || '--' }}</span>
-          <span class="growth-stat-date" *ngIf="vm.ov?.today?.sub">{{ vm.ov!.today.sub }}</span>
+          <span class="growth-stat-body">
+            <span class="growth-stat-label">Today</span>
+            <span class="growth-stat-value">{{ vm.ov?.today?.value || '--' }}</span>
+            <span class="growth-stat-date" *ngIf="vm.ov?.today?.sub">{{ vm.ov!.today.sub }}</span>
+          </span>
         </div>
       </div>
+      -->
+
+      <!-- Diaper overview, same card system as Growth -->
+      <section class="gv-card" aria-labelledby="diaper-overview-title">
+        <div class="gv-head">
+          <h2 id="diaper-overview-title" class="overview-title">Diaper overview</h2>
+          <span class="gv-updated" *ngIf="vm.ov?.updated">Last updated {{ vm.ov!.updated }}</span>
+        </div>
+        <div class="gv-stats">
+          <ng-container *ngTemplateOutlet="trackerStat; context: { c: vm.ov?.last, tone: 'weight', label: 'Last change', sub: 'Most recent', img: 'diaper' }"></ng-container>
+          <ng-container *ngTemplateOutlet="trackerStat; context: { c: vm.ov?.today, tone: 'height', label: 'Today', sub: 'So far', icon: 'water-outline' }"></ng-container>
+        </div>
+      </section>
 
       <ion-button expand="block" fill="outline" class="add-growth-button" (click)='onAddRecordClick()'>
         <ion-icon name="add" slot="start" aria-hidden="true"></ion-icon>
@@ -402,11 +629,18 @@
 
         <ng-container *ngIf="vm.ov?.week?.total" [ngTemplateOutlet]="weekChart" [ngTemplateOutletContext]="{ $implicit: vm.ov!.week }"></ng-container>
 
-        <h4 class="recent-title">Recent records</h4>
+        <!-- <h4 class="recent-title">Recent records</h4> -->
+        <div class="gh-recent-head" *ngIf="!vm.log || vm.log.rows.length">
+          <h4 class="recent-title">Recent records</h4>
+          <button type="button" class="view-chart-link gh-see-all" *ngIf="(vm.log?.rows?.length || 0) > 5"
+                  [attr.aria-expanded]="showAllLog.diaper" (click)="showAllLog.diaper = !showAllLog.diaper">
+            {{ showAllLog.diaper ? 'Show less' : 'See all' }} <ion-icon [name]="showAllLog.diaper ? 'chevron-up' : 'chevron-forward'" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
         <div class="skeleton-list" *ngIf="!vm.log" aria-hidden="true">
           <div class="skeleton-row" *ngFor="let s of [1,2,3]"></div>
         </div>
-        <app-activity-log *ngIf="vm.log?.rows?.length" [rows]="vm.log!.rows" [compact]="true"
+        <app-activity-log *ngIf="vm.log?.rows?.length" [rows]="vm.log!.rows" [compact]="true" [collapsedCount]="showAllLog.diaper ? 1000 : 5" [showToggle]="false"
                           [hasMore]="vm.more" [loadingMore]="!!loadingOlder.diaper" (loadMore)="loadOlder('diaper')"></app-activity-log>
         <ng-container *ngIf="vm.log && !vm.log.rows.length" [ngTemplateOutlet]="noDiaperRecords"></ng-container>
         <!-- Previous diaper list, kept for reuse
@@ -441,24 +675,54 @@
         -->
 
         <ng-template #noDiaperRecords>
+          <!-- Previous plain empty state, kept for reuse
           <div class="empty-records">
             <ion-icon name="water-outline"></ion-icon>
             <h4>No diaper changes yet</h4>
             <p>Start tracking by clicking the "Add Diaper Change" button above</p>
+          </div>
+          -->
+          <div class="gv-empty">
+            <span class="gv-empty-icon" aria-hidden="true"><span class="gv-glyph diaper"></span></span>
+            <h4 class="gv-empty-title">No diaper changes yet</h4>
+            <p class="gv-empty-text">Log the first one with Add diaper change.</p>
           </div>
         </ng-template>
       </section>
       </ng-container>
     </div>
 
+    <!-- Stat card shared by the Feed and Diaper overviews; matches the Growth .gv-stat look -->
+    <ng-template #trackerStat let-c="c" let-tone="tone" let-label="label" let-sub="sub" let-img="img" let-icon="icon">
+      <div class="gv-stat is-static" [ngClass]="tone">
+        <span class="gv-top">
+          <span class="growth-stat-tile gv-tile" aria-hidden="true">
+            <span *ngIf="img" class="gv-glyph" [ngClass]="img"></span>
+            <ion-icon *ngIf="icon" [name]="icon"></ion-icon>
+          </span>
+          <span class="gv-titles">
+            <span class="gv-label">{{ label }}</span>
+            <span class="gv-sub">{{ sub }}</span>
+          </span>
+        </span>
+        <span class="gv-mid">
+          <span class="gv-value is-empty" *ngIf="c?.empty">{{ c.value }}</span>
+          <span class="gv-value" *ngIf="c && !c.empty && valueParts(c.value) as v">{{ v.n }}<small *ngIf="v.u"> {{ v.u }}</small></span>
+          <span class="gv-skel" *ngIf="!c" aria-hidden="true"></span>
+        </span>
+        <span class="gv-date" *ngIf="c?.sub">{{ c.sub }}</span>
+      </div>
+    </ng-template>
+
     <!-- 7-day bar chart shared by the Feed and Diaper tabs -->
     <ng-template #weekChart let-c>
       <figure class="growth-chart week-chart">
         <svg viewBox="0 0 320 150" width="100%" role="img" [attr.aria-label]="c.label">
+          <ng-container *ngFor="let d of c.days"><rect *ngIf="d.today" [attr.x]="d.x - 19" y="6" width="38" height="142" rx="10" class="today-col"></rect></ng-container>
           <line *ngFor="let g of [24, 70, 116]" x1="8" x2="312" [attr.y1]="g" [attr.y2]="g" class="grid"></line>
           <g *ngFor="let d of c.days">
             <ng-container *ngFor="let b of d.bars">
-              <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.w" [attr.height]="b.h" rx="3" [attr.class]="'bar ' + b.cls"></rect>
+              <rect [attr.x]="b.x" [attr.y]="b.y" [attr.width]="b.w" [attr.height]="b.h" rx="4" [attr.class]="'bar ' + b.cls"></rect>
               <text *ngIf="b.v" [attr.x]="b.x + b.w / 2" [attr.y]="b.y - 5" text-anchor="middle" class="bar-value">{{ b.v }}</text>
             </ng-container>
             <text [attr.x]="d.x" y="140" text-anchor="middle" class="tick" [class.today]="d.today">{{ d.label }}</text>

@@ -140,7 +140,7 @@
           <span class="baby-info">
             <span class="baby-name">{{ baby.name }}</span>
             <span class="baby-age">{{ calculateBabyAgeForBaby(baby.dateOfBirth) }}</span>
-            <span class="baby-weight">{{ baby.currentWeight || baby.birthWeight }}kg</span>
+            <span class="baby-weight" *ngIf="baby.currentWeight || baby.birthWeight">{{ baby.currentWeight || baby.birthWeight }}kg</span>
           </span>
           <ion-icon name="chevron-forward" class="baby-arrow" aria-hidden="true"></ion-icon>
         </button>

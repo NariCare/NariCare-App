@@ -1,258 +1,69 @@
-.weight-chart-container {
-  background: linear-gradient(135deg, #fef7f7, #fef2f2);
-  border-radius: 16px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  border: 2px solid #fce4ec;
-}
-
-.chart-header {
+:host {
+  --wc-ink: #334155;
+  --wc-muted: #64748b;
+  --wc-curve: #b8c4d4;
+  --wc-median: #64748b;
+  --wc-grid: #eef2f7;
+  --wc-point: #8383ed;
+  --wc-surface: #ffffff;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-
-  h3 {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #8383ed;
-    line-height: 1.3;
-  }
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
 }
 
-.chart-controls {
+.wc-root {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  
-  ion-chip {
-    font-weight: 600;
-    letter-spacing: 0.025em;
-  }
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
-.chart-loading {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #8383ed;
-
-  ion-spinner {
-    margin-bottom: 1rem;
-  }
-
-  p {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 500;
-  }
-}
-
-.chart-content {
+.wc-chart {
+  flex: 1;
+  min-height: 280px;
   width: 100%;
-  height: 350px;
-  margin-bottom: 1.5rem;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1rem;
+  touch-action: manipulation;
 }
 
-.chart-empty {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #8383ed;
-
-  ion-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: #8383ed;
-  }
-
-  h4 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #8383ed;
-  }
-
-  p {
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.4;
-    color: #64748b;
-  }
-}
-
-.chart-error {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #8383ed;
-
-  ion-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: #8383ed;
-  }
-
-  h4 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #8383ed;
-  }
-
-  p {
-    margin: 0 0 1.5rem 0;
-    font-size: 0.9rem;
-    line-height: 1.4;
-    color: #64748b;
-  }
-}
-
-.chart-info {
-  border-top: 2px solid #fce4ec;
-  padding-top: 1.5rem;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.info-item {
-  text-align: center;
-  background: rgba(255, 255, 255, 0.7);
-  padding: 1rem 0.5rem;
-  border-radius: 12px;
-  border: 1px solid #fce4ec;
-
-  .info-label {
-    font-size: 0.75rem;
-    color: #64748b;
-    margin-bottom: 0.25rem;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-    font-weight: 600;
-  }
-
-  .info-value {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #2d3748;
-    line-height: 1.2;
-  }
-}
-
-.interpretation-card {
-  background: linear-gradient(135deg, #fef7f7, #ffffff);
-  border-radius: 12px;
-  padding: 1rem;
-  border-left: 4px solid #8383ed;
-  margin-bottom: 1.5rem;
-
-  .interpretation-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-
-    ion-icon {
-      font-size: 1.25rem;
-      color: #8383ed;
-    }
-
-    h4 {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #8383ed;
-    }
-  }
-
-  p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #64748b;
-    line-height: 1.5;
-  }
-}
-
-.percentile-legend {
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
-  padding: 1rem;
-  border: 1px solid #fce4ec;
-  
-  h5 {
-    margin: 0 0 0.75rem 0;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #8383ed;
-  }
-}
-
-.legend-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: #64748b;
-  font-weight: 500;
-
-  .legend-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid #ffffff;
-  }
-}
-
-.legend-note {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #64748b;
+.wc-hint {
+  margin: 8px 4px 0;
+  font-size: 13px;
   line-height: 1.4;
-  font-style: italic;
-  background: rgba(233, 30, 99, 0.05);
-  padding: 0.75rem;
-  border-radius: 8px;
-  border-left: 3px solid #8383ed;
+  color: var(--wc-muted);
+  text-align: center;
 }
 
-@media (max-width: 768px) {
-  .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-    
-    h3 {
-      font-size: 1.1rem;
-      text-align: center;
-      width: 100%;
-    }
-  }
+.wc-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--wc-muted);
 
-  .info-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
+  ion-icon { font-size: 40px; color: var(--wc-point); margin-bottom: 12px; }
+  h4 { margin: 0 0 6px; font-size: 17px; font-weight: 600; color: var(--wc-ink); }
+  p { margin: 0; font-size: 14px; line-height: 1.5; max-width: 280px; }
+}
 
-  .legend-grid {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+// Tooltip HTML is injected by Highcharts, outside Angular's encapsulation
+:host ::ng-deep .wc-card {
+  min-width: 160px;
+  padding: 10px 12px;
+  font-family: inherit;
+  color: var(--wc-ink);
+  white-space: normal;
 
-  .chart-content {
-    height: 280px;
-    padding: 0.5rem;
-  }
+  .wc-card-date { font-size: 12px; color: var(--wc-muted); }
+  .wc-card-value { font-size: 18px; font-weight: 600; margin: 2px 0 4px; font-variant-numeric: tabular-nums; }
+  .wc-card-row { font-size: 13px; b { font-weight: 600; } }
+  .wc-card-meta { font-size: 12px; color: var(--wc-muted); margin-top: 4px; }
+}
+
+.wc-note {
+  margin: 0 0 8px; padding: 8px 12px; border-radius: 12px;
+  background: #f4f2fe; color: #5f5890; font-size: 13px; line-height: 1.4;
 }

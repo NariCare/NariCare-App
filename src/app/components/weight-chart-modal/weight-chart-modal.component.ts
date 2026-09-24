@@ -1,29 +1,26 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { Observable } from 'rxjs';
-import { WeightRecord } from '../../models/growth-tracking.model';
+import { GrowthKind, Sex } from '../../shared/utils/who-lms.util';
 
 @Component({
   selector: 'app-weight-chart-modal',
   templateUrl: './weight-chart-modal.component.html',
   styleUrls: ['./weight-chart-modal.component.scss']
 })
-export class WeightChartModalComponent implements OnInit {
-  @Input() weightRecords: WeightRecord[] = [];
-  @Input() babyGender: 'male' | 'female' = 'female';
-  @Input() babyBirthDate: Date = new Date();
+export class WeightChartModalComponent {
+  @Input() weightRecords: any[] = [];
+  @Input() babyGender: Sex = 'female';
+  @Input() babyBirthDate: Date | string = new Date();
   @Input() babyBirthWeight: number | null = null;
-  @Input() babyName: string = 'Baby';
+  @Input() babyBirthHeight: number | null = null;
+  @Input() babyName = '';
+  @Input() kind: GrowthKind = 'weight';
 
   constructor(private modalController: ModalController) {}
 
-  ngOnInit() {
-    console.log('Weight Chart Modal initialized with:', {
-      recordsCount: this.weightRecords.length,
-      gender: this.babyGender,
-      birthDate: this.babyBirthDate,
-      name: this.babyName
-    });
+  onKindChange(ev: Event) {
+    const v = (ev as CustomEvent).detail?.value;
+    if (v === 'weight' || v === 'height') this.kind = v;
   }
 
   async closeModal() {

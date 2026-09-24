@@ -55,27 +55,29 @@
         
         <!-- Date Selection -->
         <div class="section-group">
-          <h2 class="section-title">Date</h2>
-          <p class="section-description">When did this feeding occur?</p>
-          
+          <!-- <h2 class="section-title">Date</h2>
+          <p class="section-description">When did this feeding occur?</p> -->
+          <span class="field-label" id="feed-date-label">Date</span>
+
           <div class="date-selection-container">
-            <div class="date-options-grid">
-              <ion-button 
+            <div class="date-options-grid" role="group" aria-labelledby="feed-date-label">
+              <button
+                type="button"
                 *ngFor="let option of dateOptions"
-                fill="outline" 
-                size="small"
                 (click)="selectDateOption(option.value)"
                 [class.selected]="selectedDateOption === option.value"
-                class="date-option-button">
+                [attr.aria-pressed]="selectedDateOption === option.value"
+                class="date-chip">
                 {{ option.label }}
-              </ion-button>
+              </button>
             </div>
             
             <!-- Custom Date Picker - Only shown when "Other" is selected -->
             <div class="custom-date-picker" *ngIf="showDatePicker && selectedDateOption === 'other'">
               <ion-item lines="none" class="input-item date-input">
-                <ion-label position="stacked">Select Date</ion-label>
+                <!-- <ion-label position="stacked">Select Date</ion-label> -->
                 <ion-datetime
+                  aria-label="Select date"
                   formControlName="date"
                   presentation="date"
                   [max]="getCurrentDate()"
@@ -88,29 +90,30 @@
 
         <!-- Feed Type Selection -->
         <div class="section-group">
-          <h2 class="section-title">Feed Type</h2>
-          
-          <div class="feed-type-grid">
-            <div 
+          <!-- <h2 class="section-title">Feed Type</h2> -->
+          <span class="field-label" id="feed-type-label">Feed type</span>
+
+          <div class="option-grid" role="group" aria-labelledby="feed-type-label">
+            <button
+              type="button"
               *ngFor="let feedType of feedTypeOptions"
-              class="feed-type-option"
+              class="option-tile"
               [class.selected]="isFeedTypeSelected(feedType.value)"
+              [attr.aria-pressed]="isFeedTypeSelected(feedType.value)"
               (click)="toggleFeedType(feedType.value)">
-              <div class="feed-type-icon">
+              <span class="tile-icon" aria-hidden="true">
                 <app-custom-icon [feedingType]="getFeedingIconType(feedType.value)" size="32px"></app-custom-icon>
-              </div>
-              <div class="feed-type-content">
-                <h4>{{ feedType.label }}</h4>
-                <!-- <p>{{ feedType.description }}</p> -->
-              </div>
-              <ion-icon name="checkmark-circle" class="selection-indicator" *ngIf="isFeedTypeSelected(feedType.value)"></ion-icon>
-            </div>
+              </span>
+              <span>{{ feedType.label }}</span>
+              <!-- <p>{{ feedType.description }}</p> -->
+              <ion-icon name="checkmark-circle" class="tile-check" aria-hidden="true" *ngIf="isFeedTypeSelected(feedType.value)"></ion-icon>
+            </button>
           </div>
         </div>
 
         <!-- Feed Details Section -->
         <div class="section-group" *ngIf="selectedFeedTypes.length > 0">
-          <h2 class="section-title">Feed Details</h2>
+          <!-- <h2 class="section-title">Feed Details</h2> -->
 
           <!-- Single Feed time replaced by per-type Start Time below; keep for reuse
           <div class="form-group">
@@ -130,7 +133,7 @@
             </div>
             
             <div class="form-group">
-              <label class="field-label" for="direct-start-time">Start Time</label>
+              <label class="field-label" for="direct-start-time">Start time</label>
               <ion-item lines="none" class="input-item time-input">
                 <ion-input
                   id="direct-start-time"
@@ -141,44 +144,47 @@
             </div>
 
             <div class="form-group">
-              <label class="field-label">Breast Side</label>
-              <div class="selection-grid breast-side-grid">
-                <div 
+              <span class="field-label" id="breast-side-label">Breast side</span>
+              <div class="option-grid" role="group" aria-labelledby="breast-side-label">
+                <button
+                  type="button"
                   *ngFor="let side of breastSideOptions"
-                  class="selection-option"
+                  class="option-tile compact"
                   [class.selected]="selectedBreastSide === side.value"
+                  [attr.aria-pressed]="selectedBreastSide === side.value"
                   (click)="selectBreastSide(side.value)">
-                  <div class="option-icon">
+                  <span class="tile-icon" aria-hidden="true">
                     <ion-icon [name]="side.icon"></ion-icon>
-                  </div>
-                  <span class="option-label">{{ side.label }}</span>
-                </div>
+                  </span>
+                  <span>{{ side.label }}</span>
+                </button>
               </div>
             </div>
 
             <div class="form-group">
-              <label class="field-label">Duration (minutes)</label>
+              <label class="field-label" id="duration-label">Duration (minutes)</label>
               <div class="quantity-container">
-                <div class="quantity-display">{{ feedForm.get('duration')?.value || 0 }} min</div>
+                <div class="quantity-display" aria-live="polite">{{ feedForm.get('duration')?.value || 0 }} min</div>
                 <ion-range
                   formControlName="duration"
                   min="1"
                   max="120"
                   step="1"
                   color="primary"
-                  class="quantity-slider">
+                  class="quantity-slider"
+                  aria-labelledby="duration-label">
                   <ion-label slot="start">1min</ion-label>
                   <ion-label slot="end">120min</ion-label>
                 </ion-range>
                 <div class="preset-buttons">
-                  <ion-button 
+                  <button
+                    type="button"
                     *ngFor="let preset of durationPresets"
-                    fill="outline" 
-                    size="small"
                     (click)="setDuration(preset)"
-                    class="preset-button">
-                    {{ preset }}min
-                  </ion-button>
+                    [class.selected]="feedForm.get('duration')?.value === preset"
+                    class="preset-chip">
+                    {{ preset }} min
+                  </button>
                 </div>
               </div>
             </div>
@@ -205,11 +211,11 @@
           <div class="conditional-section expressed-milk" *ngIf="isFeedTypeSelected('expressed')">
             <div class="section-header">
               <!-- <ion-icon name="water"></ion-icon> -->
-              <h3>Expressed Milk</h3>
+              <h3>Expressed milk</h3>
             </div>
             
             <div class="form-group">
-              <label class="field-label" for="expressed-start-time">Start Time</label>
+              <label class="field-label" for="expressed-start-time">Start time</label>
               <ion-item lines="none" class="input-item time-input">
                 <ion-input
                   id="expressed-start-time"
@@ -220,28 +226,29 @@
             </div>
 
             <div class="form-group">
-              <label class="field-label">EBM Quantity Given</label>
+              <label class="field-label" id="ebm-label">Expressed milk (ml)</label>
               <div class="quantity-container">
-                <div class="quantity-display">{{ feedForm.get('ebmQuantity')?.value || 0 }}ml</div>
+                <div class="quantity-display" aria-live="polite">{{ feedForm.get('ebmQuantity')?.value || 0 }}ml</div>
                 <ion-range
                   formControlName="ebmQuantity"
                   min="0"
                   max="300"
                   step="5"
                   color="primary"
-                  class="quantity-slider">
+                  class="quantity-slider"
+                  aria-labelledby="ebm-label">
                   <ion-label slot="start">0ml</ion-label>
                   <ion-label slot="end">300ml</ion-label>
                 </ion-range>
                 <div class="preset-buttons">
-                  <ion-button 
+                  <button
+                    type="button"
                     *ngFor="let preset of ebmPresets"
-                    fill="outline" 
-                    size="small"
                     (click)="setEbmQuantity(preset)"
-                    class="preset-button">
-                    {{ preset }}ml
-                  </ion-button>
+                    [class.selected]="feedForm.get('ebmQuantity')?.value === preset"
+                    class="preset-chip">
+                    {{ preset }} ml
+                  </button>
                 </div>
               </div>
             </div>
@@ -255,7 +262,7 @@
             </div>
             
             <div class="form-group">
-              <label class="field-label" for="formula-start-time">Start Time</label>
+              <label class="field-label" for="formula-start-time">Start time</label>
               <ion-item lines="none" class="input-item time-input">
                 <ion-input
                   id="formula-start-time"
@@ -266,28 +273,29 @@
             </div>
 
             <div class="form-group">
-              <label class="field-label">Formula Quantity Given</label>
+              <label class="field-label" id="formula-label">Formula (ml)</label>
               <div class="quantity-container">
-                <div class="quantity-display">{{ feedForm.get('formulaQuantity')?.value || 0 }}ml</div>
+                <div class="quantity-display" aria-live="polite">{{ feedForm.get('formulaQuantity')?.value || 0 }}ml</div>
                 <ion-range
                   formControlName="formulaQuantity"
                   min="0"
                   max="300"
                   step="5"
                   color="warning"
-                  class="quantity-slider">
+                  class="quantity-slider"
+                  aria-labelledby="formula-label">
                   <ion-label slot="start">0ml</ion-label>
                   <ion-label slot="end">300ml</ion-label>
                 </ion-range>
                 <div class="preset-buttons">
-                  <ion-button 
+                  <button
+                    type="button"
                     *ngFor="let preset of formulaPresets"
-                    fill="outline" 
-                    size="small"
                     (click)="setFormulaQuantity(preset)"
-                    class="preset-button">
-                    {{ preset }}ml
-                  </ion-button>
+                    [class.selected]="feedForm.get('formulaQuantity')?.value === preset"
+                    class="preset-chip">
+                    {{ preset }} ml
+                  </button>
                 </div>
               </div>
             </div>
@@ -298,14 +306,17 @@
 
       <!-- Notes Section - Separate Card -->
       <div class="form-section notes-section">
-        <h2 class="section-title">Notes (optional)</h2>
+        <!-- <h2 class="section-title">Notes (optional)</h2> -->
 
         <div class="form-group">
+          <label class="field-label" for="feed-notes">Notes</label>
           <ion-item lines="none" class="input-item notes-input">
+            <!-- placeholder="Quick notes about this feeding..." -->
             <ion-textarea
+              id="feed-notes"
               formControlName="notes"
-              placeholder="Quick notes about this feeding..."
-              rows="2"
+              placeholder="Optional"
+              rows="3"
               autoGrow="true">
             </ion-textarea>
           </ion-item>
@@ -370,7 +381,7 @@
           class="save-button">
           <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
           <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
-          {{ isSubmitting ? 'Saving...' : (editRecord ? 'Save changes' : 'Log Feed') }}
+          {{ isSubmitting ? 'Saving...' : (editRecord ? 'Save changes' : 'Save feed') }}
         </ion-button>
       </div>
     </form>

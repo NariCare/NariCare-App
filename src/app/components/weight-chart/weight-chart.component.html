@@ -1,89 +1,13 @@
-<div class="weight-chart-container">
-  <div class="chart-header">
-    <h3>{{ babyGender === 'male' ? 'Your Little Boy' : 'Your Little Girl' }}'s Growth Story 💕</h3>
-    <div class="chart-controls">
-      <ion-chip [color]="percentileInterpretation.color === '#10b981' ? 'success' : percentileInterpretation.color === '#ef4444' ? 'danger' : 'warning'" size="small" *ngIf="!isLoading && weightRecords.length > 0">
-        {{ getSimplePercentileMessage() }}
-      </ion-chip>
-    </div>
+<div class="wc-root">
+  <!-- Previous full-screen empty state for babies over 5 years, kept for reuse
+  <div class="wc-empty" *ngIf="outOfRange" role="status">
+    <ion-icon name="stats-chart-outline" aria-hidden="true"></ion-icon>
+    <h4>WHO charts cover birth to 5 years</h4>
+    <p>Your recorded entries are still saved in growth history.</p>
   </div>
-
-  <!-- Percentile Legend -->
-  <div class="percentile-legend">
-    <h5>Understanding Your Baby's Growth 📊</h5>
-    <div class="legend-grid">
-      <div class="legend-item">
-        <div class="legend-color" style="background: #fbbf24;"></div>
-        <span>🌱 Smaller babies (perfectly normal!)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #10b981;"></div>
-        <span>🌟 Average range (most babies)</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color" style="background: #8b5cf6;"></div>
-        <span>🌲 Bigger babies (also normal!)</span>
-      </div>
-    </div>
-    <p class="legend-note">
-      Every baby grows at their own beautiful pace! This chart shows how your little one compares to other babies their age. 
-      Remember: healthy babies come in all sizes! 💕
-    </p>
-  </div>
-
-  <!-- Loading State -->
-  <div class="chart-loading" *ngIf="isLoading">
-    <ion-spinner name="crescent" color="primary"></ion-spinner>
-    <p>Preparing your baby's growth story... 💕</p>
-  </div>
-
-  <!-- Chart Container -->
-  <div #chartContainer class="chart-content" [style.display]="isLoading || chartError ? 'none' : 'block'"></div>
-
-  <!-- Error State -->
-  <div class="chart-error" *ngIf="chartError">
-    <ion-icon name="heart-dislike-outline"></ion-icon>
-    <h4>Oops! Chart Not Loading</h4>
-    <p>We're having trouble showing your baby's growth chart right now.</p>
-    <ion-button fill="outline" size="small" (click)="initializeChart()">
-      Try Again
-    </ion-button>
-  </div>
-
-  <!-- Empty State -->
-  <div class="chart-empty" *ngIf="!isLoading && !hasChartData">
-    <ion-icon name="heart-outline"></ion-icon>
-    <h4>Ready to Track Growth! 🌱</h4>
-    <p>Add your baby's weight to see their beautiful growth journey compared to other babies</p>
-  </div>
-
-  <!-- Chart Info -->
-  <div class="chart-info" *ngIf="!isLoading && hasChartData">
-    <div class="info-grid">
-      <div class="info-item">
-        <div class="info-label">How Baby's Doing</div>
-        <div class="info-value" [style.color]="percentileInterpretation.color">
-          {{ getMotherFriendlyStatus() }}
-        </div>
-      </div>
-      
-      <div class="info-item">
-        <div class="info-label">Growth Pattern</div>
-        <div class="info-value">{{ getMotherFriendlyTrend() }}</div>
-      </div>
-      
-      <div class="info-item">
-        <div class="info-label">Weekly Gain</div>
-        <div class="info-value">{{ getMotherFriendlyWeightGain() }}</div>
-      </div>
-    </div>
-
-    <div class="interpretation-card" [style.border-left-color]="percentileInterpretation.color">
-      <div class="interpretation-header">
-        <ion-icon [name]="percentileInterpretation.color === '#10b981' ? 'heart' : percentileInterpretation.color === '#ef4444' ? 'medical' : 'information-circle'"></ion-icon>
-        <h4>{{ getEncouragingTitle() }}</h4>
-      </div>
-      <p>{{ getEncouragingMessage() }}</p>
-    </div>
-  </div>
+  -->
+  <p class="wc-note" *ngIf="outOfRange" role="status">WHO percentile curves cover birth to 5 years, so only your entries are shown.</p>
+  <div #chartContainer class="wc-chart" role="img" [attr.aria-label]="summary"></div>
+  <p class="wc-hint" *ngIf="points.length === 0">No {{ kind === 'weight' ? 'weight' : 'height' }} entries yet.<ng-container *ngIf="!outOfRange"> Curves show WHO percentiles for {{ sexLabel.toLowerCase() }}s.</ng-container></p>
+  <p class="wc-hint" *ngIf="points.length > 0">Tap a point for details.<ng-container *ngIf="!outOfRange"> Lines show WHO percentiles.</ng-container></p>
 </div>
