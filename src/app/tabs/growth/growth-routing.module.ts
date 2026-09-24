@@ -20,6 +20,10 @@ const routes: Routes = [
     loadChildren: () => import('./pumping-history/pumping-history.module').then(m => m.PumpingHistoryPageModule)
   },
   {
+    path: 'daily-summary/:babyId',
+    loadChildren: () => import('./daily-summary/daily-summary.module').then(m => m.DailySummaryPageModule)
+  },
+  {
     path: 'timeline',
     loadChildren: () => import('./timeline/timeline.module').then(m => m.TimelinePageModule)
   },

@@ -185,6 +185,11 @@
     <div class="tab-content" *ngIf="selectedMainTab === 'mothers-journey' && !isPregnantNoBaby()">
 
       <!-- My Journey redesign: summary cards, feeding and pumping journeys -->
+      <!-- Daily Summary entry for the journey baby -->
+      <app-daily-summary-entry *ngIf="journeyBabyId && (trackerSummary.today$(journeyBabyId!) | async) as s" style="margin-bottom: 12px"
+                               [day]="s.day" [loading]="s.loading" [error]="s.error"
+                               (open)="openDailySummary()" (retry)="trackerSummary.retryToday(journeyBabyId!)"></app-daily-summary-entry>
+
       <ng-container *ngIf="{ feed: feedJourney$ | async } as vm">
         <div class="mj-summary">
           <button type="button" class="mj-summary-card mj-pink" (click)="openFeedsSeeAll()"

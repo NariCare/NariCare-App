@@ -29,6 +29,7 @@ import { ApiService } from '../../services/api.service';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 import { RecordActionsService } from '../../services/record-actions.service';
+import { TrackerSummaryService } from '../../services/tracker-summary.service';
 
 interface JourneyRow { key: string; at: Date; time: string; icon: string; iconAlt: string; label: string; value?: string; record: any; }
 interface JourneyDay { label: string; rows: JourneyRow[]; }
@@ -117,7 +118,8 @@ export class GrowthPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     public router: Router,
     private apiService: ApiService,
-    private recordActions: RecordActionsService
+    private recordActions: RecordActionsService,
+    public trackerSummary: TrackerSummaryService
   ) {
     // Daily tracking form
     this.addRecordForm = this.formBuilder.group({
@@ -1325,6 +1327,10 @@ export class GrowthPage implements OnInit, OnDestroy {
 
   openFeedsSeeAll(): void {
     if (this.journeyBabyId) this.router.navigate(['/tabs/growth/feeds', this.journeyBabyId]);
+  }
+
+  openDailySummary(): void {
+    if (this.journeyBabyId) this.router.navigate(['/tabs/growth/daily-summary', this.journeyBabyId]);
   }
 
   openPumpSeeAll(): void {

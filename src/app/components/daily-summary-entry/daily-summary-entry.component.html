@@ -1,0 +1,12 @@
+<button type="button" class="dse-card" [class.is-error]="error" (click)="onTap()"
+        [attr.aria-label]="loading ? 'Loading daily summary' : aria" [attr.aria-busy]="loading">
+  <span class="dse-tile" aria-hidden="true">
+    <ion-icon [name]="error ? 'refresh-outline' : 'today-outline'"></ion-icon>
+  </span>
+  <span class="dse-text">
+    <span class="dse-title">Daily Summary <span class="dse-sub">Today so far</span></span>
+    <ion-skeleton-text *ngIf="loading; else lineTpl" animated class="dse-skel"></ion-skeleton-text>
+    <ng-template #lineTpl><span class="dse-line" [class.is-empty]="!error && !day?.hasData">{{ line }}</span></ng-template>
+  </span>
+  <ion-icon name="chevron-forward" class="dse-chev" aria-hidden="true"></ion-icon>
+</button>

@@ -1,0 +1,316 @@
+// Daily Summary page; header, body, chips and sr-only come from history-page.scss
+$primary-strong: #6464d3;
+$muted-strong: #5f5890;
+$ink: #2d3748;
+$lavender-border: #ece9fb;
+$lavender-tint: #f4f2fe;
+$pink-tint: #fdf0f5;
+$pink-border: #f8dde8;
+$pink-ink: #a3285f;
+
+@mixin tap {
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+}
+
+.ds-share {
+  @include tap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  margin-inline-end: 8px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+
+  ion-icon { font-size: 18px; }
+  &:disabled { opacity: 0.5; cursor: default; }
+  &:focus-visible { outline-color: #ffffff; }
+}
+
+// Date navigator
+.ds-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  background: #ffffff;
+  border: 1px solid $lavender-border;
+  border-radius: 999px;
+  box-shadow: 0 4px 16px rgba(100, 100, 211, 0.06);
+}
+
+.ds-nav-step {
+  @include tap;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: $lavender-tint;
+  color: $primary-strong;
+  font-size: 20px;
+
+  &:disabled { opacity: 0.4; cursor: default; }
+}
+
+.ds-nav-date {
+  @include tap;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: $ink;
+
+  > ion-icon { flex: 0 0 auto; font-size: 18px; color: $primary-strong; }
+}
+
+.ds-nav-text { display: flex; flex-direction: column; min-width: 0; text-align: left; line-height: 1.2; }
+.ds-nav-main { font-size: 0.9375rem; font-weight: 700; }
+.ds-nav-sub { font-size: 0.75rem; color: $muted-strong; }
+
+.ds-error {
+  @include tap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid $pink-border;
+  border-radius: 16px;
+  background: $pink-tint;
+  color: $pink-ink;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: left;
+
+  ion-icon { flex: 0 0 auto; font-size: 18px; }
+}
+
+// Sections
+.ds-section { margin-top: 16px; }
+
+.gv-card {
+  padding: 16px 14px;
+  background: #ffffff;
+  border: 1px solid $lavender-border;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(100, 100, 211, 0.06);
+}
+
+.ds-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  h2 { margin: 0; font-size: 1rem; font-weight: 700; color: $ink; }
+}
+
+.ds-link {
+  @include tap;
+  min-height: 44px;
+  margin: -10px -6px -10px 0;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  color: $primary-strong;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ds-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ds-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid $lavender-border;
+  border-radius: 16px;
+  background: $lavender-tint;
+
+  &.pink { background: $pink-tint; border-color: $pink-border; }
+  &:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+
+.ds-tile {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: $primary-strong;
+  font-size: 18px;
+
+  &.pink { color: $pink-ink; }
+}
+
+.ds-metric-label { font-size: 0.8125rem; font-weight: 600; color: $muted-strong; line-height: 1.25; }
+
+.ds-metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+
+  small { font-size: 0.875rem; font-weight: 600; color: $muted-strong; }
+}
+
+.ds-skel-tile { width: 32px; height: 32px; border-radius: 10px; }
+.ds-empty { margin: 10px 0 0; font-size: 0.8125rem; color: $muted-strong; }
+
+// Compared with the previous day: neutral ink only, no good/bad colours
+.ds-compare {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid $lavender-border;
+  border-radius: 16px;
+
+  h2 { margin: 0 0 8px; font-size: 0.8125rem; font-weight: 700; color: $muted-strong; }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: $lavender-tint;
+    font-size: 0.75rem;
+    color: $ink;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.ds-cmp-label b { font-weight: 700; }
+
+.ds-cmp-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 600;
+  color: $muted-strong;
+
+  ion-icon { font-size: 12px; }
+}
+
+.ds-ranges { margin-bottom: 12px; }
+.ds-foot { margin: 16px 2px 0; font-size: 0.75rem; line-height: 1.45; color: $muted-strong; }
+
+// Day details sheet
+.ds-sheet { padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); overflow-y: auto; max-height: 100%; }
+
+.ds-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  h2 { margin: 0; font-size: 1.125rem; font-weight: 700; color: $ink; }
+  p { margin: 2px 0 0; font-size: 0.8125rem; color: $muted-strong; }
+}
+
+.ds-close {
+  @include tap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -6px -8px 0 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: $muted-strong;
+  font-size: 22px;
+}
+
+.ds-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    border-bottom: 1px solid $lavender-border;
+
+    &:last-child { border-bottom: 0; }
+  }
+
+  .ds-tile { background: $lavender-tint; }
+  .ds-tile.pink { background: $pink-tint; }
+}
+
+.ds-row-label { flex: 1; min-width: 0; font-size: 0.9375rem; color: $ink; }
+
+.ds-row-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  small { font-size: 0.8125rem; font-weight: 600; color: $muted-strong; }
+}
+
+.ds-sub-title { margin: 16px 0 2px; font-size: 0.875rem; font-weight: 700; color: $muted-strong; }
+
+.ds-note {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f7f6fe;
+  color: $muted-strong;
+
+  ion-icon { flex: 0 0 auto; margin-top: 2px; font-size: 18px; color: $primary-strong; }
+  p { margin: 0; font-size: 0.8125rem; line-height: 1.45; }
+}

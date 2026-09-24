@@ -1,0 +1,144 @@
+<ion-header class="history-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/growth" text="" aria-label="Back"></ion-back-button>
+    </ion-buttons>
+    <div class="header-text">
+      <h1>Daily Summary</h1>
+      <p>Your baby's care at a glance</p>
+    </div>
+    <ion-buttons slot="end">
+      <button type="button" class="ds-share" (click)="share()" [disabled]="loading || error" aria-label="Share summary">
+        <ion-icon name="share-social-outline" aria-hidden="true"></ion-icon>
+        <span>Share</span>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="history-content">
+  <div class="history-body">
+
+    <!-- Date navigator -->
+    <nav class="ds-nav" aria-label="Choose day">
+      <button type="button" class="ds-nav-step" (click)="step(-1)" aria-label="Previous day">
+        <ion-icon name="chevron-back" aria-hidden="true"></ion-icon>
+      </button>
+      <button type="button" class="ds-nav-date" (click)="openDay()" [attr.aria-label]="dateLabel + ', ' + daySub + '. Open day details'">
+        <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+        <span class="ds-nav-text">
+          <span class="ds-nav-main">{{ dateLabel }}</span>
+          <span class="ds-nav-sub">{{ daySub }}</span>
+        </span>
+      </button>
+      <button type="button" class="ds-nav-step" (click)="step(1)" [disabled]="isToday" aria-label="Next day">
+        <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+      </button>
+    </nav>
+
+    <!-- Error -->
+    <div role="alert" *ngIf="error">
+      <button type="button" class="ds-error" (click)="retry()">
+        <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+        Couldn't load summary. Tap to retry.
+      </button>
+    </div>
+
+    <!-- Overview -->
+    <section class="gv-card ds-section" aria-labelledby="ds-overview-title" *ngIf="loaded || loading">
+      <div class="ds-head">
+        <h2 id="ds-overview-title">{{ isToday ? "Today's Overview" : 'Overview' }}</h2>
+        <button type="button" class="ds-link" (click)="openDay()" *ngIf="!loading">Day details</button>
+      </div>
+      <div class="ds-grid" *ngIf="loading" aria-busy="true" aria-label="Loading overview">
+        <div class="ds-metric lavender" *ngFor="let i of [1, 2, 3, 4, 5]">
+          <ion-skeleton-text animated class="ds-skel-tile"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 70%; height: 12px"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 40%; height: 20px"></ion-skeleton-text>
+        </div>
+      </div>
+      <div class="ds-grid" *ngIf="!loading">
+        <div class="ds-metric" *ngFor="let m of overview" [ngClass]="m.tone">
+          <span class="ds-tile" aria-hidden="true"><img [src]="m.img" alt="" width="20" height="20"></span>
+          <span class="ds-metric-label">{{ m.label }}</span>
+          <span class="ds-metric-value">{{ m.value }}<small *ngIf="m.unit && m.value !== '-'"> {{ m.unit }}</small></span>
+        </div>
+      </div>
+      <p class="ds-empty" *ngIf="!loading && !selected.hasData">Nothing logged for this day.</p>
+    </section>
+
+    <!-- Compared with the previous day, neutral styling on purpose -->
+    <section class="ds-compare" *ngIf="loaded && !loading && compare" aria-labelledby="ds-compare-title">
+      <h2 id="ds-compare-title">{{ compareTitle }}</h2>
+      <ul>
+        <li *ngFor="let c of compare">
+          <span class="sr-only">{{ c.aria }}</span>
+          <span class="ds-cmp-label" aria-hidden="true">{{ c.label }} <b>{{ c.value }}</b></span>
+          <span class="ds-cmp-delta" aria-hidden="true">
+            <ion-icon [name]="c.dir === 'up' ? 'arrow-up' : c.dir === 'down' ? 'arrow-down' : 'remove'"></ion-icon>{{ c.delta }}
+          </span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Daily History -->
+    <section class="ds-section" aria-labelledby="ds-history-title" *ngIf="loaded || loading">
+      <div class="ds-head">
+        <h2 id="ds-history-title">Daily History</h2>
+      </div>
+      <div class="filter-chips ds-ranges" role="radiogroup" aria-label="History range">
+        <button type="button" class="chip" role="radio" *ngFor="let r of ranges"
+                [class.active]="range === r" [attr.aria-checked]="range === r"
+                [attr.aria-label]="'Last ' + r + ' days'" (click)="setRange(r)">{{ r }}D</button>
+      </div>
+      <app-daily-summary-table [days]="history" [loading]="loading" [selected]="selectedDate"
+                               (dayTap)="openDay($event)"></app-daily-summary-table>
+    </section>
+
+    <p class="ds-foot">These numbers are for each calendar day, from midnight to midnight.</p>
+  </div>
+
+  <!-- Day details sheet -->
+  <ion-modal [isOpen]="detailsOpen" (didDismiss)="detailsOpen = false" [initialBreakpoint]="0.85" [breakpoints]="[0, 0.85, 1]">
+    <ng-template>
+      <div class="ds-sheet">
+        <div class="ds-sheet-head">
+          <div>
+            <h2 id="ds-sheet-title">{{ dateLabel }}</h2>
+            <p>{{ daySub }}</p>
+          </div>
+          <button type="button" class="ds-close" (click)="detailsOpen = false" aria-label="Close day details">
+            <ion-icon name="close" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+
+        <ul class="ds-rows">
+          <li *ngFor="let m of details">
+            <ng-container *ngTemplateOutlet="rowTpl; context: { m: m }"></ng-container>
+          </li>
+        </ul>
+
+        <h3 class="ds-sub-title">Additional details</h3>
+        <ul class="ds-rows">
+          <li *ngFor="let m of additional">
+            <ng-container *ngTemplateOutlet="rowTpl; context: { m: m }"></ng-container>
+          </li>
+        </ul>
+
+        <div class="ds-note">
+          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+          <p>{{ definition }} These numbers are for the selected calendar day.</p>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <ng-template #rowTpl let-m="m">
+    <span class="ds-tile" [ngClass]="m.tone" aria-hidden="true">
+      <img *ngIf="m.img" [src]="m.img" alt="" width="18" height="18">
+      <ion-icon *ngIf="m.icon" [name]="m.icon"></ion-icon>
+    </span>
+    <span class="ds-row-label">{{ m.label }}</span>
+    <span class="ds-row-value">{{ m.value }}<small *ngIf="m.unit && m.value !== '-'"> {{ m.unit }}</small></span>
+  </ng-template>
+</ion-content>

@@ -34,6 +34,7 @@ import { AgeCalculatorUtil } from '../../../shared/utils/age-calculator.util';
 import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
 import { whoPercentile, formatPercentile, whoCurve, GrowthKind } from '../../../shared/utils/who-lms.util';
 import { formatDate } from '@angular/common';
+import { TrackerSummaryService } from '../../../services/tracker-summary.service';
 
 interface ChartSeries { path: string; pts: { x: number; y: number }[]; tag: { x: number; y: number; w: number; text: string } }
 export interface GrowthChart { weight?: ChartSeries; height?: ChartSeries; ticks: { x: number; label: string; anchor: string }[]; label: string }
@@ -170,7 +171,8 @@ export class BabyDetailPage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private alertController: AlertController,
     private modalController: ModalController,
-    private zone: NgZone
+    private zone: NgZone,
+    public trackerSummary: TrackerSummaryService
   ) {
     // Initialize forms
     this.addRecordForm = this.formBuilder.group({
@@ -200,6 +202,8 @@ export class BabyDetailPage implements OnInit, OnDestroy {
     
     this.initializeSpeechRecognition();
   }
+
+  openDailySummary(): void { this.router.navigate(['/tabs/growth/daily-summary', this.babyId]); }
 
   ngOnInit() {
     this.route.params.subscribe(params => {
