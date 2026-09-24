@@ -792,3 +792,8 @@ ion-button.preset-button {
 .feed-record.formula-feed .feed-icon-label ion-icon {
   color: #ffa726;
 }
+
+/* Hide the bottom tab bar while the keyboard is open (class set by ai-chat focus / native keyboard events) */
+body.keyboard-open ion-tab-bar {
+  display: none;
+}
