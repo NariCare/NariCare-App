@@ -1,0 +1,45 @@
+<div class="adm-page-head">
+  <div>
+    <h1>AI Ground Truth</h1>
+    <p>Review Ask NariCare AI answers. The original answer is never changed.</p>
+  </div>
+  <label class="air-filter">
+    <span>Category</span>
+    <select [(ngModel)]="category" (ngModelChange)="setCategory()">
+      <option value="">All categories</option>
+      <option *ngFor="let c of categories" [value]="c">{{ categoryLabel(c) }}</option>
+      <option value="uncategorized">Uncategorized</option>
+    </select>
+  </label>
+</div>
+
+<div class="adm-tabs" role="tablist" aria-label="Review status">
+  <button *ngFor="let s of tabs" type="button" role="tab" [attr.aria-selected]="status === s" (click)="setStatus(s)" [class.air-flag-tab]="s === 'flagged'">
+    <ion-icon *ngIf="s === 'flagged'" name="flag-outline" aria-hidden="true"></ion-icon>{{ s | titlecase }}<span class="air-count" *ngIf="counts?.[s] != null">{{ counts?.[s] }}</span>
+  </button>
+</div>
+
+<div class="air-flags adm-seg" role="group" aria-label="Filter by flag">
+  <button type="button" [attr.aria-pressed]="!flag" (click)="flag && toggleFlag(flag)">All flags</button>
+  <button *ngFor="let f of flags" type="button" [attr.aria-pressed]="flag === f.key" (click)="toggleFlag(f.key)">{{ f.label }}</button>
+</div>
+
+<div class="air-list" role="tabpanel" [attr.aria-busy]="loading">
+  <ng-container *ngIf="loading && !items.length">
+    <div class="adm-skel" *ngFor="let _ of [1, 2, 3]"></div>
+  </ng-container>
+  <div class="adm-error" *ngIf="error" role="alert">
+    <span>Couldn't load AI answers.</span>
+    <button type="button" class="adm-btn ghost sm" (click)="retry()">Try again</button>
+  </div>
+  <p class="adm-card adm-empty" *ngIf="!loading && !error && !items.length">No {{ status }} answers{{ category ? ' in ' + categoryLabel(category) : '' }}{{ flag ? ' with this flag' : '' }}.</p>
+  <app-ai-review-card *ngFor="let p of items; trackBy: trackBy" [pair]="p" (reviewed)="onReviewed($event)"></app-ai-review-card>
+</div>
+
+<nav class="adm-pager" *ngIf="total > limit" aria-label="Pages">
+  <span class="adm-muted">Page {{ page }} of {{ pages }} ({{ total }} answers)</span>
+  <span>
+    <button type="button" class="adm-btn ghost sm" (click)="go(page - 1)" [disabled]="page <= 1 || loading">Previous</button>
+    <button type="button" class="adm-btn ghost sm" (click)="go(page + 1)" [disabled]="page >= pages || loading">Next</button>
+  </span>
+</nav>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { CanActivate, Router, UrlTree } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { map, take, filter } from 'rxjs/operators';
 import { BackendAuthService } from '../services/backend-auth.service';
@@ -14,7 +14,7 @@ export class AuthGuard implements CanActivate {
     private router: Router
   ) {}
 
-  canActivate(): Observable<boolean> {
+  canActivate(): Observable<boolean | UrlTree> {
     // Check localStorage first for immediate response
     const token = localStorage.getItem('naricare_token');
     
@@ -30,7 +30,8 @@ export class AuthGuard implements CanActivate {
     return this.backendAuthService.initialized$.pipe(
       filter(initialized => initialized), // Only proceed when initialized
       take(1),
-      map(() => true)
+      // Admins never use the mother flow
+      map(() => this.backendAuthService.getCurrentUser()?.role === 'admin' ? this.router.parseUrl('/admin') : true)
     );
   }
 }

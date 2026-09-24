@@ -1,0 +1,69 @@
+<div class="adm" [class.adm-nav-open]="navOpen">
+  <button type="button" class="adm-skip" (click)="focusMain()">Skip to content</button>
+
+  <aside class="adm-side" id="adm-nav" aria-label="Admin navigation">
+    <div class="adm-brand">
+      <img src="assets/NariCare logo.svg" alt="" width="36" height="36">
+      <div><strong>NariCare</strong><span>Admin Panel</span></div>
+    </div>
+    <nav>
+      <a *ngFor="let n of nav" class="adm-nav-link" [routerLink]="n.link" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: !!n.exact }" #rla="routerLinkActive" [attr.aria-current]="rla.isActive ? 'page' : null">
+        <ion-icon [name]="n.icon" aria-hidden="true"></ion-icon><span>{{ n.label }}</span>
+      </a>
+    </nav>
+  </aside>
+  <div class="adm-backdrop" *ngIf="navOpen" (click)="navOpen = false" aria-hidden="true"></div>
+
+  <div class="adm-body">
+    <header class="adm-top">
+      <button type="button" class="adm-icon-btn adm-menu-btn" aria-label="Open navigation" aria-controls="adm-nav"
+              [attr.aria-expanded]="navOpen" (click)="navOpen = !navOpen">
+        <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
+      </button>
+
+      <form *ngIf="isAdmin" class="adm-search" role="search" (ngSubmit)="onSearch()">
+        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+        <label class="sr-only" for="adm-search-input">Search mothers</label>
+        <input id="adm-search-input" type="search" name="q" [(ngModel)]="search"
+               placeholder="Search mothers by name, email, phone or baby name..." autocomplete="off">
+      </form>
+      <div *ngIf="!isAdmin" class="adm-top-title">AI Ground Truth</div>
+
+      <div *ngIf="isAdmin" class="adm-range">
+        <button type="button" class="adm-range-btn" (click)="toggleRange()" [attr.aria-expanded]="rangeOpen" aria-controls="adm-range-panel"
+                [attr.aria-label]="'Date range ' + rangeLabel + '. Change'">
+          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+          <span class="adm-range-text">{{ rangeLabel }}</span><span class="adm-range-short">{{ rangeShort }}</span>
+          <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <div *ngIf="rangeOpen" id="adm-range-panel" class="adm-range-panel" role="dialog" aria-label="Choose date range">
+          <div class="adm-seg" role="group" aria-label="Quick ranges">
+            <button type="button" *ngFor="let d of presets" (click)="preset(d)">Last {{ d }} days</button>
+          </div>
+          <div class="adm-range-fields">
+            <label>From <input type="date" [(ngModel)]="draft.from" [max]="draft.to"></label>
+            <label>To <input type="date" [(ngModel)]="draft.to" [min]="draft.from"></label>
+          </div>
+          <p class="adm-error-text" *ngIf="draftError" role="alert">{{ draftError }}</p>
+          <div class="adm-range-actions">
+            <button type="button" class="adm-btn ghost" (click)="rangeOpen = false">Cancel</button>
+            <button type="button" class="adm-btn" (click)="applyRange()" [disabled]="draftInvalid">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="adm-user">
+        <span class="adm-avatar sm" aria-hidden="true">{{ userInitial }}</span>
+        <span class="adm-user-name">{{ userName }}</span>
+        <button type="button" class="adm-btn ghost sm" (click)="signOut()" aria-label="Sign out">
+          <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon><span class="adm-hide-phone">Sign out</span>
+        </button>
+      </div>
+    </header>
+
+    <main #main id="adm-main" class="adm-main" tabindex="-1">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

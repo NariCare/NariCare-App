@@ -1,0 +1,78 @@
+<nav class="mp-crumbs" aria-label="Breadcrumb">
+  <a [routerLink]="segmentLink">{{ hasBaby ? 'Mothers with baby' : 'Pregnant mothers' }}</a>
+  <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+  <span aria-current="page">{{ detail ? fullName(detail.profile) : 'Mother' }}</span>
+</nav>
+
+<div class="adm-error" *ngIf="error" role="alert">
+  <span>Couldn't load this mother's profile.</span>
+  <button type="button" class="adm-btn ghost sm" (click)="retry()">Try again</button>
+</div>
+<div class="adm-skel" *ngIf="loading && !detail" style="min-height: 160px" aria-busy="true"></div>
+
+<ng-container *ngIf="detail as d">
+  <section class="adm-card mp-head" aria-label="Profile summary">
+    <div class="mp-mother">
+      <span class="adm-avatar">
+        <img *ngIf="d.profile.profileImageUrl; else ini" [src]="d.profile.profileImageUrl" alt="">
+        <ng-template #ini>{{ initials(d.profile) }}</ng-template>
+      </span>
+      <div class="mp-info">
+        <h1>{{ fullName(d.profile) }} <span class="adm-badge" [ngClass]="d.profile.status">{{ d.profile.status === 'deleted' ? 'Deleted' : 'Active' }}</span></h1>
+        <p><ion-icon name="mail-outline" aria-hidden="true"></ion-icon><span class="sr-only">Email </span>{{ d.profile.email || '-' }}</p>
+        <p><ion-icon name="call-outline" aria-hidden="true"></ion-icon><span class="sr-only">Phone </span>{{ d.profile.phone || '-' }}</p>
+        <p><ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>Joined {{ fmtWhen(d.profile.joinedAt) }}</p>
+      </div>
+    </div>
+
+    <div class="mp-baby" *ngIf="baby as b; else pregnantHead">
+      <span class="adm-avatar" [class.pink]="b.gender === 'female'" aria-hidden="true">
+        <img [src]="b.gender === 'male' ? 'assets/Baby boy.svg' : 'assets/Baby girl.svg'" alt="">
+      </span>
+      <div class="mp-info">
+        <h2>{{ b.name || '-' }} <span class="adm-badge" [ngClass]="b.gender">{{ b.gender === 'male' ? 'Male' : b.gender === 'female' ? 'Female' : (b.gender || '-') }}</span></h2>
+        <p>{{ babyAge(b.dateOfBirth) }}</p>
+        <p>DOB: {{ fmtWhen(b.dateOfBirth, 'dd MMM y') }}</p>
+        <div class="mp-baby-actions">
+          <label *ngIf="babies.length > 1" class="mp-switch">
+            <span class="sr-only">Choose baby</span>
+            <select [ngModel]="b.id" (ngModelChange)="selectBaby($event)">
+              <option *ngFor="let x of babies" [value]="x.id">{{ x.name || 'Baby' }}</option>
+            </select>
+          </label>
+          <button type="button" class="adm-btn ghost sm" (click)="select('growth')">View Growth Chart <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon></button>
+        </div>
+      </div>
+    </div>
+    <ng-template #pregnantHead>
+      <div class="mp-baby">
+        <span class="adm-avatar orange" aria-hidden="true"><ion-icon name="heart-outline"></ion-icon></span>
+        <div class="mp-info">
+          <h2>Pregnant</h2>
+          <p>{{ d.profile.weeksPregnant != null ? d.profile.weeksPregnant + ' weeks' : '-' }}</p>
+          <p>Due date: {{ fmtWhen(d.profile.dueDate) }}</p>
+        </div>
+      </div>
+    </ng-template>
+  </section>
+
+  <div class="adm-tabs mp-tabs" role="tablist" aria-label="Profile sections">
+    <button *ngFor="let t of tabs; let i = index" type="button" role="tab" [id]="'mp-tab-' + t[0]"
+            [attr.aria-selected]="tab === t[0]" [attr.tabindex]="tab === t[0] ? 0 : -1" aria-controls="mp-panel"
+            (click)="select(t[0])" (keydown)="onTabKey($event, i)">{{ t[1] }}</button>
+  </div>
+
+  <div id="mp-panel" class="mp-panel" role="tabpanel" [attr.aria-labelledby]="'mp-tab-' + tab" [ngSwitch]="tab">
+    <ng-container *ngSwitchCase="'overview'">
+      <app-baby-overview *ngIf="baby; else pregOverview" [baby]="baby" [userId]="d.profile.userId"></app-baby-overview>
+      <ng-template #pregOverview><app-pregnancy-overview [detail]="d"></app-pregnancy-overview></ng-template>
+    </ng-container>
+    <app-feeding-tab *ngSwitchCase="'feeding'" [baby]="baby!"></app-feeding-tab>
+    <app-growth-tab *ngSwitchCase="'growth'" [baby]="baby!"></app-growth-tab>
+    <app-diapers-tab *ngSwitchCase="'diapers'" [baby]="baby!"></app-diapers-tab>
+    <app-mood-tab *ngSwitchCase="'mood'" [userId]="d.profile.userId"></app-mood-tab>
+    <app-ai-tab *ngSwitchCase="'ai'" [userId]="d.profile.userId"></app-ai-tab>
+    <app-events-tab *ngSwitchCase="'events'" [userId]="d.profile.userId" [babies]="d.babies"></app-events-tab>
+    <app-account-tab *ngSwitchCase="'account'" [detail]="d"></app-account-tab>
+  </div>
+</ng-container>

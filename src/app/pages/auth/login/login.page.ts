@@ -76,7 +76,9 @@ export class LoginPage implements OnInit, OnDestroy {
 
   private redirectAuthenticatedUser(user: any) {
     // Navigate based on onboarding status
-    if (true || user.isOnboardingCompleted) {
+    if (user.role === 'admin') {
+      this.router.navigate(['/admin'], { replaceUrl: true });
+    } else if (true || user.isOnboardingCompleted) {
       this.router.navigate(['/tabs/dashboard'], { replaceUrl: true });
     } else {
       this.router.navigate(['/onboarding'], { replaceUrl: true });

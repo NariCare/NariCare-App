@@ -172,14 +172,16 @@ export class AppComponent implements OnInit {
         currentUrl.includes('/expert-notes') ||
         currentUrl.includes('/expert-consultations') ||
         currentUrl.includes('/consultation-detail') ||
-        currentUrl.includes('/video-call')) {
+        currentUrl.includes('/video-call') ||
+        currentUrl.includes('/admin')) {
       return;
     }
     
     // Only redirect from login page or root page
     if (currentUrl === '/' || currentUrl.includes('/auth/login')) {
-      // Navigate to dashboard (onboarding temporarily disabled)
-      this.router.navigate(['/tabs/dashboard'], { replaceUrl: true });
+      // Admins land on the admin panel; everyone else (incl. experts) on the dashboard
+      const home = user?.role === 'admin' ? '/admin' : '/tabs/dashboard';
+      this.router.navigate([home], { replaceUrl: true });
     }
   }
 }

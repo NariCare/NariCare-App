@@ -1,0 +1,24 @@
+:host { display: block; }
+
+.ml-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 14px; }
+.ml-search {
+  flex: 1 1 280px; position: relative; display: flex;
+  ion-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--adm-muted); }
+  input { width: 100%; padding-left: 36px; min-height: 44px; }
+}
+.ml-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--adm-muted); select { min-height: 44px; } }
+.ml-check { display: flex; align-items: center; gap: 8px; min-height: 44px; input { width: 18px; height: 18px; accent-color: var(--adm-primary); } }
+.ml-mother { display: flex; align-items: center; gap: 10px; min-width: 200px; }
+.ml-name {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; min-width: 0;
+  a { font-weight: 600; text-decoration: none; color: var(--adm-ink); }
+  a:hover { color: var(--adm-primary); text-decoration: underline; }
+  small { width: 100%; color: var(--adm-muted); overflow-wrap: anywhere; }
+}
+.ml-pages { display: flex; gap: 8px; }
+.adm-table td { white-space: nowrap; }
+
+@media (max-width: 639px) {
+  .ml-field, .ml-field select { width: 100%; }
+  .ml-mother { min-width: 0; justify-content: flex-end; text-align: left; }
+}
