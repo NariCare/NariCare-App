@@ -1419,7 +1419,7 @@ export class GrowthPage implements OnInit, OnDestroy {
         times.push(d.startTime);
       }
       if (e?.quantity) {
-        lines.push({ key: `f${i}e`, icon: 'assets/Pump.svg', iconAlt: 'Expressed breast milk', label: 'Breast milk', value: `${e.quantity} mL` });
+        lines.push({ key: `f${i}e`, icon: 'assets/Pump.svg', iconAlt: 'Expressed milk', label: 'Expressed milk', value: `${e.quantity} mL` });
         times.push(e.startTime);
       }
       if (f?.quantity) {

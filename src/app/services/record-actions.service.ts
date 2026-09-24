@@ -31,7 +31,7 @@ export class RecordActionsService {
     } else if (action === 'delete') {
       const types: FeedKind[] = (record.feedTypes || record.feed_types || []).filter((t: FeedKind) => this.hasType(record, t));
       const onlyThis = kind && types.length > 1 && types.includes(kind);
-      const label = { direct: 'direct feed', expressed: 'breast milk', formula: 'formula' }[kind || 'direct'];
+      const label = { direct: 'direct feed', expressed: 'expressed milk', formula: 'formula' }[kind || 'direct'];
       const message = onlyThis ? `Only the ${label} entry is removed. The rest of this feed log stays.` : 'This feed log will be removed.';
       if (!(await this.confirmDelete(onlyThis ? `Delete ${label}?` : 'Delete this feed?', message))) { return; }
       if (onlyThis) {

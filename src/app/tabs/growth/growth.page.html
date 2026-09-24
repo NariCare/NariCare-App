@@ -197,6 +197,7 @@
                                (open)="openDailySummary()" (retry)="trackerSummary.retryToday(journeyBabyId!)"></app-daily-summary-entry>
 
       <ng-container *ngIf="{ feed: feedJourney$ | async } as vm">
+<!-- Hidden on My Journey 2026-09-25, kept for reuse
         <div class="mj-summary">
           <button type="button" class="mj-summary-card mj-pink" (click)="openFeedsSeeAll()"
                   [attr.aria-label]="(vm.feed?.today ?? 0) + ' feeds today. View all feeds'">
@@ -217,6 +218,7 @@
             </span>
           </button>
         </div>
+-->
 
         <!-- Your Feeding Journey -->
         <section class="mj-card" aria-labelledby="mj-feed-title">
@@ -262,7 +264,7 @@
           <ng-container *ngIf="vm.feed?.days?.length">
             <div class="mj-overview">
               <div class="mj-ring-wrap" role="img"
-                   [attr.aria-label]="vm.feed!.today + ' feeds today: ' + vm.feed!.direct + ' direct, ' + vm.feed!.milk + ' breast milk, ' + vm.feed!.formula + ' formula'">
+                   [attr.aria-label]="vm.feed!.today + ' feeds today: ' + vm.feed!.direct + ' direct, ' + vm.feed!.milk + ' expressed milk, ' + vm.feed!.formula + ' formula'">
                 <svg viewBox="0 0 100 100" class="mj-ring" aria-hidden="true">
                   <circle cx="50" cy="50" r="42" class="mj-ring-track"></circle>
                   <circle *ngFor="let seg of vm.feed!.ring" cx="50" cy="50" r="42" class="mj-ring-seg"
@@ -279,7 +281,7 @@
                   <span class="mj-bar"><span class="mj-bar-fill mj-dot-direct" [style.width.%]="vm.feed!.today ? vm.feed!.direct / vm.feed!.today * 100 : 0"></span></span>
                 </li>
                 <li>
-                  <span class="mj-legend-head"><span class="mj-dot mj-dot-milk"></span>Breast milk<span class="mj-legend-count">{{ vm.feed!.milk }}</span></span>
+                  <span class="mj-legend-head"><span class="mj-dot mj-dot-milk"></span>Expressed milk<span class="mj-legend-count">{{ vm.feed!.milk }}</span></span>
                   <span class="mj-bar"><span class="mj-bar-fill mj-dot-milk" [style.width.%]="vm.feed!.today ? vm.feed!.milk / vm.feed!.today * 100 : 0"></span></span>
                 </li>
                 <li>
@@ -289,10 +291,12 @@
               </ul>
             </div>
 
+<!-- Hidden on My Journey 2026-09-25, kept for reuse
             <button type="button" class="mj-add-btn" (click)="onFeed()">
               <ion-icon name="add" aria-hidden="true"></ion-icon>
               Add feed record
             </button>
+-->
 
             <div class="mj-recent-head">
               <h4 class="mj-recent-title">Recent Feeds</h4>
@@ -353,10 +357,12 @@
           </div>
           <h4>No pump sessions yet</h4>
           <p>Track a session to watch your output and timing build over time.</p>
+<!-- Hidden on My Journey 2026-09-25, kept for reuse
           <ion-button fill="solid" size="small" class="journey-empty-cta" (click)="openAddPumpingModal()">
             <ion-icon name="add" slot="start"></ion-icon>
             Log a session
           </ion-button>
+-->
         </div>
 
         <ng-container *ngIf="pumpJourney?.days?.length">
