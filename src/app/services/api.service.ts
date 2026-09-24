@@ -377,8 +377,8 @@ export class ApiService {
       );
   }
 
-  login(email: string, password: string): Observable<ApiResponse<LoginResponse>> {
-    return this.http.post<ApiResponse<LoginResponse>>(`${this.baseUrl}/auth/login`, { email, password })
+  login(email: string, password: string, portal?: 'user' | 'admin' | 'lc'): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.baseUrl}/auth/login`, portal ? { email, password, portal } : { email, password })
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
@@ -1329,7 +1329,8 @@ export class ApiService {
     
     // Don't override 500 errors if we already extracted a specific error message
     
-    return throwError(() => new Error(errorMessage));
+    // Keep status/code/portal so callers can react to e.g. WRONG_PORTAL
+    return throwError(() => Object.assign(new Error(errorMessage), { status: error.status, code: error.error?.code, portal: error.error?.portal }));
   };
 
   // ============================================================================

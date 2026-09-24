@@ -136,9 +136,9 @@ export class BackendAuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<void> {
+  async login(email: string, password: string, portal?: 'user' | 'admin' | 'lc'): Promise<void> {
     try {
-      const response = await this.apiService.login(email, password).toPromise();
+      const response = await this.apiService.login(email, password, portal).toPromise();
       
       if (response?.success && response.data) {
         if (response.data.requiresTwoFactor) {
@@ -174,7 +174,7 @@ export class BackendAuthService {
         throw new Error(response?.message || 'Login failed');
       }
     } catch (error: any) {
-      throw new Error(this.getErrorMessage(error));
+      throw Object.assign(new Error(this.getErrorMessage(error)), { status: error?.status, code: error?.code, portal: error?.portal });
     }
   }
 
@@ -248,15 +248,20 @@ export class BackendAuthService {
   }
 
   async logout(): Promise<void> {
+    // Each role goes back to its own login page
+    const role = this.getCurrentUser()?.role;
+    const loginUrl = role === 'admin' ? '/auth/login/admin' : role === 'expert' ? '/auth/login/lc' : '/auth/login';
     // Clear local state and navigate FIRST so logout is instant. The JWT is
     // stateless (the server logout endpoint just logs and returns 200), so we
     // don't wait on it - fire it non-blocking afterwards.
     await this.clearAllUserData();
     this.apiService.clearAllUserData(); // synchronous token/localStorage clear
+    // Remember the portal so AdminGuard picks the right login page for shared routes
+    try { localStorage.setItem('nc_login_portal', role === 'admin' ? 'admin' : role === 'expert' ? 'lc' : 'user'); } catch { /* storage blocked */ }
     this.setCurrentUser(null);
     this.twoFactorRequiredSubject.next(false);
     this.pendingEmail = '';
-    this.router.navigate(['/auth/login']);
+    this.router.navigate([loginUrl]);
 
     this.apiService.logout().toPromise()
       .catch(error => console.warn('Logout API call failed (local state already cleared):', error));

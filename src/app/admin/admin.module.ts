@@ -12,6 +12,7 @@ import { AdminDashboardPage } from './pages/dashboard/admin-dashboard.page';
 import { AdminMothersPage } from './pages/mothers/admin-mothers.page';
 import { AdminMotherPage } from './pages/mother/admin-mother.page';
 import { AdminAiReviewPage } from './pages/ai-review/admin-ai-review.page';
+import { AdminLcsPage } from './pages/lcs/admin-lcs.page';
 import { BabyOverviewComponent } from './pages/mother/tabs/baby-overview.component';
 import { FeedingTabComponent } from './pages/mother/tabs/feeding-tab.component';
 import { GrowthTabComponent } from './pages/mother/tabs/growth-tab.component';
@@ -33,6 +34,7 @@ const routes: Routes = [
       { path: 'pregnant', component: AdminMothersPage, data: { segment: 'pregnant' }, title: 'Admin - Pregnant mothers' },
       { path: 'mothers/:userId', component: AdminMotherPage, title: 'Admin - Mother profile' },
       { path: 'ai-review', component: AdminAiReviewPage, title: 'Admin - AI Ground Truth' },
+      { path: 'lcs', component: AdminLcsPage, title: 'Admin - Lactation Consultants' },
       { path: '**', redirectTo: '' }
     ]
   }
@@ -42,7 +44,7 @@ const routes: Routes = [
   imports: [CommonModule, FormsModule, IonicModule, SharedModule, RouterModule.forChild(routes)],
   declarations: [
     AdminShellComponent, AdminChartComponent, AiReviewCardComponent,
-    AdminDashboardPage, AdminMothersPage, AdminMotherPage, AdminAiReviewPage,
+    AdminDashboardPage, AdminMothersPage, AdminMotherPage, AdminAiReviewPage, AdminLcsPage,
     BabyOverviewComponent, FeedingTabComponent, GrowthTabComponent, DiapersTabComponent, MoodTabComponent,
     AiTabComponent, EventsTabComponent, AccountTabComponent, PregnancyOverviewComponent
   ]

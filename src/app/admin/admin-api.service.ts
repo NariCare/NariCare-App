@@ -7,7 +7,7 @@ import { ApiService } from '../services/api.service';
 import { DailySummaryRange, DayTimeline } from '../models/daily-summary.model';
 import {
   AiPair, AiReviewPage, AiReviewUpdate, ApiEnvelope, DashboardData, DateRange, DiaperItem, EventPage, FeedItem,
-  GrowthRecord, MoodItem, MotherDetail, MotherListItem, MotherListQuery, Paged, PumpItem, ReviewTab, last30
+  GrowthRecord, LcCreate, LcItem, MoodItem, MotherDetail, MotherListItem, MotherListQuery, Paged, PumpItem, ReviewTab, last30
 } from './admin.models';
 
 type Params = Record<string, string | number | boolean | null | undefined>;
@@ -54,6 +54,18 @@ export class AdminApiService {
 
   review(answerId: string, body: AiReviewUpdate): Observable<AiPair> {
     return this.http.put<ApiEnvelope<AiPair>>(`${this.baseUrl}/ai-reviews/${answerId}`, body, { headers: this.headers() }).pipe(map(unwrap));
+  }
+
+  lcs(q: { search?: string; page?: number; limit?: number; includeInactive?: boolean }): Observable<Paged<LcItem>> { return this.get('/lcs', { ...q }); }
+
+  createLc(body: LcCreate): Observable<{ lc: LcItem }> { return this.send('post', '/lcs', body); }
+
+  resetLcPassword(userId: string, password: string): Observable<{ ok: boolean }> { return this.send('put', `/lcs/${userId}/password`, { password }); }
+
+  setLcStatus(userId: string, status: LcItem['status']): Observable<{ lc: LcItem }> { return this.send('put', `/lcs/${userId}/status`, { status }); }
+
+  private send<T>(method: 'post' | 'put', path: string, body: unknown): Observable<T> {
+    return this.http.request<ApiEnvelope<T>>(method, this.baseUrl + path, { body, headers: this.headers() }).pipe(map(unwrap));
   }
 
   private get<T>(path: string, params: Params = {}): Observable<T> {

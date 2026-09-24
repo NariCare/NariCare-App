@@ -10,7 +10,7 @@ export class AdminGuard implements CanActivate, CanActivateChild {
   constructor(private backendAuthService: BackendAuthService, private router: Router) {}
 
   canActivate(_route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
-    if (!localStorage.getItem('naricare_token')) return of(this.router.parseUrl('/auth/login'));
+    if (!localStorage.getItem('naricare_token')) return of(this.router.parseUrl(this.loginFor(state.url)));
     return this.backendAuthService.initialized$.pipe(
       filter(Boolean),
       take(1),
@@ -18,9 +18,16 @@ export class AdminGuard implements CanActivate, CanActivateChild {
         const role = this.backendAuthService.getCurrentUser()?.role;
         if (role === 'admin') return true;
         if (role === 'expert') return state.url.startsWith('/admin/ai-review') || this.router.parseUrl('/admin/ai-review');
-        return this.router.parseUrl(role ? '/tabs/dashboard' : '/auth/login');
+        return this.router.parseUrl(role ? '/tabs/dashboard' : this.loginFor(state.url));
       })
     );
+  }
+
+  // AI review is shared by admins and LCs, so use the portal this browser last signed in with
+  private loginFor(url: string): string {
+    let last: string | null = null;
+    try { last = localStorage.getItem('nc_login_portal'); } catch { /* storage blocked */ }
+    return url.startsWith('/admin/ai-review') && last === 'lc' ? '/auth/login/lc' : '/auth/login/admin';
   }
 
   canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {

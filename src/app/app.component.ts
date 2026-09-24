@@ -124,7 +124,10 @@ export class AppComponent implements OnInit {
         if (user) {
           this.navigateBasedOnUser(user);
         } else {
-          this.router.navigate(['/auth/login'], { replaceUrl: true });
+          // Token rejected (expired, deactivated): back to the login page this browser last used
+          let last: string | null = null;
+          try { last = localStorage.getItem('nc_login_portal'); } catch { /* storage blocked */ }
+          this.router.navigate([last === 'admin' ? '/auth/login/admin' : last === 'lc' ? '/auth/login/lc' : '/auth/login'], { replaceUrl: true });
         }
       } else {
         // No token found, redirect to login only if not on auth pages

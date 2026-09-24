@@ -162,6 +162,25 @@ export function last30(): DateRange {
   };
 }
 
+// Round 1c: Lactation Consultants (role expert)
+export interface LcItem {
+  userId: string; expertId: string; firstName: string; lastName: string | null; email: string; phone: string | null;
+  credentials: string | null; status: 'active' | 'inactive'; createdAt: string; lastLoginAt: string | null; reviewsDone: number;
+}
+export interface LcCreate { firstName: string; lastName?: string; email: string; password: string; phone?: string; credentials?: string; }
+export const LC_MIN_PASSWORD = 8;
+
+/** 14-char password with upper, lower, digit and symbol, no look-alike characters. */
+export function strongPassword(len = 14): string {
+  const sets = ['ABCDEFGHJKLMNPQRSTUVWXYZ', 'abcdefghijkmnpqrstuvwxyz', '23456789', '!@#$%&*?'];
+  const all = sets.join('');
+  const rnd = (n: number) => { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; };
+  const chars = sets.map(s => s[rnd(s.length)]);
+  while (chars.length < len) chars.push(all[rnd(all.length)]);
+  for (let i = chars.length - 1; i > 0; i--) { const j = rnd(i + 1); [chars[i], chars[j]] = [chars[j], chars[i]]; }
+  return chars.join('');
+}
+
 export function downloadCsv(csv: string, filename: string): void {
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a');

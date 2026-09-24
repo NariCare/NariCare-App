@@ -98,7 +98,7 @@ app-admin-shell { display: block; height: 100%; }
   .adm-menu-btn { display: none; }
   .adm-range-short { display: none; }
   .adm-link-btn { border: 0; background: none; padding: 4px 0; color: var(--adm-primary); font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
-  input[type='date'], input[type='text'], input[type='search'].adm-input, select, textarea {
+  input[type='date'], input[type='text'], input[type='email'], input[type='tel'], input[type='password'], input[type='search'].adm-input, select, textarea {
     min-height: 40px; padding: 6px 10px; border: 1px solid var(--adm-line); border-radius: 10px; background: var(--adm-surface);
   }
   textarea { width: 100%; resize: vertical; min-height: 96px; line-height: 1.5; }

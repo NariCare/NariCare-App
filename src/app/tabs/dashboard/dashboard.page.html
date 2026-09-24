@@ -46,11 +46,18 @@
     <div class="greeting-banner" [style.background-image]="'url(' + (isPregnantJourney() ? 'assets/images/pregnant-journey-hero.webp' : 'assets/images/new-mom-journey-hero.webp') + ')'">
       <div class="greeting-scrim"></div>
       <div class="greeting-copy">
-        <h1 class="greeting">
-          <span>{{ getGreeting() }}, {{ getFirstName() }}! {{ getGreetingEmoji() }}</span>
-        </h1>
-        <p class="greeting-subtitle" *ngIf="currentTip">{{ currentTip.text }}</p>
-        <span class="greeting-tagline" *ngIf="currentTip">{{ currentTip.title }}</span>
+        <!-- LCs get a plain professional greeting instead of the mother self-care tip -->
+        <ng-container *ngIf="isExpert(); else motherGreeting">
+          <h1 class="greeting"><span>{{ getExpertGreeting() }}, {{ getFirstName() }}</span></h1>
+          <p class="greeting-subtitle">Thank you for supporting NariCare mothers.</p>
+        </ng-container>
+        <ng-template #motherGreeting>
+          <h1 class="greeting">
+            <span>{{ getGreeting() }}, {{ getFirstName() }}! {{ getGreetingEmoji() }}</span>
+          </h1>
+          <p class="greeting-subtitle" *ngIf="currentTip">{{ currentTip.text }}</p>
+          <span class="greeting-tagline" *ngIf="currentTip">{{ currentTip.title }}</span>
+        </ng-template>
       </div>
     </div>
 

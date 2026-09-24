@@ -314,9 +314,10 @@ ion-input {
   font-family: 'Poppins', sans-serif;
   margin: 0;
 
-  &:disabled {
-    --background: #d4d0e5;
-    --color: #a7a1c7;
+  // Readable disabled state (was #a7a1c7 on #d4d0e5)
+  &[disabled], &.button-disabled {
+    --background: #e4e1f5;
+    --color: #5f5890;
     opacity: 1;
   }
 }
@@ -479,23 +480,197 @@ ion-input {
   }
 }
 
-@media (min-width: 768px) {
-  .top-section {
-    padding: 3rem 2rem;
-  }
+// Two social buttons don't fit side by side on narrow phones
+@media (max-width: 419px) { .social-buttons { flex-direction: column; } }
 
-  .bottom-section {
-    padding: 3rem 2rem 2rem;
-    max-width: 450px;
-  }
+/* Portal extras (all sizes) */
+.login-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
 
-  .wordmark {
-    font-size: 2.5rem;
+.portal-name {
+  margin: 1.25rem 0 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #5f5890;
+  font-family: 'Poppins', sans-serif;
+}
+
+.brand-points,
+.brand-purpose {
+  display: none;
+}
+
+.portal-note,
+.portal-alert {
+  margin: 0.5rem 0 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  font-family: 'Poppins', sans-serif;
+}
+
+.portal-note {
+  background: #fff4e3;
+  color: #8a5300;
+}
+
+.portal-alert {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem 0;
+  background: #fdf0f3;
+  color: #8a2944;
+
+  ion-icon { font-size: 1.2rem; flex-shrink: 0; }
+  a { display: block; margin-top: 0.25rem; color: #5b5bd6; font-weight: 600; }
+}
+
+.portal-switch {
+  margin: 1.25rem 0 0 0;
+  text-align: center;
+  font-size: 0.875rem;
+  font-family: 'Poppins', sans-serif;
+
+  a {
+    display: inline-block;
+    padding: 0.6rem 0.25rem;
+    min-height: 44px;
+    color: #6a64c9;
+    font-weight: 500;
   }
 }
 
-@media (min-width: 1024px) {
+.login-button:focus-visible,
+.social-button:focus-visible,
+.forgot-password-link:focus-visible,
+.portal-switch a:focus-visible {
+  outline: 2px solid #5b5bd6;
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* Tablet (768-1023): single centered card, smaller brand header */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .login-content {
+    --background: radial-gradient(120% 70% at 20% 0%, #fbe4ee 0%, #f4f2fe 55%, #ffffff 100%);
+  }
+
+  .login-container {
+    align-items: center;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .top-section {
+    background: transparent;
+    padding: 0 0 1.5rem;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .hero-illustration {
+    width: 120px;
+    margin-top: 0;
+  }
+
+  .brand-block { padding-top: 0; flex: 0 1 auto; }
+  .handwritten-tagline, .portal-name { margin-top: 0.5rem; }
+
   .bottom-section {
-    max-width: 500px;
+    flex: 0 0 auto;
+    max-width: 480px;
+    margin: 0;
+    padding: 2.25rem 2rem 2rem;
+    border-radius: 20px;
+    box-shadow: 0 12px 40px rgba(93, 86, 170, 0.12);
+  }
+}
+
+/* Desktop (>=1024): two-column split, full height */
+@media (min-width: 1024px) {
+  .login-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .top-section {
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 1.75rem;
+    padding: 3rem clamp(2.5rem, 6vw, 6rem);
+    background: radial-gradient(110% 90% at 20% 15%, #fbe4ee 0%, #f1eefe 55%, #ebe8fb 100%);
+  }
+
+  .hero-illustration {
+    width: min(100%, 380px);
+    max-width: 380px;
+    margin: 0;
+  }
+
+  .brand-block { padding-top: 0; flex: 0 0 auto; }
+  .wordmark { font-size: 3rem; }
+  .tagline { font-size: 1.1rem; }
+  .handwritten-tagline { margin-top: 1rem; font-size: 1.35rem; }
+  .portal-name { margin-top: 1rem; font-size: 1.35rem; }
+
+  .brand-points {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1rem;
+      color: #4c4680;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    ion-icon {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      padding: 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.75);
+      color: #6a64c9;
+    }
+  }
+
+  .brand-purpose {
+    display: block;
+    max-width: 380px;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #4c4680;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .bottom-section {
+    max-width: none;
+    margin: 0;
+    padding: 3rem 2rem;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+  }
+
+  .login-card {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 440px;
   }
 }

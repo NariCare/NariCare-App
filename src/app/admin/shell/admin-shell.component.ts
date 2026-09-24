@@ -7,13 +7,15 @@ import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 import { AdminApiService } from '../admin-api.service';
 import { DASHBOARD_MAX_DAYS, DateRange, fmtWhen } from '../admin.models';
 
-interface NavItem { label: string; link: string; icon: string; exact?: boolean; }
+interface NavItem { label: string; link: string; icon: string; exact?: boolean; expertOnly?: boolean; }
 
 const NAV: NavItem[] = [
   { label: 'Dashboard', link: '/admin', icon: 'grid-outline', exact: true },
   { label: 'Mothers with baby', link: '/admin/mothers', icon: 'people-outline' },
   { label: 'Pregnant mothers', link: '/admin/pregnant', icon: 'heart-outline' },
-  { label: 'AI Ground Truth', link: '/admin/ai-review', icon: 'chatbubbles-outline' }
+  { label: 'AI Ground Truth', link: '/admin/ai-review', icon: 'chatbubbles-outline' },
+  { label: 'Lactation Consultants', link: '/admin/lcs', icon: 'medkit-outline' },
+  { label: 'Back to NariCare app', link: '/tabs/dashboard', icon: 'arrow-back-outline', expertOnly: true }
 ];
 
 @Component({
@@ -39,7 +41,8 @@ export class AdminShellComponent implements OnDestroy {
   constructor(private router: Router, private auth: BackendAuthService, public api: AdminApiService) {
     const user = this.auth.getCurrentUser();
     this.isAdmin = user?.role === 'admin';
-    this.nav = this.isAdmin ? NAV : NAV.filter(n => n.link === '/admin/ai-review');
+    // LCs (experts) keep their regular app, so give them a way back to it
+    this.nav = this.isAdmin ? NAV.filter(n => !n.expertOnly) : NAV.filter(n => n.link === '/admin/ai-review' || n.expertOnly);
     this.userName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || (this.isAdmin ? 'Admin' : 'Expert');
     this.userInitial = this.userName.charAt(0).toUpperCase();
     this.draft = { ...this.api.range$.value };

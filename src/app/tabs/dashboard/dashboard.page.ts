@@ -203,6 +203,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  getExpertGreeting(): string {
+    const t = this.getTimeOfDay();
+    return t === 'Morning' ? 'Good morning' : t === 'Afternoon' ? 'Good afternoon' : 'Good evening';
+  }
+
   getGreetingEmoji(): string {
     switch (this.getTimeOfDay()) {
       case 'Morning': return '☀️';
@@ -284,6 +289,14 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           icon: 'calendar',
           action: 'setSchedule',
           color: 'primary',
+          priority: true
+        },
+        {
+          title: 'Review AI answers',
+          description: 'Check NariCare AI replies to mothers',
+          icon: 'chatbubbles',
+          action: 'reviewAi',
+          color: 'success',
           priority: true
         },
         {
@@ -494,6 +507,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         break;
       case 'openExpertNotes':
         this.router.navigate(['/expert-notes']);
+        break;
+      case 'reviewAi':
+        this.router.navigate(['/admin/ai-review']);
         break;
       case 'manageClients':
         setTimeout(() => {
