@@ -49,7 +49,9 @@ if (isFirebaseConfigured) {
   imports: [
     BrowserModule,
     IonicModule.forRoot({
-      mode: 'ios'
+      mode: 'ios',
+      // Android already resizes the viewport for the keyboard; Ionic's extra padding doubled the gap
+      scrollPadding: !/android/i.test(navigator.userAgent)
     }),
     IonicStorageModule.forRoot(),
     AppRoutingModule,
