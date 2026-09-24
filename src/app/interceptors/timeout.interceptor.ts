@@ -12,10 +12,11 @@ import { timeout, catchError } from 'rxjs/operators';
 export class TimeoutInterceptor implements HttpInterceptor {
   private readonly readTimeoutMs = 15000;
   private readonly writeTimeoutMs = 20000;
+  private readonly aiTimeoutMs = 60000; // AI replies (two model calls) can exceed 20s
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const isWrite = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method);
-    const ms = isWrite ? this.writeTimeoutMs : this.readTimeoutMs;
+    const ms = req.url.includes('/chatbot/') ? this.aiTimeoutMs : isWrite ? this.writeTimeoutMs : this.readTimeoutMs;
     return next.handle(req).pipe(
       timeout(ms),
       catchError(err => {
