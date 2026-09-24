@@ -125,6 +125,17 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   padding: 0.75rem 1rem 0 1rem; // no bottom padding: the AI tab manages its own
 }
 
+// AI tab: edge-to-edge chat, segment keeps a 12px inset to line up with bubbles.
+.chat-container.ai-active {
+  .content-container {
+    padding: 0.5rem 0 0 0;
+  }
+
+  .main-tab-selector {
+    margin: 0 12px 0.25rem;
+  }
+}
+
 /* Main Tab Selector (matches Tracker page pill pattern) */
 .main-tab-selector {
   margin-bottom: 0.75rem;
@@ -168,7 +179,7 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
     flex-direction: column;
     flex: 1;
     min-height: 0; // let app-ai-chat's internal messages area scroll, not the page
-    padding-bottom: 0;
+    padding: 0; // ai-chat owns the 12px gutter; beats the mobile .tab-content padding
     width: 100%;
     max-width: 100%;
   }
