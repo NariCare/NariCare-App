@@ -171,7 +171,7 @@ export class ResetPasswordPage implements OnInit {
         },
         error: async (error) => {
           const toast = await this.toastController.create({
-            message: error.error?.message || 'An error occurred. Please try again.',
+            message: error?.message || error.error?.message || 'An error occurred. Please try again.', // ApiService rethrows the API message as Error
             duration: 3000,
             color: 'danger',
             position: 'top'

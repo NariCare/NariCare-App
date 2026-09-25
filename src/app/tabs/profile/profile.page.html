@@ -84,6 +84,11 @@
       </div>
     </div>
 
+    <p class="expert-password-note" *ngIf="user?.role === 'expert'">
+      <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+      Password is managed by your NariCare admin.
+    </p>
+
     <!-- Share the Care -->
     <div class="share-card">
       <div class="share-hearts" aria-hidden="true">

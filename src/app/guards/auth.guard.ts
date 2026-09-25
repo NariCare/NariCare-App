@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { map, take, filter } from 'rxjs/operators';
 import { BackendAuthService } from '../services/backend-auth.service';
@@ -14,12 +14,14 @@ export class AuthGuard implements CanActivate {
     private router: Router
   ) {}
 
-  canActivate(): Observable<boolean> {
+  canActivate(_route?: ActivatedRouteSnapshot, state?: RouterStateSnapshot): Observable<boolean | UrlTree> {
     // Check localStorage first for immediate response
     const token = localStorage.getItem('naricare_token');
     
     if (!token) {
-      this.router.navigate(['/auth/login']);
+      // Expert-only pages send signed-out users to the LC login
+      const expertOnly = /^\/(expert-notes|expert-consultations)/.test(state?.url || '');
+      this.router.navigate([expertOnly ? '/auth/login/lc' : '/auth/login']);
       return of(false);
     }
 
@@ -30,7 +32,8 @@ export class AuthGuard implements CanActivate {
     return this.backendAuthService.initialized$.pipe(
       filter(initialized => initialized), // Only proceed when initialized
       take(1),
-      map(() => true)
+      // Admins never use the mother flow
+      map(() => this.backendAuthService.getCurrentUser()?.role === 'admin' ? this.router.parseUrl('/admin') : true)
     );
   }
 }

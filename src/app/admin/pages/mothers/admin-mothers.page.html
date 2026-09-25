@@ -1,0 +1,102 @@
+<div class="adm-page-head">
+  <div>
+    <h1>{{ isPregnant ? 'Pregnant mothers' : 'Mothers with baby' }}</h1>
+    <p>{{ total }} {{ total === 1 ? 'mother' : 'mothers' }}{{ q.search ? ' matching "' + q.search + '"' : '' }}</p>
+  </div>
+</div>
+
+<section class="adm-card">
+  <div class="ml-filters">
+    <label class="ml-search">
+      <span class="sr-only">Search this list</span>
+      <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+      <input type="search" class="adm-input" [value]="q.search" (input)="onSearch($any($event.target).value)"
+             placeholder="Name, email, phone or baby name" autocomplete="off">
+    </label>
+    <label class="ml-field">
+      <span>Sort by</span>
+      <select [ngModel]="q.sort" (ngModelChange)="setSort($event)">
+        <option value="recent">Last recorded activity</option>
+        <option value="name">Name</option>
+        <option value="joined">Joined</option>
+      </select>
+    </label>
+    <label class="ml-check">
+      <input type="checkbox" [checked]="q.includeDeleted" (change)="toggleDeleted($any($event.target).checked)">
+      <span>Include deleted accounts</span>
+    </label>
+  </div>
+
+  <div class="adm-error" *ngIf="error" role="alert">
+    <span>Couldn't load mothers.</span>
+    <button type="button" class="adm-btn ghost sm" (click)="retry()">Try again</button>
+  </div>
+
+  <div class="adm-table-wrap stack" *ngIf="!error" [attr.aria-busy]="loading">
+    <table class="adm-table stack">
+      <caption class="sr-only">{{ isPregnant ? 'Pregnant mothers' : 'Mothers with baby' }}, page {{ q.page }} of {{ pages }}</caption>
+      <thead>
+        <tr>
+          <th scope="col" [attr.aria-sort]="ariaSort('name')"><button type="button" (click)="setSort('name')">Mother</button></th>
+          <ng-container *ngIf="!isPregnant">
+            <th scope="col">Baby</th>
+            <th scope="col">Age</th>
+            <th scope="col" class="num">Direct feeds today</th>
+            <th scope="col" class="num">Pumps today</th>
+            <th scope="col" class="num">Wet diapers today</th>
+            <th scope="col" class="num">Formula today</th>
+          </ng-container>
+          <ng-container *ngIf="isPregnant">
+            <th scope="col" class="num">Weeks pregnant</th>
+            <th scope="col">Due date</th>
+            <th scope="col" class="num">AI questions</th>
+          </ng-container>
+          <th scope="col" [attr.aria-sort]="ariaSort('recent')"><button type="button" (click)="setSort('recent')">Last recorded activity</button></th>
+          <th scope="col" [attr.aria-sort]="ariaSort('joined')"><button type="button" (click)="setSort('joined')">Joined</button></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let m of items; trackBy: trackBy" class="clickable" (click)="open(m)">
+          <td data-label="Mother">
+            <div class="ml-mother">
+              <span class="adm-avatar md" aria-hidden="true">
+                <img *ngIf="m.profileImageUrl; else ini" [src]="m.profileImageUrl" alt="">
+                <ng-template #ini>{{ initials(m) }}</ng-template>
+              </span>
+              <span class="ml-name">
+                <a [routerLink]="['/admin/mothers', m.userId]" (click)="$event.stopPropagation()">{{ fullName(m) }}</a>
+                <span class="adm-badge deleted" *ngIf="m.status === 'deleted'">Deleted</span>
+                <small>{{ m.email || '-' }}</small>
+              </span>
+            </div>
+          </td>
+          <ng-container *ngIf="!isPregnant">
+            <td data-label="Baby">{{ m.babies?.[0]?.name || '-' }}<small class="adm-muted" *ngIf="(m.babies?.length || 0) > 1"> +{{ m.babies!.length - 1 }}</small></td>
+            <td data-label="Age">{{ babyAge(m.babies?.[0]?.dateOfBirth) }}</td>
+            <td data-label="Direct feeds today" class="num">{{ m.today?.directFeeds ?? '-' }}</td>
+            <td data-label="Pumps today" class="num">{{ m.today?.pumps ?? '-' }}</td>
+            <td data-label="Wet diapers today" class="num">{{ m.today?.wetDiapers ?? '-' }}</td>
+            <td data-label="Formula today" class="num">{{ m.today?.formulaMl != null ? m.today!.formulaMl + ' mL' : '-' }}</td>
+          </ng-container>
+          <ng-container *ngIf="isPregnant">
+            <td data-label="Weeks pregnant" class="num">{{ m.weeksPregnant ?? '-' }}</td>
+            <td data-label="Due date">{{ fmtWhen(m.dueDate) }}</td>
+            <td data-label="AI questions" class="num">{{ m.aiQuestions ?? '-' }}</td>
+          </ng-container>
+          <td data-label="Last recorded activity">{{ fmtWhen(m.lastActivityAt, 'd MMM y, h:mm a') }}</td>
+          <td data-label="Joined">{{ fmtWhen(m.joinedAt) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="adm-empty" *ngIf="!loading && !items.length">No mothers found{{ q.search ? ' for "' + q.search + '"' : '' }}.</p>
+    <p class="adm-empty" *ngIf="loading && !items.length" role="status">Loading...</p>
+  </div>
+
+  <nav class="adm-pager" *ngIf="total > q.limit" aria-label="Pages">
+    <span class="adm-muted">Page {{ q.page }} of {{ pages }}</span>
+    <span class="ml-pages">
+      <button type="button" class="adm-btn ghost sm" (click)="go(q.page - 1)" [disabled]="q.page <= 1 || loading">Previous</button>
+      <button type="button" class="adm-btn ghost sm" (click)="go(q.page + 1)" [disabled]="q.page >= pages || loading">Next</button>
+    </span>
+  </nav>
+</section>

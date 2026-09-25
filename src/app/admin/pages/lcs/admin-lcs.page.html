@@ -1,0 +1,140 @@
+<div class="adm-page-head">
+  <div>
+    <h1>Lactation Consultants</h1>
+    <p>{{ total }} {{ total === 1 ? 'consultant' : 'consultants' }}. They sign in to the app and review AI answers.</p>
+  </div>
+  <button type="button" class="adm-btn" (click)="openAdd()">
+    <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>Add Lactation Consultant
+  </button>
+</div>
+
+<p class="lc-notice" *ngIf="notice" role="status">
+  <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>{{ notice }}
+  <button type="button" class="adm-link-btn" (click)="notice = ''" aria-label="Dismiss message">Dismiss</button>
+</p>
+
+<section class="adm-card">
+  <div class="lc-filters">
+    <label class="lc-search">
+      <span class="sr-only">Search consultants</span>
+      <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+      <input type="search" class="adm-input" (input)="onSearch($any($event.target).value)" placeholder="Name, email or phone" autocomplete="off">
+    </label>
+    <label class="lc-check">
+      <input type="checkbox" [checked]="includeInactive" (change)="toggleInactive($any($event.target).checked)">
+      <span>Show inactive</span>
+    </label>
+  </div>
+
+  <div class="adm-error" *ngIf="error" role="alert">
+    <span>Couldn't load consultants.</span>
+    <button type="button" class="adm-btn ghost sm" (click)="reload()">Try again</button>
+  </div>
+
+  <div class="adm-table-wrap stack" *ngIf="!error" [attr.aria-busy]="loading">
+    <table class="adm-table stack">
+      <caption class="sr-only">Lactation consultants</caption>
+      <thead>
+        <tr>
+          <th scope="col">Name and email</th><th scope="col">Phone</th><th scope="col">Credentials</th>
+          <th scope="col">Status</th><th scope="col">Created</th><th scope="col">Last login</th><th scope="col" class="num">Reviews done</th>
+          <th scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let lc of items; trackBy: trackBy" [class.lc-inactive]="lc.status === 'inactive'">
+          <td data-label="Name"><span class="lc-name"><strong>{{ fullName(lc) }}</strong><small>{{ lc.email }}</small></span></td>
+          <td data-label="Phone">{{ lc.phone || '-' }}</td>
+          <td data-label="Credentials">{{ lc.credentials || '-' }}</td>
+          <td data-label="Status"><span class="adm-badge" [ngClass]="lc.status === 'active' ? 'active' : 'deleted'">{{ lc.status === 'active' ? 'Active' : 'Inactive' }}</span></td>
+          <td data-label="Created">{{ fmtWhen(lc.createdAt) }}</td>
+          <td data-label="Last login">{{ lc.lastLoginAt ? fmtWhen(lc.lastLoginAt, 'd MMM y, h:mm a') : 'Never' }}</td>
+          <td data-label="Reviews done" class="num">{{ lc.reviewsDone }}</td>
+          <td data-label="Actions" class="lc-actions"><span class="lc-btns">
+            <button type="button" class="adm-btn ghost sm" (click)="openReset(lc)" [attr.aria-label]="'Reset password for ' + fullName(lc)">
+              <ion-icon name="key-outline" aria-hidden="true"></ion-icon>Reset
+            </button>
+            <button type="button" class="adm-btn ghost sm" (click)="openStatus(lc)" [attr.aria-label]="(lc.status === 'active' ? 'Deactivate ' : 'Activate ') + fullName(lc)">
+              {{ lc.status === 'active' ? 'Deactivate' : 'Activate' }}
+            </button>
+          </span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="adm-empty" *ngIf="!loading && !items.length">{{ searchText ? 'No consultants match your search.' : 'No lactation consultants yet. Add the first one.' }}</p>
+    <p class="adm-empty" *ngIf="loading && !items.length" role="status">Loading...</p>
+  </div>
+
+  <nav class="adm-pager" *ngIf="total > limit" aria-label="Pages">
+    <span class="adm-muted">Page {{ page }} of {{ pages }}</span>
+    <span class="lc-pages">
+      <button type="button" class="adm-btn ghost sm" (click)="go(page - 1)" [disabled]="page <= 1 || loading">Previous</button>
+      <button type="button" class="adm-btn ghost sm" (click)="go(page + 1)" [disabled]="page >= pages || loading">Next</button>
+    </span>
+  </nav>
+</section>
+
+<!-- Dialog: add, reset password, change status -->
+<div class="lc-overlay" *ngIf="dialog as d" (click)="!saving && close()">
+  <div #dialogEl class="lc-dialog adm-card" role="dialog" aria-modal="true" aria-labelledby="lc-dialog-title" (click)="$event.stopPropagation()">
+    <form (ngSubmit)="submit()" novalidate>
+      <ng-container [ngSwitch]="d.kind">
+        <ng-container *ngSwitchCase="'add'">
+          <h2 id="lc-dialog-title">Add Lactation Consultant</h2>
+          <div class="lc-grid">
+            <label>First name *<input type="text" name="firstName" [(ngModel)]="form.firstName" required autocomplete="off"></label>
+            <label>Last name<input type="text" name="lastName" [(ngModel)]="form.lastName" autocomplete="off"></label>
+            <label class="wide">Email *<input type="email" name="email" [(ngModel)]="form.email" required autocomplete="off"></label>
+            <label>Phone (optional)<input type="tel" name="phone" [(ngModel)]="form.phone" autocomplete="off"></label>
+            <label>Credentials<input type="text" name="credentials" [(ngModel)]="form.credentials"></label>
+          </div>
+          <ng-container *ngTemplateOutlet="pwField; context: { $implicit: 'form' }"></ng-container>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'reset'">
+          <h2 id="lc-dialog-title">Reset password</h2>
+          <p class="adm-muted">New password for <strong>{{ fullName($any(d).lc) }}</strong> ({{ $any(d).lc.email }}).</p>
+          <ng-container *ngTemplateOutlet="pwField; context: { $implicit: 'reset' }"></ng-container>
+          <p class="lc-note"><ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>Share this with the LC. They cannot change it themselves.</p>
+        </ng-container>
+
+        <ng-container *ngSwitchCase="'status'">
+          <h2 id="lc-dialog-title">{{ $any(d).lc.status === 'active' ? 'Deactivate' : 'Activate' }} {{ fullName($any(d).lc) }}?</h2>
+          <p class="adm-muted" *ngIf="$any(d).lc.status === 'active'">They will not be able to sign in until you activate them again. Their past reviews stay.</p>
+          <p class="adm-muted" *ngIf="$any(d).lc.status !== 'active'">They will be able to sign in again with their current password.</p>
+        </ng-container>
+      </ng-container>
+
+      <p class="adm-error-text" *ngIf="formError" role="alert">{{ formError }}</p>
+
+      <div class="lc-dialog-actions">
+        <button type="button" class="adm-btn ghost" (click)="close()" [disabled]="saving">Cancel</button>
+        <button type="submit" class="adm-btn" [disabled]="saving">
+          {{ saving ? 'Saving...' : d.kind === 'add' ? 'Add consultant' : d.kind === 'reset' ? 'Reset password' : ($any(d).lc.status === 'active' ? 'Deactivate' : 'Activate') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<ng-template #pwField let-mode>
+  <div class="lc-pw">
+    <label for="lc-pw">Password * <small>(at least {{ minPw }} characters)</small></label>
+    <div class="lc-pw-row">
+      <input id="lc-pw" name="password" [type]="showPw ? 'text' : 'password'" autocomplete="new-password"
+             [ngModel]="mode === 'form' ? form.password : password"
+             (ngModelChange)="mode === 'form' ? (form.password = $event) : (password = $event); copied = false">
+      <button type="button" class="adm-icon-btn" (click)="showPw = !showPw" [attr.aria-label]="showPw ? 'Hide password' : 'Show password'" [attr.aria-pressed]="showPw">
+        <ion-icon [name]="showPw ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+      </button>
+      <button type="button" class="adm-icon-btn" (click)="copy(mode === 'form' ? form.password : password)" aria-label="Copy password"
+              [disabled]="!(mode === 'form' ? form.password : password)">
+        <ion-icon [name]="copied ? 'checkmark-outline' : 'copy-outline'" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+    <div class="lc-pw-tools">
+      <button type="button" class="adm-link-btn" (click)="generate()"><ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>Generate strong password</button>
+      <span class="adm-muted" *ngIf="copied" role="status">Copied</span>
+    </div>
+  </div>
+</ng-template>

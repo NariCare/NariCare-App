@@ -1,0 +1,173 @@
+<div class="ov">
+  <div class="ov-main">
+    <div class="ov-row">
+      <section class="adm-card">
+        <div class="adm-card-head">
+          <h2>Today's Overview</h2>
+          <label class="ov-date">
+            <span class="sr-only">Day to show</span>
+            <input type="date" [value]="date" [max]="today" (change)="setDate($any($event.target).value)">
+          </label>
+          <p class="sub"><ion-icon name="time-outline" aria-hidden="true"></ion-icon> {{ isToday ? 'Data till now · ' : '' }}{{ fmtDay(date, 'd MMM y') }}</p>
+        </div>
+        <div class="adm-error" *ngIf="pairState === 'error'" role="alert"><span>Couldn't load this day.</span><button type="button" class="adm-btn ghost sm" (click)="retryPair()">Try again</button></div>
+        <div class="adm-skel" *ngIf="pairState === 'loading' && !metrics.length" style="min-height: 76px"></div>
+        <div class="adm-tiles ov-tiles" *ngIf="metrics.length && pairState !== 'error'" [attr.aria-busy]="pairState === 'loading'">
+          <div class="adm-tile" *ngFor="let m of metrics" [ngClass]="m.tone">
+            <span class="ic">
+              <img *ngIf="m.img" [src]="m.img" alt="">
+              <ion-icon *ngIf="!m.img" [name]="m.icon || 'water'" aria-hidden="true"></ion-icon>
+            </span>
+            <div><strong>{{ m.value }}<small *ngIf="m.unit"> {{ m.unit }}</small></strong><span>{{ m.label }}</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="adm-card">
+        <div class="adm-card-head">
+          <h2>Compared with Yesterday</h2>
+          <span class="adm-badge">vs {{ yesterdayLabel }}</span>
+        </div>
+        <p class="adm-empty" *ngIf="pairState === 'error'">-</p>
+        <table class="adm-table ov-compare" *ngIf="compare.length && pairState !== 'error'">
+          <caption class="sr-only">{{ fmtDay(date, 'd MMM y') }} compared with {{ yesterdayLabel }}</caption>
+          <thead class="sr-only"><tr><th scope="col">Metric</th><th scope="col">Value</th><th scope="col">Change</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let c of compare">
+              <th scope="row">{{ c.m.label }}</th>
+              <td class="num">{{ c.m.value }}{{ c.m.unit ? ' ' + c.m.unit : '' }}</td>
+              <td class="num ov-delta">
+                <ion-icon [name]="c.delta > 0 ? 'arrow-up' : c.delta < 0 ? 'arrow-down' : 'remove-outline'" aria-hidden="true"></ion-icon>
+                <span class="sr-only">{{ c.delta === 0 ? 'No change' : c.delta > 0 ? 'Up' : 'Down' }}</span>
+                {{ delta(c.delta) }}{{ c.m.unit && c.delta !== 0 ? ' ' + c.m.unit : '' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <div class="ov-row">
+      <section class="adm-card">
+        <div class="adm-card-head">
+          <h2>Daily Trend</h2>
+          <div class="adm-seg" role="group" aria-label="Trend range">
+            <button *ngFor="let r of ranges" type="button" [attr.aria-pressed]="range === r" (click)="setRange(r)">{{ r }}</button>
+          </div>
+        </div>
+        <div class="adm-error" *ngIf="trendState === 'error'" role="alert"><span>Couldn't load the trend.</span><button type="button" class="adm-btn ghost sm" (click)="retryTrend()">Try again</button></div>
+        <div class="adm-skel" *ngIf="trendState === 'loading' && !trend" style="min-height: 280px"></div>
+        <app-admin-chart *ngIf="trend && trendState !== 'error'" [options]="trend" [summary]="trendSummary" [height]="280"></app-admin-chart>
+      </section>
+
+      <div class="adm-stack">
+        <section class="adm-card">
+          <div class="adm-card-head">
+            <h2>Feeding Sources <small>(Last 7 days)</small></h2>
+            <p class="sub">By feeding records</p>
+          </div>
+          <div class="adm-skel" *ngIf="!sourceChart" style="min-height: 150px"></div>
+          <div class="ov-sources" *ngIf="sourceChart">
+            <app-admin-chart [options]="sourceChart" [height]="150" [summary]="'Feeding records in the last 7 days: ' + sourceTotal + ' in total.'"></app-admin-chart>
+            <table class="ov-legend">
+              <caption class="sr-only">Feeding records by type, last 7 days</caption>
+              <thead class="sr-only"><tr><th scope="col">Type</th><th scope="col">Share of records</th><th scope="col">Records</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let s of sources">
+                  <th scope="row"><span class="dot" [style.background]="s.color" aria-hidden="true"></span>{{ s.label }}</th>
+                  <td class="num">{{ sourceTotal ? s.pct + '%' : '-' }}</td>
+                  <td class="num">{{ s.count }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="adm-card">
+          <div class="adm-card-head">
+            <h2>Diaper Count <small>(Last 7 days)</small></h2>
+            <span class="ov-keys"><span><i class="wet" aria-hidden="true"></i>Wet</span><span><i class="soiled" aria-hidden="true"></i>Soiled</span></span>
+          </div>
+          <div class="adm-skel" *ngIf="!diapers" style="min-height: 180px"></div>
+          <app-admin-chart *ngIf="diapers" [options]="diapers" [summary]="diaperSummary" [height]="180"></app-admin-chart>
+        </section>
+      </div>
+    </div>
+
+    <section class="adm-card">
+      <div class="adm-card-head">
+        <h2>Daily History <small>({{ range }})</small></h2>
+        <button type="button" class="adm-btn ghost sm" (click)="exportCsv()" [disabled]="!trendDays.length">
+          <ion-icon name="download-outline" aria-hidden="true"></ion-icon>Export CSV
+        </button>
+      </div>
+      <div class="adm-table-wrap ov-history">
+        <table class="adm-table">
+          <caption class="sr-only">Daily history, newest first</caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th><th scope="col" class="num">Direct Feeds</th><th scope="col" class="num">Avg Duration</th>
+              <th scope="col" class="num">Pumping Sessions</th><th scope="col" class="num">Pumped Output</th><th scope="col" class="num">Formula Intake</th>
+              <th scope="col" class="num">Wet Diapers</th><th scope="col" class="num">Soiled Diapers</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of trendDays" [class.hl]="d.date === today">
+              <th scope="row">{{ fmtDay(d.date, 'dd MMM y') }}</th>
+              <ng-container *ngIf="d.hasData; else blank">
+                <td class="num">{{ d.feeding.directSessions }}</td>
+                <td class="num">{{ fmtAvg(d.feeding.averageDurationMinutes) }}</td>
+                <td class="num">{{ d.pumping.sessions }}</td>
+                <td class="num">{{ d.pumping.outputMl }} mL</td>
+                <td class="num">{{ d.feeding.formulaMl }} mL</td>
+                <td class="num">{{ d.diapers.pee }}</td>
+                <td class="num">{{ d.additional.poop }}</td>
+              </ng-container>
+              <ng-template #blank><td class="num" *ngFor="let _ of [1, 2, 3, 4, 5, 6, 7]">-</td></ng-template>
+            </tr>
+          </tbody>
+        </table>
+        <p class="adm-empty" *ngIf="trendState === 'loading' && !trendDays.length" role="status">Loading...</p>
+      </div>
+    </section>
+  </div>
+
+  <aside class="ov-rail" aria-label="Recent items">
+    <section class="adm-card">
+      <div class="adm-card-head"><h3>Recent Feeds</h3></div>
+      <p class="adm-empty" *ngIf="recentFeeds && !recentFeeds.length">No feeds in the last 7 days.</p>
+      <p class="adm-empty" *ngIf="!recentFeeds" role="status">Loading...</p>
+      <ul class="adm-list" *ngIf="recentFeeds?.length">
+        <li *ngFor="let f of recentFeeds">
+          <span class="ic" [ngClass]="feedMeta[f.type].tone"><img [src]="feedMeta[f.type].img" alt="" width="20" height="20"></span>
+          <div class="grow"><div>{{ feedMeta[f.type].label }}</div><div class="when">{{ fmtDay(f.date, 'd MMM') }}, {{ to12(f.time) }}</div></div>
+          <span class="val">{{ f.ml != null ? f.ml + ' mL' : f.durationMin != null ? f.durationMin + ' min' : '-' }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="adm-card">
+      <div class="adm-card-head"><h3>AI Conversations</h3></div>
+      <p class="adm-empty" *ngIf="recentAi && !recentAi.length">No AI questions yet.</p>
+      <p class="adm-empty" *ngIf="!recentAi" role="status">Loading...</p>
+      <ul class="adm-list" *ngIf="recentAi?.length">
+        <li *ngFor="let a of recentAi">
+          <span class="ic"><ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon></span>
+          <div class="grow"><div class="when">{{ fmtWhen(a.askedAt, 'd MMM, h:mm a') }}</div><div class="ov-clamp">{{ a.question }}</div></div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="adm-card">
+      <div class="adm-card-head"><h3>Recent Activity <small>(Event Log)</small></h3></div>
+      <p class="adm-empty" *ngIf="recentEvents && !recentEvents.length">Nothing saved yet.</p>
+      <p class="adm-empty" *ngIf="!recentEvents" role="status">Loading...</p>
+      <ul class="adm-list" *ngIf="recentEvents?.length">
+        <li *ngFor="let e of recentEvents">
+          <span class="ic" [ngClass]="eventIcon(e.type).tone"><ion-icon [name]="eventIcon(e.type).icon" aria-hidden="true"></ion-icon></span>
+          <div class="grow"><div>{{ e.title }}</div><div class="when">{{ fmtWhen(e.at, 'd MMM, h:mm a') }}{{ e.detail ? ' · ' + e.detail : '' }}</div></div>
+        </li>
+      </ul>
+    </section>
+  </aside>
+</div>

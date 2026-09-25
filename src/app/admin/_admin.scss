@@ -1,0 +1,27 @@
+// Admin design tokens; emits no CSS so any component can import it.
+$bp-tablet: 1024px;
+$bp-phone: 640px;
+
+@mixin tablet { @media (max-width: #{$bp-tablet - 1px}) { @content; } }
+@mixin phone { @media (max-width: #{$bp-phone - 1px}) { @content; } }
+
+@mixin tokens {
+  --adm-bg: #f6f5fd;
+  --adm-surface: #ffffff;
+  --adm-ink: #1f2140;
+  --adm-muted: #5d5f7a;
+  --adm-line: #e8e6f6;
+  --adm-primary: #5b5bd6;
+  --adm-primary-ink: #ffffff;
+  --adm-primary-soft: #ecebfd;
+  --adm-pink: #fdeef4;
+  --adm-pink-ink: #c23b6f;
+  --adm-lavender: #efeefd;
+  --adm-lavender-ink: #5b5bd6;
+  --adm-orange: #fff3e3;
+  --adm-orange-ink: #b86a00;
+  --adm-green: #e7f6ee;
+  --adm-green-ink: #2e7d55;
+  --adm-radius: 14px;
+  --adm-shadow: 0 1px 2px rgba(31, 33, 64, 0.04), 0 4px 16px rgba(31, 33, 64, 0.05);
+}

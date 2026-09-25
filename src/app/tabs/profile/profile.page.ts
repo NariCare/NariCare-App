@@ -114,6 +114,11 @@ export class ProfilePage implements OnInit {
       accountItems.push({ label: addBabyLabel, subtitle: 'Start tracking your little one', icon: 'add-circle-outline', iconColor: 'pink', action: 'addBaby' });
     }
 
+    // LCs review AI answers in the admin queue
+    if (this.user?.role === 'expert') {
+      accountItems.push({ label: 'Review AI answers', subtitle: 'Approve, reject or correct NariCare AI', icon: 'chatbubbles-outline', iconColor: 'green', action: 'reviewAi' });
+    }
+
     // Add notifications for all users
     accountItems.push(
       { label: 'Notifications', subtitle: 'Manage reminders and updates', icon: 'notifications-outline', iconColor: 'yellow', action: 'viewNotifications', badge: this.unreadNotificationCount }
@@ -322,6 +327,9 @@ export class ProfilePage implements OnInit {
         break;
       case 'privacy':
         this.viewPrivacyPolicy();
+        break;
+      case 'reviewAi':
+        this.router.navigate(['/admin/ai-review']);
         break;
     }
   }

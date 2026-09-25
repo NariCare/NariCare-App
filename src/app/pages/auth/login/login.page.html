@@ -1,4 +1,4 @@
-<ion-content class="login-content">
+<ion-content class="login-content" [ngClass]="'portal-' + portal">
   <div class="login-container">
     <!-- Top Section with Hero Illustration -->
     <div class="top-section">
@@ -9,15 +9,25 @@
         <div class="beta-tag" *ngIf="showBetaTag">
           <span>Beta</span>
         </div>
-        <p class="handwritten-tagline">A happier<br>healthier you</p>
+        <p class="handwritten-tagline" *ngIf="portal === 'user'">A happier<br>healthier you</p>
+        <p class="portal-name" *ngIf="portal !== 'user'">{{ copy.panelTitle }}</p>
       </div>
+
+      <!-- Desktop only: reassurance for mothers, short purpose line for staff portals -->
+      <ul class="brand-points" *ngIf="portal === 'user'">
+        <li><ion-icon name="stats-chart-outline" aria-hidden="true"></ion-icon>Track feeds, pumping, diapers and growth</li>
+        <li><ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>Ask NariCare anytime, day or night</li>
+        <li><ion-icon name="heart-outline" aria-hidden="true"></ion-icon>Support from lactation experts</li>
+      </ul>
+      <p class="brand-purpose" *ngIf="portal !== 'user'">{{ copy.panelText }}</p>
     </div>
 
     <!-- Bottom Section with Form (White Background) -->
     <div class="bottom-section">
+      <div class="login-card">
       <div class="welcome-section">
-        <h2 class="welcome-title" *ngIf="!show2FA">Welcome to the NariCare family!</h2>
-        <p class="welcome-subtitle" *ngIf="!show2FA">Let's support you on this beautiful journey.</p>
+        <h2 class="welcome-title" *ngIf="!show2FA">{{ copy.title }}</h2>
+        <p class="welcome-subtitle" *ngIf="!show2FA">{{ copy.subtitle }}</p>
         <p class="welcome-subtitle" *ngIf="show2FA">We've sent a verification code to {{ pendingEmail }}</p>
       </div>
 
@@ -28,10 +38,15 @@
           formControlName="email"
           type="email"
           placeholder="Email Address"
+          aria-label="Email address"
+          autocomplete="email"
+          inputmode="email"
           class="custom-input"
-          fill="outline">
+          [class.error]="showError('email')"
+          fill="outline"
+          (keydown.enter)="$event.preventDefault(); onSubmit()">
         </ion-input>
-        <div class="error-message" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+        <div class="error-message" role="alert" *ngIf="showError('email')">
           {{ getErrorMessage('email') }}
         </div>
       </div>
@@ -41,25 +56,38 @@
           formControlName="password"
           [type]="showPassword ? 'text' : 'password'"
           placeholder="Password"
+          aria-label="Password"
+          autocomplete="current-password"
           class="custom-input password-input"
-          fill="outline">
+          [class.error]="showError('password')"
+          fill="outline"
+          (keydown.enter)="$event.preventDefault(); onSubmit()">
           <ion-button 
             fill="clear" 
             slot="end" 
             (click)="togglePasswordVisibility()"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
             class="password-toggle">
-            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
           </ion-button>
         </ion-input>
-        <div class="error-message" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+        <div class="error-message" role="alert" *ngIf="showError('password')">
           {{ getErrorMessage('password') }}
         </div>
       </div>
 
-      <div class="forgot-password-container">
+      <div class="forgot-password-container" *ngIf="portal !== 'admin'">
         <ion-button fill="clear" class="forgot-password-link" (click)="navigateToForgotPassword()">
           Forgot password?
         </ion-button>
+        <p class="portal-note" *ngIf="showLcForgot" role="status">{{ lcForgotNote }}</p>
+      </div>
+
+      <div class="portal-alert" *ngIf="portalError" role="alert">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+        <span>{{ portalError.message }}
+          <a *ngIf="portalError.link" [routerLink]="portalError.link">{{ portalError.linkLabel }}</a>
+        </span>
       </div>
 
       <ion-button
@@ -108,14 +136,14 @@
     </form>
 
     <!-- Register Link -->
-    <div class="register-section" *ngIf="!show2FA">
+    <div class="register-section" *ngIf="!show2FA && portal === 'user'">
       <p class="register-prompt" (click)="navigateToRegister()">
         Not a member? <label class="register-link">Register now</label>
       </p>
     </div>
 
       <!-- Social Sign-in Section -->
-      <div class="social-signin-section" *ngIf="!show2FA">
+      <div class="social-signin-section" *ngIf="!show2FA && portal === 'user'">
         <div class="divider-line"></div>
         <p class="social-divider">Or continue with</p>
         
@@ -146,10 +174,18 @@
         </div>
       </div>
 
-      <p class="footer-note" *ngIf="!show2FA">
+      <p class="footer-note" *ngIf="!show2FA && portal === 'user'">
         <ion-icon name="heart" aria-hidden="true"></ion-icon>
         You are not alone. We are with you.
       </p>
+
+      <p class="portal-switch" *ngIf="!show2FA && portal === 'user'">
+        <a routerLink="/auth/login/lc">Lactation Consultant? Sign in here</a>
+      </p>
+      <p class="portal-switch" *ngIf="!show2FA && portal === 'lc'">
+        <a routerLink="/auth/login">Signing in as a mother? Go to NariCare sign in</a>
+      </p>
+      </div>
     </div>
   </div>
 </ion-content>

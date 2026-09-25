@@ -1,0 +1,77 @@
+<article class="adm-card airc" [class.crisis]="isCrisis" [attr.aria-labelledby]="id + '-q'">
+  <p class="airc-crisis" *ngIf="isCrisis" role="alert">
+    <ion-icon name="alert-circle" aria-hidden="true"></ion-icon>Possible crisis, review first
+  </p>
+  <header class="airc-meta">
+    <span class="adm-badge" [ngClass]="status">{{ status | titlecase }}</span>
+    <span class="adm-muted">{{ askedAt }}</span>
+    <span *ngIf="showMother && pair.mother" class="adm-muted">
+      <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+      <a *ngIf="pair.mother.userId; else plainName" [routerLink]="['/admin/mothers', pair.mother.userId]">{{ pair.mother.firstName }}</a>
+      <ng-template #plainName>{{ pair.mother.firstName }}</ng-template>
+    </span>
+    <span class="adm-muted" *ngIf="pair.babyAgeWeeks != null">Baby {{ pair.babyAgeWeeks }} wk</span>
+    <span class="adm-muted">Model: {{ pair.model || '-' }}</span>
+    <label class="airc-cat">
+      <span class="sr-only">Category</span>
+      <select [(ngModel)]="category" [attr.aria-label]="'Category for question: ' + pair.question">
+        <option value="">Uncategorized</option>
+        <option *ngFor="let c of categories" [value]="c">{{ categoryLabel(c) }}</option>
+      </select>
+    </label>
+  </header>
+
+  <div class="airc-check" *ngIf="pair.check as c; else unchecked" aria-label="Automatic AI check">
+    <span class="adm-badge" [ngClass]="'risk-' + c.risk">{{ riskLabel }}</span>
+    <span class="adm-badge airc-score" [class.low]="c.score < passScore">AI self-check {{ c.score }}/100</span>
+    <span class="adm-badge airc-flag" *ngFor="let f of c.flags">{{ flagLabel(f) }}</span>
+  </div>
+  <ng-template #unchecked><div class="airc-check"><span class="adm-badge grey">Not checked yet</span></div></ng-template>
+
+  <h3 class="airc-q" [id]="id + '-q'">{{ pair.question }}</h3>
+
+  <section class="airc-block">
+    <h4>AI answer (original)</h4>
+    <p class="airc-text" *ngIf="pair.answer; else noAnswer">{{ pair.answer }}</p>
+    <ng-template #noAnswer><p class="adm-muted">No answer saved for this question.</p></ng-template>
+    <p class="airc-why" *ngIf="pair.check?.reason"><strong>{{ checkFlagged ? 'Why flagged:' : 'AI check note:' }}</strong> {{ pair.check?.reason }}</p>
+  </section>
+
+  <section class="airc-block corrected" *ngIf="pair.review?.status === 'corrected' && !correcting">
+    <h4>Corrected answer</h4>
+    <p class="airc-text">{{ pair.review?.correctedAnswer || '-' }}</p>
+  </section>
+
+  <p class="airc-review adm-muted" *ngIf="pair.review && pair.review.status !== 'pending' && !correcting">
+    <span *ngIf="pair.review.notes">Notes: {{ pair.review.notes }}. </span>
+    Reviewed by {{ pair.review.reviewerName || '-' }} on {{ validatedAt }}
+  </p>
+
+  <div class="airc-edit" *ngIf="correcting">
+    <label [for]="id + '-c'">Corrected answer</label>
+    <textarea [id]="id + '-c'" rows="6" [(ngModel)]="corrected"></textarea>
+    <label [for]="id + '-n'">Review notes (optional)</label>
+    <textarea [id]="id + '-n'" rows="2" [(ngModel)]="notes" class="notes"></textarea>
+  </div>
+
+  <p class="adm-error-text" *ngIf="error" role="alert">{{ error }}</p>
+
+  <footer class="airc-actions">
+    <ng-container *ngIf="!correcting; else editActions">
+      <button type="button" class="adm-btn sm" (click)="submit('approved')" [disabled]="!pair.answerId || saving">
+        <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>Approve
+      </button>
+      <button type="button" class="adm-btn ghost sm" (click)="submit('rejected')" [disabled]="!pair.answerId || saving">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>Reject
+      </button>
+      <button type="button" class="adm-btn ghost sm" (click)="startCorrect()" [disabled]="!pair.answerId || saving">
+        <ion-icon name="create-outline" aria-hidden="true"></ion-icon>Correct
+      </button>
+    </ng-container>
+    <ng-template #editActions>
+      <button type="button" class="adm-btn sm" (click)="submit('corrected')" [disabled]="saving">Save correction</button>
+      <button type="button" class="adm-btn ghost sm" (click)="cancel()" [disabled]="saving">Cancel</button>
+    </ng-template>
+    <span class="adm-muted" *ngIf="saving" role="status">Saving...</span>
+  </footer>
+</article>
