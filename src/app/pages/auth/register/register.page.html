@@ -160,6 +160,7 @@
           </ion-input>
           <div class="error-message" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
             {{ getErrorMessage('email') }}
+            <a *ngIf="registerForm.get('email')?.hasError('emailTaken')" routerLink="/auth/login" class="inline-link">Log in instead</a>
           </div>
         </div>
       </div>
@@ -347,10 +348,10 @@
       <div class="step-footer">
         <ion-button
           expand="block"
-          [disabled]="!canGoNext()"
+          [disabled]="!canGoNext() || checkingEmail"
           (click)="nextStep()"
           class="primary-button continue-button">
-          {{ isLastStep ? 'Create my account' : 'Continue' }}
+          {{ isLastStep ? 'Create my account' : (checkingEmail ? 'Checking...' : 'Continue') }}
         </ion-button>
       </div>
     </form>

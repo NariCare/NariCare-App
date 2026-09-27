@@ -171,6 +171,8 @@
   min-height: 0;
   overflow-y: auto;
   padding-top: 0.5rem;
+  // Room to scroll a focused field above the keyboard (set from register.page.ts, 0 when closed)
+  padding-bottom: var(--keyboard-inset, 0px);
 }
 
 .input-container {
@@ -709,4 +711,10 @@
       transform: none;
     }
   }
+}
+.inline-link {
+  margin-left: 0.25rem;
+  color: var(--ion-color-primary);
+  font-weight: 600;
+  text-decoration: underline;
 }

@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
+import { Keyboard } from '@capacitor/keyboard';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ModalController, ToastController } from '@ionic/angular';
@@ -19,7 +21,7 @@ interface StepDefinition {
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
 })
-export class RegisterPage implements OnInit {
+export class RegisterPage implements OnInit, OnDestroy {
   registerForm: FormGroup;
   showPassword = false;
   showConfirmPassword = false;
@@ -75,7 +77,8 @@ export class RegisterPage implements OnInit {
     private router: Router,
     private loadingController: LoadingController,
     private toastController: ToastController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private host: ElementRef<HTMLElement>
   ) {
     this.registerForm = this.formBuilder.group({
       fullName: ['', [Validators.required, this.nameInputValidator]],
@@ -107,7 +110,46 @@ export class RegisterPage implements OnInit {
     await modal.present();
   }
 
+  // iOS (Safari, Chrome on iPhone, native app with Keyboard.resize "none") never shrinks the page for the
+  // keyboard, so a lower field like Confirm password sat under it. Pad the step by the covered height and
+  // scroll the focused field into view.
+  private keyboardInset = 0;
+  private keyboardListeners: PluginListenerHandle[] = [];
+  private readonly onViewportResize = () => {
+    const vv = window.visualViewport;
+    if (!vv || Capacitor.isNativePlatform()) return;
+    this.setKeyboardInset(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+  };
+  private readonly onFocusIn = (event: FocusEvent) => {
+    const field = event.target as HTMLElement;
+    if (!(field instanceof HTMLInputElement) && !(field instanceof HTMLTextAreaElement)) return;
+    // Wait for the keyboard to finish opening before measuring and scrolling
+    setTimeout(() => {
+      this.onViewportResize();
+      field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 300);
+  };
+
+  private setKeyboardInset(px: number): void {
+    if (Math.abs(px - this.keyboardInset) < 1) return;
+    this.keyboardInset = px;
+    this.host.nativeElement.style.setProperty('--keyboard-inset', `${px}px`);
+  }
+
+  ngOnDestroy() {
+    window.visualViewport?.removeEventListener('resize', this.onViewportResize);
+    this.host.nativeElement.removeEventListener('focusin', this.onFocusIn);
+    this.keyboardListeners.forEach(h => h.remove());
+  }
+
   ngOnInit() {
+    window.visualViewport?.addEventListener('resize', this.onViewportResize);
+    this.host.nativeElement.addEventListener('focusin', this.onFocusIn);
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener('keyboardWillShow', info => this.setKeyboardInset(info.keyboardHeight)).then(h => this.keyboardListeners.push(h));
+      Keyboard.addListener('keyboardWillHide', () => this.setKeyboardInset(0)).then(h => this.keyboardListeners.push(h));
+    }
+
     // Goal lists differ per mother type, so a switch clears picks from the other list
     this.registerForm.get('motherType')?.valueChanges.subscribe(() => this.registerForm.get('goals')?.setValue([]));
 
@@ -217,16 +259,41 @@ export class RegisterPage implements OnInit {
     return this.currentStep > 0 && !this.submitting;
   }
 
-  nextStep() {
+  checkingEmail = false;
+
+  async nextStep() {
     if (!this.isStepValid(this.currentStep)) {
       this.markStepFieldsTouched(this.currentStep);
       return;
+    }
+    // Catch an existing account here instead of at the final "Create my account"
+    if (this.steps[this.currentStep].id === 'email') {
+      if (this.checkingEmail) return;
+      if (await this.emailAlreadyRegistered()) return;
     }
     if (!this.isLastStep) {
       this.currentStep += 1;
     } else {
       this.onSubmit();
     }
+  }
+
+  private async emailAlreadyRegistered(): Promise<boolean> {
+    const control = this.registerForm.get('email');
+    this.checkingEmail = true;
+    try {
+      const res = await firstValueFrom(this.apiService.checkEmail(String(control?.value || '').trim()));
+      if (res?.data?.exists) {
+        control?.setErrors({ ...(control.errors || {}), emailTaken: true });
+        control?.markAsTouched();
+        return true;
+      }
+    } catch {
+      // Network or rate-limit error: let her continue; register still rejects a duplicate at the end
+    } finally {
+      this.checkingEmail = false;
+    }
+    return false;
   }
 
   goToStep(stepIndex: number) {
@@ -671,6 +738,9 @@ export class RegisterPage implements OnInit {
     }
     if (control?.hasError('futureDate')) {
       return 'Delivery date cannot be in the future';
+    }
+    if (control?.hasError('emailTaken')) {
+      return 'An account with this email already exists.';
     }
     if (control?.hasError('invalidEmail')) {
       return 'Please enter a valid email address with proper domain (e.g., user@example.com)';
