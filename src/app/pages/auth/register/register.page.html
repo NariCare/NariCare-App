@@ -286,7 +286,7 @@
           <button
             type="button"
             class="goal-card"
-            *ngFor="let goal of goalsOptions"
+            *ngFor="let goal of visibleGoals"
             [class.selected]="selectedGoals.includes(goal.key)"
             (click)="toggleGoal(goal.key)">
             <div class="goal-icon">
@@ -334,7 +334,7 @@
           <div class="checkbox-wrapper">
             <ion-checkbox formControlName="agreeToTerms"></ion-checkbox>
             <label class="terms-text">
-              I've read and agree with the <span class="terms-link">Terms and Conditions</span> and the <span class="terms-link">Privacy Policy</span>.
+              I've read and agree with the <a href="#" class="terms-link" (click)="openLegalDoc('terms', $event)">Terms and Conditions</a> and the <a href="#" class="terms-link" (click)="openLegalDoc('privacy', $event)">Privacy Policy</a>.
             </label>
           </div>
           <div class="error-message" *ngIf="registerForm.get('agreeToTerms')?.invalid && registerForm.get('agreeToTerms')?.touched">

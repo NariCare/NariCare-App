@@ -14,6 +14,7 @@ import { BabyCreationModalComponent } from '../../components/baby-creation-modal
 import { NotificationListComponent } from '../../components/notification-list/notification-list.component';
 import { NotificationPreferencesComponent } from '../../components/notification-preferences/notification-preferences.component';
 import { BabySelectionModalComponent } from '../../components/baby-selection-modal/baby-selection-modal.component';
+import { LegalDocModalComponent } from '../../components/legal-doc-modal/legal-doc-modal.component';
 
 // Version Info Interface
 export interface VersionInfo {
@@ -127,16 +128,16 @@ export class ProfilePage implements OnInit {
     // Create support items based on user role
     const supportItems: any[] = [
       { label: 'Contact Support', icon: 'mail-outline', iconColor: 'green', action: 'contact' },
-      { label: 'Privacy Policy', icon: 'shield-checkmark-outline', iconColor: 'purple', action: 'privacy' }
+      { label: 'Privacy Policy', icon: 'shield-checkmark-outline', iconColor: 'purple', action: 'privacy' },
+      { label: 'Terms of Service', icon: 'document-text-outline', iconColor: 'purple', action: 'terms' }
     ];
 
-    // Only add help center for non-expert users
-    // ponytail: 'Book Expert Consultation' item disabled alongside dashboard's Expert Support section
-    if (!isExpert) {
-      supportItems.unshift(
-        { label: 'Help Center', icon: 'help-circle-outline', iconColor: 'blue', action: 'help' }
-      );
-    }
+    // ponytail: Help Center hidden until FAQ content exists; restore the unshift below
+    // if (!isExpert) {
+    //   supportItems.unshift(
+    //     { label: 'Help Center', icon: 'help-circle-outline', iconColor: 'blue', action: 'help' }
+    //   );
+    // }
 
     this.profileSections = [
       {
@@ -326,7 +327,10 @@ export class ProfilePage implements OnInit {
         this.contactSupport();
         break;
       case 'privacy':
-        this.viewPrivacyPolicy();
+        this.openLegalDoc('privacy');
+        break;
+      case 'terms':
+        this.openLegalDoc('terms');
         break;
       case 'reviewAi':
         this.router.navigate(['/admin/ai-review']);
@@ -528,8 +532,12 @@ export class ProfilePage implements OnInit {
     window.open(whatsappUrl, '_blank');
   }
 
-  private viewPrivacyPolicy() {
-    console.log('View privacy policy');
+  private async openLegalDoc(doc: 'privacy' | 'terms') {
+    const modal = await this.modalController.create({
+      component: LegalDocModalComponent,
+      componentProps: { doc }
+    });
+    await modal.present();
   }
 
   async shareApp() {

@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ content.title }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="close()" aria-label="Close">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <article class="legal-doc">
+    <p class="legal-date" *ngFor="let d of content.dates">{{ d }}</p>
+    <ng-container *ngFor="let block of content.blocks">
+      <h2 *ngIf="b(block).h">{{ b(block).h }}</h2>
+      <h3 *ngIf="b(block).sub">{{ b(block).sub }}</h3>
+      <p *ngIf="b(block).p" [class.strong]="b(block).bold">{{ b(block).p }}</p>
+      <ul *ngIf="b(block).ul"><li *ngFor="let item of b(block).ul">{{ item }}</li></ul>
+      <ol *ngIf="b(block).ol"><li *ngFor="let item of b(block).ol">{{ item }}</li></ol>
+    </ng-container>
+  </article>
+</ion-content>

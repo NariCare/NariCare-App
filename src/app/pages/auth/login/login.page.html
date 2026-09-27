@@ -179,9 +179,10 @@
         You are not alone. We are with you.
       </p>
 
-      <p class="portal-switch" *ngIf="!show2FA && portal === 'user'">
+      <!-- ponytail: LC link hidden; LCs sign in at /auth/login/lc directly -->
+      <!-- <p class="portal-switch" *ngIf="!show2FA && portal === 'user'">
         <a routerLink="/auth/login/lc">Lactation Consultant? Sign in here</a>
-      </p>
+      </p> -->
       <p class="portal-switch" *ngIf="!show2FA && portal === 'lc'">
         <a routerLink="/auth/login">Signing in as a mother? Go to NariCare sign in</a>
       </p>
