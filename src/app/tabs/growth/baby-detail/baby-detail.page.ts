@@ -36,6 +36,7 @@ import { whoPercentile, formatPercentile, whoCurve, GrowthKind } from '../../../
 import { formatDate } from '@angular/common';
 import { TrackerSummaryService } from '../../../services/tracker-summary.service';
 import { ActiveBabyService } from '../../../services/active-baby.service';
+import { RecordActionsService } from '../../../services/record-actions.service';
 
 interface ChartSeries { path: string; pts: { x: number; y: number }[]; tag: { x: number; y: number; w: number; text: string } }
 export interface GrowthChart { weight?: ChartSeries; height?: ChartSeries; ticks: { x: number; label: string; anchor: string }[]; label: string }
@@ -174,7 +175,8 @@ export class BabyDetailPage implements OnInit, OnDestroy {
     private modalController: ModalController,
     private zone: NgZone,
     public trackerSummary: TrackerSummaryService,
-    private activeBaby: ActiveBabyService
+    private activeBaby: ActiveBabyService,
+    private recordActions: RecordActionsService
   ) {
     // Initialize forms
     this.addRecordForm = this.formBuilder.group({
@@ -440,7 +442,9 @@ export class BabyDetailPage implements OnInit, OnDestroy {
       return {
         icon: 'assets/Weight.svg', iconAlt: 'Growth', at: recordAt(r.record_date || r.date, time),
         time: time ? DateOnlyUtil.to12Hour(time) : undefined, label: r.notes || undefined,
-        value: [r.weight != null && `${r.weight} kg`, r.height && `${r.height} cm`].filter(Boolean).join(' · ')
+        value: [r.weight != null && `${r.weight} kg`, r.height && `${r.height} cm`].filter(Boolean).join(' · '),
+        // Tap opens Edit / Delete; the birth row below lives on the baby profile, so it has no actions
+        onClick: r.id ? () => this.zone.run(() => this.recordActions.openGrowthActions(r, this.babyId)) : undefined
       };
     });
     // Birth weight lives on the baby profile, not in weight_records.

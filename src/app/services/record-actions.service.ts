@@ -5,11 +5,12 @@ import { BackendPumpingService } from './backend-pumping.service';
 import { BackendAuthService } from './backend-auth.service';
 import { FeedLogModalComponent } from '../components/feed-log-modal/feed-log-modal.component';
 import { PumpingLogModalComponent } from '../components/pumping-log-modal/pumping-log-modal.component';
+import { WeightLogModalComponent } from '../components/weight-log-modal/weight-log-modal.component';
 
 type Action = 'edit' | 'delete' | undefined;
 export type FeedKind = 'direct' | 'expressed' | 'formula';
 
-/** Edit/Delete sheet for a logged feed or pumping record, shared by growth and See-all pages. */
+/** Edit/Delete sheet for a logged feed, pumping or growth record, shared by growth and See-all pages. */
 @Injectable({ providedIn: 'root' })
 export class RecordActionsService {
   constructor(
@@ -62,6 +63,19 @@ export class RecordActionsService {
           await this.pumpingService.deletePumpingRecord(record.id).toPromise();
           this.growthService.refreshPumping(babyId);
         }, 'Pumping session deleted', 'Could not delete the session. Please try again.');
+      }
+    }
+  }
+
+  async openGrowthActions(record: any, babyId: string): Promise<void> {
+    if (!record?.id) { return; }
+    const action = await this.pickAction('Growth record');
+    if (action === 'edit') {
+      await this.openModal(WeightLogModalComponent, { editRecord: record, selectedBaby: this.babyFor(babyId) });
+    } else if (action === 'delete') {
+      const parts = [record.weight != null && `${+record.weight} kg`, record.height != null && `${+record.height} cm`].filter(Boolean).join(' · ');
+      if (await this.confirmDelete('Delete this growth record?', `${parts || 'This record'} will be removed from the chart and history.`)) {
+        await this.run(() => this.growthService.deleteWeightRecord(record.id, babyId), 'Growth record deleted', 'Could not delete the record. Please try again.');
       }
     }
   }

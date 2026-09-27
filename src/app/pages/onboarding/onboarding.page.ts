@@ -1259,8 +1259,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
 
     } catch (error: any) {
       const alert = await this.alertController.create({
-        header: 'Onboarding Error',
+        header: 'Could not complete your profile',
         message: error.message || 'Failed to complete onboarding. Please try again.',
+        cssClass: 'form-errors-alert',
         buttons: ['OK']
       });
       await alert.present();
@@ -1287,8 +1288,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
       console.log('Current data for validation:', currentData);
       
       const alert = await this.alertController.create({
-        header: 'Please Complete Required Fields',
-        message: Object.values(validation.errors).join('\n'),
+        header: 'Please complete these fields',
+        message: Object.values(validation.errors).map(e => `\u2022 ${e}`).join('\n'),
+        cssClass: 'form-errors-alert',
         buttons: ['OK']
       });
       await alert.present();

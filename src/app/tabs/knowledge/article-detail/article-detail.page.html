@@ -6,9 +6,10 @@
       </ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="toggleReading()" class="header-button" [class.button-active]="isReading">
+      <!-- ponytail: read-aloud hidden (not useful for now); restore to bring it back -->
+      <!-- <ion-button fill="clear" (click)="toggleReading()" class="header-button" [class.button-active]="isReading">
         <ion-icon [name]="isReading ? 'stop' : 'volume-high'" slot="icon-only"></ion-icon>
-      </ion-button>
+      </ion-button> -->
       <ion-button fill="clear" (click)="toggleBookmark()" class="header-button" [class.button-active]="isBookmarked">
         <ion-icon [name]="isBookmarked ? 'bookmark' : 'bookmark-outline'" slot="icon-only"></ion-icon>
       </ion-button>
@@ -20,12 +21,29 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  <!-- Never blank: spinner while loading, message if the article does not exist -->
+  <div class="article-state" *ngIf="!(processedArticle$ | async)">
+    <ng-container *ngIf="!articleMissing; else missing">
+      <ion-spinner name="crescent" aria-label="Loading article"></ion-spinner>
+    </ng-container>
+    <ng-template #missing>
+      <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+      <h2>Article not available</h2>
+      <p>This article may have been moved or updated.</p>
+      <ion-button fill="outline" (click)="openLearn()">Browse articles</ion-button>
+    </ng-template>
+  </div>
   <div *ngIf="processedArticle$ | async as article">
 
     <!-- Article Hero -->
     <div class="article-hero" [style.background-image]="'url(' + illustrationFor(article) + ')'">
       <div class="article-hero-scrim"></div>
-      <h1>{{ article.title }}</h1>
+      <div class="hero-text">
+        <h1>{{ article.title }}</h1>
+        <p class="hero-meta">
+          {{ article.difficulty | titlecase }} · {{ formatReadTime(article.readTime) }} · {{ article.category.name }}
+        </p>
+      </div>
     </div>
 
   <div class="article-container">
@@ -85,30 +103,8 @@
       <p>{{ article.quickTake }}</p>
     </div>
 
-    <!-- Article Header -->
-    <div class="article-header">
-      <div class="article-meta">
-        <ion-chip [color]="getDifficultyColor(article.difficulty)" size="small">
-          {{ article.difficulty }}
-        </ion-chip>
-        <span class="read-time">{{ formatReadTime(article.readTime) }}</span>
-      </div>
-
-      <p class="article-summary">{{ article.summary }}</p>
-      
-      <div class="article-info">
-        <div class="author-info">
-          <span class="author">By {{ article.author }}</span>
-          <span class="date">{{ article.publishedAt | date:'MMM d, y' }}</span>
-        </div>
-        <div class="category-info">
-          <ion-chip color="medium" size="small">
-            <ion-icon [name]="article.category.icon" slot="start"></ion-icon>
-            {{ article.category.name }}
-          </ion-chip>
-        </div>
-      </div>
-    </div>
+    <!-- Summary only when there is no quick take (they say the same thing) -->
+    <p class="article-summary" *ngIf="!article.quickTake && article.summary">{{ article.summary }}</p>
 
     <!-- Article Content -->
     <div class="article-content">
@@ -141,13 +137,38 @@
              [class.callout-info]="section.style === 'info'"
              [class.callout-warning]="section.style === 'warning'"
              [class.callout-success]="section.style === 'success'"
-             [class.callout-danger]="section.style === 'danger'">
+             [class.callout-danger]="section.style === 'danger'"
+             [class.callout-tip]="section.style === 'tip'">
           <div class="callout-header" *ngIf="section.title">
             <ion-icon [name]="getCalloutIcon(section.style)"></ion-icon>
             <h4>{{ section.title }}</h4>
           </div>
-          <p>{{ section.content }}</p>
+          <p *ngIf="section.content">{{ section.content }}</p>
+          <ul *ngIf="section.items" class="callout-list"><li *ngFor="let item of section.items">{{ item }}</li></ul>
         </div>
+
+        <!-- Benefit cards: items [{ icon, title, text }] -->
+        <div *ngIf="section.type === 'benefits'" class="content-benefits">
+          <div *ngFor="let item of section.items" class="benefit-card">
+            <span class="benefit-icon"><ion-icon [name]="item.icon || 'checkmark-circle'" aria-hidden="true"></ion-icon></span>
+            <span class="benefit-body">
+              <strong>{{ item.title }}</strong>
+              <span *ngIf="item.text">{{ item.text }}</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Step cards: items [{ title, text, image?: { url, alt } }] -->
+        <ol *ngIf="section.type === 'steps'" class="content-steps">
+          <li *ngFor="let step of section.items; let n = index" class="step-card">
+            <div class="step-head">
+              <span class="step-number" aria-hidden="true">{{ n + 1 }}</span>
+              <h3>{{ step.title }}</h3>
+            </div>
+            <p>{{ step.text }}</p>
+            <img *ngIf="step.image" [src]="step.image.url" [alt]="step.image.alt || step.title" loading="lazy">
+          </li>
+        </ol>
 
         <!-- Quotes -->
         <div *ngIf="section.type === 'quote'" class="content-quote" [class.has-author]="section.author">
@@ -172,7 +193,15 @@
         </div>
 
         <!-- Media Content -->
-        <div *ngIf="section.type === 'media'" class="content-media">
+        <!-- Image sections: media items with mediaType "image" (url, alt, caption) -->
+        <div *ngIf="section.type === 'media' && section.mediaType === 'image'" class="content-images">
+          <figure *ngFor="let img of section.media" class="content-image">
+            <img [src]="img.url" [alt]="img.alt || ''" loading="lazy">
+            <figcaption *ngIf="img.caption">{{ img.caption }}</figcaption>
+          </figure>
+        </div>
+
+        <div *ngIf="section.type === 'media' && section.mediaType !== 'image'" class="content-media">
           <div *ngFor="let media of section.media" class="media-item">
             <div class="video-container">
               <iframe 
@@ -197,6 +226,8 @@
       </div>
     </div>
 
+    <p class="article-byline">By {{ article.author }} · {{ article.publishedAt | date:'MMM d, y' }}</p>
+
     <!-- Article Tags -->
     <div class="article-tags" *ngIf="article.tags && article.tags.length > 0">
       <h3>Related Topics</h3>
@@ -207,7 +238,7 @@
           size="small"
           (click)="onTagClick(tag)"
           class="clickable-tag">
-          {{ tag }}
+          {{ tagLabel(tag) }}
         </ion-chip>
       </div>
     </div>

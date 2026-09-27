@@ -499,7 +499,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         this.router.navigate(['/tabs/knowledge']);
         break;
       case 'joinChat':
-        this.router.navigate(['/tabs/chat']);
+        this.router.navigate(['/tabs/chat'], { queryParams: { tab: 'groups' } });
         break;
       // Expert-specific actions
       case 'setSchedule':

@@ -797,3 +797,16 @@ ion-button.preset-button {
 body.keyboard-open ion-tab-bar {
   display: none;
 }
+
+// Growth plausibility warnings list one issue per paragraph
+.growth-check-alert .alert-message {
+  white-space: pre-line;
+}
+
+// Validation lists: one error per line, left aligned, with breathing room
+.form-errors-alert .alert-message {
+  white-space: pre-line;
+  text-align: left;
+  line-height: 1.6;
+  padding-top: 8px;
+}

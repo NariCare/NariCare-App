@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { ApiService } from '../../../services/api.service';
 import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
+import { LegalDocModalComponent } from '../../../components/legal-doc-modal/legal-doc-modal.component';
 
 interface StepDefinition {
   id: string;
@@ -48,6 +49,17 @@ export class RegisterPage implements OnInit {
     { key: 'track_feeds', label: 'Track my baby\u2019s feeds and growth', icon: 'Tracker.svg' }
   ];
 
+  // Copy from Gayathri for moms who are still pregnant
+  pregnantGoalsOptions = [
+    { key: 'learn_basics', label: 'Learn the basics of breastfeeding', icon: 'Feed.svg' },
+    { key: 'prenatal_help', label: 'Find breastfeeding help before baby arrives', icon: 'Fed directly.svg' },
+    { key: 'prepare_support', label: 'Gather breastfeeding essentials & build your support system', icon: 'Tracker.svg' }
+  ];
+
+  get visibleGoals() {
+    return this.registerForm.get('motherType')?.value === 'pregnant' ? this.pregnantGoalsOptions : this.goalsOptions;
+  }
+
   motherTypes = [
     { key: 'pregnant', label: 'I\u2019m pregnant', icon: 'images/pregnant-choice.webp' },
     { key: 'new_mom', label: 'I\u2019m a new mother', icon: 'images/new-mom-choice.webp' }
@@ -62,7 +74,8 @@ export class RegisterPage implements OnInit {
     private apiService: ApiService,
     private router: Router,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private modalController: ModalController
   ) {
     this.registerForm = this.formBuilder.group({
       fullName: ['', [Validators.required, this.nameInputValidator]],
@@ -83,7 +96,21 @@ export class RegisterPage implements OnInit {
     }, { validators: [this.passwordMatchValidator, this.conditionalValidator] });
   }
 
+  // Opens as a modal so the half-filled register form is not lost.
+  async openLegalDoc(doc: 'privacy' | 'terms', event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const modal = await this.modalController.create({
+      component: LegalDocModalComponent,
+      componentProps: { doc }
+    });
+    await modal.present();
+  }
+
   ngOnInit() {
+    // Goal lists differ per mother type, so a switch clears picks from the other list
+    this.registerForm.get('motherType')?.valueChanges.subscribe(() => this.registerForm.get('goals')?.setValue([]));
+
     this.registerForm.get('fullName')?.valueChanges.subscribe((fullName) => {
       if (fullName && fullName.trim().includes(' ')) {
         const first = this.extractFirstName(fullName);

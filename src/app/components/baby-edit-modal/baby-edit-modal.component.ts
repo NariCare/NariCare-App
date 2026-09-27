@@ -4,6 +4,9 @@ import { ModalController, ToastController, LoadingController, AlertController } 
 import { ApiService } from '../../services/api.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { Baby } from '../../models/user.model';
+import { firstValueFrom } from 'rxjs';
+import { confirmGrowthEntry, growthWarnings, toGrowthPoints } from '../../shared/utils/growth-plausibility.util';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-baby-edit-modal',
@@ -86,8 +89,28 @@ export class BabyEditModalComponent implements OnInit {
     }
   }
 
+  // Same trend checks as Log Growth, only when current weight/height is changed here
+  private async confirmGrowthChange(): Promise<boolean> {
+    const f = this.babyForm.value;
+    const weight = f.currentWeight ? parseFloat(f.currentWeight) : null;
+    const height = f.currentHeight ? parseFloat(f.currentHeight) : null;
+    const changedWeight = weight !== null && weight !== this.originalWeight ? weight : null;
+    const changedHeight = height !== null && height !== this.originalHeight ? height : null;
+    if (!this.baby || (changedWeight === null && changedHeight === null)) return true;
+
+    const response = await firstValueFrom(this.apiService.getWeightRecords(this.baby.id, 1, 30)).catch(() => null);
+    const baby = { ...this.baby, dateOfBirth: f.dateOfBirth || this.baby.dateOfBirth, gender: f.gender, birthWeight: parseFloat(f.birthWeight), birthHeight: parseFloat(f.birthHeight) };
+    const warnings = growthWarnings(baby, toGrowthPoints(response?.data), {
+      date: DateOnlyUtil.parseLocalDate(String(f.weightDate).slice(0, 10)),
+      weight: changedWeight,
+      height: changedHeight
+    });
+    return confirmGrowthEntry(this.alertController, warnings);
+  }
+
   async onSubmit() {
     if (this.babyForm.valid && this.baby) {
+      if (!(await this.confirmGrowthChange())) return;
       const loading = await this.loadingController.create({
         message: 'Updating baby information...',
         translucent: true

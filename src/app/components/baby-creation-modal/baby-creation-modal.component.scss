@@ -114,6 +114,12 @@
   color: #374151;
   margin-bottom: 0.75rem;
   margin-left: 0.25rem;
+
+  // Always-visible label above an input (placeholders vanish on typing, native date ignores them)
+  &.compact {
+    font-size: 0.85rem;
+    margin-bottom: 0.35rem;
+  }
 }
 
 .gender-selection-grid {
@@ -196,8 +202,7 @@
 // Unit suffix styling
 .weight-input,
 .height-input {
-  // Tighten start icon + let the input shrink so the "Birth Weight" / "Birth
-  // Height" placeholder is not truncated to "Birth" in the half-width column.
+  // Tighten start icon + let the input shrink in the half-width column.
   --padding-start: 12px;
   --padding-end: 8px;
 

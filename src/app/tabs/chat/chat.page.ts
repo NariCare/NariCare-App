@@ -39,10 +39,10 @@ export class ChatPage implements OnInit {
       this.currentUser = user;
     });
 
-    // Check if we should open AI chat directly
+    // Open a specific tab directly, e.g. ?tab=groups from dashboard "Join Chat"
     this.route.queryParams.subscribe(params => {
-      if (params['tab'] === 'ai') {
-        this.selectedTab = 'ai';
+      if (params['tab'] === 'ai' || params['tab'] === 'groups') {
+        this.selectedTab = params['tab'];
       }
     });
   }

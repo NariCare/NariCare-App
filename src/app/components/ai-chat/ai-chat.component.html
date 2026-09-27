@@ -264,14 +264,15 @@
   <!-- Message Input -->
   <div class="message-input-container fixed-bottom" #messageInputContainer>
     <div class="message-input">
-      <ion-button
+      <!-- ponytail: upload hidden for now; restore to bring back attachments -->
+      <!-- <ion-button
         fill="clear"
         size="small"
         (click)="openAttachmentMenu()"
         aria-label="Add attachment"
         class="attachment-button">
         <ion-icon name="add" slot="icon-only"></ion-icon>
-      </ion-button>
+      </ion-button> -->
       <ion-button 
         *ngIf="isExpert()"
         fill="clear" 
