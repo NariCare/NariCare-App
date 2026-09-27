@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Growth Log</ion-title>
+    <ion-title>{{ editRecord ? 'Edit Growth Record' : 'Growth Log' }}</ion-title>
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="closeModal()">
         <ion-icon name="close" slot="icon-only"></ion-icon>
@@ -204,7 +204,7 @@
           class="save-button">
           <ion-spinner slot="start" *ngIf="isSubmitting"></ion-spinner>
           <ion-icon name="save" slot="start" *ngIf="!isSubmitting"></ion-icon>
-          {{ isSubmitting ? 'Saving...' : 'Save growth record' }}
+          {{ isSubmitting ? 'Saving...' : (editRecord ? 'Update growth record' : 'Save growth record') }}
         </ion-button>
       </div>
 

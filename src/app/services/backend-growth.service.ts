@@ -451,6 +451,32 @@ export class BackendGrowthService {
     }
   }
 
+  async updateWeightRecord(id: string, record: WeightRecordRequest): Promise<any> {
+    try {
+      const { babyId, ...changes } = record;
+      const response = await this.apiService.updateWeightRecord(id, changes).toPromise();
+      if (!response?.success) { throw new Error(response?.message || 'Failed to update growth record'); }
+      this.refresh('weight', babyId);
+      await this.refreshBabyCurrentWeight(babyId);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating weight record:', error);
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
+  async deleteWeightRecord(id: string, babyId: string): Promise<void> {
+    try {
+      const response = await this.apiService.deleteWeightRecord(id).toPromise();
+      if (!response?.success) { throw new Error(response?.message || 'Failed to delete growth record'); }
+      this.refresh('weight', babyId);
+      await this.refreshBabyCurrentWeight(babyId);
+    } catch (error: any) {
+      console.error('Error deleting weight record:', error);
+      throw new Error(this.getErrorMessage(error));
+    }
+  }
+
   async deleteFeedRecord(id: string, babyId: string): Promise<void> {
     try {
       const response = await this.apiService.deleteFeedRecord(id).toPromise();

@@ -593,6 +593,18 @@ export class ApiService {
     }).pipe(catchError(this.handleError));
   }
 
+  updateWeightRecord(id: string, weightData: Partial<WeightRecordRequest>): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/tracker/weight/${id}`, weightData, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  deleteWeightRecord(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/tracker/weight/${id}`, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
   getWeightRecords(babyId: string, page?: number, limit?: number): Observable<ApiResponse<any[]>> {
     let params = new HttpParams();
     if (page) params = params.set('page', page.toString());

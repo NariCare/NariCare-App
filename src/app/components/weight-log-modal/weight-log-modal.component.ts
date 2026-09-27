@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { ModalController, ToastController } from '@ionic/angular';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 import { BackendGrowthService } from '../../services/backend-growth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { AuthService } from '../../services/auth.service';
@@ -9,6 +10,7 @@ import { WeightRecordRequest } from '../../services/api.service';
 import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 import { User, Baby } from '../../models/user.model';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
+import { confirmGrowthEntry, growthWarnings, toGrowthPoints } from '../../shared/utils/growth-plausibility.util';
 
 interface PredefinedWeightNote {
   id: string;
@@ -24,6 +26,8 @@ interface PredefinedWeightNote {
 export class WeightLogModalComponent implements OnInit {
   @Input() prefilledData?: Partial<WeightRecord>;
   @Input() selectedBaby?: Baby;
+  /** Existing weight_records row: opens the modal in edit mode. */
+  @Input() editRecord?: any;
 
   weightForm: FormGroup;
   user: User | null = null;
@@ -51,7 +55,8 @@ export class WeightLogModalComponent implements OnInit {
     private toastController: ToastController,
     private backendGrowthService: BackendGrowthService,
     private authService: AuthService,
-    private backendAuthService: BackendAuthService
+    private backendAuthService: BackendAuthService,
+    private alertController: AlertController
   ) {
     this.weightForm = this.formBuilder.group({
       selectedBaby: ['', [Validators.required]],
@@ -85,6 +90,15 @@ export class WeightLogModalComponent implements OnInit {
     // Apply prefilled data if provided
     if (this.prefilledData) {
       this.applyPrefilledData();
+    }
+    if (this.editRecord) {
+      const r = this.editRecord;
+      this.weightForm.patchValue({
+        date: String(r.record_date || r.recordDate || '').slice(0, 10) || this.getCurrentDate(),
+        weight: r.weight != null ? parseFloat(r.weight) : '',
+        height: r.height != null ? parseFloat(r.height) : '',
+        notes: r.notes || ''
+      });
     }
   }
 
@@ -277,9 +291,19 @@ export class WeightLogModalComponent implements OnInit {
         
         const weight = this.hasValue('weight') ? parseFloat(formValue.weight) : undefined;
         const height = this.hasValue('height') ? parseFloat(formValue.height) : undefined;
+        const recordDate = String(formValue.date).slice(0, 10);
+        const all = await firstValueFrom(this.backendGrowthService.getWeightRecords(selectedBaby.id)).catch(() => [] as any[]);
+        // An edited record must not be compared with its own old value
+        const history = toGrowthPoints(this.editRecord ? all.filter((r: any) => r.id !== this.editRecord.id) : all);
+        const warnings = growthWarnings(selectedBaby, history, { date: DateOnlyUtil.parseLocalDate(recordDate), weight, height });
+        if (!(await confirmGrowthEntry(this.alertController, warnings))) {
+          this.isSubmitting = false;
+          return;
+        }
+
         const record: WeightRecordRequest = {
           babyId: selectedBaby.id,
-          recordDate: String(formValue.date).slice(0, 10), // was built but never sent, so every entry landed on today
+          recordDate, // was built but never sent, so every entry landed on today
           ...(weight === undefined ? {} : { weight }),
           ...(height === undefined ? {} : { height }),
           notes: formValue.notes || '',
@@ -288,7 +312,10 @@ export class WeightLogModalComponent implements OnInit {
         // Use backend service for authenticated users
         const isBackendUser = this.backendAuthService.getCurrentUser();
         
-        if (isBackendUser) {
+        if (isBackendUser && this.editRecord) {
+          // Explicit nulls so clearing a field on edit actually clears it
+          await this.backendGrowthService.updateWeightRecord(this.editRecord.id, { ...record, weight: weight ?? null, height: height ?? null } as any);
+        } else if (isBackendUser) {
           const response = await this.backendGrowthService.addWeightRecord(record);
           console.log('Weight record saved successfully:', response);
         } else {
@@ -296,7 +323,7 @@ export class WeightLogModalComponent implements OnInit {
         }
         
         const toast = await this.toastController.create({
-          message: 'Growth record saved successfully!',
+          message: this.editRecord ? 'Growth record updated' : 'Growth record saved successfully!',
           duration: 2000,
           color: 'success',
           position: 'top'
