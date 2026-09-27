@@ -611,7 +611,7 @@ export class OnboardingService {
       const validation = this.validateStep(step, data);
       if (!validation.isValid) {
         allValid = false;
-        throw new Error(`Step ${step} validation failed: ${Object.values(validation.errors).join(', ')}`);
+        throw new Error(`Step ${step} needs attention:\n${Object.values(validation.errors).map(e => `\u2022 ${e}`).join('\n')}`);
       }
     }
 

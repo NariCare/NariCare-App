@@ -79,9 +79,10 @@ ion-label p {
   font-size: 0.8em;
 }
 
+// Fixed brand colours: theme light/dark vars swap under OS dark mode and made this white-on-grey
 .notification-type {
-  background: var(--ion-color-light);
-  color: var(--ion-color-dark);
+  background: rgba(131, 131, 237, 0.12);
+  color: #4f46b8;
   padding: 2px 8px;
   border-radius: 12px;
   font-weight: 500;
@@ -133,11 +134,6 @@ ion-infinite-scroll-content {
 
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-  .notification-type {
-    background: var(--ion-color-dark);
-    color: var(--ion-color-light);
-  }
-  
   ion-item.unread {
     --background: rgba(var(--ion-color-primary-rgb), 0.1);
   }

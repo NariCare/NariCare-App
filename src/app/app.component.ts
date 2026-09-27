@@ -27,7 +27,33 @@ export class AppComponent implements OnInit {
     this.initializeApp();
   }
 
+  // Browsers open a native date picker only from its small icon, and ion-datetime-button
+  // only from its pill; open the picker on a tap anywhere in the field instead.
+  private openPickerOnFieldTap = (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    // Only taps on the field itself, never on page wrappers that merely contain one
+    const field = target.closest('ion-item, ion-input');
+    if (!field && !(target instanceof HTMLInputElement)) return;
+
+    const input = (target instanceof HTMLInputElement ? target : null)
+      || field!.querySelector<HTMLInputElement>('input[type="date"], input[type="datetime-local"], input[type="time"], input[type="month"]');
+    if (input && ['date', 'datetime-local', 'time', 'month'].includes(input.type)) {
+      if (!input.disabled && !input.readOnly) {
+        try { input.showPicker(); } catch { /* already open, or not supported */ }
+      }
+      return;
+    }
+
+    const dateButton = field?.querySelector('ion-datetime-button');
+    if (dateButton && !dateButton.contains(target)) {
+      dateButton.shadowRoot?.querySelector<HTMLButtonElement>('button:not([hidden])')?.click();
+    }
+  };
+
   ngOnInit() {
+    document.addEventListener('click', this.openPickerOnFieldTap);
+
     // Initialize push notification service when app starts
     this.pushNotificationService.initializePushNotifications();
     
