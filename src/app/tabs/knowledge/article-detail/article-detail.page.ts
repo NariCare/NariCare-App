@@ -19,6 +19,7 @@ import { illustrationForCategory } from '../knowledge-illustrations';
 export class ArticleDetailPage implements OnInit {
   article$: Observable<Article | undefined>;
   processedArticle$ = new BehaviorSubject<Article | undefined>(undefined);
+  articleMissing = false;
   relatedArticles$: Observable<Article[]>;
   articleId: string = '';
   user: User | null = null;
@@ -68,11 +69,13 @@ export class ArticleDetailPage implements OnInit {
               this.processArticleVideos(article);
             } else {
               // Emit undefined if article not found
+              this.articleMissing = true;
               this.processedArticle$.next(undefined);
             }
           },
           error: (error) => {
             console.error('Error loading article:', error);
+            this.articleMissing = true;
             this.processedArticle$.next(undefined);
           }
         });
@@ -283,6 +286,7 @@ export class ArticleDetailPage implements OnInit {
       case 'warning': return 'warning';
       case 'success': return 'checkmark-circle';
       case 'danger': return 'alert-circle';
+      case 'tip': return 'bulb';
       default: return 'information-circle';
     }
   }
@@ -327,10 +331,20 @@ export class ArticleDetailPage implements OnInit {
     this.router.navigate(['/tabs/knowledge/article', article.id]);
   }
 
+  /** "milk-coming-in" -> "Milk coming in" */
+  tagLabel(tag: string): string {
+    const words = (tag || '').replace(/-/g, ' ');
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }
+
   onTagClick(tag: string) {
     this.router.navigate(['/tabs/knowledge/search'], { 
       queryParams: { tag: tag } 
     });
+  }
+
+  openLearn() {
+    this.router.navigate(['/tabs/knowledge']);
   }
 
   ngOnDestroy() {

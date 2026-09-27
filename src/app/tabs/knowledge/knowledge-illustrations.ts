@@ -4,7 +4,10 @@ const CATEGORY_ILLUSTRATIONS: { [categoryId: string]: string } = {
   'milk-supply-production': 'assets/images/knowledge/milk-supply-production.webp',
   'common-challenges': 'assets/images/knowledge/common-challenges.webp',
   'baby-health-growth': 'assets/images/knowledge/baby-health-growth.webp',
-  'preparation-planning': 'assets/images/knowledge/preparation-planning.webp'
+  'preparation-planning': 'assets/images/knowledge/preparation-planning.webp',
+  // ponytail: borrows nursing art (no pump) until the category gets its own illustration
+  'expressing-storing-breastmilk': 'assets/images/knowledge/breastfeeding-techniques.webp',
+  'pregnancy': 'assets/images/knowledge/preparation-planning.webp'
 };
 
 const FALLBACK_ILLUSTRATION = 'assets/images/knowledge/postpartum-early-days.webp';

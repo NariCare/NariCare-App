@@ -6,16 +6,17 @@ export interface MediaContent {
 }
 
 export interface ArticleContentSection {
-  type: 'text' | 'list' | 'callout' | 'table' | 'media' | 'heading' | 'quote';
+  type: 'text' | 'list' | 'callout' | 'table' | 'media' | 'heading' | 'quote' | 'benefits' | 'steps';
   content?: string | string[] | MediaContent | any;
   title?: string;
   variant?: string;
   level?: number;
   style?: string;
-  items?: string[];
+  items?: any[]; // strings for list/callout, objects for benefits/steps
   headers?: string;
   rows?: any;
   media?: any;
+  mediaType?: 'image' | 'video';
   author?: string;
 }
 

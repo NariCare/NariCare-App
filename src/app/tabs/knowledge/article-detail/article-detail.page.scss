@@ -17,15 +17,25 @@
     background: linear-gradient(180deg, rgba(45, 55, 72, 0.4) 0%, rgba(45, 55, 72, 0.15) 35%, rgba(45, 55, 72, 0.9) 100%);
   }
 
-  h1 {
+  .hero-text {
     position: relative;
     z-index: 1;
-    margin: 0;
     padding: 1.25rem;
+  }
+
+  h1 {
+    margin: 0;
     font-size: 1.4rem;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.35;
+  }
+
+  .hero-meta {
+    margin: 0.4rem 0 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
   }
 }
 
@@ -561,4 +571,167 @@ ion-header ion-toolbar {
   .speed-controls {
     justify-content: center;
   }
+}
+.article-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+  min-height: 60vh;
+  padding: 2rem 1.5rem;
+  color: #6b7280;
+
+  ion-icon { font-size: 3rem; color: #8383ed; }
+  h2 { margin: 0.5rem 0 0; font-size: 1.15rem; color: #1f2937; }
+  p { margin: 0 0 0.75rem; }
+}
+
+.content-images {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.content-image {
+  margin: 0;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+  }
+
+  figcaption {
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-align: center;
+  }
+}
+
+// ---- Card layout sections (benefits, steps, tip callout) ----
+.content-benefits {
+  display: grid;
+  // Mobile-first: one full-width row per benefit; 3 across only on wide screens
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  margin: 0.75rem 0 1.25rem;
+}
+
+.benefit-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border-radius: 14px;
+  background: #f5f5ff;
+  border: 1px solid rgba(131, 131, 237, 0.18);
+
+  .benefit-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(131, 131, 237, 0.15);
+    color: #6c63e0;
+    font-size: 1.1rem;
+  }
+
+  .benefit-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #4b5563;
+
+    strong { color: #1f2937; font-size: 0.9rem; }
+  }
+}
+
+.content-steps {
+  list-style: none;
+  margin: 0.75rem 0 1.25rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.step-card {
+  padding: 1rem;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #ececf6;
+  box-shadow: 0 2px 10px rgba(45, 55, 72, 0.05);
+
+  .step-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .step-number {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #8383ed;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  p {
+    margin: 0 0 0.75rem;
+    color: #4b5563;
+    line-height: 1.55;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+  }
+}
+
+.content-callout.callout-tip {
+  background: #f0faf6;
+
+  .callout-header ion-icon { color: #34a37a; }
+}
+
+.callout-list {
+  margin: 0.25rem 0 0;
+  padding-left: 1.1rem;
+
+  li { margin-bottom: 0.3rem; line-height: 1.5; }
+}
+
+.article-byline {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
 }
