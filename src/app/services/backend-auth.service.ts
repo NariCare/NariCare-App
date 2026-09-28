@@ -261,7 +261,8 @@ export class BackendAuthService {
     this.setCurrentUser(null);
     this.twoFactorRequiredSubject.next(false);
     this.pendingEmail = '';
-    this.router.navigate([loginUrl]);
+    // Full reload, not router.navigate: in-app navigation from Profile could silently fail and leave the user on the page; a reload also drops in-memory user data
+    window.location.replace(loginUrl);
 
     this.apiService.logout().toPromise()
       .catch(error => console.warn('Logout API call failed (local state already cleared):', error));

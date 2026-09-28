@@ -177,7 +177,7 @@ $font-heading: 'Merriweather', Georgia, serif;                                  
 
 .welcome-title {
   margin: 0 0 0.35rem;
-  color: $primary;   // brand lavender #8484BF; core #9A9AE8 is only 2.5:1 on cream, below AA large-text 3:1
+  color: $link;   // same lavender as the Beta tag, per design feedback
   font-family: $font-heading;
   font-size: 1.65rem;
   font-weight: 700;
