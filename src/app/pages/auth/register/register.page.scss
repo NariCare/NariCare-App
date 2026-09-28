@@ -7,7 +7,7 @@
 .register-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100%;   // grows with its content so ion-content scrolls the whole page; a fixed height clipped the fields on iOS
   max-width: 480px;
   margin: 0 auto;
   padding: 0 1.25rem;
@@ -167,10 +167,10 @@
 }
 
 .step-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  flex: 1 0 auto;   // no inner scroll box: it collapsed to a sliver when iOS shrank the view
   padding-top: 0.5rem;
+  // Room to scroll a focused field above the keyboard (set from register.page.ts, 0 when closed)
+  padding-bottom: var(--keyboard-inset, 0px);
 }
 
 .input-container {
@@ -269,14 +269,22 @@
   --padding-end: 4px;
 }
 
+// Native button: an ion-button inside ion-input did not register taps on iOS
 .password-toggle {
-  --color: #9ca3af;
-  --background: transparent;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  margin: 0;
-  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+
+  &:focus-visible { outline: 2px solid var(--ion-color-primary); outline-offset: 2px; }
 
   ion-icon {
     font-size: 1.25rem;
@@ -709,4 +717,10 @@
       transform: none;
     }
   }
+}
+.inline-link {
+  margin-left: 0.25rem;
+  color: var(--ion-color-primary);
+  font-weight: 600;
+  text-decoration: underline;
 }

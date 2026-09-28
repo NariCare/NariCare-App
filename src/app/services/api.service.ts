@@ -353,6 +353,12 @@ export class ApiService {
   // AUTHENTICATION ENDPOINTS
   // ============================================================================
 
+  /** Public: whether an account already uses this email (register email step). */
+  checkEmail(email: string): Observable<ApiResponse<{ exists: boolean }>> {
+    return this.http.post<ApiResponse<{ exists: boolean }>>(`${this.baseUrl}/auth/check-email`, { email })
+      .pipe(catchError(this.handleError));
+  }
+
   register(userData: {
     firstName: string;
     lastName: string;

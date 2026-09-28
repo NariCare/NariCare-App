@@ -160,6 +160,7 @@
           </ion-input>
           <div class="error-message" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
             {{ getErrorMessage('email') }}
+            <a *ngIf="registerForm.get('email')?.hasError('emailTaken')" routerLink="/auth/login" class="inline-link">Log in instead</a>
           </div>
         </div>
       </div>
@@ -176,13 +177,15 @@
             autocomplete="new-password"
             (keyup.enter)="nextStep()"
             [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-            <ion-button
-              fill="clear"
+            <button
+              type="button"
               slot="end"
               (click)="togglePasswordVisibility('password')"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              [attr.aria-pressed]="showPassword"
               class="password-toggle">
-              <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-            </ion-button>
+              <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+            </button>
           </ion-input>
           <div class="error-message" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
             {{ getErrorMessage('password') }}
@@ -199,13 +202,15 @@
             autocomplete="new-password"
             (keyup.enter)="nextStep()"
             [class.error]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
-            <ion-button
-              fill="clear"
+            <button
+              type="button"
               slot="end"
               (click)="togglePasswordVisibility('confirmPassword')"
+              [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+              [attr.aria-pressed]="showConfirmPassword"
               class="password-toggle">
-              <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
-            </ion-button>
+              <ion-icon [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+            </button>
           </ion-input>
           <div class="error-message" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
             {{ getErrorMessage('confirmPassword') }}
@@ -347,10 +352,10 @@
       <div class="step-footer">
         <ion-button
           expand="block"
-          [disabled]="!canGoNext()"
+          [disabled]="!canGoNext() || checkingEmail"
           (click)="nextStep()"
           class="primary-button continue-button">
-          {{ isLastStep ? 'Create my account' : 'Continue' }}
+          {{ isLastStep ? 'Create my account' : (checkingEmail ? 'Checking...' : 'Continue') }}
         </ion-button>
       </div>
     </form>
