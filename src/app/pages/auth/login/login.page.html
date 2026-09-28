@@ -1,192 +1,185 @@
 <ion-content class="login-content" [ngClass]="'portal-' + portal">
-  <div class="login-container">
-    <!-- Top Section with Hero Illustration -->
-    <div class="top-section">
-      <img src="assets/images/login-hero.webp" alt="" class="hero-illustration" aria-hidden="true">
-      <div class="brand-block">
-        <h1 class="wordmark"><span class="wordmark-nari">Nari</span><span class="wordmark-care">Care</span></h1>
-        <p class="tagline">Your breast friend</p>
-        <div class="beta-tag" *ngIf="showBetaTag">
-          <span>Beta</span>
-        </div>
-        <p class="handwritten-tagline" *ngIf="portal === 'user'">A happier<br>healthier you</p>
-        <p class="portal-name" *ngIf="portal !== 'user'">{{ copy.panelTitle }}</p>
+  <div class="login-layout">
+
+    <!-- Brand panel: logo, promise, 3 pillars, illustration -->
+    <section class="brand-panel" aria-label="About NariCare">
+      <span class="beta-tag" *ngIf="showBetaTag">Beta</span>
+      <div class="brand-copy">
+        <!-- Official logo from Designs/NariCare logo_Light background.png (brand guidelines) -->
+        <h1 class="brand-logo">
+          <img src="assets/images/login/naricare-logo.webp" alt="NariCare, your breast friend" width="220" height="96">
+        </h1>
+
+        <ng-container *ngIf="portal === 'user'; else staffPanel">
+          <p class="brand-tagline">Expert breastfeeding knowledge, guidance, and support.</p>
+          <ul class="pillars">
+            <li><span class="pillar-icon"><ion-icon name="person-outline" aria-hidden="true"></ion-icon></span>Expert Guidance</li>
+            <li><span class="pillar-icon"><ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon></span>24/7 AI Support</li>
+            <li><span class="pillar-icon"><ion-icon name="people-outline" aria-hidden="true"></ion-icon></span>Supportive Community</li>
+          </ul>
+        </ng-container>
+        <ng-template #staffPanel>
+          <p class="brand-tagline staff-title">{{ copy.panelTitle }}</p>
+          <p class="brand-purpose">{{ copy.panelText }}</p>
+        </ng-template>
       </div>
 
-      <!-- Desktop only: reassurance for mothers, short purpose line for staff portals -->
-      <ul class="brand-points" *ngIf="portal === 'user'">
-        <li><ion-icon name="stats-chart-outline" aria-hidden="true"></ion-icon>Track feeds, pumping, diapers and growth</li>
-        <li><ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>Ask NariCare anytime, day or night</li>
-        <li><ion-icon name="heart-outline" aria-hidden="true"></ion-icon>Support from lactation experts</li>
-      </ul>
-      <p class="brand-purpose" *ngIf="portal !== 'user'">{{ copy.panelText }}</p>
-    </div>
-
-    <!-- Bottom Section with Form (White Background) -->
-    <div class="bottom-section">
-      <div class="login-card">
-      <div class="welcome-section">
-        <h2 class="welcome-title" *ngIf="!show2FA">{{ copy.title }}</h2>
-        <p class="welcome-subtitle" *ngIf="!show2FA">{{ copy.subtitle }}</p>
-        <p class="welcome-subtitle" *ngIf="show2FA">We've sent a verification code to {{ pendingEmail }}</p>
+      <div class="brand-art">
+        <img src="assets/images/login/mother-baby.webp" alt="" class="brand-illustration" width="380" height="380">
       </div>
+      <app-wave variant="top" class="panel-wave"></app-wave>
+    </section>
 
-    <!-- Login Form -->
-    <form *ngIf="!show2FA" [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
-      <div class="input-container">
-        <ion-input
-          formControlName="email"
-          type="email"
-          placeholder="Email Address"
-          aria-label="Email address"
-          autocomplete="email"
-          inputmode="email"
-          class="custom-input"
-          [class.error]="showError('email')"
-          fill="outline"
-          (keydown.enter)="$event.preventDefault(); onSubmit()">
-        </ion-input>
-        <div class="error-message" role="alert" *ngIf="showError('email')">
-          {{ getErrorMessage('email') }}
-        </div>
-      </div>
+    <!-- Form panel -->
+    <section class="form-panel">
+      <div class="form-card">
+        <header class="welcome">
+          <h2 class="welcome-title" *ngIf="!show2FA">{{ copy.title }}</h2>
+          <p class="welcome-subtitle" *ngIf="!show2FA">{{ copy.subtitle }}</p>
+          <h2 class="welcome-title" *ngIf="show2FA">Check your email</h2>
+          <p class="welcome-subtitle" *ngIf="show2FA">We've sent a verification code to {{ pendingEmail }}</p>
+        </header>
 
-      <div class="input-container">
-        <ion-input
-          formControlName="password"
-          [type]="showPassword ? 'text' : 'password'"
-          placeholder="Password"
-          aria-label="Password"
-          autocomplete="current-password"
-          class="custom-input password-input"
-          [class.error]="showError('password')"
-          fill="outline"
-          (keydown.enter)="$event.preventDefault(); onSubmit()">
-          <ion-button 
-            fill="clear" 
-            slot="end" 
-            (click)="togglePasswordVisibility()"
-            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
-            class="password-toggle">
-            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+        <!-- Login form -->
+        <form *ngIf="!show2FA" [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" novalidate>
+          <div class="field">
+            <ion-input
+              formControlName="email"
+              type="email"
+              placeholder="Email Address"
+              aria-label="Email address"
+              autocomplete="email"
+              inputmode="email"
+              class="custom-input"
+              [class.error]="showError('email')"
+              fill="outline"
+              (keydown.enter)="$event.preventDefault(); onSubmit()">
+              <ion-icon slot="start" name="mail-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            </ion-input>
+            <div class="error-message" role="alert" *ngIf="showError('email')">{{ getErrorMessage('email') }}</div>
+          </div>
+
+          <div class="field">
+            <ion-input
+              formControlName="password"
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="Password"
+              aria-label="Password"
+              autocomplete="current-password"
+              class="custom-input"
+              [class.error]="showError('password')"
+              fill="outline"
+              (keydown.enter)="$event.preventDefault(); onSubmit()">
+              <ion-icon slot="start" name="lock-closed-outline" class="field-icon" aria-hidden="true"></ion-icon>
+              <button
+                type="button"
+                slot="end"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                [attr.aria-pressed]="showPassword"
+                class="password-toggle">
+                <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+              </button>
+            </ion-input>
+            <div class="error-message" role="alert" *ngIf="showError('password')">{{ getErrorMessage('password') }}</div>
+          </div>
+
+          <div class="forgot" *ngIf="portal !== 'admin'">
+            <button type="button" class="text-link" (click)="navigateToForgotPassword()">Forgot password?</button>
+            <p class="portal-note" *ngIf="showLcForgot" role="status">{{ lcForgotNote }}</p>
+          </div>
+
+          <div class="portal-alert" *ngIf="portalError" role="alert">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <span>{{ portalError.message }}
+              <a *ngIf="portalError.link" [routerLink]="portalError.link">{{ portalError.linkLabel }}</a>
+            </span>
+          </div>
+
+          <ion-button type="submit" expand="block" class="primary-button" [disabled]="!loginForm.valid">
+            Log In
+            <ion-icon slot="end" name="arrow-forward" aria-hidden="true"></ion-icon>
           </ion-button>
-        </ion-input>
-        <div class="error-message" role="alert" *ngIf="showError('password')">
-          {{ getErrorMessage('password') }}
-        </div>
-      </div>
+        </form>
 
-      <div class="forgot-password-container" *ngIf="portal !== 'admin'">
-        <ion-button fill="clear" class="forgot-password-link" (click)="navigateToForgotPassword()">
-          Forgot password?
-        </ion-button>
-        <p class="portal-note" *ngIf="showLcForgot" role="status">{{ lcForgotNote }}</p>
-      </div>
+        <!-- 2FA form -->
+        <form *ngIf="show2FA" [formGroup]="otpForm" (ngSubmit)="onSubmitOTP()" class="login-form" novalidate>
+          <div class="field">
+            <ion-input
+              formControlName="otp"
+              type="number"
+              inputmode="numeric"
+              placeholder="Enter 6-digit code"
+              aria-label="Verification code"
+              autocomplete="one-time-code"
+              maxlength="6"
+              class="custom-input"
+              [class.error]="otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched"
+              fill="outline">
+              <ion-icon slot="start" name="key-outline" class="field-icon" aria-hidden="true"></ion-icon>
+            </ion-input>
+            <div class="error-message" role="alert" *ngIf="otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched">
+              {{ getErrorMessage('otp', 'otp') }}
+            </div>
+          </div>
 
-      <div class="portal-alert" *ngIf="portalError" role="alert">
-        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-        <span>{{ portalError.message }}
-          <a *ngIf="portalError.link" [routerLink]="portalError.link">{{ portalError.linkLabel }}</a>
-        </span>
-      </div>
-
-      <ion-button
-        type="submit"
-        expand="block"
-        class="login-button"
-        [disabled]="!loginForm.valid">
-        Login
-      </ion-button>
-    </form>
-
-    <!-- 2FA Form -->
-    <form *ngIf="show2FA" [formGroup]="otpForm" (ngSubmit)="onSubmitOTP()" class="otp-form">
-      <div class="form-group">
-        <ion-item lines="none" class="input-item">
-          <ion-icon name="key-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input
-            formControlName="otp"
-            type="number"
-            placeholder="Enter 6-digit code"
-            maxlength="6"
-            [class.error]="otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched">
-          </ion-input>
-        </ion-item>
-        <div class="error-message" *ngIf="otpForm.get('otp')?.invalid && otpForm.get('otp')?.touched">
-          {{ getErrorMessage('otp', 'otp') }}
-        </div>
-      </div>
-
-      <ion-button
-        type="submit"
-        expand="block"
-        class="verify-button"
-        [disabled]="!otpForm.valid">
-        Verify Code
-      </ion-button>
-
-      <div class="otp-actions">
-        <ion-button fill="clear" (click)="resendOTP()" class="resend-button">
-          Resend Code
-        </ion-button>
-        <ion-button fill="clear" (click)="goBackToLogin()" class="back-button">
-          Back to Login
-        </ion-button>
-      </div>
-    </form>
-
-    <!-- Register Link -->
-    <div class="register-section" *ngIf="!show2FA && portal === 'user'">
-      <p class="register-prompt" (click)="navigateToRegister()">
-        Not a member? <label class="register-link">Register now</label>
-      </p>
-    </div>
-
-      <!-- Social Sign-in Section -->
-      <div class="social-signin-section" *ngIf="!show2FA && portal === 'user'">
-        <div class="divider-line"></div>
-        <p class="social-divider">Or continue with</p>
-        
-        <div class="social-buttons">
-          <ion-button
-            (click)="signInWithGoogle()"
-            class="social-button"
-            fill="outline">
-            <svg slot="start" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
-              <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/>
-              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z"/>
-            </svg>
-            Continue with Google
+          <ion-button type="submit" expand="block" class="primary-button" [disabled]="!otpForm.valid">
+            Verify Code
+            <ion-icon slot="end" name="arrow-forward" aria-hidden="true"></ion-icon>
           </ion-button>
 
-          <ion-button
-            (click)="signInWithFacebook()"
-            class="social-button"
-            fill="outline">
-            <svg slot="start" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-              <path fill="#1877F2" d="M18 9a9 9 0 1 0-10.406 8.89v-6.288H5.309V9h2.285V7.017c0-2.255 1.343-3.501 3.4-3.501.985 0 2.015.176 2.015.176v2.215h-1.135c-1.118 0-1.467.694-1.467 1.406V9h2.497l-.399 2.602h-2.098v6.288A9.002 9.002 0 0 0 18 9z"/>
-              <path fill="#ffffff" d="M12.503 11.602 12.902 9h-2.497V7.313c0-.712.349-1.406 1.467-1.406h1.135V3.692s-1.03-.176-2.015-.176c-2.057 0-3.4 1.246-3.4 3.501V9H5.309v2.602h2.285v6.288a9.06 9.06 0 0 0 2.812 0v-6.288h2.097z"/>
-            </svg>
-            Continue with Facebook
-          </ion-button>
+          <div class="otp-actions">
+            <button type="button" class="text-link" (click)="resendOTP()">Resend code</button>
+            <button type="button" class="text-link" (click)="goBackToLogin()">Back to login</button>
+          </div>
+        </form>
+
+        <!-- Register -->
+        <div class="register" *ngIf="!show2FA && portal === 'user'">
+          <div class="divider"><span>Not a member?</span></div>
+          <button type="button" class="register-link" (click)="navigateToRegister()">
+            Register now <ion-icon name="arrow-forward" aria-hidden="true"></ion-icon>
+          </button>
         </div>
+
+        <!-- ponytail: Google / Facebook sign-in hidden until new credentials are set up; uncomment to restore -->
+        <!--
+        <div class="social" *ngIf="!show2FA && portal === 'user'">
+          <div class="divider"><span>Or continue with</span></div>
+          <div class="social-buttons">
+            <ion-button (click)="signInWithGoogle()" class="social-button" fill="outline">
+              <svg slot="start" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+                <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/>
+                <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z"/>
+              </svg>
+              Continue with Google
+            </ion-button>
+            <ion-button (click)="signInWithFacebook()" class="social-button" fill="outline">
+              <svg slot="start" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                <path fill="#1877F2" d="M18 9a9 9 0 1 0-10.406 8.89v-6.288H5.309V9h2.285V7.017c0-2.255 1.343-3.501 3.4-3.501.985 0 2.015.176 2.015.176v2.215h-1.135c-1.118 0-1.467.694-1.467 1.406V9h2.497l-.399 2.602h-2.098v6.288A9.002 9.002 0 0 0 18 9z"/>
+                <path fill="#ffffff" d="M12.503 11.602 12.902 9h-2.497V7.313c0-.712.349-1.406 1.467-1.406h1.135V3.692s-1.03-.176-2.015-.176c-2.057 0-3.4 1.246-3.4 3.501V9H5.309v2.602h2.285v6.288a9.06 9.06 0 0 0 2.812 0v-6.288h2.097z"/>
+              </svg>
+              Continue with Facebook
+            </ion-button>
+          </div>
+        </div>
+        -->
+
+        <!-- ponytail: LC link hidden; LCs sign in at /auth/login/lc directly -->
+        <!-- <p class="portal-switch" *ngIf="!show2FA && portal === 'user'">
+          <a routerLink="/auth/login/lc">Lactation Consultant? Sign in here</a>
+        </p> -->
+        <p class="portal-switch" *ngIf="!show2FA && portal === 'lc'">
+          <a routerLink="/auth/login">Signing in as a mother? Go to NariCare sign in</a>
+        </p>
       </div>
 
-      <p class="footer-note" *ngIf="!show2FA && portal === 'user'">
-        <ion-icon name="heart" aria-hidden="true"></ion-icon>
-        You are not alone. We are with you.
-      </p>
-
-      <!-- ponytail: LC link hidden; LCs sign in at /auth/login/lc directly -->
-      <!-- <p class="portal-switch" *ngIf="!show2FA && portal === 'user'">
-        <a routerLink="/auth/login/lc">Lactation Consultant? Sign in here</a>
-      </p> -->
-      <p class="portal-switch" *ngIf="!show2FA && portal === 'lc'">
-        <a routerLink="/auth/login">Signing in as a mother? Go to NariCare sign in</a>
-      </p>
-      </div>
-    </div>
+      <footer class="page-footer">
+        <app-wave variant="bottom" class="footer-wave"></app-wave>
+        <p class="footer-line">Healthier babies <ion-icon name="heart-outline" aria-hidden="true"></ion-icon> Brighter tomorrows</p>
+      </footer>
+    </section>
   </div>
 </ion-content>

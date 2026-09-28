@@ -1,676 +1,465 @@
+// Sign-in screen, matched to the design mockup using NariCare brand guidelines colours
+// (Designs/NariCare brand guidelines.pdf). Mobile-first; side by side from 1024px.
+$ink: #3A3A47;          // brand dark: headings
+$ink-soft: #55536B;     // brand dark, softened: body copy
+$muted: #7E7C96;        // hints, footer
+$line: #DEDAED;         // brand lavender 1: borders, dividers
+$lavender: #F1EFF8;     // brand lavender 1 tint: icon circles, hovers
+$cream: #FFFCF9;        // brand cream
+$blush: #FAD3D1;        // brand coral 1
+$primary: #8484BF;      // brand lavender 4
+$primary-light: #9A9AE8;// brand core lavender
+$link: #5F5EA3;         // brand #7676B7 darkened for AA contrast on small text
+$coral: #F59080;        // brand coral 4
+$font-body: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;   // brand primary typeface
+$font-heading: 'Merriweather', Georgia, serif;                                       // brand secondary: headings
+
 .login-content {
+  --background: #{$cream};
   --padding-start: 0;
   --padding-end: 0;
-  background: #ffffff;
 }
 
-.login-container {
+.login-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100%;
+  font-family: $font-body;
 }
 
-/* Top Section - Hero Illustration + Wordmark */
-.top-section {
+/* ==================== Brand panel ==================== */
+
+.brand-panel {
   position: relative;
-  background: radial-gradient(120% 100% at 15% 20%, #fbe4ee 0%, #f4f2fe 55%, #ffffff 100%);
-  padding: 2.5rem 1.5rem 3.5rem;
-  flex-shrink: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 46%;
+  align-items: start;
+  gap: 0.25rem;
+  padding: calc(1rem + var(--ion-safe-area-top, 0px)) 1.25rem 2.5rem;
+  background: linear-gradient(165deg, rgba(250, 211, 209, 0.35) 0%, $cream 45%, #F7F4FC 100%);
   overflow: hidden;
 }
 
-.hero-illustration {
-  width: 55%;
-  max-width: 220px;
-  height: auto;
-  flex-shrink: 0;
-  margin-top: 0.5rem;
-}
-
-.brand-block {
+.brand-copy {
   position: relative;
-  flex: 1;
-  padding-top: 1.5rem;
+  z-index: 1;
   min-width: 0;
 }
 
-.wordmark {
+.brand-logo {
   margin: 0;
-  font-size: 2rem;
-  font-weight: 700;
-  font-family: 'Poppins', sans-serif;
-  line-height: 1.1;
-}
+  line-height: 0;
 
-.wordmark-nari {
-  color: #8383ed;
-}
-
-.wordmark-care {
-  color: #f4978e;
-}
-
-.tagline {
-  margin: 0.15rem 0 0 0;
-  font-size: 0.95rem;
-  color: #6b6489;
-  font-family: 'Poppins', sans-serif;
-}
-
-.handwritten-tagline {
-  margin: 1.5rem 0 0 0;
-  font-family: 'Segoe Script', 'Comic Sans MS', cursive;
-  font-style: italic;
-  font-size: 1.1rem;
-  line-height: 1.3;
-  color: #8383ed;
-}
-
-/* Bottom Section - White Background */
-.bottom-section {
-  background: #ffffff;
-  padding: 2.5rem 1.5rem 2rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-width: 400px;
-  margin: 0 auto;
-  width: 100%;
-  margin-top: -20px;
-  position: relative;
-  z-index: 1;
-}
-
-.welcome-section {
-  text-align: left;
-  margin-bottom: 1.5rem;
+  img {
+    display: block;
+    width: min(100%, 210px);
+    height: auto;
+  }
 }
 
 .beta-tag {
-  display: inline-block;
-  margin-top: 0.5rem;
-  background: #8383ed;
-  color: #ffffff;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.7rem;
+  position: absolute;
+  top: calc(0.75rem + var(--ion-safe-area-top, 0px));
+  right: 1rem;
+  z-index: 2;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(132, 132, 191, 0.14);
+  color: $link;
+  font-size: 0.65rem;
   font-weight: 600;
-  font-family: 'Poppins', sans-serif;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+}
 
-  span {
-    display: block;
+.brand-tagline {
+  margin: 0.5rem 0 0.75rem;
+  color: $ink-soft;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+.staff-title {
+  font-weight: 600;
+  color: $ink;
+}
+.brand-purpose {
+  margin: 0;
+  color: $ink-soft;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.pillars {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 0.25rem;
+    color: $ink-soft;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    text-align: center;
+
+    & + li { border-left: 1px solid $line; }
   }
 }
 
-@keyframes betaPulse {
-  0%, 100% {
-    transform: translateX(-50%) scale(1);
-    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
-  }
-  50% {
-    transform: translateX(-50%) scale(1.05);
-    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.5);
-  }
+.pillar-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: $lavender;
+  color: $primary;
+  font-size: 1.2rem;
+}
+
+.brand-art {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  margin-right: -1.25rem;   // bleed to the edge like the design
+}
+
+.brand-illustration {
+  display: block;
+  width: 118%;
+  max-width: none;
+  height: auto;
+  margin-left: -9%;
+}
+
+.panel-wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 64px;
+}
+
+/* ==================== Form panel ==================== */
+
+.form-panel {
+  position: relative;   // paints over the positioned brand panel
+  flex: 1;
+  margin-top: -1px;   // covers the brand panel's last gradient row so the wave edge is seamless
+  display: flex;
+  flex-direction: column;
+  background: $cream;
+}
+
+.form-card {
+  flex: 1;   // fills the gap between brand panel and footer; content centred in it
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 0.25rem 1.5rem 0.5rem;
+  box-sizing: border-box;
+}
+
+.welcome {
+  margin-bottom: 0.75rem;
+  text-align: center;
 }
 
 .welcome-title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #000000;
-  font-family: 'Poppins', sans-serif;
-  line-height: 1.3;
+  margin: 0 0 0.35rem;
+  color: $link;   // same lavender as the Beta tag, per design feedback
+  font-family: $font-heading;
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 .welcome-subtitle {
-  margin: 0.5rem 0 0 0;
-  color: #7a73a9;
-  font-size: 1rem;
+  margin: 0;
+  white-space: pre-line;   // copy carries the design's line break
+  color: $ink-soft;
+  font-size: 0.95rem;
   line-height: 1.5;
-  font-family: 'Poppins', sans-serif;
 }
 
-/* Form Styling */
 .login-form {
-  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
 }
 
-.input-container {
-  margin-bottom: 1.5rem;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .custom-input {
   --background: #ffffff;
-  --color: #000000;
-  --placeholder-color: #9ca3af;
-  --padding-start: 20px;
-  --padding-end: 20px;
-  --padding-top: 18px;
-  --padding-bottom: 18px;
-  --border-radius: 12px;
-  --border-color: #d1d5db;
-  --border-style: solid;
-  --border-width: 1px;
-  --highlight-color-focused: #8383ed;
-  --highlight-color-valid: #8383ed;
-  font-family: 'Poppins', sans-serif;
+  --border-color: #{$line};
+  --border-radius: 14px;
+  --highlight-color-focused: #{$primary};
+  --padding-start: 1rem;
+  --padding-end: 0.5rem;
+  --placeholder-color: #8E8CA3;
+  --placeholder-opacity: 1;
+  --color: #{$ink};
+  min-height: 56px;   // same height for plain fields and the password field with its eye button
   font-size: 1rem;
-  margin-bottom: 4px;
-  border: 1px solid #d1d5db !important;
-  border-radius: 12px !important;
 
-  // Force all borders to show
-  .native-input {
-    border: 1px solid #d1d5db !important;
-    border-radius: 12px !important;
-  }
-
-  &.error {
-    --border-color: #ed3241 !important;
-    --highlight-color-focused: #ed3241;
-    border: 1px solid #ed3241 !important;
-    
-    .native-input {
-      border: 1px solid #ed3241 !important;
-    }
-  }
-
-  &:focus-within {
-    --border-color: #8383ed !important;
-    border: 1px solid #8383ed !important;
-    
-    .native-input {
-      border: 1px solid #8383ed !important;
-    }
-  }
+  &.error { --border-color: #e5484d; }
 }
 
-.password-input {
-  position: relative;
-  --padding-top: 0px !important;
-  --padding-bottom: 0px !important;
+.field-icon {
+  margin-right: 0.75rem;
+  color: $primary;
+  font-size: 1.25rem;
 }
 
-// Force complete border override for Ionic inputs
-ion-input.custom-input {
-  --border-color: #d1d5db !important;
-  --border-style: solid !important;
-  --border-width: 1px !important;
-  --highlight-height: 0px !important;
-  
-  // Target all possible Ionic input parts
-  &::part(native) {
-    border: 1px solid #d1d5db !important;
-    border-radius: 16px !important;
-  }
-  
-  &::part(container) {
-    border: 1px solid #d1d5db !important;
-    border-radius: 16px !important;
-  }
-  
-  // Override the input wrapper
-  .native-wrapper {
-    border: 1px solid #d1d5db !important;
-    border-radius: 16px !important;
-  }
-  
-  // Target the actual input element
-  input {
-    border: 1px solid #d1d5db !important;
-    border-radius: 16px !important;
-  }
-  
-  &.error {
-    &::part(native) {
-      border: 1px solid #ed3241 !important;
-    }
-    &::part(container) {
-      border: 1px solid #ed3241 !important;
-    }
-    input {
-      border: 1px solid #ed3241 !important;
-    }
-  }
-  
-  &:focus-within {
-    &::part(native) {
-      border: 1px solid #8383ed !important;
-    }
-    &::part(container) {
-      border: 1px solid #8383ed !important;
-    }
-    input {
-      border: 1px solid #8383ed !important;
-    }
-  }
-}
-
-// Global override for any stubborn Ionic styles
-ion-input {
-  --highlight-height: 0px !important;
-  
-  &.custom-input::after {
-    display: none !important;
-  }
-}
-
+// Plain button: ion-button inside ion-input made the password box taller than the email box
 .password-toggle {
-  --color: #9ca3af;
-  --background: transparent;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  margin: 0;
-  height: 40px;
-  width: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -10px -4px;   // keeps a 44px tap target without making this box taller than the email box
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: $link;
+  cursor: pointer;
 
-  ion-icon {
-    font-size: 1.2rem;
-  }
+  ion-icon { font-size: 1.25rem; }
+  &:focus-visible { outline: 2px solid $link; outline-offset: 2px; }
 }
 
 .error-message {
-  color: #ed3241;
-  font-size: 0.875rem;
-  margin-left: 16px;
-  margin-top: 4px;
-  font-family: 'Poppins', sans-serif;
-}
-
-.forgot-password-container {
-  text-align: left;
-  margin: -0.5rem 0 1.5rem 0;
-}
-
-.forgot-password-link {
-  --color: #8383ed;
-  --padding-start: 0;
-  --padding-end: 0;
-  font-size: 0.875rem;
-  font-weight: 400;
-  font-family: 'Poppins', sans-serif;
-  text-decoration: none;
-  height: auto;
-  margin: 0;
-}
-
-/* Login Button */
-.login-button {
-  --background: #8383ed;
-  --background-hover: #7676d1;
-  --background-activated: #6b64a9;
-  --border-radius: 12px;
-  --color: #ffffff;
-  height: 56px;
-  font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: 0.025em;
-  font-family: 'Poppins', sans-serif;
-  margin: 0;
-
-  // Readable disabled state (was #a7a1c7 on #d4d0e5)
-  &[disabled], &.button-disabled {
-    --background: #e4e1f5;
-    --color: #5f5890;
-    opacity: 1;
-  }
-}
-
-/* Register Section */
-.register-section {
-  text-align: center;
-}
-
-.register-prompt {
-  margin: 0;
-  color: #7a73a9;
-  font-size: 0.875rem;
-  font-family: 'Poppins', sans-serif;
-  display: inline;
-}
-
-.register-link {
-  --color: #8383ed;
-  --padding-start: 4px;
-  --padding-end: 4px;
-  font-weight: 600;
-  text-decoration: none;
-  display: inline;
-  height: auto;
-  margin: 0;
-  vertical-align: baseline;
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.875rem;
-}
-
-/* Social Sign-in Section */
-.social-signin-section {
-  text-align: center;
-  margin-top: 2rem;
-}
-
-.divider-line {
-  width: 100%;
-  height: 1px;
-  background: #e5e7eb;
-  margin: 0 0 1rem 0;
-}
-
-.social-divider {
-  margin: 0 0 1.5rem 0;
-  color: #7a73a9;
-  font-size: 0.875rem;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 400;
-}
-
-.social-buttons {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.social-button {
-  --background: #ffffff;
-  --background-hover: #f9f9f9;
-  --border-color: #d1d5db;
-  --border-style: solid;
-  --border-width: 1px;
-  --border-radius: 12px;
-  --color: #374151;
-  --padding-start: 0.5rem;
-  --padding-end: 0.5rem;
-  flex: 1;
-  height: 52px;
-  margin: 0;
+  padding-left: 0.25rem;
+  color: #d13c41;
   font-size: 0.8rem;
-  font-weight: 500;
-  text-transform: none;
-  font-family: 'Poppins', sans-serif;
-
-  svg {
-    margin-right: 0.4rem;
-    flex-shrink: 0;
-  }
 }
 
-.footer-note {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  margin: 2rem 0 0 0;
-  font-size: 0.8rem;
-  color: #7a73a9;
-  font-family: 'Poppins', sans-serif;
-
-  ion-icon {
-    color: #f4978e;
-    font-size: 0.9rem;
-  }
+.forgot {
+  margin-top: -0.4rem;
 }
 
-/* 2FA Form Styling */
-.otp-form {
-  margin-bottom: 2rem;
-}
+.text-link {
+  min-height: 44px;
+  padding: 0 0.25rem;
+  border: 0;
+  background: none;
+  color: $link;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
 
-.verify-button {
-  --background: #8383ed;
-  --background-hover: #7676d1;
-  --background-activated: #6b64a9;
-  --border-radius: 12px;
-  --color: #ffffff;
-  height: 56px;
-  font-weight: 600;
-  font-size: 1rem;
-  letter-spacing: 0.025em;
-  font-family: 'Poppins', sans-serif;
-  margin: 0;
-
-  &:disabled {
-    --background: #d4d0e5;
-    --color: #a7a1c7;
-    opacity: 1;
-  }
-}
-
-.otp-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1rem;
-  gap: 1rem;
-}
-
-.resend-button,
-.back-button {
-  --color: #8383ed;
-  font-weight: 500;
-  flex: 1;
-  font-family: 'Poppins', sans-serif;
-  height: auto;
-}
-
-/* Responsive Design */
-@media (max-width: 480px) {
-  .top-section {
-    padding: 1.5rem 1rem 2.5rem;
-  }
-
-  .bottom-section {
-    padding: 2rem 1rem 2rem;
-  }
-
-  .wordmark {
-    font-size: 1.5rem;
-  }
-
-  .beta-tag {
-    padding: 3px 8px;
-    font-size: 0.6rem;
-  }
-
-  .welcome-title {
-    font-size: 16px;
-  }
-}
-
-// Two social buttons don't fit side by side on narrow phones
-@media (max-width: 419px) { .social-buttons { flex-direction: column; } }
-
-/* Portal extras (all sizes) */
-.login-card {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.portal-name {
-  margin: 1.25rem 0 0 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #5f5890;
-  font-family: 'Poppins', sans-serif;
-}
-
-.brand-points,
-.brand-purpose {
-  display: none;
-}
-
-.portal-note,
-.portal-alert {
-  margin: 0.5rem 0 0 0;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  line-height: 1.45;
-  font-family: 'Poppins', sans-serif;
+  &:hover { text-decoration: underline; }
 }
 
 .portal-note {
-  background: #fff4e3;
-  color: #8a5300;
+  margin: 0.25rem 0 0;
+  color: $ink-soft;
+  font-size: 0.8rem;
 }
 
 .portal-alert {
   display: flex;
   gap: 0.5rem;
-  margin: 0 0 1.25rem 0;
-  background: #fdf0f3;
-  color: #8a2944;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  background: #fff4f4;
+  color: #a1282c;
+  font-size: 0.85rem;
+  line-height: 1.4;
 
-  ion-icon { font-size: 1.2rem; flex-shrink: 0; }
-  a { display: block; margin-top: 0.25rem; color: #5b5bd6; font-weight: 600; }
+  ion-icon { flex-shrink: 0; margin-top: 2px; font-size: 1.1rem; }
+  a { color: inherit; font-weight: 600; }
+}
+
+.primary-button {
+  --background: linear-gradient(90deg, #9384D8 0%, #8474C6 100%);   // sampled from the sign-in mockup
+  --background-hover: #8474C6;
+  --background-activated: #7667B8;
+  --border-radius: 999px;
+  --box-shadow: 0 6px 16px rgba(132, 132, 191, 0.28);
+  --color: #ffffff;
+  height: 52px;
+  margin: 0.15rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+
+  ion-icon { margin-left: 0.5rem; font-size: 1.2rem; }
+  &.button-disabled { opacity: 1; }   // mockup shows full colour before the form is filled; Ionic default fades to 0.5
+}
+
+.otp-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ==================== Register / social ==================== */
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.75rem 0 0.1rem;
+  color: $muted;
+  font-size: 0.85rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $line;
+  }
+}
+
+.register {
+  text-align: center;
+}
+
+.register-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: 0;
+  background: none;
+  color: $link;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon { font-size: 1.1rem; }
+}
+
+.social-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.social-button {
+  --border-color: #{$line};
+  --border-radius: 14px;
+  --color: #{$ink};
+  --background-hover: #{$lavender};
+  height: 48px;
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: none;
+
+  svg { margin-right: 0.6rem; }
 }
 
 .portal-switch {
-  margin: 1.25rem 0 0 0;
+  margin: 1.25rem 0 0;
   text-align: center;
-  font-size: 0.875rem;
-  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
 
-  a {
-    display: inline-block;
-    padding: 0.6rem 0.25rem;
-    min-height: 44px;
-    color: #6a64c9;
-    font-weight: 500;
-  }
+  a { color: $link; }
 }
 
-.login-button:focus-visible,
-.social-button:focus-visible,
-.forgot-password-link:focus-visible,
-.portal-switch a:focus-visible {
-  outline: 2px solid #5b5bd6;
-  outline-offset: 2px;
-  border-radius: 12px;
+/* ==================== Footer ==================== */
+
+.page-footer {
+  position: relative;
+  margin-top: auto;
+  padding: 3rem 1rem calc(0.75rem + var(--ion-safe-area-bottom, 0px));
+  text-align: center;
 }
 
-/* Tablet (768-1023): single centered card, smaller brand header */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .login-content {
-    --background: radial-gradient(120% 70% at 20% 0%, #fbe4ee 0%, #f4f2fe 55%, #ffffff 100%);
-  }
-
-  .login-container {
-    align-items: center;
-    padding: 2rem 1.5rem 3rem;
-  }
-
-  .top-section {
-    background: transparent;
-    padding: 0 0 1.5rem;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    max-width: 480px;
-  }
-
-  .hero-illustration {
-    width: 120px;
-    margin-top: 0;
-  }
-
-  .brand-block { padding-top: 0; flex: 0 1 auto; }
-  .handwritten-tagline, .portal-name { margin-top: 0.5rem; }
-
-  .bottom-section {
-    flex: 0 0 auto;
-    max-width: 480px;
-    margin: 0;
-    padding: 2.25rem 2rem 2rem;
-    border-radius: 20px;
-    box-shadow: 0 12px 40px rgba(93, 86, 170, 0.12);
-  }
+.footer-wave {
+  position: absolute;
+  inset: 0;
 }
 
-/* Desktop (>=1024): two-column split, full height */
+.footer-line {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: $muted;
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  ion-icon { color: $link; font-size: 0.95rem; }
+}
+
+/* ==================== Small phones ==================== */
+
+@media (max-width: 359px) {
+  .brand-panel { grid-template-columns: 1fr 38%; }
+  .pillars li { font-size: 0.66rem; }
+  .pillar-icon { width: 34px; height: 34px; font-size: 1.05rem; }
+  .welcome-title { font-size: 1.45rem; }
+}
+
+/* ==================== Tablet ==================== */
+
+@media (min-width: 600px) {
+  .brand-panel { padding: 2rem 2.5rem 4rem; grid-template-columns: 1fr 40%; }
+  .brand-logo img { width: 240px; }
+  .brand-tagline { font-size: 1.05rem; }
+  .pillars li { font-size: 0.8rem; }
+  .form-card { padding-top: 1.5rem; }
+}
+
+/* ==================== Desktop: side by side ==================== */
+
 @media (min-width: 1024px) {
-  .login-container {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  .login-layout {
+    flex-direction: row;
     min-height: 100vh;
-    min-height: 100dvh;
   }
 
-  .top-section {
-    flex-direction: column;
+  .brand-panel {
+    flex: 1.1;
+    grid-template-columns: 1fr;
+    align-content: center;
+    padding: 3rem 4rem;
+  }
+
+  .brand-copy { max-width: 460px; }
+  .brand-logo img { width: 280px; }
+  .brand-tagline { font-size: 1.15rem; }
+  .pillars { max-width: 420px; }
+  .pillars li { font-size: 0.85rem; }
+
+  .brand-art { justify-self: center; width: min(420px, 80%); margin-right: 0; }
+  .brand-illustration { width: 100%; margin-left: 0; }
+  .panel-wave { display: none; }
+
+  .form-panel {
+    flex: 1;
     justify-content: center;
-    align-items: flex-start;
-    gap: 1.75rem;
-    padding: 3rem clamp(2.5rem, 6vw, 6rem);
-    background: radial-gradient(110% 90% at 20% 15%, #fbe4ee 0%, #f1eefe 55%, #ebe8fb 100%);
+    padding: 2rem 0 0;
   }
 
-  .hero-illustration {
-    width: min(100%, 380px);
-    max-width: 380px;
-    margin: 0;
-  }
-
-  .brand-block { padding-top: 0; flex: 0 0 auto; }
-  .wordmark { font-size: 3rem; }
-  .tagline { font-size: 1.1rem; }
-  .handwritten-tagline { margin-top: 1rem; font-size: 1.35rem; }
-  .portal-name { margin-top: 1rem; font-size: 1.35rem; }
-
-  .brand-points {
-    display: flex;
-    flex-direction: column;
-    gap: 0.9rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-
-    li {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1rem;
-      color: #4c4680;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    ion-icon {
-      flex-shrink: 0;
-      width: 36px;
-      height: 36px;
-      padding: 8px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.75);
-      color: #6a64c9;
-    }
-  }
-
-  .brand-purpose {
-    display: block;
-    max-width: 380px;
-    margin: 0;
-    font-size: 1rem;
-    line-height: 1.6;
-    color: #4c4680;
-    font-family: 'Poppins', sans-serif;
-  }
-
-  .bottom-section {
-    max-width: none;
-    margin: 0;
-    padding: 3rem 2rem;
-    justify-content: center;
-    align-items: center;
-    overflow-y: auto;
-  }
-
-  .login-card {
-    flex: 0 0 auto;
-    width: 100%;
-    max-width: 440px;
-  }
+  .form-card { padding: 2rem 3rem; }
+  .welcome-title { font-size: 2.1rem; }
 }

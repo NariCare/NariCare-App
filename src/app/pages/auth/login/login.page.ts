@@ -10,7 +10,7 @@ export type Portal = 'user' | 'admin' | 'lc';
 
 const LOGIN_URL: Record<Portal, string> = { user: '/auth/login', admin: '/auth/login/admin', lc: '/auth/login/lc' };
 const COPY: Record<Portal, { title: string; subtitle: string; panelTitle: string; panelText: string }> = {
-  user: { title: 'Welcome to the NariCare family!', subtitle: "Let's support you on this beautiful journey.", panelTitle: '', panelText: '' },
+  user: { title: 'Welcome!', subtitle: "Your breastfeeding journey matters.\nWe're here for you.", panelTitle: '', panelText: '' },
   admin: { title: 'NariCare Admin', subtitle: 'Sign in to the admin panel.', panelTitle: 'NariCare Admin', panelText: 'Mothers, activity and AI answer reviews in one place.' },
   lc: { title: 'Lactation Consultant sign in', subtitle: 'Sign in to review AI answers and support mothers.', panelTitle: 'Lactation Consultant', panelText: 'Review NariCare AI answers and help every mother get the right advice.' }
 };
