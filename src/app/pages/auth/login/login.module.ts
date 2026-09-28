@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { LoginPageRoutingModule } from './login-routing.module';
 import { LoginPage } from './login.page';
+import { WaveComponent } from '../../../components/wave/wave.component';
 
 @NgModule({
   imports: [
@@ -11,7 +12,8 @@ import { LoginPage } from './login.page';
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
-    LoginPageRoutingModule
+    LoginPageRoutingModule,
+    WaveComponent
   ],
   declarations: [LoginPage]
 })
