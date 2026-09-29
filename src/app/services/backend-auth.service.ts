@@ -68,13 +68,14 @@ export class BackendAuthService {
     this.scheduleTokenRefresh(true);
   };
 
-  private async tryRefreshToken(): Promise<boolean> {
-    try {
-      const response = await firstValueFrom(this.apiService.refreshToken());
-      return !!response?.success;
-    } catch {
-      return false;
-    }
+  // One refresh at a time: the resume handler and a paused timer can fire together
+  private refreshInFlight: Promise<boolean> | null = null;
+  private tryRefreshToken(): Promise<boolean> {
+    this.refreshInFlight ??= firstValueFrom(this.apiService.refreshToken())
+      .then(response => !!response?.success)
+      .catch(() => false)
+      .finally(() => { this.refreshInFlight = null; });
+    return this.refreshInFlight;
   }
 
   private async initializeAuth() {

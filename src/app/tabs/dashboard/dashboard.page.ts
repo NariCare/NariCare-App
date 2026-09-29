@@ -669,7 +669,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return 'Add your baby to start tracking';
   }
 
-  // Must be a stable reference: a fresh [{}] per change-detection pass made *ngFor rebuild the card forever and froze the app for mothers with no baby yet (just registered)
+  // Stable ref: a fresh [{}] per change-detection pass looped *ngFor forever
   private readonly noBabyJourney: any[] = [{}];
 
   /** One journey card per baby; a single placeholder card when none are added yet. */
