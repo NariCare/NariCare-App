@@ -76,6 +76,9 @@
   --ion-color-light-tint: #f5f6f9;
 }
 
+// ponytail: dark palette off; backgrounds were forced white while accents went pale, so dark-mode phones got unreadable text. Flip to restore.
+$enable-dark-theme: false;
+@if $enable-dark-theme {
 @media (prefers-color-scheme: dark) {
   /*
    * Dark Colors
@@ -232,4 +235,4 @@
 
     --ion-card-background: #1e1e1e;
   }
-}
+}}

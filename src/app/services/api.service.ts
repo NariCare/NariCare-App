@@ -376,7 +376,7 @@ export class ApiService {
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
-            this.setToken(response.data.token);
+            this.storeSession(response.data);
           }
         }),
         catchError(this.handleError)
@@ -388,7 +388,7 @@ export class ApiService {
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
-            this.setToken(response.data.token);
+            this.storeSession(response.data);
           }
         }),
         catchError(this.handleError)
@@ -406,7 +406,7 @@ export class ApiService {
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
-            this.setToken(response.data.token);
+            this.storeSession(response.data);
           }
         }),
         catchError(this.handleError)
@@ -445,7 +445,7 @@ export class ApiService {
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
-            this.setToken(response.data.token);
+            this.storeSession(response.data);
           }
         }),
         catchError(this.handleError)
@@ -458,13 +458,13 @@ export class ApiService {
     }).pipe(catchError(this.handleError));
   }
 
-  refreshToken(): Observable<ApiResponse<{ token: string }>> {
-    return this.http.post<ApiResponse<{ token: string }>>(`${this.baseUrl}/auth/refresh`, {}, {
-      headers: this.getAuthHeaders()
-    }).pipe(
+  refreshToken(): Observable<ApiResponse<{ token: string; refreshToken?: string }>> {
+    const refreshToken = localStorage.getItem('naricare_refresh_token');
+    if (!refreshToken) return throwError(() => new Error('No refresh token'));
+    return this.http.post<ApiResponse<{ token: string; refreshToken?: string }>>(`${this.baseUrl}/auth/refresh-token`, { refreshToken }).pipe(
       tap(response => {
         if (response.success && response.data?.token) {
-          this.setToken(response.data.token);
+          this.storeSession(response.data);
         }
       }),
       catchError(this.handleError)
@@ -1243,8 +1243,29 @@ export class ApiService {
     this.tokenSubject.next(token);
   }
 
+  // Login, register, 2FA and refresh all return a refresh token alongside the access token
+  private storeSession(data: { token?: string; refreshToken?: string }): void {
+    if (data.refreshToken) localStorage.setItem('naricare_refresh_token', data.refreshToken);
+    if (data.token) this.setToken(data.token);
+  }
+
+  /** Access-token expiry in ms since epoch, or null if there is no readable token. */
+  getTokenExpiry(): number | null {
+    try {
+      const payload = JSON.parse(atob(String(this.tokenSubject.value).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return typeof payload.exp === 'number' ? payload.exp * 1000 : null;
+    } catch {
+      return null;
+    }
+  }
+
+  hasRefreshToken(): boolean {
+    return !!localStorage.getItem('naricare_refresh_token');
+  }
+
   private clearToken(): void {
     localStorage.removeItem('naricare_token');
+    localStorage.removeItem('naricare_refresh_token');
     this.tokenSubject.next(null);
   }
 

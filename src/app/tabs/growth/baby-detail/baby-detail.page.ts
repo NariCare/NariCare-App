@@ -238,6 +238,8 @@ export class BabyDetailPage implements OnInit, OnDestroy {
     const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
     
     authService.currentUser$.subscribe(user => {
+      // Ionic keeps this page alive in the tab stack; a profile refresh elsewhere (Personal Information) must not redirect from here
+      const onScreen = this.router.url.includes('/baby-detail/');
       console.log('Baby Detail Page - User loaded:', user);
       console.log('Baby Detail Page - Looking for baby ID:', this.babyId);
       
@@ -245,23 +247,24 @@ export class BabyDetailPage implements OnInit, OnDestroy {
       if (user && this.babyId && this.babyId !== 'undefined' && this.babyId !== 'null') {
         if (user.babies && Array.isArray(user.babies)) {
           console.log('Baby Detail Page - Available babies:', user.babies.map(b => ({ id: b.id, name: b.name })));
-          this.baby = user.babies.find(b => b.id === this.babyId) || null;
-          
-          if (this.baby) {
+          const found = user.babies.find(b => b.id === this.babyId) || null;
+          if (found || onScreen) this.baby = found;
+
+          if (found) {
             console.log('Baby Detail Page - Found baby:', this.baby);
           } else {
             // Stale/mismatched baby id (e.g. pregnant mom with no matching baby).
             // Route straight to growth; its empty state carries the message.
             console.warn(`Baby with ID ${this.babyId} not found in user's babies list`);
-            this.router.navigate(['/tabs/growth'], { replaceUrl: true });
+            if (onScreen) this.router.navigate(['/tabs/growth'], { replaceUrl: true });
           }
         } else {
           console.warn('Baby Detail Page - User has no babies array or it\'s not an array');
-          this.router.navigate(['/tabs/growth'], { replaceUrl: true });
+          if (onScreen) this.router.navigate(['/tabs/growth'], { replaceUrl: true });
         }
       } else if (this.babyId && (this.babyId === 'undefined' || this.babyId === 'null')) {
         console.warn('Baby Detail Page - Invalid baby ID detected, redirecting immediately');
-        this.router.navigate(['/tabs/growth'], { replaceUrl: true });
+        if (onScreen) this.router.navigate(['/tabs/growth'], { replaceUrl: true });
       } else {
         console.warn('Baby Detail Page - No user or baby ID');
       }

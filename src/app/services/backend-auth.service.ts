@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, firstValueFrom, of } from 'rxjs';
 import { map, switchMap, catchError, tap } from 'rxjs/operators';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService, LoginResponse, RegisterResponse, TwoFactorResponse } from './api.service';
@@ -42,10 +42,37 @@ export class BackendAuthService {
   // click/scroll forces change detection. Route every update through the zone.
   private setCurrentUser(user: User | null): void {
     this.ngZone.run(() => this.currentUserSubject.next(user));
+    this.scheduleTokenRefresh(!!user);
+  }
+
+  // Renew the access token a minute before it expires so an open session never lapses mid-use
+  private refreshTimer: ReturnType<typeof setTimeout> | null = null;
+  private scheduleTokenRefresh(signedIn: boolean): void {
+    if (this.refreshTimer) clearTimeout(this.refreshTimer);
+    this.refreshTimer = null;
+    const expiry = this.apiService.getTokenExpiry();
+    if (!signedIn || !expiry || !this.apiService.hasRefreshToken()) return;
+    this.refreshTimer = setTimeout(async () => {
+      if (await this.tryRefreshToken()) this.scheduleTokenRefresh(true);
+    }, Math.max(0, expiry - Date.now() - 60_000));
+  }
+
+  private async tryRefreshToken(): Promise<boolean> {
+    try {
+      const response = await firstValueFrom(this.apiService.refreshToken());
+      return !!response?.success;
+    } catch {
+      return false;
+    }
   }
 
   private async initializeAuth() {
     try {
+      // Expired access token but a valid refresh token: renew instead of signing her out
+      const expiry = this.apiService.getTokenExpiry();
+      if (expiry && expiry <= Date.now() && this.apiService.hasRefreshToken()) {
+        await this.tryRefreshToken();
+      }
       // Check if user is already authenticated synchronously first
       const token = localStorage.getItem('naricare_token');
       if (token && this.apiService.isAuthenticated()) {

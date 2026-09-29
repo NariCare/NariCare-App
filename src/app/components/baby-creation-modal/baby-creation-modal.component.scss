@@ -207,7 +207,7 @@
   --padding-end: 8px;
 
   .input-icon {
-    margin-right: 8px;
+    display: none;   // the label above already says Weight / Height; the icon squeezed "e.g. 50" out of the half-width box
   }
 
   ion-input {

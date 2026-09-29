@@ -662,11 +662,21 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return Math.max(0, diffDays);
   }
 
-  getBabyAgeText(): string {
-    if (this.user?.babies && this.user.babies.length > 0 && this.user.babies[0].dateOfBirth) {
-      return AgeCalculatorUtil.calculateBabyAge(this.user.babies[0].dateOfBirth);
+  getBabyAgeText(baby: any = this.user?.babies?.[0]): string {
+    if (baby?.dateOfBirth) {
+      return AgeCalculatorUtil.calculateBabyAge(baby.dateOfBirth);
     }
     return 'Add your baby to start tracking';
+  }
+
+  /** One journey card per baby; a single placeholder card when none are added yet. */
+  journeyBabies(): any[] {
+    return this.user?.babies?.length ? this.user.babies : [{}];
+  }
+
+  openBabyJourney(baby?: any) {
+    if (baby?.id) this.router.navigate(['/tabs/growth/baby-detail', baby.id]);
+    else this.router.navigate(['/tabs/growth']);
   }
 
   getBabyFirstName(): string {
@@ -1114,8 +1124,26 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Get the current learning activity to display
    */
+  // Read on each Home visit (ionViewWillEnter), not per change-detection pass
+  private lastOpenedArticle: any = null;
+  ionViewWillEnter() {
+    try { this.lastOpenedArticle = JSON.parse(localStorage.getItem('naricare_last_article') || 'null'); } catch { this.lastOpenedArticle = null; }
+  }
+
   getCurrentLearningActivity(): any {
-    // Priority: bookmarked articles, then recent articles
+    // Priority: last opened article, then bookmarked, then recent
+    const last = this.lastOpenedArticle;
+    if (last?.id) {
+      return {
+        type: 'last-opened',
+        title: last.title,
+        description: `Continue reading${last.readTime ? ` • ${last.readTime} min read` : ''}${last.category?.name ? ` • ${last.category.name}` : ''}`,
+        icon: 'book',
+        article: last,
+        categoryId: last.category?.id,
+        categoryColor: last.category?.color
+      };
+    }
     if (this.bookmarkedArticles.length > 0) {
       const article = this.bookmarkedArticles[0];
       return {
@@ -1172,7 +1200,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
    * Check if user has any learning progress to continue
    */
   hasLearningProgress(): boolean {
-    return this.bookmarkedArticles.length > 0 || this.recentArticles.length > 0;
+    return !!this.lastOpenedArticle?.id || this.bookmarkedArticles.length > 0 || this.recentArticles.length > 0;
   }
 
   /**

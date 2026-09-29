@@ -372,8 +372,13 @@ export class ChatbotService {
       timestamp: new Date(apiMessage.created_at),
       isPlaying: false,
       formattedContent: this.parseStructuredContent(apiMessage.content),
-      followUpOptions: apiMessage.follow_up_options ? this.convertFollowUpOptions(apiMessage.follow_up_options) : undefined
+      followUpOptions: apiMessage.follow_up_options && !this.isOutOfScopeReply(apiMessage.content) ? this.convertFollowUpOptions(apiMessage.follow_up_options) : undefined
     };
+  }
+
+  // The backend answers off-topic questions with this fixed line (NariCare-Service openaiService STRICT SCOPE); no suggestions after it
+  private isOutOfScopeReply(content: string | undefined): boolean {
+    return /I'm here to help with breastfeeding and related mother-baby feeding questions/i.test(content || '');
   }
 
   /**
@@ -459,7 +464,7 @@ export class ChatbotService {
           sender: 'bot',
           created_at: new Date().toISOString(),
           timestamp: new Date(),
-          followUpOptions: this.generateFollowUpOptions(content),
+          followUpOptions: this.isOutOfScopeReply(response.text) ? undefined : this.generateFollowUpOptions(content),
           isPlaying: false
         };
 

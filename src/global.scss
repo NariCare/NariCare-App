@@ -102,7 +102,8 @@
   
 }
 
-/* Dark mode styles */
+/* Dark mode styles (off, see $enable-dark-theme in theme/variables.scss) */
+@if false {
 @media (prefers-color-scheme: dark) {
   :root {
     --ion-color-primary: #9a9aef;
@@ -117,6 +118,7 @@
     --ion-text-color: #000000;
     --ion-text-color-rgb: 0, 0, 0;
   }
+}
 }
 
 /* Typography Scale */

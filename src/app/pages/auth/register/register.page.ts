@@ -54,8 +54,8 @@ export class RegisterPage implements OnInit, OnDestroy {
   // Copy from Gayathri for moms who are still pregnant
   pregnantGoalsOptions = [
     { key: 'learn_basics', label: 'Learn the basics of breastfeeding', icon: 'Feed.svg' },
-    { key: 'prenatal_help', label: 'Find breastfeeding help before baby arrives', icon: 'Fed directly.svg' },
-    { key: 'prepare_support', label: 'Gather breastfeeding essentials & build your support system', icon: 'Tracker.svg' }
+    { key: 'prenatal_help', label: 'Find breastfeeding help before baby arrives', icon: 'Prenatal help.svg' },
+    { key: 'prepare_support', label: 'Gather breastfeeding essentials & build your support system', icon: 'Support system.svg' }
   ];
 
   get visibleGoals() {

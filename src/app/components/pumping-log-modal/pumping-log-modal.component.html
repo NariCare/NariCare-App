@@ -13,7 +13,8 @@
   <div class="feed-log-container">
     <form [formGroup]="pumpingForm" class="feed-form single-form">
 
-      <!-- Selected Baby Info -->
+      <!-- ponytail: baby card hidden; pumping is the mother's own log, not tied to a baby (ClickUp 14ypx61yt0h). The record still carries a babyId the API requires. -->
+      <!--
       <div class="form-section selected-baby-info" *ngIf="displayBaby as baby">
         <div class="selected-baby-display">
           <div class="baby-avatar">
@@ -26,6 +27,7 @@
           <ion-icon name="checkmark-circle" class="selected-icon" aria-hidden="true"></ion-icon>
         </div>
       </div>
+      -->
 
       <!-- Main Pumping Card -->
       <div class="form-section main-pumping-card">

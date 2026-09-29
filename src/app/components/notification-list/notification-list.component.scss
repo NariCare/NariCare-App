@@ -62,7 +62,7 @@ ion-label h2 {
 
 ion-label p {
   margin: 4px 0 8px 0;
-  color: var(--ion-color-medium-shade);
+  color: #4b4b5c;   // medium-shade grey was hard to read
   font-size: 0.9em;
   line-height: 1.4;
   display: -webkit-box;
@@ -89,7 +89,7 @@ ion-label p {
 }
 
 .notification-time {
-  color: var(--ion-color-medium);
+  color: #6b6b7b;
   font-weight: 400;
 }
 

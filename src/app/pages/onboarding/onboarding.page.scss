@@ -19,23 +19,18 @@ ion-header {
   max-width: 480px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 1.25rem calc(96px + env(safe-area-inset-bottom, 0px)) 1.25rem;
+  padding: 0 1.25rem;
   overflow-x: hidden;
+  overflow-x: clip; // clip does not create a nested scroll box on iOS
 }
 
+// In normal flow at the end of the content: a fixed footer rode up with the keyboard and hid inputs
 .step-footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
-  background: var(--ion-background-color, #ffffff);
-  border-top: 1px solid #ece9fb;
-  padding: 0.75rem 1.25rem calc(0.75rem + env(safe-area-inset-bottom, 0px)) 1.25rem;
+  margin-top: auto;
+  padding: 1.5rem 0 calc(1rem + env(safe-area-inset-bottom, 0px)) 0;
 
   .button-row {
-    max-width: 480px;
-    margin: 0 auto;
+    margin-top: 0;
   }
 }
 
@@ -500,6 +495,12 @@ ion-datetime-button {
   }
 }
 
+.remove-baby-button {
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+}
+
 .add-baby-button {
   --color: var(--ion-color-primary, #8383ed);
   --border-color: var(--ion-color-primary, #8383ed);
@@ -521,6 +522,7 @@ ion-datetime-button {
 
 ion-chip {
   --background: var(--ion-item-background, #ffffff);
+  margin: 0;
   --color: #7a73a9;
   --border-radius: 20px;
   border: 1.5px solid #e2ddf5;
@@ -541,6 +543,28 @@ ion-chip {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+// Compact multi-select pills: content-width so short options sit 2+ per row, long ones wrap inside
+.chip-options {
+  gap: 0.375rem;
+
+  ion-chip {
+    flex: 0 1 auto;
+    max-width: 100%;
+    height: auto;
+    min-height: 44px;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.25;
+    white-space: normal;
+
+    &.selected {
+      font-weight: 600;
+      --background: var(--ion-color-primary, #8383ed);
+      --color: #ffffff;
+    }
+  }
 }
 
 .selection-chip {
@@ -676,18 +700,36 @@ ion-chip {
   gap: 1rem;
 }
 
+.baby-entry {
+  margin-bottom: 1rem;
+
+  .existing-baby-card + .baby-form-container {
+    margin-top: 0.5rem;
+  }
+}
+
 .existing-baby-card {
   background: var(--ion-item-background, #ffffff);
   border: 1.5px solid #e2ddf5;
   border-radius: 16px;
-  padding: 1rem;
-  cursor: pointer;
+  padding: 0.75rem 0.5rem 0.75rem 1rem;
   display: flex;
   align-items: center;
   position: relative;
 
-  &:active {
-    transform: scale(0.99);
+  .baby-needs-details {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.8125rem;
+    color: #ed3241;
+  }
+
+  .baby-edit-button {
+    --color: var(--ion-color-primary, #8383ed);
+    min-height: 44px;
+    min-width: 64px;
+    margin: 0;
+    font-weight: 600;
+    flex-shrink: 0;
   }
 
   .baby-avatar {
@@ -711,7 +753,10 @@ ion-chip {
   .baby-info {
     flex: 1;
 
+    min-width: 0;
+
     .baby-name {
+      overflow-wrap: anywhere;
       margin: 0 0 0.25rem 0;
       font-size: 1rem;
       font-weight: 600;
@@ -955,9 +1000,7 @@ ion-chip {
 
 // Twins Reminder Section Styles
 .twins-reminder-section {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1.5px dashed #e2ddf5;
+  margin-top: 0.5rem;
 
   .reminder-card {
     --background: #f7f5fd;
@@ -1000,11 +1043,10 @@ ion-chip {
   }
 
   .add-another-baby-button {
-    --background: var(--ion-color-primary, #8383ed);
-    --background-hover: #7676d1;
     --border-radius: 14px;
-    --color: #ffffff;
-    height: 56px;
+    --color: var(--ion-color-primary, #8383ed);
+    --border-color: var(--ion-color-primary, #8383ed);
+    height: 52px;
     font-weight: 600;
     font-size: 1rem;
     letter-spacing: 0.025em;

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ModalController, ToastController } from '@ionic/angular';
+import { ModalController, NavController, ToastController } from '@ionic/angular';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { map, tap, switchMap } from 'rxjs/operators';
@@ -38,7 +38,8 @@ export class ArticleDetailPage implements OnInit {
     private knowledgeService: KnowledgeBaseService,
     private authService: AuthService,
     private modalController: ModalController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private navCtrl: NavController
   ) {
     this.article$ = new Observable();
     this.relatedArticles$ = this.processedArticle$.pipe(
@@ -98,6 +99,13 @@ export class ArticleDetailPage implements OnInit {
       });
     }
     this.processedArticle$.next(article);
+    // Home's Continue Learning card shows the last article she opened
+    try {
+      localStorage.setItem('naricare_last_article', JSON.stringify({
+        id: article.id, title: article.title, readTime: article.readTime,
+        category: { id: article.category?.id, name: article.category?.name, color: article.category?.color }
+      }));
+    } catch { /* storage blocked */ }
   }
 
   private createSafeVideoUrl(url: string): SafeResourceUrl {
@@ -249,7 +257,9 @@ export class ArticleDetailPage implements OnInit {
     }
   }
   goBack() {
-    this.router.navigate(['/tabs/knowledge']);
+    // Back to the screen she came from (e.g. the Pregnancy list); Knowledge home only when opened directly
+    if ((history.state?.navigationId ?? 1) > 1) this.navCtrl.back();
+    else this.router.navigate(['/tabs/knowledge']);
   }
 
   async toggleBookmark() {

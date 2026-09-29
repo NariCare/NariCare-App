@@ -6,6 +6,27 @@ import { ApiService } from './api.service';
 import { BackendAuthService } from './backend-auth.service';
 import { environment } from '../../environments/environment';
 
+// Plain-language labels for validation messages, shared with the onboarding page
+export const FIELD_LABELS: { [field: string]: string } = {
+  motherAge: 'Your age',
+  city: 'City',
+  state: 'State',
+  employmentStatus: 'Employment status',
+  languagesSpoken: 'Languages spoken',
+  breastfeedingDuration: 'How long you want to breastfeed',
+  name: "Baby's name",
+  dateOfBirth: 'Date of birth',
+  gender: "Baby's gender",
+  birthWeight: 'Birth weight',
+  birthHeight: 'Birth height',
+  currentSupportSystem: 'Support system',
+  familyStructure: 'Family structure',
+  educationLevel: 'Education level'
+};
+
+const isMissing = (value: any): boolean =>
+  (Array.isArray(value) && value.length === 0) || (!value && value !== false && value !== 0);
+
 @Injectable({
   providedIn: 'root'
 })
@@ -251,8 +272,10 @@ export class OnboardingService {
                 birthWeight: baby.birthWeight,
                 birthHeight: baby.birthHeight,
                 deliveryType: baby.deliveryType || 'vaginal',
-                gestationalAge: baby.gestationalAge || 40
-              }
+                gestationalAge: baby.gestationalAge || 40,
+                // Keeps a saved baby from being created again on finish
+                existingBabyId: baby.id || baby._id
+              } as any
             };
           }
         }
@@ -459,10 +482,10 @@ export class OnboardingService {
     const required = ['motherAge', 'city', 'state', 'employmentStatus', 'languagesSpoken', 'breastfeedingDuration'];
     
     required.forEach(field => {
-      if (!data?.[field] && data?.[field] !== false) {
+      if (isMissing(data?.[field])) {
         validation.isValid = false;
         validation.requiredFields.push(field);
-        validation.errors[field] = `${field} is required`;
+        validation.errors[field] = `${FIELD_LABELS[field]} is required`;
       }
     });
 
@@ -516,8 +539,8 @@ export class OnboardingService {
           babyRequired.forEach(field => {
             if (!baby[field]) {
               validation.isValid = false;
-              const babyLabel = babiesData.length > 1 ? `Baby ${index + 1}'s` : `Baby's`;
-              validation.errors[`baby_${index}_${field}`] = `${babyLabel} ${field} is required`;
+              const prefix = babiesData.length > 1 ? `Baby ${index + 1}: ` : '';
+              validation.errors[`baby_${index}_${field}`] = `${prefix}${FIELD_LABELS[field]} is required`;
             }
           });
         }
@@ -567,9 +590,9 @@ export class OnboardingService {
     const required = ['currentSupportSystem', 'familyStructure', 'educationLevel'];
     
     required.forEach(field => {
-      if (!data?.[field]) {
+      if (isMissing(data?.[field])) {
         validation.isValid = false;
-        validation.errors[field] = `${field} is required`;
+        validation.errors[field] = `${FIELD_LABELS[field]} is required`;
       }
     });
 
@@ -604,6 +627,9 @@ export class OnboardingService {
 
   async completeOnboarding(): Promise<void> {
     const data = this.onboardingDataSubject.value as OnboardingData;
+    if (data.pregnancyInfo?.babies?.length) {
+      data.pregnancyInfo = { ...data.pregnancyInfo, babies: this.dedupeBabies(data.pregnancyInfo.babies) };
+    }
     
     // Final validation
     let allValid = true;
@@ -659,6 +685,18 @@ export class OnboardingService {
       console.error('Error completing onboarding:', error);
       throw error;
     }
+  }
+
+  // Same baby = same saved id, or same name and date of birth
+  private dedupeBabies(babies: any[]): any[] {
+    const seen = new Set<string>();
+    return babies.filter(baby => {
+      const name = (baby?.name || '').trim().toLowerCase();
+      const keys = [baby?.existingBabyId, name && `${name}|${String(baby?.dateOfBirth || '').split('T')[0]}`].filter(Boolean);
+      if (keys.some(key => seen.has(key))) return false;
+      keys.forEach(key => seen.add(key));
+      return true;
+    });
   }
 
   private async syncOnboardingData(data: OnboardingData): Promise<void> {
