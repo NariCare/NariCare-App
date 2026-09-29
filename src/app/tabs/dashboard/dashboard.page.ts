@@ -669,10 +669,15 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return 'Add your baby to start tracking';
   }
 
+  // Stable ref: a fresh [{}] per change-detection pass looped *ngFor forever
+  private readonly noBabyJourney: any[] = [{}];
+
   /** One journey card per baby; a single placeholder card when none are added yet. */
   journeyBabies(): any[] {
-    return this.user?.babies?.length ? this.user.babies : [{}];
+    return this.user?.babies?.length ? this.user.babies : this.noBabyJourney;
   }
+
+  trackJourneyBaby = (index: number, baby: any) => baby?.id ?? index;
 
   openBabyJourney(baby?: any) {
     if (baby?.id) this.router.navigate(['/tabs/growth/baby-detail', baby.id]);

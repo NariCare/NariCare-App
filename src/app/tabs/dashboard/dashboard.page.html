@@ -79,7 +79,7 @@
       </div>
       <ng-template #babyJourneys>
         <div class="journey-row" [class.multi]="journeyBabies().length > 1">
-          <div class="journey-card" *ngFor="let baby of journeyBabies()" (click)="openBabyJourney(baby)">
+          <div class="journey-card" *ngFor="let baby of journeyBabies(); trackBy: trackJourneyBaby" (click)="openBabyJourney(baby)">
             <div class="journey-text">
               <span class="journey-label">{{ baby.name || 'your little one' }}'s Journey</span>
               <p class="journey-headline">{{ getBabyAgeText(baby) }}</p>
