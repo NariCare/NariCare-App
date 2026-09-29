@@ -1,7 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
+import { LoadingController, ToastController, AlertController, ModalController, IonContent } from '@ionic/angular';
 import { OnboardingService, FIELD_LABELS } from '../../services/onboarding.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { ApiService } from '../../services/api.service';
@@ -16,6 +16,7 @@ import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
   styleUrls: ['./onboarding.page.scss'],
 })
 export class OnboardingPage implements OnInit, OnDestroy {
+  @ViewChild(IonContent) content?: IonContent;
   onboardingForm: FormGroup;
   currentUser: User | null = null;
   progress: OnboardingProgress = {
@@ -99,6 +100,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
     // Subscribe to onboarding progress
     this.subscriptions.push(
       this.onboardingService.progress$.subscribe(progress => {
+        // A new step starts at its title, not wherever the previous step was scrolled to
+        if (this.progress && progress.currentStep !== this.progress.currentStep) this.content?.scrollToTop(0);
         this.progress = progress;
         this.updateConditionalRequirements();
         // Update progress state when step changes
@@ -1335,7 +1338,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
   private async showErrorsAlert(errors: string[]): Promise<void> {
     const alert = await this.alertController.create({
       header: 'Please complete these fields',
-      message: errors.map(e => `\u2022 ${e}`).join('\n'),
+      message: errors.map(e => `\u2022 ${e}`).join('\n\n'),
       cssClass: 'form-errors-alert',
       buttons: ['OK']
     });
@@ -1415,6 +1418,11 @@ export class OnboardingPage implements OnInit, OnDestroy {
     return `${this.babiesFormArray.at(index).value.name || `Baby ${index + 1}`}: `;
   }
 
+  private isYoungestBaby(index: number): boolean {
+    const time = (i: number) => new Date(this.babiesFormArray.at(i).value.dateOfBirth || 0).getTime() || 0;
+    return this.babiesFormArray.controls.every((_, i) => time(i) <= time(index));
+  }
+
   babyErrors(index: number): string[] {
     const baby = this.babiesFormArray.at(index);
     const b = baby.value;
@@ -1434,7 +1442,10 @@ export class OnboardingPage implements OnInit, OnDestroy {
       timePerBreast: 'Time on a single breast',
       hasBeenHospitalized: 'Hospitalized since birth'
     };
-    const errors = Object.keys(labels)
+    // Feeding details only for the youngest baby (the one she is feeding now); an older sibling needs just the basics
+    const core = ['name', 'gender', 'dateOfBirth', 'birthWeight', 'birthHeight'];
+    const fields = this.isYoungestBaby(index) ? Object.keys(labels) : core;
+    const errors = fields
       .filter(f => b[f] === null || b[f] === undefined || b[f] === '')
       .map(f => `${prefix}${labels[f]} is required`);
     if (baby.get('dateOfBirth')?.hasError('futureDate')) errors.push(`${prefix}Date of birth cannot be in the future`);
@@ -1460,7 +1471,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       
       const alert = await this.alertController.create({
         header: 'Please complete these fields',
-        message: Object.values(validation.errors).map(e => `\u2022 ${e}`).join('\n'),
+        message: Object.values(validation.errors).map(e => `\u2022 ${e}`).join('\n\n'),
         cssClass: 'form-errors-alert',
         buttons: ['OK']
       });

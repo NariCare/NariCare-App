@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
+import { Observable, BehaviorSubject, throwError, of, firstValueFrom } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -469,6 +469,17 @@ export class ApiService {
       }),
       catchError(this.handleError)
     );
+  }
+
+  // One shared refresh for the resume handler, the pre-expiry timer and the 401 retry interceptor
+  private refreshInFlight: Promise<string | null> | null = null;
+  /** Renews the session once; resolves to the new access token, or null if it could not be renewed. */
+  refreshSession(): Promise<string | null> {
+    this.refreshInFlight ??= firstValueFrom(this.refreshToken())
+      .then(response => response?.data?.token ?? null)
+      .catch(() => null)
+      .finally(() => { this.refreshInFlight = null; });
+    return this.refreshInFlight;
   }
 
   logout(): Observable<any> {

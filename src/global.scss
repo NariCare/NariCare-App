@@ -809,6 +809,6 @@ body.keyboard-open ion-tab-bar {
 .form-errors-alert .alert-message {
   white-space: pre-line;
   text-align: left;
-  line-height: 1.6;
+  line-height: 1.35;   // items are separated by a blank line (ClickUp 14ypx61ybau: space between errors)
   padding-top: 8px;
 }
