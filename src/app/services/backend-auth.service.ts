@@ -35,6 +35,7 @@ export class BackendAuthService {
     private ngZone: NgZone
   ) {
     this.initializeAuth();
+    document.addEventListener('visibilitychange', this.onAppVisible);
   }
 
   // Constructor-time async/await and Firebase callbacks can resolve outside
@@ -56,6 +57,16 @@ export class BackendAuthService {
       if (await this.tryRefreshToken()) this.scheduleTokenRefresh(true);
     }, Math.max(0, expiry - Date.now() - 60_000));
   }
+
+  // Phones pause timers in the background, so re-check on return: refresh now if the token is (nearly) expired
+  private readonly onAppVisible = async () => {
+    if (document.visibilityState !== 'visible' || !this.currentUserSubject.value) return;
+    const expiry = this.apiService.getTokenExpiry();
+    if (expiry && expiry - Date.now() < 60_000 && this.apiService.hasRefreshToken()) {
+      await this.tryRefreshToken();
+    }
+    this.scheduleTokenRefresh(true);
+  };
 
   private async tryRefreshToken(): Promise<boolean> {
     try {
