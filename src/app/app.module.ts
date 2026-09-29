@@ -61,8 +61,9 @@ if (isFirebaseConfigured) {
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    { provide: HTTP_INTERCEPTORS, useClass: TimeoutInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: AuthRefreshInterceptor, multi: true }
+    // AuthRefresh first so the timeout applies to each attempt, not to request + refresh + retry combined
+    { provide: HTTP_INTERCEPTORS, useClass: AuthRefreshInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: TimeoutInterceptor, multi: true }
   ],
   bootstrap: [AppComponent],
 })

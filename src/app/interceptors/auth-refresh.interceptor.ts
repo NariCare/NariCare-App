@@ -3,6 +3,7 @@ import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { ApiService } from '../services/api.service';
+import { environment } from '../../environments/environment';
 
 /**
  * A request rejected with 401 (expired access token) is retried once after renewing the session.
@@ -18,7 +19,8 @@ export class AuthRefreshInterceptor implements HttpInterceptor {
       catchError(err => {
         const bearer = req.headers.get('Authorization');
         const retryable = err instanceof HttpErrorResponse && err.status === 401
-          && !!bearer && bearer !== 'Bearer ' && !req.url.includes('/auth/');
+          && !!bearer && bearer !== 'Bearer '
+          && req.url.startsWith(environment.apiUrl) && !req.url.includes('/auth/');   // our API only: never resend our token to a third party (e.g. OpenAI)
         if (!retryable) return throwError(() => err);
         const api = this.injector.get(ApiService);
         if (!api.hasRefreshToken()) return throwError(() => err);
