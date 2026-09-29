@@ -285,60 +285,48 @@
         <div class="baby-info-section" *ngIf="shouldShowField('babyInfo')">
           <div class="babies-header">
             <h3 class="subsection-title">Baby Information</h3>
-            <div class="twins-alert">
-              <ion-icon name="alert-circle" color="warning"></ion-icon>
-              <p class="twins-helper-text"><strong>Important:</strong> If you have twins, triplets, or multiple babies, please add ALL of them now. This ensures each baby gets personalized tracking and consultation support.</p>
-            </div>
-            <div class="baby-action-buttons">
-              <ion-button 
-                fill="outline" 
-                size="small" 
-                (click)="addBaby()" 
-                class="add-baby-button">
-                <ion-icon name="add" slot="start"></ion-icon>
-                Add New Baby
-              </ion-button>
-            </div>
+            <p class="twins-helper-text">Have twins or more? Add each baby so every baby gets their own tracking.</p>
           </div>
 
-          <!-- Existing Babies Selection -->
-          <div *ngIf="existingBabies.length > 0" class="existing-babies-section">
-            <h4 class="existing-babies-title">Or select from your existing babies:</h4>
-            <div class="existing-babies-grid">
-              <div 
-                *ngFor="let baby of existingBabies" 
-                class="existing-baby-card"
-                (click)="selectExistingBaby(baby)">
+          <!-- Saved babies show as cards, babies added here show as forms -->
+          <div formArrayName="babies">
+            <div
+              *ngFor="let baby of babiesFormArray.controls; let i = index"
+              [formGroupName]="i"
+              class="baby-entry">
+
+              <div class="existing-baby-card" *ngIf="isExistingBaby(i)">
                 <div class="baby-avatar">
-                  <img [src]="baby.gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg'" 
-                       [alt]="baby.gender === 'female' ? 'Baby girl' : 'Baby boy'" 
+                  <img [src]="baby.get('gender')?.value === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg'"
+                       alt=""
                        class="baby-icon">
                 </div>
                 <div class="baby-info">
-                  <h5 class="baby-name">{{ baby.name }}</h5>
-                  <p class="baby-age">{{ calculateBabyAge(baby.dateOfBirth || baby.date_of_birth) }}</p>
+                  <h5 class="baby-name">{{ baby.get('name')?.value }}</h5>
+                  <p class="baby-age">{{ calculateBabyAge(baby.get('dateOfBirth')?.value) }}</p>
+                  <p class="baby-needs-details" *ngIf="!isBabyFormOpen(i) && babyErrors(i).length">Tap Edit to add feeding details</p>
                 </div>
-                <ion-icon name="add-circle" class="add-icon"></ion-icon>
+                <ion-button
+                  fill="clear"
+                  class="baby-edit-button"
+                  [attr.aria-expanded]="isBabyFormOpen(i)"
+                  (click)="toggleBabyEdit(i)">
+                  {{ isBabyFormOpen(i) ? 'Done' : 'Edit' }}
+                </ion-button>
               </div>
-            </div>
-          </div>
-          
-          <!-- Multiple babies forms -->
-          <div formArrayName="babies">
-            <div 
-              *ngFor="let baby of babiesFormArray.controls; let i = index" 
-              [formGroupName]="i" 
-              class="baby-form-container">
-              
+
+              <div class="baby-form-container" *ngIf="isBabyFormOpen(i)">
               <div class="baby-form-header">
                 <h4>{{ getBabyTitle(i) }}</h4>
                 <ion-button 
-                  *ngIf="babiesFormArray.length > 1" 
+                  *ngIf="!isExistingBaby(i) && babiesFormArray.length > 1" 
                   fill="clear" 
                   color="danger" 
                   size="small" 
+                  class="remove-baby-button"
+                  aria-label="Remove this baby"
                   (click)="removeBaby(i)">
-                  <ion-icon name="trash" slot="icon-only"></ion-icon>
+                  <ion-icon name="trash" slot="icon-only" aria-hidden="true"></ion-icon>
                 </ion-button>
               </div>
               
@@ -653,11 +641,12 @@
                 </div>
 
               </div>
+              </div>
             </div>
           </div>
           
-          <!-- Twins/Multiple Babies Reminder -->
           <div class="twins-reminder-section">
+            <!-- Replaced by the one-line helper under "Baby Information"
             <ion-card class="reminder-card">
               <ion-card-content>
                 <div class="reminder-content">
@@ -669,15 +658,14 @@
                 </div>
               </ion-card-content>
             </ion-card>
-            
+            -->
             <ion-button 
-              fill="solid" 
+              fill="outline" 
               expand="block"
               (click)="addBaby()" 
-              class="add-another-baby-button"
-              color="secondary">
-              <ion-icon name="add-circle" slot="start"></ion-icon>
-              Add Another Baby
+              class="add-another-baby-button">
+              <ion-icon name="add-circle" slot="start" aria-hidden="true"></ion-icon>
+              Add another baby
             </ion-button>
           </div>
         </div>
@@ -1236,6 +1224,7 @@
               formControlName="expectationsFromProgram"
               [placeholder]="'Ex: I would like to receive evidence based knowledge about breastfeeding and have a support system who will guide me whenever I face an issue and keep me motivated in following the guidelines given to me to help me reach my breastfeeding goals'"
               rows="8"
+              [autoGrow]="true"
               fill="outline">
             </ion-textarea>
           </ion-item>
@@ -1275,7 +1264,7 @@
 
     </form>
 
-    <!-- Sticky footer -->
+    <!-- In-flow footer so the mobile keyboard can never push it over a field -->
     <div class="step-footer" *ngIf="!showIntro">
       <div class="button-row">
         <ion-button *ngIf="progress.currentStep > 1" fill="outline" (click)="previousStep()" class="back-button">
@@ -1290,8 +1279,7 @@
         <ion-button
           *ngIf="progress.currentStep === progress.totalSteps"
           (click)="completeOnboarding()"
-          class="complete-button"
-          [disabled]="!progress.canProceed">
+          class="complete-button">
           <ion-icon name="checkmark-circle" slot="start"></ion-icon>
           Complete Assessment
         </ion-button>

@@ -32,6 +32,7 @@ export class FeedLogModalComponent implements OnInit {
   @Input() prefilledData?: Partial<GrowthRecord>;
   @Input() isFastFeed: boolean = false;
   @Input() selectedBaby?: Baby;
+  private babyPassedIn = false;
   @Input() editRecord?: any; // mapped feed record; when set, the form saves via PUT instead of create
 
   feedForm: FormGroup;
@@ -143,6 +144,8 @@ export class FeedLogModalComponent implements OnInit {
     // Try backend auth service first, fallback to legacy auth service
     const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
     
+    // selectedBaby doubles as the picked baby, so remember whether the caller passed one in
+    this.babyPassedIn = !!this.selectedBaby;
     authService.currentUser$.subscribe(user => {
       this.user = user;
       if (user && user.babies && user.babies.length > 0) {
@@ -566,8 +569,8 @@ export class FeedLogModalComponent implements OnInit {
       return false;
     }
     
-    // If a baby was passed as input (@Input selectedBaby), don't show selection
-    if (this.selectedBaby) {
+    // Only a baby passed in by the caller hides the picker; picking one here must keep the list visible
+    if (this.babyPassedIn) {
       return false;
     }
     

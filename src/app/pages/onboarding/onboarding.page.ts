@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController, AlertController, ModalController } from '@ionic/angular';
-import { OnboardingService } from '../../services/onboarding.service';
+import { OnboardingService, FIELD_LABELS } from '../../services/onboarding.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { ApiService } from '../../services/api.service';
 import { OnboardingData, OnboardingOptions, OnboardingProgress } from '../../models/onboarding.model';
@@ -34,6 +34,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
   babies: FormGroup[] = [];
   existingBabies: any[] = [];
   newBabiesToCreate: any[] = []; // Track babies that need to be created via API
+  editingBabyIds = new Set<string>(); // Saved babies whose form is open for editing
   
   // Template helper properties
   currentDate = new Date().toISOString();
@@ -155,7 +156,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       const response = await this.apiService.getUserBabies().toPromise();
       if (response?.success && response.data) {
         this.existingBabies = response.data;
-        console.log('Loaded existing babies:', this.existingBabies);
+        this.syncExistingBabies();
       }
     } catch (error) {
       console.error('Error loading existing babies:', error);
@@ -164,8 +165,70 @@ export class OnboardingPage implements OnInit, OnDestroy {
     }
   }
 
-  selectExistingBaby(baby: any): void {
-    // Add the existing baby to the form array
+  private babyId(baby: any): string | null {
+    return baby?.id || baby?._id || null;
+  }
+
+  // name + local date of birth, so a saved baby matches the same baby typed into the form
+  private babyKey(baby: any): string {
+    const name = (baby?.name || baby?.baby_name || '').trim().toLowerCase();
+    return name ? `${name}|${this.formatDateForInput(baby?.dateOfBirth || baby?.date_of_birth || baby?.birth_date)}` : '';
+  }
+
+  private findExistingBaby(formBaby: any): any {
+    const key = this.babyKey(formBaby);
+    return this.existingBabies.find(baby =>
+      (formBaby?.existingBabyId && this.babyId(baby) === formBaby.existingBabyId) ||
+      (key && this.babyKey(baby) === key));
+  }
+
+  // One form entry per saved baby: link matches, drop copies and the blank placeholder, add missing ones
+  private syncExistingBabies(): void {
+    if (!this.existingBabies.length) return;
+    const babies = this.babiesFormArray;
+    const seen = new Set<string>();
+    for (let i = 0; i < babies.length; ) {
+      const value = babies.at(i).value;
+      const id = value.existingBabyId || this.babyId(this.findExistingBaby(value));
+      if (id && !value.existingBabyId) {
+        babies.at(i).patchValue({ existingBabyId: id }, { emitEvent: false });
+      }
+      const isBlank = !id && !value.name && !value.dateOfBirth;
+      if (isBlank || (id && seen.has(id))) {
+        babies.removeAt(i, { emitEvent: false });
+        continue;
+      }
+      if (id) seen.add(id);
+      i++;
+    }
+    let insertAt = 0;
+    this.existingBabies.forEach(baby => {
+      const id = this.babyId(baby);
+      if (id && !seen.has(id)) {
+        babies.insert(insertAt++, this.existingBabyForm(baby), { emitEvent: false });
+        seen.add(id);
+      }
+    });
+  }
+
+  isExistingBaby(index: number): boolean {
+    return !!this.babiesFormArray.at(index)?.value.existingBabyId;
+  }
+
+  isBabyFormOpen(index: number): boolean {
+    return !this.isExistingBaby(index) || this.editingBabyIds.has(this.babiesFormArray.at(index).value.existingBabyId);
+  }
+
+  toggleBabyEdit(index: number): void {
+    const id = this.babiesFormArray.at(index).value.existingBabyId;
+    if (this.editingBabyIds.has(id)) {
+      this.editingBabyIds.delete(id);
+    } else {
+      this.editingBabyIds.add(id);
+    }
+  }
+
+  private existingBabyForm(baby: any): FormGroup {
     const babyFormGroup = this.createBabyForm();
     
     // Comprehensive mapping of all possible field variations from API
@@ -210,20 +273,10 @@ export class OnboardingPage implements OnInit, OnDestroy {
       pacedBottleFeeding: baby.pacedBottleFeeding !== undefined ? baby.pacedBottleFeeding : 
                          (baby.paced_bottle_feeding !== undefined ? baby.paced_bottle_feeding : null),
       
-      existingBabyId: baby.id || baby._id // Track that this is an existing baby
-    });
+      existingBabyId: this.babyId(baby)
+    }, { emitEvent: false });
 
-    this.babiesFormArray.push(babyFormGroup);
-    
-    // Force form update and change detection
-    this.onboardingForm.updateValueAndValidity();
-    
-    console.log('Added existing baby to form with complete data mapping:', baby);
-    console.log('Form values after adding baby:', babyFormGroup.value);
-    console.log('Babies form array length:', this.babiesFormArray.length);
-    
-    // Update progress to trigger validation
-    this.updateProgressState();
+    return babyFormGroup;
   }
 
   calculateBabyAge(dateOfBirth: string): string {
@@ -232,19 +285,14 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
 
+  // YYYY-MM-DD in local time, which is what the date inputs expect
   formatDateForInput(dateString: string): string {
-    if (!dateString) return new Date().toISOString();
-    
-    // Handle different date formats from API
-    let date = new Date(dateString);
-    
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      console.warn('Invalid date received:', dateString);
-      return new Date().toISOString();
-    }
-    
-    return date.toISOString();
+    if (!dateString) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 
   getTodayDate(): string {
@@ -314,16 +362,22 @@ export class OnboardingPage implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('Creating new babies via API...');
     const babyPromises: Promise<any>[] = [];
+    const queuedKeys = new Set<string>();
     
-    // Iterate through all babies in the form array
     for (let i = 0; i < this.babiesFormArray.length; i++) {
-      const babyData = this.babiesFormArray.at(i).value;
+      const babyControl = this.babiesFormArray.at(i);
+      const babyData = babyControl.value;
+      const match = babyData.existingBabyId ? null : this.findExistingBaby(babyData);
+      if (match) {
+        babyControl.patchValue({ existingBabyId: this.babyId(match) }, { emitEvent: false });
+        continue;
+      }
+      const key = this.babyKey(babyData);
       
-      // Only create babies that don't have existingBabyId (i.e., new babies)
-      if (!babyData.existingBabyId) {
-        console.log('Creating new baby:', babyData);
+      // Only babies added through the form, once each
+      if (!babyData.existingBabyId && !queuedKeys.has(key)) {
+        queuedKeys.add(key);
         
         const createBabyPromise = this.apiService.createBaby({
           name: babyData.name,
@@ -333,7 +387,9 @@ export class OnboardingPage implements OnInit, OnDestroy {
           birthHeight: babyData.birthHeight
         }).toPromise().then(response => {
           if (response?.success) {
-            console.log('Successfully created baby:', response.data);
+            // Link it right away so a retry after a later failure does not create it again
+            babyControl.patchValue({ existingBabyId: this.babyId(response.data) }, { emitEvent: false });
+            if (response.data) this.existingBabies.push(response.data);
             return response.data;
           } else {
             throw new Error(`Failed to create baby: ${response?.message || 'Unknown error'}`);
@@ -718,13 +774,10 @@ export class OnboardingPage implements OnInit, OnDestroy {
             formulaTimesPerDay: baby.formulaTimesPerDay || 0,
             formulaAmountPerFeed: baby.formulaAmountPerFeed || 10,
             formulaReason: baby.formulaReason || '',
-            formulaReasonOther: baby.formulaReasonOther || ''
+            formulaReasonOther: baby.formulaReasonOther || '',
+            // patchValue, not addControl: the control already exists so addControl silently kept null
+            existingBabyId: baby.existingBabyId || null
           }, { emitEvent: false });
-          
-          // Store additional baby data that might not be in the form
-          if (baby.existingBabyId) {
-            babyForm.addControl('existingBabyId', this.formBuilder.control(baby.existingBabyId));
-          }
           babiesFormArray.push(babyForm);
         });
       }
@@ -774,15 +827,12 @@ export class OnboardingPage implements OnInit, OnDestroy {
           formulaTimesPerDay: extendedBaby.formulaTimesPerDay || 0,
           formulaAmountPerFeed: extendedBaby.formulaAmountPerFeed || 10,
           formulaReason: extendedBaby.formulaReason || '',
-          formulaReasonOther: extendedBaby.formulaReasonOther || ''
+          formulaReasonOther: extendedBaby.formulaReasonOther || '',
+          existingBabyId: extendedBaby.existingBabyId || null
         }, { emitEvent: false });
-        
-        // Store additional baby data that might not be in the form
-        if ((baby as any).existingBabyId) {
-          babyForm.addControl('existingBabyId', this.formBuilder.control((baby as any).existingBabyId));
-        }
         babiesFormArray.push(babyForm);
       }
+      this.syncExistingBabies();
     }
     
     // Formula Feeding Info (new structure)
@@ -1019,6 +1069,11 @@ export class OnboardingPage implements OnInit, OnDestroy {
   // ============================================================================
 
   nextStep(): void {
+    const errors = this.getStepErrors(this.progress.currentStep);
+    if (errors.length) {
+      this.showErrorsAlert(errors);
+      return;
+    }
     this.saveCurrentStepData();
     const success = this.onboardingService.nextStep();
     if (!success) {
@@ -1216,6 +1271,15 @@ export class OnboardingPage implements OnInit, OnDestroy {
   // ============================================================================
 
   async completeOnboarding(): Promise<void> {
+    const errors: string[] = [];
+    for (let step = 1; step <= this.progress.totalSteps; step++) {
+      errors.push(...this.getStepErrors(step));
+    }
+    if (errors.length) {
+      await this.showErrorsAlert(errors);
+      return;
+    }
+
     const loading = await this.loadingController.create({
       message: 'Setting up your comprehensive profile...',
       translucent: true
@@ -1223,14 +1287,11 @@ export class OnboardingPage implements OnInit, OnDestroy {
     await loading.present();
 
     try {
-      // Save all form data to ensure service has complete data
-      this.saveAllFormDataToService();
-      
-      // Save final step data
-      this.saveCurrentStepData();
-      
-      // Create new babies via API before completing onboarding
+      // Create babies first so the saved onboarding data carries their ids
       await this.createNewBabiesViaAPI();
+
+      this.saveAllFormDataToService();
+      this.saveCurrentStepData();
       
       // Complete onboarding through service
       await this.onboardingService.completeOnboarding();
@@ -1247,7 +1308,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       this.clearLocalStorageData();
 
       const toast = await this.toastController.create({
-        message: 'Welcome to NariCare! Your comprehensive assessment is complete. You can now schedule consultations with our experts.',
+        message: 'Welcome to NariCare! Your comprehensive assessment is complete.',
         duration: 4000,
         color: 'success',
         position: 'top'
@@ -1269,6 +1330,116 @@ export class OnboardingPage implements OnInit, OnDestroy {
       // dismiss in finally so navigation to dashboard never orphans the overlay
       await loading.dismiss();
     }
+  }
+
+  private async showErrorsAlert(errors: string[]): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Please complete these fields',
+      message: errors.map(e => `\u2022 ${e}`).join('\n'),
+      cssClass: 'form-errors-alert',
+      buttons: ['OK']
+    });
+    await alert.present();
+  }
+
+  // Required fields that are actually on screen for this step and mother type
+  getStepErrors(step: number): string[] {
+    const v = this.onboardingForm.value;
+    const errors: string[] = [];
+    const empty = (value: any) => value === null || value === undefined || value === '' || (Array.isArray(value) && !value.length);
+    const require = (field: string, label = FIELD_LABELS[field]) => {
+      if (empty(v[field])) errors.push(`${label} is required`);
+    };
+    const answer = (field: string, question: string) => {
+      if (v[field] === null || v[field] === undefined) errors.push(`Please answer "${question}"`);
+    };
+
+    switch (step) {
+      case 1:
+        require('motherAge');
+        if (!empty(v.motherAge) && (v.motherAge < 15 || v.motherAge > 50)) errors.push('Your age must be between 15 and 50');
+        ['city', 'state', 'employmentStatus', 'languagesSpoken', 'breastfeedingDuration'].forEach(f => require(f));
+        if (v.hasNippleIssues === true) require('nippleIssuesDescription', 'Description of the breast condition');
+        break;
+      case 2:
+        if (empty(v.motherType)) errors.push('Please choose Pregnant or New Mother');
+        answer('isFirstChild', 'Is this your first child?');
+        if (v.motherType === 'pregnant') require('expectedDueDate', 'Expected due date');
+        if (v.motherType === 'new_mom') {
+          if (!this.babiesFormArray.length) errors.push('Please add your baby');
+          this.babiesFormArray.controls.forEach((_, i) => {
+            const babyErrors = this.babyErrors(i);
+            // open saved babies that still need details so the fields are visible
+            if (babyErrors.length && this.isExistingBaby(i)) this.editingBabyIds.add(this.babiesFormArray.at(i).value.existingBabyId);
+            errors.push(...babyErrors);
+          });
+        }
+        break;
+      case 3:
+        if (v.motherType !== 'new_mom') break;
+        answer('usesFormula', 'Do you use formula?');
+        if (v.usesFormula === true) {
+          this.babiesFormArray.controls.forEach((baby, i) => {
+            const prefix = this.babyPrefix(i);
+            if (empty(baby.value.formulaBrand)) errors.push(`${prefix}Formula brand is required`);
+            if (empty(baby.value.formulaReason)) errors.push(`${prefix}Reason for using formula is required`);
+          });
+        }
+        answer('usesBottles', 'Do you use bottles?');
+        if (v.usesBottles === true) {
+          require('bottleBrand', 'Bottle brand');
+          require('bottleFeedDuration', 'Time to finish a bottle feed');
+          answer('usesPacedBottleFeeding', 'Are you using paced bottle feeding?');
+          require('bottleContents', 'What you put in bottles');
+        }
+        answer('usesPump', 'Do you use a breast pump?');
+        if (v.usesPump === true) {
+          require('pumpBrand', 'Pump brand');
+          require('pumpType', 'Type of pump');
+          answer('pumpsBothBreasts', 'Do you pump both breasts?');
+        }
+        break;
+      case 4:
+        ['currentSupportSystem', 'familyStructure', 'educationLevel'].forEach(f => require(f));
+        break;
+      case 5:
+        if (v.motherType === 'pregnant' && empty(v.breastfeedingGoals)) errors.push('Please select at least one breastfeeding goal');
+        if (v.motherType === 'new_mom' && empty(v.currentChallenges)) errors.push('Please select at least one current challenge');
+        break;
+    }
+    return errors;
+  }
+
+  private babyPrefix(index: number): string {
+    if (this.babiesFormArray.length === 1) return '';
+    return `${this.babiesFormArray.at(index).value.name || `Baby ${index + 1}`}: `;
+  }
+
+  babyErrors(index: number): string[] {
+    const baby = this.babiesFormArray.at(index);
+    const b = baby.value;
+    const prefix = this.babyPrefix(index);
+    const labels: { [field: string]: string } = {
+      name: FIELD_LABELS['name'],
+      gender: FIELD_LABELS['gender'],
+      dateOfBirth: FIELD_LABELS['dateOfBirth'],
+      birthWeight: FIELD_LABELS['birthWeight'],
+      birthHeight: FIELD_LABELS['birthHeight'],
+      deliveryType: 'Type of delivery',
+      gestationalAge: 'Gestational age',
+      mostRecentWeight: 'Current weight',
+      dateOfMostRecentWeightCheck: 'Date of weight check',
+      latchQuality: 'Latch quality',
+      offersBothBreastsPerFeeding: 'Offering both breasts per feed',
+      timePerBreast: 'Time on a single breast',
+      hasBeenHospitalized: 'Hospitalized since birth'
+    };
+    const errors = Object.keys(labels)
+      .filter(f => b[f] === null || b[f] === undefined || b[f] === '')
+      .map(f => `${prefix}${labels[f]} is required`);
+    if (baby.get('dateOfBirth')?.hasError('futureDate')) errors.push(`${prefix}Date of birth cannot be in the future`);
+    if (b.hasBeenHospitalized === true && !b.hospitalizationReason?.trim()) errors.push(`${prefix}Reason for hospitalization is required`);
+    return errors;
   }
 
   private async showValidationErrors(): Promise<void> {
@@ -1594,9 +1765,10 @@ export class OnboardingPage implements OnInit, OnDestroy {
   addBaby(): void {
     const babyForm = this.createBabyForm();
     
-    // If this is not the first baby, copy data from first baby (except name)
-    if (this.babiesFormArray.length > 0) {
-      const firstBabyData = this.babiesFormArray.at(0).value;
+    // Twins: prefill from the first baby added here, never from a saved older sibling
+    const firstNewBaby = this.babiesFormArray.controls.find(c => !c.value.existingBabyId);
+    if (firstNewBaby) {
+      const firstBabyData = firstNewBaby.value;
       babyForm.patchValue({
         name: '', // Keep name empty
         dateOfBirth: firstBabyData.dateOfBirth,
@@ -1625,6 +1797,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
   getBabyTitle(index: number): string {
+    const name = this.babiesFormArray.at(index)?.value.name;
+    if (this.isExistingBaby(index) && name) return name;
     if (this.babiesFormArray.length === 1) return 'Baby Information';
     return `Baby ${index + 1} Information`;
   }
@@ -1634,7 +1808,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
    */
   onDirectBreastfeedsChange(event: any, babyIndex: number): void {
     const value = event.detail.value;
-    const babyForm = this.babies[babyIndex];
+    const babyForm = this.babiesFormArray.at(babyIndex);
     
     if (value === 0) {
       // Auto-select appropriate values when no direct breastfeeds

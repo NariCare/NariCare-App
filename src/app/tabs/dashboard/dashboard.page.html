@@ -61,13 +61,10 @@
       </div>
     </div>
 
-    <!-- Journey Card -->
-    <div
-      class="journey-card"
-      *ngIf="hasJourneyCard()"
-      [class.pregnant]="isPregnantJourney()">
-      <div class="journey-text">
-        <ng-container *ngIf="isPregnantJourney(); else newMomJourney">
+    <!-- Journey Card: pregnant mom gets one card; a new mom swipes through one card per baby -->
+    <ng-container *ngIf="hasJourneyCard()">
+      <div class="journey-card pregnant" *ngIf="isPregnantJourney(); else babyJourneys" (click)="openBabyJourney()">
+        <div class="journey-text">
           <span class="journey-label">Your Pregnancy Journey</span>
           <p class="journey-headline">{{ getPregnancyWeeksAndDays().weeks }} weeks {{ getPregnancyWeeksAndDays().days }} day{{ getPregnancyWeeksAndDays().days !== 1 ? 's' : '' }}</p>
           <p class="journey-subtext">{{ getTrimester() }}</p>
@@ -75,25 +72,35 @@
             <div class="journey-progress-fill" [style.width.%]="getPregnancyProgressPercent()"></div>
           </div>
           <p class="journey-footnote">{{ getDaysUntilDue() }} day{{ getDaysUntilDue() !== 1 ? 's' : '' }} until motherhood</p>
-        </ng-container>
-        <ng-template #newMomJourney>
-          <span class="journey-label">{{ getBabyFirstName() }}'s Journey</span>
-          <p class="journey-headline">{{ getBabyAgeText() }}</p>
-          <p class="journey-subtext">Every day is a milestone. You're doing great.</p>
-        </ng-template>
+        </div>
+        <button type="button" class="journey-arrow-button" aria-label="Open Track">
+          <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+        </button>
       </div>
-      <button type="button" class="journey-arrow-button" aria-label="View journey details">
-        <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
-      </button>
-    </div>
+      <ng-template #babyJourneys>
+        <div class="journey-row" [class.multi]="journeyBabies().length > 1">
+          <div class="journey-card" *ngFor="let baby of journeyBabies()" (click)="openBabyJourney(baby)">
+            <div class="journey-text">
+              <span class="journey-label">{{ baby.name || 'your little one' }}'s Journey</span>
+              <p class="journey-headline">{{ getBabyAgeText(baby) }}</p>
+              <p class="journey-subtext">Every day is a milestone. You're doing great.</p>
+            </div>
+            <button type="button" class="journey-arrow-button" [attr.aria-label]="'Open ' + (baby.name || 'baby') + ' details'">
+              <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </ng-template>
+    </ng-container>
 
     <!-- Quick Actions -->
     <div class="section">
       <div class="section-header">
         <h2 class="section-title">Quick Actions</h2>
-        <ion-button fill="clear" size="small" class="see-all-link" (click)="navigateToKnowledge()">
+        <!-- ponytail: See All hidden per ClickUp 14ypx61yt5b; it only opened Knowledge -->
+        <!-- <ion-button fill="clear" size="small" class="see-all-link" (click)="navigateToKnowledge()">
           See All
-        </ion-button>
+        </ion-button> -->
       </div>
       <div class="quick-actions-grid">
         <button type="button"

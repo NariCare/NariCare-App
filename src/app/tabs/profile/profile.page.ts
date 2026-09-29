@@ -120,10 +120,10 @@ export class ProfilePage implements OnInit {
       accountItems.push({ label: 'Review AI answers', subtitle: 'Approve, reject or correct NariCare AI', icon: 'chatbubbles-outline', iconColor: 'green', action: 'reviewAi' });
     }
 
-    // Add notifications for all users
-    accountItems.push(
-      { label: 'Notifications', subtitle: 'Manage reminders and updates', icon: 'notifications-outline', iconColor: 'yellow', action: 'viewNotifications', badge: this.unreadNotificationCount }
-    );
+    // ponytail: Notifications hidden until tapping one opens its screen (phase 2, ClickUp 14ypx61z05g)
+    // accountItems.push(
+    //   { label: 'Notifications', subtitle: 'Manage reminders and updates', icon: 'notifications-outline', iconColor: 'yellow', action: 'viewNotifications', badge: this.unreadNotificationCount }
+    // );
 
     // Create support items based on user role
     const supportItems: any[] = [

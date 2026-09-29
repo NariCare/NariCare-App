@@ -265,7 +265,28 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   border-radius: 50%;
 }
 
+// Several babies: swipe sideways, one card per baby with the next one peeking in
+.journey-row {
+  margin-bottom: 1.75rem;
+
+  .journey-card { margin-bottom: 0; }
+
+  &.multi {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin-right: -1rem;   // let the next card run to the screen edge
+    padding-right: 1rem;
+
+    &::-webkit-scrollbar { display: none; }
+    .journey-card { flex: 0 0 85%; scroll-snap-align: start; }
+  }
+}
+
 .journey-card {
+  cursor: pointer;
   background: $lavender-bg;
   border: 1px solid $lavender-border;
   border-radius: 20px;
