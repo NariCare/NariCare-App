@@ -133,8 +133,9 @@ ion-infinite-scroll-content {
 }
 
 /* Dark mode adjustments */
+@if false { // dark theme off app-wide (see $enable-dark-theme in theme/variables.scss)
 @media (prefers-color-scheme: dark) {
   ion-item.unread {
     --background: rgba(var(--ion-color-primary-rgb), 0.1);
   }
-}
+}}

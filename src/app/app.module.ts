@@ -5,6 +5,7 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
+import { AuthRefreshInterceptor } from './interceptors/auth-refresh.interceptor';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -60,6 +61,8 @@ if (isFirebaseConfigured) {
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    // AuthRefresh first so the timeout applies to each attempt, not to request + refresh + retry combined
+    { provide: HTTP_INTERCEPTORS, useClass: AuthRefreshInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: TimeoutInterceptor, multi: true }
   ],
   bootstrap: [AppComponent],

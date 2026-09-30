@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, firstValueFrom, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap, catchError, tap } from 'rxjs/operators';
 import { Storage } from '@ionic/storage-angular';
 import { ApiService, LoginResponse, RegisterResponse, TwoFactorResponse } from './api.service';
@@ -68,14 +68,8 @@ export class BackendAuthService {
     this.scheduleTokenRefresh(true);
   };
 
-  // One refresh at a time: the resume handler and a paused timer can fire together
-  private refreshInFlight: Promise<boolean> | null = null;
-  private tryRefreshToken(): Promise<boolean> {
-    this.refreshInFlight ??= firstValueFrom(this.apiService.refreshToken())
-      .then(response => !!response?.success)
-      .catch(() => false)
-      .finally(() => { this.refreshInFlight = null; });
-    return this.refreshInFlight;
+  private async tryRefreshToken(): Promise<boolean> {
+    return !!(await this.apiService.refreshSession());
   }
 
   private async initializeAuth() {

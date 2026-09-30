@@ -228,14 +228,25 @@
 // Unit suffix styling
 .weight-input,
 .height-input {
+  // Same fix as Add Baby: in the half-width column the start icon squeezed "2.5" / "30" out of view
+  --padding-start: 12px;
+  --padding-end: 8px;
+
+  .input-icon { display: none; }
+
+  ion-input {
+    min-width: 0;
+    flex: 1;
+  }
+
   .unit-suffix {
     font-size: 0.9rem;
     font-weight: 500;
     color: #8383ed;
     background: rgba(131, 131, 237, 0.1);
-    padding: 0.4rem 0.7rem;
+    padding: 0.35rem 0.5rem;
     border-radius: 6px;
-    margin-left: 0.5rem;
+    margin-left: 0.25rem;
     border: 1px solid rgba(131, 131, 237, 0.2);
     min-width: 32px;
     text-align: center;

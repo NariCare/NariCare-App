@@ -378,7 +378,9 @@ export class ChatbotService {
 
   // The backend answers off-topic questions with this fixed line (NariCare-Service openaiService STRICT SCOPE); no suggestions after it
   private isOutOfScopeReply(content: string | undefined): boolean {
-    return /I'm here to help with breastfeeding and related mother-baby feeding questions/i.test(content || '');
+    const text = (content || '').replace(/[\u2018\u2019\u02BC]/g, "'");   // the model sometimes writes curly apostrophes
+    // The refusal half only: "here to help with breastfeeding" alone also opens normal answers
+    return /(can'?t|cannot|can not) help with other topics/i.test(text);
   }
 
   /**
