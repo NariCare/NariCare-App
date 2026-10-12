@@ -316,7 +316,7 @@
           </div>
           <div class="summary-row">
             <span class="summary-label">Email</span>
-            <span class="summary-value">{{ registerForm.get('email')?.value }}</span>
+            <span class="summary-value">{{ registerForm.get('email')?.value?.trim() | lowercase }}</span>
           </div>
           <div class="summary-row">
             <span class="summary-label">Phone</span>

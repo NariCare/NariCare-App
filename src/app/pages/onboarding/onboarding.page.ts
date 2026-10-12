@@ -9,6 +9,7 @@ import { OnboardingData, OnboardingOptions, OnboardingProgress } from '../../mod
 import { User } from '../../models/user.model';
 import { Subscription } from 'rxjs';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-onboarding',
@@ -48,6 +49,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
   
   // Local storage key for onboarding data
   private readonly ONBOARDING_STORAGE_KEY = 'onboarding_form_data';
+  private savingOwnStep = false;
   
   private subscriptions: Subscription[] = [];
 
@@ -113,6 +115,8 @@ export class OnboardingPage implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.onboardingService.onboardingData$.subscribe(data => {
         // Only update from service if we don't have newer localStorage data
+        // Our own step saves echo back here; rehydrating from them wiped later-step answers (e.g. formula)
+        if (this.savingOwnStep) return;
         const savedData = this.loadFormDataFromLocalStorage();
         if (!savedData || !savedData.timestamp) {
           this.updateFormFromData(data);
@@ -242,7 +246,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       dateOfBirth: this.formatDateForInput(baby.dateOfBirth || baby.date_of_birth || baby.birth_date),
       birthWeight: baby.birthWeight || baby.birth_weight || baby.weight_at_birth,
       mostRecentWeight: baby.currentWeight || baby.current_weight || baby.latest_weight || baby.mostRecentWeight,
-      dateOfMostRecentWeightCheck: this.formatDateForInput(baby.weightCheckDate || baby.weight_check_date || baby.last_weight_date || baby.dateOfMostRecentWeightCheck) || new Date().toISOString().split('T')[0],
+      dateOfMostRecentWeightCheck: this.formatDateForInput(baby.weightCheckDate || baby.weight_check_date || baby.last_weight_date || baby.dateOfMostRecentWeightCheck) || DateOnlyUtil.formatLocalDate(),
       birthHeight: baby.birthHeight || baby.birth_height || baby.height_at_birth,
       deliveryType: baby.deliveryType || baby.delivery_type || baby.type_of_delivery,
       gestationalAge: baby.gestationalAge || baby.gestational_age || baby.gestational_weeks || 40,
@@ -299,7 +303,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
   getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
   }
 
   // Custom validator to prevent future dates
@@ -308,7 +312,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
       return null; // Let required validator handle empty values
     }
     
-    const selectedDate = new Date(control.value);
+    const selectedDate = DateOnlyUtil.parseLocalDate(control.value);
     const today = new Date();
     today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
     
@@ -678,10 +682,10 @@ export class OnboardingPage implements OnInit, OnDestroy {
       });
       
       // Check if expectedDueDate is empty or set to today's date (default)
-      const todayString = new Date().toISOString().split('T')[0];
+      const todayString = DateOnlyUtil.formatLocalDate();
       const formHasEmptyOrDefaultDate = !currentFormValue.expectedDueDate || 
                                         currentFormValue.expectedDueDate === todayString ||
-                                        currentFormValue.expectedDueDate.includes(new Date().toISOString().split('T')[0]);
+                                        currentFormValue.expectedDueDate.includes(DateOnlyUtil.formatLocalDate());
       
       if (formHasEmptyOrDefaultDate && userDueDate && (currentFormValue.motherType === 'pregnant' || updates.motherType === 'pregnant')) {
         // Format the date properly for the HTML input
@@ -803,7 +807,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
           mostRecentWeight: baby.currentWeight || extendedBaby.mostRecentWeight || '',
           dateOfMostRecentWeightCheck: baby.weightCheckDate ? new Date(baby.weightCheckDate).toISOString().split('T')[0] : 
             (extendedBaby.dateOfMostRecentWeightCheck ? new Date(extendedBaby.dateOfMostRecentWeightCheck).toISOString().split('T')[0] : 
-            new Date().toISOString().split('T')[0]),
+            DateOnlyUtil.formatLocalDate()),
           birthHeight: baby.birthHeight || '',
           deliveryType: baby.deliveryType || '',
           gestationalAge: baby.gestationalAge || '',
@@ -1125,7 +1129,16 @@ export class OnboardingPage implements OnInit, OnDestroy {
     
     // Only save step data if it contains meaningful information
     if (this.hasStepData(this.progress.currentStep, formValue)) {
-      this.onboardingService.updateStepData(this.progress.currentStep, stepData);
+      this.saveStep(this.progress.currentStep, stepData);
+    }
+  }
+
+  private saveStep(step: number, stepData: any): void {
+    this.savingOwnStep = true;
+    try {
+      this.onboardingService.updateStepData(step, stepData);
+    } finally {
+      this.savingOwnStep = false;
     }
   }
   
@@ -1156,7 +1169,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
     for (let step = 1; step <= this.progress.totalSteps; step++) {
       if (this.hasStepData(step, formValue)) {
         const stepData = this.extractStepData(step, formValue);
-        this.onboardingService.updateStepData(step, stepData);
+        this.saveStep(step, stepData);
       }
     }
     console.log('Saved meaningful form data to onboarding service');
@@ -1715,7 +1728,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
   }
 
   createBabyForm(): FormGroup {
-    const today = new Date().toISOString().split('T')[0]; // Format as YYYY-MM-DD for date input
+    const today = DateOnlyUtil.formatLocalDate(); // Format as YYYY-MM-DD for date input
     
     return this.formBuilder.group({
       name: ['', Validators.required],
