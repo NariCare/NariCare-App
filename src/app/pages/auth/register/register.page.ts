@@ -524,7 +524,8 @@ export class RegisterPage implements OnInit, OnDestroy {
         const errors = deliveryDate?.errors || {};
         deliveryDate?.setErrors({ ...errors, conditionalRequired: true });
       } else {
-        const selectedDate = new Date(deliveryDate.value);
+        // new Date('YYYY-MM-DD') is UTC midnight (05:30 IST), so today always failed against local midnight
+        const selectedDate = DateOnlyUtil.parseLocalDate(deliveryDate.value);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -550,7 +551,7 @@ export class RegisterPage implements OnInit, OnDestroy {
       try {
         const formValue = this.registerForm.value;
         const registrationData: any = {
-          email: formValue.email,
+          email: formValue.email?.trim().toLowerCase(),
           password: formValue.password,
           firstName: formValue.firstName,
           lastName: formValue.lastName,

@@ -201,7 +201,7 @@ export class BabyCreationModalComponent implements OnInit {
   }
 
   getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
   }
 
   // Custom validator to prevent future dates
@@ -210,7 +210,7 @@ export class BabyCreationModalComponent implements OnInit {
       return null; // Let required validator handle empty values
     }
     
-    const selectedDate = new Date(control.value);
+    const selectedDate = DateOnlyUtil.parseLocalDate(control.value);
     const today = new Date();
     today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
     
