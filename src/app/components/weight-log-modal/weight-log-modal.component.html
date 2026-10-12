@@ -72,11 +72,14 @@
                     id="weightDate" 
                     formControlName="date"
                     presentation="date"
-                    min="2020-01-01"
+                    [min]="getMinDate()"
                     [max]="getCurrentDate()">
                   </ion-datetime>
                 </ng-template>
               </ion-modal>
+              <div class="error-message" role="alert" *ngIf="isBeforeBirth()">
+                Date can't be before the baby's birth date
+              </div>
             </div>
             
             <!-- Time picker hidden: weight_records has no time column; entries order by save time. Keep for reuse.

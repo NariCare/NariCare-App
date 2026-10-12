@@ -106,6 +106,18 @@ export class WeightLogModalComponent implements OnInit {
     return DateOnlyUtil.formatLocalDate();
   }
 
+  // Growth can't be logged before the selected baby was born
+  getMinDate(): string {
+    // API sends DOB as 'YYYY-MM-DDT00:00:00.000Z' (DB is UTC); the date part is the birth day in any timezone
+    const dob: any = this.getSelectedWeightBaby()?.dateOfBirth;
+    if (!dob) return '2020-01-01';
+    return typeof dob === 'string' ? dob.slice(0, 10) : DateOnlyUtil.formatLocalDate(dob);
+  }
+
+  isBeforeBirth(): boolean {
+    return String(this.weightForm.get('date')?.value || '').slice(0, 10) < this.getMinDate();
+  }
+
   getCurrentTime(): string {
     const now = new Date();
     return now.toTimeString().slice(0, 5);
@@ -276,7 +288,7 @@ export class WeightLogModalComponent implements OnInit {
 
   async saveWeightRecord() {
     this.showEmptyError = !this.hasGrowthValue();
-    if (this.showEmptyError) return;
+    if (this.showEmptyError || this.isBeforeBirth()) return;
     if (this.weightForm.valid && this.canSave() && this.user && !this.isSubmitting) {
       this.isSubmitting = true; // Prevent multiple submissions
       
