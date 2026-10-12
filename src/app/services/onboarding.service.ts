@@ -507,7 +507,7 @@ export class OnboardingService {
     // Validate isFirstChild (this field appears in step 2 UI)
     if (data?.isFirstChild === undefined || data?.isFirstChild === null) {
       validation.isValid = false;
-      validation.errors['isFirstChild'] = 'Please indicate if this is your first child';
+      validation.errors['isFirstChild'] = 'Please indicate if you are a first-time parent';
     }
 
     // Conditional validation based on mother type

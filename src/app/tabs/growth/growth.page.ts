@@ -1691,8 +1691,7 @@ export class GrowthPage implements OnInit, OnDestroy {
     modal.onDidDismiss().then((result) => {
       if (result.data?.created) {
         // Baby was created successfully, reload babies from API
-        this.showToast('Baby added successfully! 👶', 'success');
-        
+        // Modal already toasts "<name> has been added successfully"
         // Reload babies from API to get the latest data
         this.loadUserBabies();
       }

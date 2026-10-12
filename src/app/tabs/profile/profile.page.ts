@@ -462,7 +462,7 @@ export class ProfilePage implements OnInit {
       if (result.data?.created) {
         // Baby was created successfully, user data is already refreshed in the modal
         this.updateProfileSections(); // Refresh profile sections to show baby information item
-        this.showSuccessToast(`Baby added successfully! 👶`);
+        // Modal already toasts "<name> has been added successfully"
       }
     });
 
