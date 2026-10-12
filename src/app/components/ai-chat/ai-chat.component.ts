@@ -436,6 +436,21 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Expert help methods
+  // Starter questions follow the mother type (ClickUp 14ypx61yb2n); new-mom set from Gayathri
+  get quickQuestions(): { text: string; icon: string; tone: string }[] {
+    return this.currentUser?.motherType === 'pregnant'
+      ? [
+          { text: 'How can I prepare for breastfeeding before my baby arrives?', icon: 'heart-outline', tone: 'icon-blush' },
+          { text: 'What should feeding look like in the first hour after birth?', icon: 'time-outline', tone: 'icon-lavender' },
+          { text: 'What breastfeeding essentials should I pack for the hospital?', icon: 'bag-handle-outline', tone: 'icon-mint' }
+        ]
+      : [
+          { text: 'What are the best positions to get a deep, pain-free latch?', icon: 'water', tone: 'icon-blush' },
+          { text: 'How many wet and dirty diapers should I look for each day?', icon: 'happy-outline', tone: 'icon-lavender' },
+          { text: 'What should newborn feeding look like in the first 48 hours?', icon: 'bar-chart-outline', tone: 'icon-mint' }
+        ];
+  }
+
   async handleFollowUpAction(action: string, text: string) {
     switch (action) {
       case 'positioning':
