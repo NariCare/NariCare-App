@@ -108,8 +108,10 @@ export class WeightLogModalComponent implements OnInit {
 
   // Growth can't be logged before the selected baby was born
   getMinDate(): string {
-    const dob = this.getSelectedWeightBaby()?.dateOfBirth;
-    return dob ? DateOnlyUtil.formatLocalDate(DateOnlyUtil.parseLocalDate(dob as any)) : '2020-01-01';
+    // API sends DOB as 'YYYY-MM-DDT00:00:00.000Z' (DB is UTC); the date part is the birth day in any timezone
+    const dob: any = this.getSelectedWeightBaby()?.dateOfBirth;
+    if (!dob) return '2020-01-01';
+    return typeof dob === 'string' ? dob.slice(0, 10) : DateOnlyUtil.formatLocalDate(dob);
   }
 
   isBeforeBirth(): boolean {
