@@ -216,7 +216,8 @@ export class DiaperLogModalComponent implements OnInit {
         this.resetOtherOption();
         return;
       case 'custom':
-        // If clicking on a custom date option, don't change anything
+        // Tapping the picked-date chip reopens (or closes) the picker so the date can be changed again
+        this.showDatePicker = !this.showDatePicker;
         return;
       default:
         selectedDate = new Date(today);

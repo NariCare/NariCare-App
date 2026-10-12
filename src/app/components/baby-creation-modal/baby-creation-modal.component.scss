@@ -75,6 +75,13 @@
   --padding-end: 16px;
   --min-height: 48px;
   margin-bottom: 0.5rem;
+  // lines="none" drops Ionic's border, so draw one to match the gender chips
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+
+  &:focus-within {
+    border-color: #8383ed;
+  }
 
   &.error {
     --border-color: #ef4444;

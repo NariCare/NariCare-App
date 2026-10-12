@@ -1379,7 +1379,7 @@ export class OnboardingPage implements OnInit, OnDestroy {
         break;
       case 2:
         if (empty(v.motherType)) errors.push('Please choose Pregnant or New Mother');
-        answer('isFirstChild', 'Is this your first child?');
+        answer('isFirstChild', 'Are you a first-time parent?');
         if (v.motherType === 'pregnant') require('expectedDueDate', 'Expected due date');
         if (v.motherType === 'new_mom') {
           if (!this.babiesFormArray.length) errors.push('Please add your baby');

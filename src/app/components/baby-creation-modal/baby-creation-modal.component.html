@@ -107,7 +107,7 @@
               </ion-input>
               <span class="unit-suffix">kg</span>
             </ion-item>
-            <div class="field-hint">0.5 - 10 kg</div>
+            <div class="field-hint">Range: 0.5 - 10 kg</div>
             <div class="error-message" *ngIf="babyForm.get('birthWeight')?.invalid && babyForm.get('birthWeight')?.touched">
               {{ getErrorMessage('birthWeight') }}
             </div>
@@ -126,7 +126,7 @@
               </ion-input>
               <span class="unit-suffix">cm</span>
             </ion-item>
-            <div class="field-hint">20 - 70 cm</div>
+            <div class="field-hint">Range: 20 - 70cm</div>
             <div class="error-message" *ngIf="babyForm.get('birthHeight')?.invalid && babyForm.get('birthHeight')?.touched">
               {{ getErrorMessage('birthHeight') }}
             </div>
