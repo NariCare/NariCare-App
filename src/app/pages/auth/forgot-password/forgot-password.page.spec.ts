@@ -1,15 +1,18 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { testImports } from 'src/testing/test-imports';
+import { ForgotPasswordPageModule } from './forgot-password.module';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ForgotPasswordPage } from './forgot-password.page';
 
 describe('ForgotPasswordPage', () => {
   let component: ForgotPasswordPage;
   let fixture: ComponentFixture<ForgotPasswordPage>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [...testImports, ForgotPasswordPageModule] });
     fixture = TestBed.createComponent(ForgotPasswordPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  }));
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();

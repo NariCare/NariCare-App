@@ -611,16 +611,7 @@ export class BabyDetailPage implements OnInit, OnDestroy {
         // Baby info was updated, reload user data will refresh the baby info
         this.loadBabyData();
         
-        // If weight log was created, also reload weight records to show in the chart
-        if (result.data?.weightLogCreated) {
-          this.loadBabyData();
-          // Show additional toast for weight log
-          setTimeout(() => {
-            this.showToast('Growth chart updated with new measurement', 'success');
-          }, 1500);
-        }
-        
-        this.showToast('Baby information updated successfully!', 'success');
+        // Edit modal already toasts the update and the growth entry; the growth stream refreshes itself
       } else if (result.data?.deleted) {
         // Baby was deleted, redirect to growth page
         this.showToast('Baby information deleted successfully.', 'success');
