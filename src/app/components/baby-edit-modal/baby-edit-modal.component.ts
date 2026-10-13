@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, LoadingController, AlertController } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { BackendGrowthService } from '../../services/backend-growth.service';
 import { Baby } from '../../models/user.model';
 import { firstValueFrom } from 'rxjs';
 import { confirmGrowthEntry, growthWarnings, toGrowthPoints } from '../../shared/utils/growth-plausibility.util';
@@ -28,7 +29,8 @@ export class BabyEditModalComponent implements OnInit {
     private loadingController: LoadingController,
     private alertController: AlertController,
     private apiService: ApiService,
-    private backendAuthService: BackendAuthService
+    private backendAuthService: BackendAuthService,
+    private backendGrowthService: BackendGrowthService
   ) {
     this.babyForm = this.formBuilder.group({
       name: ['', [Validators.required, Validators.minLength(1)]],
@@ -39,7 +41,7 @@ export class BabyEditModalComponent implements OnInit {
       currentWeight: ['', [Validators.min(0.5), Validators.max(50)]],
       currentHeight: ['', [Validators.min(20), Validators.max(150)]],
       // New fields for weight log tracking
-      weightDate: [new Date().toISOString().split('T')[0]], // Today's date in YYYY-MM-DD format
+      weightDate: [DateOnlyUtil.formatLocalDate()], // Today's date in YYYY-MM-DD format
       weightTime: [this.getCurrentTime()]
     });
   }
@@ -83,7 +85,7 @@ export class BabyEditModalComponent implements OnInit {
         currentWeight: this.baby.currentWeight || '',
         currentHeight: this.baby.currentHeight || '',
         // Initialize date/time for potential weight log
-        weightDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+        weightDate: DateOnlyUtil.formatLocalDate(), // Today's date in YYYY-MM-DD format
         weightTime: this.getCurrentTime()
       });
     }
@@ -161,10 +163,13 @@ export class BabyEditModalComponent implements OnInit {
                 weight: newWeight || this.originalWeight || 0,
                 height: newHeight || this.originalHeight,
                 notes: '', // Keep notes empty as requested
-                date: weightDateTime.toISOString()
+                date: weightDateTime.toISOString(),
+                // Backend reads recordDate; without it the picked date was ignored
+                recordDate: String(formValue.weightDate).slice(0, 10)
               };
               
-              await this.apiService.createWeightRecord(weightRecord).toPromise();
+              // Through the growth service so the cached growth list and chart refresh without a reload
+              await this.backendGrowthService.addWeightRecord(weightRecord);
               
               // Show additional success message for weight log
               const weightToast = await this.toastController.create({
