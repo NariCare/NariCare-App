@@ -205,6 +205,13 @@ export class GrowthPage implements OnInit, OnDestroy {
     this.viewEntered = true;
   }
 
+  // Home's "Add your baby" CTA links here with #add-baby; the card sits below the fold on most phones
+  ionViewDidEnter(): void {
+    if (this.router.parseUrl(this.router.url).fragment !== 'add-baby') return;
+    setTimeout(() => document.getElementById('add-baby')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+    history.replaceState(history.state, '', location.pathname + location.search); // drop #add-baby so a later visit doesn't jump
+  }
+
   /** Switcher tap: remember the baby and reload every My Journey source for it. */
   selectJourneyBaby(baby: Baby): void {
     if (baby.id === this.selectedBaby?.id) return;

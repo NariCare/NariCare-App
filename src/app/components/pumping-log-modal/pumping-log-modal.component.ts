@@ -204,7 +204,7 @@ export class PumpingLogModalComponent implements OnInit {
 
   private updateDateOptionsWithCustomDate() {
     // Find and update the "Other" option to show the selected custom date
-    const otherOptionIndex = this.dateOptions.findIndex(option => option.value === 'other');
+    const otherOptionIndex = this.dateOptions.findIndex(option => option.value === 'other' || option.value === 'custom'); // re-picks relabel the same chip
     if (otherOptionIndex !== -1) {
       this.dateOptions[otherOptionIndex] = {
         label: this.formatDateDisplay(this.selectedDate),
