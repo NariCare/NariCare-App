@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { Router } from '@angular/router';
 import { AlertController, ToastController, ModalController } from '@ionic/angular';
 import { HttpClient } from '@angular/common/http';
@@ -53,6 +54,32 @@ export class ProfilePage implements OnInit {
     private notificationService: NotificationService,
     private timezoneService: TimezoneService
   ) {}
+
+  // Web only, and hidden once opened from the home screen
+  showInstallCard = !Capacitor.isNativePlatform()
+    && !window.matchMedia('(display-mode: standalone)').matches
+    && !(navigator as any).standalone;
+
+  async installApp() {
+    const prompt = (window as any).deferredInstallPrompt;
+    if (prompt) {
+      prompt.prompt();
+      const { outcome } = await prompt.userChoice;
+      (window as any).deferredInstallPrompt = null;
+      if (outcome === 'accepted') this.showInstallCard = false;
+      return;
+    }
+    // iPhone Safari has no install prompt; other browsers that skipped it get the menu path
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const alert = await this.alertController.create({
+      header: 'Add NariCare to your home screen',
+      message: isIos
+        ? 'In Safari, tap the Share button, then "Add to Home Screen".'
+        : 'Open your browser menu (⋮), then tap "Install app" or "Add to Home screen".',
+      buttons: ['OK']
+    });
+    await alert.present();
+  }
 
   ngOnInit() {
     this.backendAuthService.currentUser$.subscribe(user => {
