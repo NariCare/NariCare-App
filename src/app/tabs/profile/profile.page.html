@@ -90,6 +90,13 @@
       Password is managed by your NariCare admin.
     </p>
 
+    <!-- Install app (web only) -->
+    <div class="share-card install-card" *ngIf="showInstallCard">
+      <ion-icon name="phone-portrait-outline" class="install-icon" aria-hidden="true"></ion-icon>
+      <p class="share-text">Add NariCare to your home screen for quick access</p>
+      <button type="button" class="share-button" (click)="installApp()">Install app</button>
+    </div>
+
     <!-- Share the Care -->
     <div class="share-card">
       <div class="share-hearts" aria-hidden="true">

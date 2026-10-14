@@ -33,8 +33,9 @@ export interface LoginResponse {
 
 export interface RegisterResponse {
   user: any;
-  token: string;
+  token?: string;
   message: string;
+  requiresEmailVerification?: boolean;
 }
 
 export interface TwoFactorResponse {
