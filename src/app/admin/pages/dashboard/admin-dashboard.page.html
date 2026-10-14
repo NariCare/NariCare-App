@@ -1,0 +1,96 @@
+<div class="adm-page-head">
+  <div>
+    <h1>Dashboard</h1>
+    <p *ngIf="data">{{ fmtWhen(data.range.from) }} to {{ fmtWhen(data.range.to) }}</p>
+  </div>
+</div>
+
+<div class="adm-error" *ngIf="error" role="alert">
+  <span>Couldn't load the dashboard.</span>
+  <button type="button" class="adm-btn ghost sm" (click)="retry()">Try again</button>
+</div>
+
+<div class="adm-stack" *ngIf="data; else skeleton" [attr.aria-busy]="loading">
+  <section class="adm-tiles dash-tiles" aria-label="Totals">
+    <ng-container *ngFor="let t of tiles">
+      <a *ngIf="t.link; else plainTile" class="adm-tile dash-link" [ngClass]="t.tone" [routerLink]="t.link">
+        <span class="ic"><ion-icon [name]="t.icon" aria-hidden="true"></ion-icon></span>
+        <div><strong>{{ t.value ?? '-' }}</strong><span>{{ t.label }} <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon></span></div>
+      </a>
+      <ng-template #plainTile>
+        <div class="adm-tile" [ngClass]="t.tone">
+          <span class="ic"><ion-icon [name]="t.icon" aria-hidden="true"></ion-icon></span>
+          <div><strong>{{ t.value ?? '-' }}</strong><span>{{ t.label }}</span></div>
+        </div>
+      </ng-template>
+    </ng-container>
+  </section>
+
+  <div class="adm-grid-2">
+    <section class="adm-card">
+      <div class="adm-card-head"><h2>New signups</h2></div>
+      <app-admin-chart [options]="signups?.options || null" [summary]="signups?.summary || ''" [height]="220"></app-admin-chart>
+    </section>
+    <section class="adm-card">
+      <div class="adm-card-head"><h2>Records logged per day</h2></div>
+      <app-admin-chart [options]="records?.options || null" [summary]="records?.summary || ''" [height]="260"></app-admin-chart>
+    </section>
+  </div>
+
+  <div class="adm-grid-2">
+    <section class="adm-card">
+      <div class="adm-card-head"><h2>AI questions <small>per day</small></h2></div>
+      <app-admin-chart [options]="questions?.options || null" [summary]="questions?.summary || ''" [height]="220"></app-admin-chart>
+    </section>
+    <section class="adm-card">
+      <div class="adm-card-head">
+        <h2>Review status</h2>
+        <a class="adm-link-btn" routerLink="/admin/ai-review">Review queue <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon></a>
+      </div>
+      <app-admin-chart [options]="status?.options || null" [summary]="status?.summary || ''" [height]="240"></app-admin-chart>
+    </section>
+  </div>
+
+  <div class="adm-grid-2">
+    <section class="adm-card">
+      <div class="adm-card-head"><h2>Questions by category</h2></div>
+      <app-admin-chart *ngIf="data.ai.byCategory.length; else noCats" [options]="categories?.options || null" [summary]="categories?.summary || ''" [height]="catHeight"></app-admin-chart>
+      <ng-template #noCats><p class="adm-empty">No categorized questions yet.</p></ng-template>
+    </section>
+    <section class="adm-card">
+      <div class="adm-card-head">
+        <h2>Flags by type</h2>
+        <a class="adm-link-btn" routerLink="/admin/ai-review">Flagged queue <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon></a>
+      </div>
+      <app-admin-chart *ngIf="data.ai.byFlag?.length; else noFlags" [options]="flagsChart?.options || null" [summary]="flagsChart?.summary || ''" [height]="flagHeight"></app-admin-chart>
+      <ng-template #noFlags><p class="adm-empty">No flagged answers in this range.</p></ng-template>
+    </section>
+  </div>
+
+  <section class="adm-card">
+    <div class="adm-card-head">
+      <h2>Needs attention</h2>
+      <p class="sub">No record saved in 3 or more days</p>
+    </div>
+    <p class="adm-empty" *ngIf="!data.needsAttention.length">Everyone has logged something in the last 3 days.</p>
+    <ul class="adm-list" *ngIf="data.needsAttention.length">
+      <li *ngFor="let m of data.needsAttention">
+        <span class="ic" [ngClass]="m.segment === 'pregnant' ? 'orange' : 'pink'">
+          <ion-icon [name]="m.segment === 'pregnant' ? 'heart-outline' : 'happy-outline'" aria-hidden="true"></ion-icon>
+        </span>
+        <div class="grow">
+          <a [routerLink]="['/admin/mothers', m.userId]">{{ m.name || '-' }}</a>
+          <div class="when">{{ m.segment === 'pregnant' ? 'Pregnant' : 'With baby' }} · Last recorded activity {{ fmtWhen(m.lastActivityAt, 'd MMM y, h:mm a') }}</div>
+        </div>
+        <span class="val adm-badge grey">{{ m.daysSince != null ? m.daysSince + ' days' : 'Never logged' }}</span>
+      </li>
+    </ul>
+  </section>
+</div>
+
+<ng-template #skeleton>
+  <div class="adm-stack" *ngIf="!error" aria-busy="true">
+    <div class="adm-skel" style="min-height: 84px"></div>
+    <div class="adm-grid-2"><div class="adm-skel" style="min-height: 280px"></div><div class="adm-skel" style="min-height: 280px"></div></div>
+  </div>
+</ng-template>

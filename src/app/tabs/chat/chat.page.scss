@@ -1,40 +1,185 @@
+// Shared design tokens (matches register/onboarding/dashboard/profile/tracker)
+$primary: #8383ed;
+$primary-hover: #7676d1;
+$lavender-bg: #f4f2fe;
+$lavender-surface: #f7f5fd;
+$lavender-border: #e2ddf5;
+$ink: #2d3748;
+$muted: #7a73a9;
+$font: var(--ion-font-family, 'Poppins', sans-serif);
+
+.chat-page-content {
+  --background: #ffffff;
+  // Let the flex column inside own the height and scrolling (not ion-content),
+  // so the AI chat can pin its input and scroll messages without overlapping
+  // the bottom tab bar.
+  &::part(scroll) {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+}
 
 .chat-container {
-  height: 100vh; /* Use viewport height instead of 100% */
-  height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  // Fill the ion-content (already inset below the header and above the tab bar).
+  // 100% chains off the dvh-bound scroll part below, so it shrinks with the
+  // keyboard on Chrome Android (interactive-widget=resizes-content) without
+  // overflowing past the bottom tab bar.
+  height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
   width: 100%;
-  max-width: 100vw; /* Ensure container doesn't exceed viewport width */
+  max-width: 100vw;
   position: relative;
 }
 
-.tab-selector {
-  padding: 2px;
-  background: #ffffff;
-  border-bottom: 1px solid #f1f5f9;
+/* Hero Header */
+.chat-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 1.25rem 1.25rem;
+  background: linear-gradient(180deg, $lavender-bg 0%, #ffffff 100%);
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+  flex-shrink: 0;
+}
 
-  ion-segment {
-    --background: #f8fafc;
-    --color-checked: #8383ed;
-    --background-checked: #ffffff;
-    --border-radius: 8px;
+.chat-hero-text {
+  flex-shrink: 0;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $ink;
+    font-family: $font;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.9rem;
+    color: $muted;
+    font-family: $font;
+  }
+}
+
+.chat-hero-decoration {
+  position: relative;
+  width: 84px;
+  height: 64px;
+  flex-shrink: 0;
+
+  .deco-bubble {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(131, 131, 237, 0.18);
+
+    ion-icon {
+      color: #ffffff;
+    }
+  }
+
+  .deco-bubble-purple {
+    top: 0;
+    right: 8px;
+    width: 48px;
+    height: 40px;
+    background: $primary;
+    border-bottom-right-radius: 4px;
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+  }
+
+  .deco-bubble-pink {
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 32px;
+    background: #ff8fb1;
+    border-bottom-right-radius: 4px;
+
+    ion-icon {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.content-container {
+  flex: 1;
+  min-height: 0; // allow the flex child (ai-chat) to own its own scroll
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.75rem 1rem 0 1rem; // no bottom padding: the AI tab manages its own
+}
+
+// AI tab: edge-to-edge chat, segment keeps a 12px inset to line up with bubbles.
+.chat-container.ai-active {
+  .content-container {
+    padding: 0.5rem 0 0 0;
+  }
+
+  .main-tab-selector {
+    margin: 0 12px 0.25rem;
+  }
+}
+
+/* Main Tab Selector (matches Tracker page pill pattern) */
+.main-tab-selector {
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+  background: $lavender-bg;
+  border-radius: 999px;
+  padding: 4px;
+
+  ion-segment.main-tabs-segment {
+    --background: transparent !important;
+    background: transparent !important;
+
+    ion-segment-button {
+      --border-radius: 999px !important;
+      border-radius: 999px !important;
+      --color: #{$muted} !important;
+      color: $muted !important;
+      font-weight: 600 !important;
+      font-family: $font;
+
+      &.segment-button-checked {
+        --background: #{$primary} !important;
+        background: $primary !important;
+        --color: #ffffff !important;
+        color: #ffffff !important;
+
+        ion-label {
+          color: #ffffff !important;
+        }
+      }
+    }
   }
 }
 
 .tab-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  padding: 1rem;
   width: 100%;
   max-width: 100%;
 
   &.ai-chat {
     display: flex;
     flex-direction: column;
-    padding-bottom: 0;
+    flex: 1;
+    min-height: 0; // let app-ai-chat's internal messages area scroll, not the page
+    padding: 0; // ai-chat owns the 12px gutter; beats the mobile .tab-content padding
     width: 100%;
     max-width: 100%;
   }
@@ -492,5 +637,33 @@
 /* Group Chat Styles */
 .groups-list-container {
   padding: 1rem;
+}
+
+// Keyboard open on the AI tab: drop hero + segment so messages and composer get the height.
+// Class comes from ai-chat focus / native keyboard events; the media query is a fallback.
+@mixin ai-keyboard-collapse {
+  .chat-container.ai-active {
+    .chat-hero,
+    .main-tab-selector {
+      display: none;
+    }
+
+    .content-container {
+      padding-top: 0.25rem;
+    }
+
+    .tab-content.ai-chat {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
+}
+
+:host-context(body.keyboard-open) {
+  @include ai-keyboard-collapse;
+}
+
+@media (max-height: 520px) {
+  @include ai-keyboard-collapse;
 }
 

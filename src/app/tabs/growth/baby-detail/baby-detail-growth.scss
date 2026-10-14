@@ -1,0 +1,388 @@
+// Growth tab redesign; loaded after baby-detail.page.scss so same-specificity rules win
+$primary-strong: #6464d3;
+$muted-strong: #5f5890;
+$ink: #2d3748;
+$lavender-border: #ece9fb;
+$weight: #e0679a;
+$weight-ink: #a3285f;
+$height-ink: #4f4598;
+$up: #15803d;
+
+// Header flows into the tabs band without a seam
+.baby-detail-header { box-shadow: none; }
+.baby-detail-header::after { display: none; }
+
+// Purple strip continuing the header; tabs card overlaps it
+.tabs-band {
+  position: relative;
+  padding: 4px 16px 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 30px;
+    background: linear-gradient(135deg, #8383ed 0%, #9a9aef 100%);
+  }
+
+  .sub-tabs-container {
+    position: relative;
+    margin: 0;
+    padding: 4px;
+    background: #ffffff;
+    border: 1px solid $lavender-border;
+    border-radius: 999px; // same radius as the tab pills so the inset is even
+    box-shadow: 0 6px 18px rgba(100, 100, 211, 0.12);
+  }
+
+  // Three equal tabs instead of label-width buttons
+  ion-segment.sub-tabs-segment { display: flex; width: 100%; }
+  ion-segment.sub-tabs-segment ion-segment-button { flex: 1 1 0; min-width: 0; max-width: none; }
+}
+
+.gv-card {
+  padding: 16px 14px;
+  word-break: normal; // global break-anywhere split "Weight" mid-word on narrow cards
+  overflow-wrap: normal;
+  background: #ffffff;
+  border: 1px solid $lavender-border;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(100, 100, 211, 0.06);
+}
+
+.gv-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 2px;
+}
+
+.gv-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -10px 0 -10px -8px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 12px;
+  color: $primary-strong;
+  cursor: pointer;
+
+  ion-icon { font-size: 18px; }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: -4px; }
+}
+
+.gv-updated { margin-left: auto; font-size: 0.75rem; color: $muted-strong; white-space: nowrap; }
+
+.gv-info-text {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  background: #f7f6fe;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: $muted-strong;
+}
+
+.gv-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.gv-stat {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  font: inherit;
+  text-align: left;
+  color: $ink;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+  &.weight { background: #fdf0f5; border-color: #f8dde8; }
+  &.height { background: #f4f2fe; border-color: $lavender-border; }
+}
+
+.gv-top { display: flex; align-items: center; gap: 8px; }
+.growth-stat-tile.gv-tile { width: 30px; height: 30px; border-radius: 9px; }
+.gv-titles { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.25; }
+.gv-label { font-size: 0.8125rem; font-weight: 700; color: $ink; }
+.gv-sub { font-size: 0.75rem; color: $muted-strong; }
+.gv-chev { align-self: flex-start; flex: 0 0 auto; font-size: 18px; color: $muted-strong; }
+
+.gv-mid { display: flex; align-items: flex-end; justify-content: space-between; gap: 6px; min-height: 30px; }
+
+.gv-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+
+  small { font-size: 0.875rem; font-weight: 600; color: $muted-strong; }
+}
+
+.gv-spark {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 26px;
+  overflow: visible;
+
+  .line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .dot { stroke: #ffffff; stroke-width: 1.5; }
+  .weight & .line { stroke: $weight; }
+  .weight & .area { fill: rgba(224, 103, 154, 0.16); }
+  .weight & .dot { fill: $weight; }
+  .height & .line { stroke: $primary-strong; }
+  .height & .area { fill: rgba(100, 100, 211, 0.14); }
+  .height & .dot { fill: $primary-strong; }
+}
+
+// ~105px cards at 320px: drop the sparkline and icon tile so labels and value fit
+@media (max-width: 359px) {
+  .gv-card { padding: 14px 12px; }
+  .gv-spark, .growth-stat-tile.gv-tile { display: none; }
+}
+
+.gv-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $muted-strong;
+  font-variant-numeric: tabular-nums;
+
+  ion-icon { flex: 0 0 auto; font-size: 12px; }
+  &.up { color: $up; }
+}
+
+.gv-date { font-size: 0.75rem; color: $muted-strong; }
+
+.gv-pct {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid $lavender-border;
+}
+
+.gv-pct-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #f4f2fe;
+  color: $primary-strong;
+
+  ion-icon { font-size: 16px; }
+}
+
+.gv-pct-text { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.3; }
+.gv-pct-title { font-size: 0.8125rem; font-weight: 700; color: $ink; }
+.gv-pct-sub { font-size: 0.75rem; color: $muted-strong; }
+.gv-pills { display: flex; flex-basis: 100%; gap: 6px; } // both pills on one row, full width
+
+.gv-pill {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: clamp(0.65rem, 3.1vw, 0.8125rem); // shrinks on small phones so both fit
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  b { font-weight: 700; }
+  &.weight { background: #fdf0f5; border-color: #f8dde8; color: $weight-ink; }
+  &.height { background: #f4f2fe; border-color: $lavender-border; color: $height-ink; }
+}
+
+// Chip hit area grows to 44px without changing the visual pill
+%chip-hit {
+  position: relative;
+  &::after { content: ''; position: absolute; inset: -4px 0; }
+}
+
+.gh-ranges { display: flex; gap: 6px; margin: 14px 0 4px; }
+
+.gh-range {
+  @extend %chip-hit;
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0;
+  background: #ffffff;
+  border: 1px solid $lavender-border;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $muted-strong;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &.active { background: $primary-strong; border-color: $primary-strong; color: #ffffff; }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+}
+
+.gh-chart { margin: 4px 0 0; }
+.gh-hc { width: 100%; min-width: 0; height: 220px; }
+
+.gh-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-top: 6px;
+}
+
+.gh-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.75rem; color: $muted-strong; }
+.gh-key { display: inline-flex; align-items: center; gap: 6px; }
+
+.gh-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+
+  &.weight { background: $weight; }
+  &.height { background: $primary-strong; }
+}
+
+.gh-dash { width: 16px; border-top: 2px dashed $muted-strong; }
+
+.gh-who {
+  @extend %chip-hit;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid $lavender-border;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $primary-strong;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  ion-icon { font-size: 14px; }
+  &.on { background: #f4f2fe; border-color: $primary-strong; }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+}
+
+.gh-empty {
+  margin: 8px 0 0;
+  padding: 32px 12px;
+  background: #faf9ff;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: $muted-strong;
+}
+
+.gh-recent-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 18px 0 8px;
+
+  .recent-title { margin: 0; }
+  .gh-see-all { margin: 0 -6px 0 0; }
+}
+
+// Very small phones: tighter pills so both labels fit in full
+@media (max-width: 340px) { .gv-pills { gap: 4px; } .gv-pill { padding: 5px 3px; font-size: 0.625rem; letter-spacing: -0.01em; } }
+
+// Feed + Diaper overviews reuse the Growth card system
+.gv-stat.is-static { cursor: default; &:active { transform: none; } }
+.gv-value.is-empty { font-size: 0.9375rem; font-weight: 600; line-height: 1.3; white-space: normal; color: $muted-strong; }
+
+.gv-skel {
+  width: 70%;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(100, 100, 211, 0.1);
+}
+
+// Tints the dark asset SVGs to the tile colour, like the Growth ion-icons
+.gv-glyph {
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  -webkit-mask: var(--glyph) center / contain no-repeat;
+  mask: var(--glyph) center / contain no-repeat;
+
+  &.fed { --glyph: url('../../../../assets/Fed directly.svg'); }
+  &.bottle { --glyph: url('../../../../assets/Formula.svg'); }
+  &.diaper { --glyph: url('../../../../assets/Diaper change.svg'); }
+}
+
+.growth-stat-tile.gv-tile .gv-glyph { width: 20px; height: 20px; }
+
+// 7-day chart matches the Growth history palette: purple + pink
+.week-chart {
+  margin-top: 14px;
+
+  .today-col { fill: #f7f6fe; }
+  .bar.lavender { fill: $weight; }
+  .tick.today { fill: $primary-strong; font-weight: 700; }
+}
+
+.chart-legend .legend-dot.lavender { background: $weight; }
+
+// Empty state inside a history card
+.gv-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 14px 0 2px;
+  padding: 28px 16px;
+  background: #faf9ff;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.gv-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: #ece9fb;
+  color: $primary-strong;
+
+  ion-icon { font-size: 26px; }
+  .gv-glyph { width: 28px; height: 28px; }
+}
+
+.gv-empty-title { margin: 0; font-size: 0.9375rem; font-weight: 700; color: $ink; }
+.gv-empty-text { margin: 0; font-size: 0.8125rem; line-height: 1.45; color: $muted-strong; }

@@ -1,85 +1,111 @@
 <ion-header [translucent]="true" class="dashboard-header" [class.collapsed]="isHeaderCollapsed">
   <ion-toolbar>
-    <ion-title>
-      <div class="header-content">
-        <!-- Subtle background decoration -->
-        <div class="header-decoration">
-          <div class="floating-bubble bubble-1"></div>
-          <div class="floating-bubble bubble-2"></div>
-          <div class="floating-bubble bubble-3"></div>
+    <div class="brand-row">
+      <div class="brand-lockup">
+        <img src="assets/NariCare logo.svg" alt="NariCare" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-name">NariCare</span>
+          <span class="brand-tagline">For every step of your motherhood journey</span>
         </div>
-        
-        <div class="greeting-section">
-          <!-- Morning Messages (6 AM - 12 PM) -->
-          <h1 class="greeting" *ngIf="getTimeOfDay() === 'morning'">
-            <ion-icon name="sunny" class="time-icon"></ion-icon>
-            You're amazing, {{ getFirstName() }}!
-          </h1>
-          
-          <!-- Afternoon Messages (12 PM - 6 PM) -->
-          <h1 class="greeting" *ngIf="getTimeOfDay() === 'afternoon'">
-            <ion-icon name="partly-sunny" class="time-icon"></ion-icon>
-            Keep nurturing, {{ getFirstName() }}!
-          </h1>
-          
-          <!-- Evening Messages (6 PM - 6 AM) -->
-          <h1 class="greeting" *ngIf="getTimeOfDay() === 'evening'">
-            <ion-icon name="moon" class="time-icon"></ion-icon>
-            Rest well, {{ getFirstName() }}!
-          </h1>
-          
-          <div class="date-container" (click)="showDateOptions()">
-            <p class="current-day">{{ getCurrentDay() }}</p>
-            <p class="current-date">{{ getCurrentDateOnly() }}</p>
-            <div class="streak-indicator" *ngIf="getBabyAgeOrDueDate()">
-              <ion-icon [name]="getStreakIcon()"></ion-icon>
-              <span>{{ getStreakText() }}</span>
-            </div>
-          </div>
-        </div>
-        
+      </div>
+
+      <div class="header-actions">
         <!-- Notification badge -->
         <div class="notification-badge" *ngIf="hasUnreadNotifications()" (click)="showNotifications()">
           <ion-icon name="notifications"></ion-icon>
           <div class="notification-dot"></div>
         </div>
+
+<!-- HIDDEN for now (Komal request): header profile avatar. Kept in code to restore later.
+        <ion-button
+          fill="clear"
+          class="profile-button-overlay"
+          (click)="navigateToProfile()">
+          Show baby image if baby exists, otherwise show person icon
+          <div class="profile-avatar" *ngIf="user?.babies && user.babies.length > 0; else personIcon">
+            <img
+              [src]="getBabyAvatarImage()"
+              [alt]="user.babies[0].name + ' avatar'"
+              class="baby-avatar-image" />
+          </div>
+          <ng-template #personIcon>
+            <ion-icon name="person-circle" slot="icon-only"></ion-icon>
+          </ng-template>
+        </ion-button>
+        -->
       </div>
-    </ion-title>
+    </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="dashboard-content" [scrollEvents]="true" (ionScroll)="onContentScroll($event)">
-  <!-- Profile Icon and Baby Info Badge Overlapping Header and Content -->
-  <div class="profile-icon-overlay-container">
-    <ion-button 
-      fill="clear" 
-      class="profile-button-overlay" 
-      (click)="navigateToProfile()">
-      <!-- Show baby image if baby exists, otherwise show person icon -->
-      <div class="profile-avatar" *ngIf="user?.babies && user.babies.length > 0; else personIcon">
-        <img 
-          [src]="getBabyAvatarImage()" 
-          [alt]="user.babies[0].name + ' avatar'"
-          class="baby-avatar-image" />
-      </div>
-      <ng-template #personIcon>
-        <ion-icon name="person-circle" slot="icon-only"></ion-icon>
-      </ng-template>
-    </ion-button>
-    <div class="baby-info-overlay" *ngIf="getBabyAgeOrDueDate()">
-      {{ getBabyAgeOrDueDate() }}
-    </div>
-  </div>
-
   <!-- Card Container for Content -->
   <div class="content-card">
 
+    <!-- Greeting Banner -->
+    <div class="greeting-banner" [style.background-image]="'url(' + (isPregnantJourney() ? 'assets/images/pregnant-journey-hero.webp' : 'assets/images/new-mom-journey-hero.webp') + ')'">
+      <div class="greeting-scrim"></div>
+      <div class="greeting-copy">
+        <!-- LCs get a plain professional greeting instead of the mother self-care tip -->
+        <ng-container *ngIf="isExpert(); else motherGreeting">
+          <h1 class="greeting"><span>{{ getExpertGreeting() }}, {{ getFirstName() }}</span></h1>
+          <p class="greeting-subtitle">Thank you for supporting NariCare mothers.</p>
+        </ng-container>
+        <ng-template #motherGreeting>
+          <h1 class="greeting">
+            <span>{{ getGreeting() }}, {{ getFirstName() }}! {{ getGreetingEmoji() }}</span>
+          </h1>
+          <p class="greeting-subtitle" *ngIf="currentTip">{{ currentTip.text }}</p>
+          <span class="greeting-tagline" *ngIf="currentTip">{{ currentTip.title }}</span>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Journey Card: pregnant mom gets one card; a new mom swipes through one card per baby -->
+    <ng-container *ngIf="hasJourneyCard()">
+      <div class="journey-card pregnant" *ngIf="isPregnantJourney(); else babyJourneys" (click)="openBabyJourney()">
+        <div class="journey-text">
+          <span class="journey-label">Your Pregnancy Journey</span>
+          <p class="journey-headline">{{ getPregnancyWeeksAndDays().weeks }} weeks {{ getPregnancyWeeksAndDays().days }} day{{ getPregnancyWeeksAndDays().days !== 1 ? 's' : '' }}</p>
+          <p class="journey-subtext">{{ getTrimester() }}</p>
+          <div class="journey-progress-track">
+            <div class="journey-progress-fill" [style.width.%]="getPregnancyProgressPercent()"></div>
+          </div>
+          <p class="journey-footnote">{{ getDaysUntilDue() }} day{{ getDaysUntilDue() !== 1 ? 's' : '' }} until motherhood</p>
+        </div>
+        <button type="button" class="journey-arrow-button" aria-label="Open Track">
+          <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <ng-template #babyJourneys>
+        <div class="journey-row" [class.multi]="journeyBabies().length > 1">
+          <div class="journey-card" *ngFor="let baby of journeyBabies(); trackBy: trackJourneyBaby" (click)="openBabyJourney(baby)">
+            <div class="journey-text">
+              <span class="journey-label">{{ baby.name || 'your little one' }}'s Journey</span>
+              <p class="journey-headline">{{ getBabyAgeText(baby) }}</p>
+              <p class="journey-subtext">Every day is a milestone. You're doing great.</p>
+            </div>
+            <button type="button" class="journey-arrow-button" [attr.aria-label]="'Open ' + (baby.name || 'baby') + ' details'">
+              <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </ng-template>
+    </ng-container>
+
     <!-- Quick Actions -->
     <div class="section">
-      <h2 class="section-title">Quick Actions</h2>
+      <div class="section-header">
+        <h2 class="section-title">Quick Actions</h2>
+        <!-- ponytail: See All hidden per ClickUp 14ypx61yt5b; it only opened Knowledge -->
+        <!-- <ion-button fill="clear" size="small" class="see-all-link" (click)="navigateToKnowledge()">
+          See All
+        </ion-button> -->
+      </div>
       <div class="quick-actions-grid">
-        <div *ngFor="let action of quickActions; let i = index" 
-             class="action-card" 
+        <button type="button"
+             *ngFor="let action of quickActions; let i = index"
+             class="action-card"
              [class]="'action-card-' + action.color"
              [class.priority-action]="action.priority"
              [class.onboarding-action]="action.action === 'openOnboarding'"
@@ -91,12 +117,14 @@
             <h3>{{ action.title }}</h3>
             <p>{{ action.description }}</p>
             <div *ngIf="action.action === 'openOnboarding'" class="onboarding-badge">
-              <ion-icon name="star" slot="start"></ion-icon>
+              <ion-icon name="star"></ion-icon>
               Required for Expert Consultation
             </div>
           </div>
-          <ion-icon name="chevron-forward-outline" class="action-arrow"></ion-icon>
-        </div>
+          <div class="action-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </button>
       </div>
     </div>
 
@@ -119,7 +147,9 @@
       <div class="insights-container" *ngIf="todaysInsights">
         <div class="insight-card">
           <div class="insight-header">
-            <ion-icon name="heart" class="insight-icon"></ion-icon>
+            <div class="insight-icon-badge">
+              <ion-icon name="heart" class="insight-icon"></ion-icon>
+            </div>
             <h3>Baby's Progress</h3>
           </div>
           <div class="insight-content">
@@ -133,7 +163,9 @@
 
         <div class="insight-card">
           <div class="insight-header">
-            <ion-icon name="bulb" class="insight-icon"></ion-icon>
+            <div class="insight-icon-badge insight-icon-badge-tip">
+              <ion-icon name="bulb" class="insight-icon"></ion-icon>
+            </div>
             <h3>{{ todaysInsights.dailyTip.title }}</h3>
             <ion-chip size="small" color="medium" class="evidence-chip">{{ todaysInsights.dailyTip.source }}</ion-chip>
           </div>
@@ -152,218 +184,8 @@
     </div>
 
     
-    <!-- Expert Consultations Component -->
-    <div class="section" *ngIf="isExpert()">
-      <app-expert-consultations [user]="user"></app-expert-consultations>
-    </div>
-    
-    <!-- Regular User Upcoming Consultations -->
-    <div class="section" *ngIf="!isExpert() && upcomingConsultations.length > 0">
-      <h2 class="section-title">Upcoming Consultations</h2>
-      <div class="consultations-list">
-        <div *ngFor="let consultation of upcomingConsultations" class="consultation-card" 
-             [class.upcoming]="consultation.status === 'scheduled'"
-             (click)="openConsultationDetail(consultation)">
-          
-          <div class="consultation-status-badge" [attr.data-status]="consultation.status">
-            {{ consultation.status | titlecase }}
-          </div>
-          
-          <div class="consultation-content">
-            <div class="consultation-header">
-              <div class="consultation-icon">
-                <ion-icon name="videocam"></ion-icon>
-              </div>
-              <div class="consultation-info">
-                <h4>{{ consultation.topic | titlecase }}</h4>
-                <p class="expert-name" *ngIf="user?.role !== 'expert'">with {{ getExpertName(consultation.expertId || consultation.expert_id) }}</p>
-                <p class="client-name" *ngIf="user?.role === 'expert'">Client: {{ getClientName(consultation) }}</p>
-              </div>
-            </div>
-            
-            <div class="consultation-details">
-              <div class="detail-item">
-                <ion-icon name="calendar" class="detail-icon"></ion-icon>
-                <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'MMM d, y' }}</span>
-              </div>
-              <div class="detail-item">
-                <ion-icon name="time" class="detail-icon"></ion-icon>
-                <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'h:mm a' }}</span>
-              </div>
-              <div class="detail-item" *ngIf="consultation.notes">
-                <ion-icon name="document-text" class="detail-icon"></ion-icon>
-                <span class="notes">{{ consultation.notes }}</span>
-              </div>
-            </div>
-            
-            <div class="consultation-actions">
-              <ion-button 
-                fill="outline" 
-                size="small"
-                (click)="editConsultation(consultation); $event.stopPropagation()"
-                class="edit-button">
-                <ion-icon name="create" slot="start"></ion-icon>
-                Edit
-              </ion-button>
-              <ion-button 
-                fill="solid" 
-                size="small"
-                (click)="joinConsultation(consultation); $event.stopPropagation()"
-                [disabled]="!isConsultationReady(consultation)"
-                class="join-button">
-                <ion-icon name="videocam" slot="start"></ion-icon>
-                {{ isConsultationReady(consultation) ? 'Join Call' : 'Not Ready' }}
-              </ion-button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Consultations Section - Only for regular users -->
-    <div class="section" *ngIf="!isExpert() && nonUpcomingConsultations.length > 0">
-      <div class="section-header">
-        <h2 class="section-title">My Consultations</h2>
-        <ion-button fill="clear" size="small" (click)="retryLoadConsultations()" *ngIf="consultationsError">
-          <ion-icon name="refresh" slot="start"></ion-icon>
-          Retry
-        </ion-button>
-      </div>
-      
-      <!-- Loading state -->
-      <div *ngIf="consultationsLoading" class="loading-container">
-        <ion-spinner name="circles"></ion-spinner>
-        <p>Loading consultations...</p>
-      </div>
-
-      <!-- Error state -->
-      <div *ngIf="consultationsError && !consultationsLoading" class="error-container">
-        <ion-icon name="warning-outline" class="error-icon"></ion-icon>
-        <p class="error-message">{{ consultationsError }}</p>
-        <ion-button fill="outline" size="small" (click)="retryLoadConsultations()">
-          <ion-icon name="refresh" slot="start"></ion-icon>
-          Retry
-        </ion-button>
-      </div>
-
-      <!-- Consultations list -->
-      <div *ngIf="!consultationsLoading && !consultationsError" class="consultations-list">
-        <div *ngFor="let consultation of nonUpcomingConsultations" class="consultation-card" 
-             [class.upcoming]="consultation.status === 'scheduled'" 
-             [class.completed]="consultation.status === 'completed'"
-             [class.cancelled]="consultation.status === 'cancelled'"
-             (click)="openConsultationDetail(consultation)">
-          
-          <div class="consultation-status-badge" [attr.data-status]="consultation.status">
-            {{ consultation.status | titlecase }}
-          </div>
-          
-          <div class="consultation-content">
-            <div class="consultation-header">
-              <div class="consultation-icon">
-                <ion-icon name="videocam"></ion-icon>
-              </div>
-              <div class="consultation-info">
-                <h4>{{ consultation.topic | titlecase }}</h4>
-                <p class="expert-name" *ngIf="user?.role !== 'expert'">with {{ getExpertName(consultation.expertId || consultation.expert_id) }}</p>
-                <p class="client-name" *ngIf="user?.role === 'expert'">Client: {{ getClientName(consultation) }}</p>
-              </div>
-            </div>
-            
-            <div class="consultation-details">
-              <div class="detail-item">
-                <ion-icon name="calendar" class="detail-icon"></ion-icon>
-                <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'MMM d, y' }}</span>
-              </div>
-              <div class="detail-item">
-                <ion-icon name="time" class="detail-icon"></ion-icon>
-                <span>{{ (consultation.scheduledAt || consultation.scheduled_at) | date:'h:mm a' }}</span>
-              </div>
-              <div class="detail-item" *ngIf="consultation.notes">
-                <ion-icon name="document-text" class="detail-icon"></ion-icon>
-                <span class="notes">{{ consultation.notes }}</span>
-              </div>
-            </div>
-            
-            <div class="consultation-actions">
-              <ion-button 
-                *ngIf="consultation.status === 'scheduled'"
-                fill="outline" 
-                size="small"
-                (click)="editConsultation(consultation); $event.stopPropagation()"
-                class="edit-button">
-                <ion-icon name="create" slot="start"></ion-icon>
-                Edit
-              </ion-button>
-              <ion-button 
-                *ngIf="consultation.status === 'scheduled'"
-                fill="solid" 
-                size="small"
-                (click)="joinConsultation(consultation); $event.stopPropagation()"
-                [disabled]="!isConsultationReady(consultation)"
-                class="join-button">
-                <ion-icon name="videocam" slot="start"></ion-icon>
-                {{ isConsultationReady(consultation) ? 'Join Call' : 'Not Ready' }}
-              </ion-button>
-              
-              <ion-button 
-                *ngIf="consultation.status === 'completed' && consultation.user_rating"
-                fill="outline" 
-                size="small"
-                disabled
-                class="rating-button">
-                <ion-icon name="star" slot="start"></ion-icon>
-                Rated {{ consultation.user_rating }}/5
-              </ion-button>
-              
-              <!-- View Details Button - Always visible for users -->
-              <ion-button 
-                *ngIf="user?.role !== 'expert'"
-                fill="outline" 
-                size="small"
-                (click)="viewConsultationDetails(consultation); $event.stopPropagation()"
-                class="view-details-button">
-                <ion-icon name="information-circle" slot="start"></ion-icon>
-                View Details
-              </ion-button>
-
-              <!-- View Report Button for Completed Consultations with Expert Notes -->
-              <ion-button 
-                *ngIf="consultation.status === 'completed' && hasExpertNotes(consultation) && user?.role !== 'expert'"
-                fill="solid" 
-                size="small"
-                (click)="viewConsultationReport(consultation); $event.stopPropagation()"
-                class="view-report-button">
-                <ion-icon name="document-text" slot="start"></ion-icon>
-                View Report
-              </ion-button>
-              
-              <ion-button 
-                *ngIf="consultation.status === 'cancelled'"
-                fill="outline" 
-                size="small"
-                disabled
-                class="cancelled-button">
-                <ion-icon name="close-circle" slot="start"></ion-icon>
-                Cancelled
-              </ion-button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Show more button if there are many consultations -->
-        <ion-button 
-          *ngIf="nonUpcomingConsultations.length >= 5"
-          expand="block" 
-          fill="outline" 
-          (click)="viewAllConsultations()"
-          class="view-all-button">
-          View All Consultations
-        </ion-button>
-      </div>
-    </div>
-
     <!-- Book Consultation Section - Hidden for experts -->
+    <!--
     <div class="section" *ngIf="!shouldHideSection('booking')">
       <h2 class="section-title">Expert Support</h2>
       <div class="consultation-booking-card">
@@ -381,8 +203,8 @@
             </div>
           </div>
         </div>
-        <ion-button 
-          expand="block" 
+        <ion-button
+          expand="block"
           (click)="openConsultationBooking()"
           class="book-consultation-button">
           <ion-icon name="calendar" slot="start"></ion-icon>
@@ -390,6 +212,7 @@
         </ion-button>
       </div>
     </div>
+    -->
 
     <!-- Timeline Section - Hidden for experts and when no baby -->
     <div class="section" *ngIf="!shouldHideSection('timeline') && user && user.babies && user.babies.length > 0">
@@ -460,24 +283,37 @@
     </div> -->
     <!-- Continue Learning Section - Hidden for experts -->
     <div class="section" *ngIf="!shouldHideSection('learning')">
-      <h2 class="section-title">Continue Learning</h2>
-      <div class="activity-card" [style.--category-color]="getCurrentLearningActivity().categoryColor">
-        <div class="activity-content">
-          <ion-icon [name]="getCurrentLearningActivity().icon" class="activity-icon"></ion-icon>
-          <div class="activity-text">
-            <h3>{{ getCurrentLearningActivity().title }}</h3>
-            <p>{{ getCurrentLearningActivity().description }}</p>
-            <div class="learning-progress" *ngIf="hasLearningProgress()">
-              <span class="progress-text">{{ getLearningProgressText() }}</span>
-            </div>
-          </div>
-        </div>
-        <ion-button fill="outline" size="small" (click)="continueLearning()">
-          {{ getCurrentLearningActivity().type === 'bookmarked' ? 'Continue' : 'Explore' }}
+      <div class="section-header">
+        <h2 class="section-title">Continue Learning</h2>
+        <ion-button fill="clear" size="small" class="see-all-link" (click)="navigateToKnowledge()">
+          See All
         </ion-button>
+      </div>
+      <div class="activity-card" (click)="continueLearning()">
+        <div class="activity-thumb">
+          <img [src]="getLearningCardIllustration()" alt="">
+        </div>
+        <div class="activity-text">
+          <h3>{{ getCurrentLearningActivity().title }}</h3>
+          <p>{{ getCurrentLearningActivity().description }}</p>
+        </div>
+        <button type="button" class="activity-arrow-button" aria-label="Continue learning">
+          <ion-icon name="chevron-forward"></ion-icon>
+        </button>
       </div>
     </div>
 
+    <!-- Quote of the Day -->
+    <div class="quote-card" *ngIf="quoteOfDay">
+      <ion-icon name="leaf" class="quote-leaf" aria-hidden="true"></ion-icon>
+      <p class="quote-text">
+        <ng-container *ngIf="hasQuoteAuthor(); else noQuoteAuthor">"{{ quoteOfDay.text }}"</ng-container>
+        <ng-template #noQuoteAuthor>{{ quoteOfDay.text }}</ng-template>
+        <ion-icon name="heart" class="quote-heart" aria-hidden="true"></ion-icon>
+      </p>
+      <p class="quote-author" *ngIf="hasQuoteAuthor()">{{ getQuoteAttribution() }}</p>
+    </div>
+
   </div>
-  
+
 </ion-content>

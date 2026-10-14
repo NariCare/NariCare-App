@@ -1,138 +1,124 @@
+// Shared design tokens (matches knowledge/dashboard/profile/tracker/chat)
+$primary: #8383ed;
+$lavender-surface: #f7f5fd;
+$lavender-border: #e2ddf5;
+$ink: #2d3748;
+$muted: #7a73a9;
+$font: var(--ion-font-family, 'Poppins', sans-serif);
+
 .content-container {
-  padding: 1rem;
+  padding: 0 0 1.25rem;
 }
 
-.category-header {
-  background: linear-gradient(135deg, #8383ed, #8383ed);
-  border-radius: 20px;
-  padding: 2rem;
+.topic-hero {
+  position: relative;
+  height: 220px;
+  background-size: cover;
+  background-position: center;
   display: flex;
-  align-items: center;
-  margin-bottom: 2rem;
-  color: #ffffff;
-}
+  align-items: flex-end;
+  margin-bottom: 1.25rem;
 
-.category-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 1.5rem;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.2) !important;
-
-  ion-icon {
-    font-size: 2.5rem;
-    color: #ffffff;
+  .topic-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(45, 55, 72, 0.4) 0%, rgba(45, 55, 72, 0.15) 35%, rgba(45, 55, 72, 0.85) 100%);
   }
-}
 
-.category-info {
-  flex: 1;
+  .back-button {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(45, 55, 72, 0.45);
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 1.2rem;
+    }
+  }
+
+  .topic-hero-text {
+    position: relative;
+    z-index: 1;
+    padding: 1.25rem;
+  }
 
   h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.75rem;
-    font-weight: 600;
+    margin: 0 0 0.35rem 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    font-family: $font;
   }
 
   p {
     margin: 0;
-    font-size: 1rem;
-    opacity: 0.9;
-    line-height: 1.5;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: $font;
+    line-height: 1.4;
   }
 }
 
-.section {
-  margin-bottom: 2rem;
-}
-
-.section-title {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.articles-list {
+.topic-list {
+  padding: 0 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.article-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 1rem;
+.topic-row {
   display: flex;
   align-items: center;
-  border: 1px solid #f1f5f9;
+  gap: 0.85rem;
+  background: #{$lavender-surface};
+  border: 1px solid #{$lavender-border};
+  border-radius: 16px;
+  padding: 0.75rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.15s ease;
 
   &:active {
-    transform: translateY(1px);
+    transform: scale(0.98);
   }
 }
 
-.article-content {
+.topic-row-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.topic-row-title {
   flex: 1;
-}
-
-.article-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-
-  .read-time {
-    font-size: 0.8rem;
-    color: #94a3b8;
-  }
-}
-
-.article-card h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1rem;
+  min-width: 0;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #2d3748;
-  line-height: 1.3;
+  color: $ink;
+  font-family: $font;
+  line-height: 1.35;
 }
 
-.article-card p {
-  margin: 0 0 0.75rem 0;
-  font-size: 0.85rem;
-  color: #64748b;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.article-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  color: #94a3b8;
-
-  .author {
-    font-weight: 500;
-  }
-}
-
-.article-arrow {
-  color: #cbd5e1;
-  font-size: 1rem;
-  margin-left: 0.5rem;
+.topic-row-arrow {
+  color: #{$primary};
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 @media (min-width: 768px) {
-  .content-container {
+  .topic-list {
     max-width: 800px;
     margin: 0 auto;
   }

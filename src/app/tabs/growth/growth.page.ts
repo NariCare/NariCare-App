@@ -1,12 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { formatDate } from '@angular/common';
+import { Observable, of, Subscription } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { BackendGrowthService } from '../../services/backend-growth.service';
+import { ActivityLog, recordAt, timeAgo, toFeedLog } from '../../components/activity-log/activity-log.component';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { BackendPumpingService } from '../../services/backend-pumping.service';
 import { BackendEmotionService } from '../../services/backend-emotion.service';
@@ -25,14 +27,24 @@ import { WeightLogModalComponent } from 'src/app/components/weight-log-modal/wei
 import { BabyCreationModalComponent } from 'src/app/components/baby-creation-modal/baby-creation-modal.component';
 import { ApiService } from '../../services/api.service';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
+import { RecordActionsService } from '../../services/record-actions.service';
+import { TrackerSummaryService } from '../../services/tracker-summary.service';
+import { ActiveBabyService } from '../../services/active-baby.service';
+
+interface JourneyRow { key: string; at: Date; time: string; icon: string; iconAlt: string; label: string; value?: string; record: any; }
+interface JourneyDay { label: string; rows: JourneyRow[]; }
+interface RingSegment { color: string; dash: string; offset: number; }
+export interface FeedJourney { today: number; direct: number; milk: number; formula: number; ring: RingSegment[]; days: JourneyDay[]; lastTime: string; summary: string; }
+export interface PumpJourney { today: number; lastTime: string; latestMl: number; latestSide: string; days: JourneyDay[]; }
 
 
 @Component({
   selector: 'app-growth',
   templateUrl: './growth.page.html',
-  styleUrls: ['./growth.page.scss'],
+  styleUrls: ['./growth.page.scss', './growth-journey.scss'],
 })
-export class GrowthPage implements OnInit {
+export class GrowthPage implements OnInit, OnDestroy {
   @ViewChild('timelineScrollContainer', { static: false }) timelineScrollContainer!: ElementRef;
   
   user: User | null = null;
@@ -44,6 +56,15 @@ export class GrowthPage implements OnInit {
   recentRecords$: Observable<GrowthRecord[]> | null = null;
   pumpingRecords$: Observable<any[]> | null = null;
   pumpingRecords: any[] = [];
+  feedLog$: Observable<ActivityLog> | null = null;
+  feedHasMore$: Observable<boolean> = of(false);
+  loadingOlderFeeds = false;
+  pumpLog: ActivityLog = { rows: [], summary: '' };
+  feedJourney$: Observable<FeedJourney> | null = null;
+  pumpJourney: PumpJourney | null = null;
+  readonly ringCircumference = 2 * Math.PI * 42;
+  private pumpingSub?: Subscription;
+  private activeBabySub?: Subscription;
   emotionRecords$: Observable<any[]> | null = null;
   emotionRecords: any[] = [];
   timelineData$: Observable<BabyTimelineData> | null = null;
@@ -98,7 +119,10 @@ export class GrowthPage implements OnInit {
     private toastController: ToastController,
     private alertController: AlertController,
     public router: Router,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private recordActions: RecordActionsService,
+    private activeBaby: ActiveBabyService,
+    public trackerSummary: TrackerSummaryService
   ) {
     // Daily tracking form
     this.addRecordForm = this.formBuilder.group({
@@ -148,6 +172,12 @@ export class GrowthPage implements OnInit {
       }
     });
     
+    // Follow the baby picked elsewhere (baby detail page) while this tab stays cached
+    this.activeBabySub = this.activeBaby.activeBabyId$.subscribe(id => {
+      const baby = this.user?.babies?.find(b => b.id === id);
+      if (baby && baby.id !== this.selectedBaby?.id) this.loadJourney(baby);
+    });
+
     // Subscribe to timeline data for synchronous access
     this.timelineData$?.subscribe(data => {
       this.currentTimelineData = data;
@@ -160,6 +190,42 @@ export class GrowthPage implements OnInit {
     this.stoolColorOptions = this.growthService.getStoolColorOptions();
     this.stoolTextureOptions = this.growthService.getStoolTextureOptions();
     this.stoolSizeOptions = this.growthService.getStoolSizeOptions();
+  }
+
+  ngOnDestroy() {
+    this.pumpingSub?.unsubscribe();
+    this.activeBabySub?.unsubscribe();
+  }
+
+  private viewEntered = false;
+
+  // Refetch babies on return so a baby added or deleted elsewhere never stays the journey baby
+  ionViewWillEnter(): void {
+    if (this.viewEntered && this.user) this.loadUserBabies();
+    this.viewEntered = true;
+  }
+
+  /** Switcher tap: remember the baby and reload every My Journey source for it. */
+  selectJourneyBaby(baby: Baby): void {
+    if (baby.id === this.selectedBaby?.id) return;
+    this.activeBaby.set(baby.id);
+    this.loadJourney(baby);
+  }
+
+  trackBaby(_: number, baby: Baby): string {
+    return baby.id;
+  }
+
+  /** Single entry point so feeds, pumping, summary and timeline always share one baby. */
+  private loadJourney(baby: Baby): void {
+    this.selectedBaby = baby;
+    this.lastTrack = null;
+    this.dailySummary = null;
+    this.pumpJourney = null;
+    this.loadTrackingData(baby.id);
+    this.loadTimelineData(baby.dateOfBirth);
+    this.loadSummaryData(baby.id);
+    this.loadPumpingData();
   }
 
   // Custom validator for decimal places
@@ -186,13 +252,11 @@ export class GrowthPage implements OnInit {
     // Use backend service if user is authenticated with backend, otherwise use local service
     const isBackendUser = this.backendAuthService.getCurrentUser();
     
-    if (isBackendUser) {
-      this.lastTrack = await this.backendGrowthService.getLastFeedingRecord(babyId);
-      this.dailySummary = await this.backendGrowthService.getDailySummary(babyId);
-    } else {
-      this.lastTrack = await this.growthService.getLastFeedingRecord(babyId);
-      this.dailySummary = await this.growthService.getDailySummary(babyId);
-    }
+    const svc = isBackendUser ? this.backendGrowthService : this.growthService;
+    const [lastTrack, dailySummary] = await Promise.all([svc.getLastFeedingRecord(babyId), svc.getDailySummary(babyId)]);
+    if (babyId !== this.journeyBabyId) return; // baby switched while loading
+    this.lastTrack = lastTrack;
+    this.dailySummary = dailySummary;
   }
 
   private loadTrackingData(babyId: string) {
@@ -205,11 +269,15 @@ export class GrowthPage implements OnInit {
       this.stoolRecords$ = this.backendGrowthService.getStoolRecords(babyId);
       // For recent records, we'll use the same feed records observable for now
       this.recentRecords$ = this.backendGrowthService.getFeedRecords(babyId);
+      this.feedLog$ = this.recentRecords$.pipe(map(toFeedLog));
+      this.feedJourney$ = this.recentRecords$.pipe(map(r => this.toFeedJourney(r as any[])));
+      this.feedHasMore$ = this.backendGrowthService.hasMore$('feed', babyId);
     } else {
       this.growthRecords$ = this.growthService.getGrowthRecords(babyId);
       this.weightRecords$ = this.growthService.getWeightRecords(babyId);
       this.stoolRecords$ = this.growthService.getStoolRecords(babyId);
       this.recentRecords$ = this.growthService.getRecentRecords(babyId, 3);
+      this.feedJourney$ = this.recentRecords$.pipe(map(r => this.toFeedJourney(r as any[])));
     }
   }
 
@@ -236,22 +304,22 @@ export class GrowthPage implements OnInit {
               birthWeight: baby.birthWeight || baby.birth_weight,
               birthHeight: baby.birthHeight || baby.birth_height,
               currentWeight: mostRecentWeight || baby.currentWeight || baby.current_weight || baby.birthWeight,
-              currentHeight: baby.currentHeight || baby.current_height
+              currentHeight: baby.currentHeight || baby.current_height,
+              createdAt: baby.createdAt || baby.created_at
             };
           }));
           
           this.user.babies = babies;
 
-          // If we have babies and no selected baby, select the first one
-          if (this.user.babies.length > 0 && !this.selectedBaby) {
-            this.selectedBaby = this.user.babies[0];
-            this.loadTrackingData(this.selectedBaby.id);
-            this.loadTimelineData(this.selectedBaby.dateOfBirth);
-            this.loadSummaryData(this.selectedBaby.id);
+          // Keep the current journey baby if still listed, else the remembered or newest one
+          const keep = babies.find(b => b.id === this.selectedBaby?.id);
+          const pick = keep || this.activeBaby.resolve(babies);
+          if (pick && !keep) {
+            this.loadJourney(pick);
+          } else {
+            if (keep) this.selectedBaby = keep;
+            this.loadPumpingData();
           }
-          
-          // Reload pumping data now that we have valid baby IDs
-          this.loadPumpingData();
         }
       }
     } catch (error) {
@@ -265,39 +333,48 @@ export class GrowthPage implements OnInit {
     
     if (isBackendUser) {
       // Use backend service - require at least one baby from API
-      const firstBaby = this.user?.babies?.[0];
-      if (firstBaby?.id) {
-        this.pumpingRecords$ = this.backendPumpingService.getRecentPumpingRecords(firstBaby.id, 10).pipe(
+      const babyId = this.journeyBabyId; // same baby the See-all links and row actions use
+      if (babyId) {
+        // Read through the shared reactive cache so a pump save pushes fresh data
+        // here automatically (no manual reload, no "0 sessions" until refresh).
+        this.pumpingRecords$ = this.backendGrowthService.getPumpingRecords(babyId).pipe(
           map(records => {
-            console.log('Recent pumping records:', records);
             this.pumpingRecords = records || []; // Store records for synchronous access
+            this.pumpLog = this.toPumpLog(this.pumpingRecords);
+          this.pumpJourney = this.toPumpJourney(this.pumpingRecords);
             return records;
           }),
           catchError(error => {
             console.error('Error loading pumping records:', error);
             this.pumpingRecords = [];
+            this.pumpJourney = this.toPumpJourney([]);
             return of([]);
           })
         );
-        // Subscribe to update local records
-        this.pumpingRecords$.subscribe();
+        // Long-lived subscription keeps pumpingRecords in sync; drop the previous
+        // one so repeated loads do not stack subscriptions.
+        this.pumpingSub?.unsubscribe();
+        this.pumpingSub = this.pumpingRecords$.subscribe();
       } else {
         // If no baby available, show empty list
         console.log('No babies available. Pumping data will load after baby information is added.');
         this.pumpingRecords = [];
+        this.pumpJourney = this.toPumpJourney([]);
         this.pumpingRecords$ = new Observable(subscriber => subscriber.next([]));
       }
     } else {
       // Use local service - fallback to 'baby-123' for local storage compatibility
-      const babyId = this.user?.babies?.[0]?.id || 'baby-123';
+      const babyId = this.journeyBabyId || 'baby-123';
       this.pumpingRecords$ = this.growthService.getPumpingRecords(babyId).pipe(
         map(records => {
           this.pumpingRecords = records || [];
+          this.pumpLog = this.toPumpLog(this.pumpingRecords);
+            this.pumpJourney = this.toPumpJourney(this.pumpingRecords);
           return records;
         })
       );
-      // Subscribe to update local records
-      this.pumpingRecords$.subscribe();
+      this.pumpingSub?.unsubscribe();
+      this.pumpingSub = this.pumpingRecords$.subscribe();
     }
   }
 
@@ -1150,8 +1227,38 @@ export class GrowthPage implements OnInit {
 
 
   getLastTrackTime(): string {
-    if (!this.lastTrack) return '--';
-    return this.lastTrack.time;
+    if (!this.lastTrack || !this.lastTrack.time) return '--';
+    return DateOnlyUtil.to12Hour(this.lastTrack.time);
+  }
+
+  /** 12-hour wrapper for template use. */
+  to12Hour(time: string | null | undefined): string {
+    return DateOnlyUtil.to12Hour(time);
+  }
+
+  /**
+   * 12-hour start time for one method of a feed session. Falls back to any
+   * sibling method's time (older records only stored the direct start time),
+   * so a method never shows a stale or blank time.
+   */
+  feedMethodTime(record: any, method: 'direct' | 'expressed' | 'formula'): string {
+    const own = method === 'direct' ? record?.directFeedDetails?.startTime
+      : method === 'expressed' ? record?.expressedMilkDetails?.startTime
+      : record?.formulaDetails?.startTime;
+    const fallback = record?.directFeedDetails?.startTime
+      || record?.expressedMilkDetails?.startTime
+      || record?.formulaDetails?.startTime;
+    return DateOnlyUtil.to12Hour(own || fallback);
+  }
+
+  /** True when a feed has been logged (independent of whether it carries a time). */
+  hasFeedActivity(): boolean {
+    return !!this.lastTrack;
+  }
+
+  /** True when a pump session has been logged. */
+  hasPumpActivity(): boolean {
+    return (this.pumpingRecords || []).length > 0;
   }
 
   getLastTrackDate(): string {
@@ -1166,13 +1273,11 @@ export class GrowthPage implements OnInit {
 
   getDailySummaryTracks(): number {
     if (!this.dailySummary) return 0;
-    
-    // Include all feed types: direct, expressed, and formula feeds
-    const directFeeds = this.dailySummary.totalDirectFeeds || 0;
-    const expressedFeeds = this.dailySummary.totalExpressedFeeds || 0;
-    const formulaFeeds = this.dailySummary.totalFormulaFeeds || 0;
-    
-    return directFeeds + expressedFeeds + formulaFeeds;
+
+    // Count feed SESSIONS, not methods: one feed log (a baby sitting down to a
+    // meal) is 1 feed even if it combines direct + expressed + formula. Summing
+    // the per-method counts over-counted (a triple feed showed as 3).
+    return this.dailySummary.recordsCount || 0;
   }
 
   getDailySummaryPain(): number {
@@ -1181,57 +1286,192 @@ export class GrowthPage implements OnInit {
 
   // Pumping helper methods
   getLastPumpTime(): string {
-    // Get the most recent pumping record
+    const lastPump = this.getMostRecentPump();
+    if (!lastPump) return '--';
+    return DateOnlyUtil.to12Hour(lastPump.record_time || lastPump.time);
+  }
+
+  /** Most recent pump by date (do not assume the API returns newest-first). */
+  private getMostRecentPump(): any | null {
     const records = this.pumpingRecords || [];
-    if (records.length === 0) return '--';
-    
-    const lastPump = records[0];
-    const time = lastPump.record_time || lastPump.time;
-    return time ? time.slice(0, 5) : '--';
+    if (records.length === 0) return null;
+    return [...records].sort((a, b) =>
+      new Date(b.record_date || b.date).getTime() - new Date(a.record_date || a.date).getTime()
+    )[0];
   }
 
   getLastPumpSide(): string {
-    const records = this.pumpingRecords || [];
-    if (records.length === 0) return '--';
-    
-    const lastPump = records[0];
+    const lastPump = this.getMostRecentPump();
+    if (!lastPump) return '--';
     return lastPump.pumping_side || lastPump.pumpingSide || '--';
   }
 
   getLastPumpOutput(): number {
-    const records = this.pumpingRecords || [];
-    if (records.length === 0) return 0;
-    
-    const lastPump = records[0];
+    const lastPump = this.getMostRecentPump();
+    if (!lastPump) return 0;
     return lastPump.total_output || lastPump.totalOutput || 0;
   }
 
   getPumpDailySessions(): number {
-    // Calculate today's sessions from pumping records
-    const today = new Date().toDateString();
+    // Calculate today's sessions. Parse the date-only string as a local date so
+    // evening entries in +offset timezones are not counted as tomorrow (UTC shift).
+    const now = new Date();
     const records = this.pumpingRecords || [];
-    
-    const todayRecords = records.filter((record: any) => {
-      const recordDate = record.record_date || record.date;
-      return recordDate && new Date(recordDate).toDateString() === today;
-    });
-    
-    return todayRecords.length;
+
+    return records.filter((record: any) =>
+      DateOnlyUtil.isSameLocalDay(record.record_date || record.date, now)
+    ).length;
   }
 
   getPumpDailyOutput(): number {
-    // Calculate today's total output from pumping records
-    const today = new Date().toDateString();
+    // Calculate today's total output (local-day match, same reasoning as above).
+    const now = new Date();
     const records = this.pumpingRecords || [];
-    
-    const todayRecords = records.filter((record: any) => {
-      const recordDate = record.record_date || record.date;
-      return recordDate && new Date(recordDate).toDateString() === today;
+
+    return records
+      .filter((record: any) => DateOnlyUtil.isSameLocalDay(record.record_date || record.date, now))
+      .reduce((total: number, record: any) => total + (record.total_output || record.totalOutput || 0), 0);
+  }
+
+  async loadOlderFeeds(): Promise<void> {
+    if (!this.selectedBaby?.id) return;
+    this.loadingOlderFeeds = true;
+    try {
+      await this.backendGrowthService.loadMoreFeeds(this.selectedBaby.id);
+    } finally {
+      this.loadingOlderFeeds = false;
+    }
+  }
+
+  private toPumpLog(records: any[]): ActivityLog {
+    const maxMl = Math.max(1, ...records.map(r => this.getPumpingOutput(r)));
+    const rows = records.map(r => {
+      const time = r.record_time || r.time;
+      const ml = this.getPumpingOutput(r);
+      const side = this.getPumpingSide(r);
+      return {
+        icon: 'assets/Pump.svg', iconAlt: 'Pump session', at: recordAt(r.record_date || r.date, time),
+        time: time ? DateOnlyUtil.to12Hour(time) : undefined,
+        label: side === 'both' ? 'Both sides' : side !== '--' ? `${side[0].toUpperCase()}${side.slice(1)} side` : undefined,
+        value: `${ml} mL`, barRatio: ml / maxMl
+      };
+    }).sort((a, b) => b.at.getTime() - a.at.getTime());
+    return { rows, summary: rows.length ? `Last session ${timeAgo(rows[0].at, !!rows[0].time)}` : '' };
+  }
+
+  /** The one baby every My Journey source, link and row action uses. */
+  get journeyBabyId(): string | undefined {
+    return this.selectedBaby?.id;
+  }
+
+  openFeedsSeeAll(): void {
+    if (this.journeyBabyId) this.router.navigate(['/tabs/growth/feeds', this.journeyBabyId]);
+  }
+
+  openDailySummary(): void {
+    if (this.journeyBabyId) this.router.navigate(['/tabs/growth/daily-summary', this.journeyBabyId]);
+  }
+
+  openPumpSeeAll(): void {
+    if (this.journeyBabyId) this.router.navigate(['/tabs/growth/pumping', this.journeyBabyId]);
+  }
+
+  async onFeedRowTap(row: JourneyRow): Promise<void> {
+    const kind = ({ d: 'direct', e: 'expressed', f: 'formula' } as const)[row.key.slice(-1) as 'd' | 'e' | 'f'];
+    if (this.journeyBabyId) await this.recordActions.openFeedActions(row.record, this.journeyBabyId, kind);
+  }
+
+  async onPumpRowTap(row: JourneyRow): Promise<void> {
+    if (this.journeyBabyId) await this.recordActions.openPumpActions(row.record, this.journeyBabyId);
+  }
+
+  trackJourneyRow(_: number, row: JourneyRow): string {
+    return row.key;
+  }
+
+  /** Newest rows grouped under "Today · 23 Sep 2026" style day pills. */
+  private toJourneyDays(rows: JourneyRow[], limit = 5): JourneyDay[] {
+    const now = new Date();
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const days: JourneyDay[] = [];
+    for (const row of [...rows].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, limit)) {
+      const prefix = DateOnlyUtil.isSameLocalDay(row.at, now) ? 'Today · ' : DateOnlyUtil.isSameLocalDay(row.at, yesterday) ? 'Yesterday · ' : '';
+      const label = prefix + formatDate(row.at, 'd MMM y', 'en-US');
+      const last = days[days.length - 1];
+      if (last?.label === label) last.rows.push(row); else days.push({ label, rows: [row] });
+    }
+    return days;
+  }
+
+  private toFeedJourney(records: any[]): FeedJourney {
+    const now = new Date();
+    const rows: JourneyRow[] = [];
+    let today = 0, direct = 0, milk = 0, formula = 0;
+    let lastDirect: { at: Date; side: string } | undefined;
+    (records || []).forEach((r, i) => {
+      const day = r.recordDate || r.date;
+      const d = r.directFeedDetails, e = r.expressedMilkDetails, f = r.formulaDetails;
+      const lines: Omit<JourneyRow, 'at' | 'time' | 'record'>[] = [];
+      const times: (string | undefined)[] = [];
+      if (d) {
+        const side = d.breastSide === 'both' ? 'both sides' : d.breastSide ? `${d.breastSide} side` : '';
+        lines.push({ key: `f${i}d`, icon: 'assets/Fed directly.svg', iconAlt: 'Direct breastfeed', label: side ? `Direct, ${side}` : 'Direct', value: d.duration ? `${d.duration} min` : undefined });
+        times.push(d.startTime);
+      }
+      if (e?.quantity) {
+        lines.push({ key: `f${i}e`, icon: 'assets/Pump.svg', iconAlt: 'Expressed milk', label: 'Expressed milk', value: `${e.quantity} mL` });
+        times.push(e.startTime);
+      }
+      if (f?.quantity) {
+        lines.push({ key: `f${i}f`, icon: 'assets/Formula.svg', iconAlt: 'Formula', label: 'Formula', value: `${f.quantity} mL` });
+        times.push(f.startTime);
+      }
+      if (!lines.length) return;
+      lines.forEach((line, j) => {
+        const t = times[j] || r.time;
+        const at = recordAt(day, t);
+        rows.push({ ...line, at, time: t ? DateOnlyUtil.to12Hour(t) : '--', record: r });
+        if (line.key.endsWith('d') && d.breastSide && (!lastDirect || at > lastDirect.at)) lastDirect = { at, side: d.breastSide };
+      });
+      if (DateOnlyUtil.isSameLocalDay(recordAt(day), now)) {
+        today++;
+        if (d) direct++;
+        if (e?.quantity) milk++;
+        if (f?.quantity) formula++;
+      }
     });
-    
-    return todayRecords.reduce((total: number, record: any) => {
-      return total + (record.total_output || record.totalOutput || 0);
-    }, 0);
+    const c = this.ringCircumference, total = direct + milk + formula;
+    let offset = 0;
+    const ring = total ? [[direct, '#e0679a'], [milk, '#8f84d9'], [formula, '#6464d3']].filter(([n]) => +n > 0).map(([n, color]) => {
+      const len = (+n / total) * c;
+      const seg = { color: color as string, dash: `${Math.max(len - 3, 1)} ${c}`, offset: -offset };
+      offset += len;
+      return seg;
+    }) : [];
+    const sorted = [...rows].sort((a, b) => b.at.getTime() - a.at.getTime());
+    const latest = sorted[0];
+    const parts = latest ? [`Last feeding ${timeAgo(latest.at, latest.time !== '--')}`] : [];
+    if (lastDirect) parts.push(`Last side: ${lastDirect.side}`);
+    return { today, direct, milk, formula, ring, days: this.toJourneyDays(sorted), lastTime: latest?.time || '--', summary: parts.join(' · ') };
+  }
+
+  private toPumpJourney(records: any[]): PumpJourney {
+    const now = new Date();
+    const rows: JourneyRow[] = (records || []).map((r, i) => {
+      const t = r.record_time || r.time;
+      const side = this.getPumpingSide(r);
+      return {
+        key: `p${r.id ?? i}`, at: recordAt(r.record_date || r.date, t), time: t ? DateOnlyUtil.to12Hour(t) : '--',
+        icon: 'assets/Pump.svg', iconAlt: 'Pump session', record: r, value: `${this.getPumpingOutput(r)} mL`,
+        label: side === 'both' ? 'Both sides' : side !== '--' ? `${side[0].toUpperCase()}${side.slice(1)} side` : 'Pump session'
+      };
+    }).sort((a, b) => b.at.getTime() - a.at.getTime());
+    const latest = rows[0];
+    return {
+      today: rows.filter(r => DateOnlyUtil.isSameLocalDay(r.at, now)).length,
+      lastTime: latest?.time || '--', latestMl: latest ? this.getPumpingOutput(latest.record) : 0,
+      latestSide: latest?.label || '--', days: this.toJourneyDays(rows)
+    };
   }
 
   // Pumping record display helpers (reused from baby-detail page)
@@ -1268,25 +1508,13 @@ export class GrowthPage implements OnInit {
   }
 
   getEmotionCheckinsCount(): number {
-    // Calculate current week's emotion check-ins
-    const today = new Date();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
-    weekStart.setHours(0, 0, 0, 0);
-    
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6); // End of current week (Saturday)
-    weekEnd.setHours(23, 59, 59, 999);
-    
-    // Get records from local property
+    // Count check-ins in the current local (Sunday-start) week. Parsing the
+    // date-only value as local avoids the UTC shift that dropped valid check-ins.
     const records = this.emotionRecords || [];
-    
-    const thisWeekRecords = records.filter((record: any) => {
-      const checkinDate = new Date(record.checkin_date || record.date);
-      return checkinDate >= weekStart && checkinDate <= weekEnd;
-    });
-    
-    return thisWeekRecords.length;
+
+    return records.filter((record: any) =>
+      DateOnlyUtil.isInLocalWeek(record.checkin_date || record.date)
+    ).length;
   }
 
   getLastEmotionCheckinDate(): string {
@@ -1373,7 +1601,7 @@ export class GrowthPage implements OnInit {
     return date.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit',
-      hour12: false 
+      hour12: true 
     });
   }
 
@@ -1463,8 +1691,7 @@ export class GrowthPage implements OnInit {
     modal.onDidDismiss().then((result) => {
       if (result.data?.created) {
         // Baby was created successfully, reload babies from API
-        this.showToast('Baby added successfully! 👶', 'success');
-        
+        // Modal already toasts "<name> has been added successfully"
         // Reload babies from API to get the latest data
         this.loadUserBabies();
       }
@@ -1483,13 +1710,26 @@ export class GrowthPage implements OnInit {
     return dateObj.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit',
-      hour12: false 
+      hour12: true 
     });
   }
 
   // Onboarding check methods
   isOnboardingCompleted(): boolean {
     return this.user?.isOnboardingCompleted || false;
+  }
+
+  // Pregnant mom, no baby, due date not reached yet: hide baby tracking and
+  // emotional check-in. Once the due date passes, tracking auto-appears so she
+  // can add the baby even if motherType is still 'pregnant'.
+  isPregnantNoBaby(): boolean {
+    const hasBaby = !!(this.user?.babies && this.user.babies.length > 0);
+    if (this.user?.motherType !== 'pregnant' || hasBaby) {
+      return false;
+    }
+    const due = this.user?.dueDate ? new Date(this.user.dueDate) : null;
+    const dueInFuture = due ? due.getTime() > Date.now() : true;
+    return dueInFuture;
   }
 
   handleTrackerClick(action: () => void) {

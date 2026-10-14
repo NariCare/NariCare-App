@@ -1,0 +1,50 @@
+// Detailed History page; shared pieces live in ds-common.scss
+$primary-strong: #6464d3;
+$muted-strong: #5f5890;
+
+.dh-table { margin-top: 16px; }
+.dh-hint { margin: 8px 2px 0; font-size: 0.75rem; color: $muted-strong; }
+
+.dh-notes {
+  margin: 16px 0 0;
+  padding: 12px;
+  list-style: none;
+  border-radius: 14px;
+  background: #f7f6fe;
+
+  li {
+    display: flex;
+    gap: 8px;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: $muted-strong;
+  }
+
+  li + li { margin-top: 8px; }
+  ion-icon { flex: 0 0 auto; margin-top: 2px; font-size: 16px; color: $primary-strong; }
+}
+
+.dh-export {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 16px;
+  border: 0;
+  border-radius: 999px;
+  background: $primary-strong;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 4px 12px rgba(100, 100, 211, 0.25);
+
+  ion-icon { font-size: 18px; }
+  &:disabled { opacity: 0.5; cursor: default; }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 3px; }
+}

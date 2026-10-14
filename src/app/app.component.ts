@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { BackendAuthService } from './services/backend-auth.service';
 import { NotificationService } from './services/notification.service';
 import { PushNotificationService } from './services/push-notification.service';
@@ -25,7 +27,33 @@ export class AppComponent implements OnInit {
     this.initializeApp();
   }
 
+  // Browsers open a native date picker only from its small icon, and ion-datetime-button
+  // only from its pill; open the picker on a tap anywhere in the field instead.
+  private openPickerOnFieldTap = (event: MouseEvent) => {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    // Only taps on the field itself, never on page wrappers that merely contain one
+    const field = target.closest('ion-item, ion-input');
+    if (!field && !(target instanceof HTMLInputElement)) return;
+
+    const input = (target instanceof HTMLInputElement ? target : null)
+      || field!.querySelector<HTMLInputElement>('input[type="date"], input[type="datetime-local"], input[type="time"], input[type="month"]');
+    if (input && ['date', 'datetime-local', 'time', 'month'].includes(input.type)) {
+      if (!input.disabled && !input.readOnly) {
+        try { input.showPicker(); } catch { /* already open, or not supported */ }
+      }
+      return;
+    }
+
+    const dateButton = field?.querySelector('ion-datetime-button');
+    if (dateButton && !dateButton.contains(target)) {
+      dateButton.shadowRoot?.querySelector<HTMLButtonElement>('button:not([hidden])')?.click();
+    }
+  };
+
   ngOnInit() {
+    document.addEventListener('click', this.openPickerOnFieldTap);
+
     // Initialize push notification service when app starts
     this.pushNotificationService.initializePushNotifications();
     
@@ -93,7 +121,7 @@ export class AppComponent implements OnInit {
     await this.platform.ready();
     
     // Check authentication status and redirect accordingly
-    await this.checkAuthAndRedirect();
+    this.checkAuthAndRedirect(); // not awaited: native splash should not wait on the profile fetch
     
     // Only use Capacitor plugins if running on a device
     if (this.platform.is('capacitor')) {
@@ -116,26 +144,17 @@ export class AppComponent implements OnInit {
       const hasToken = localStorage.getItem('naricare_token');
       
       if (hasToken) {
-        // Wait for BackendAuthService to initialize and validate the token
-        const checkAuth = async () => {
-          const currentUser = this.backendAuthService.getCurrentUser();
-          if (currentUser) {
-            this.navigateBasedOnUser(currentUser);
-          } else {
-            // Wait a bit longer for initialization
-            setTimeout(() => {
-              const user = this.backendAuthService.getCurrentUser();
-              if (user) {
-                this.navigateBasedOnUser(user);
-              } else {
-                // Token exists but user not loaded, redirect to login
-                this.router.navigate(['/auth/login'], { replaceUrl: true });
-              }
-            }, 500);
-          }
-        };
-        
-        await checkAuth();
+        // Wait for auth init (profile fetch can take >500ms) so a refresh stays on the current page
+        await firstValueFrom(this.backendAuthService.initialized$.pipe(filter(Boolean)));
+        const user = this.backendAuthService.getCurrentUser();
+        if (user) {
+          this.navigateBasedOnUser(user);
+        } else {
+          // Token rejected (expired, deactivated): back to the login page this browser last used
+          let last: string | null = null;
+          try { last = localStorage.getItem('nc_login_portal'); } catch { /* storage blocked */ }
+          this.router.navigate([last === 'admin' ? '/auth/login/admin' : last === 'lc' ? '/auth/login/lc' : '/auth/login'], { replaceUrl: true });
+        }
       } else {
         // No token found, redirect to login only if not on auth pages
         const currentUrl = this.router.url;
@@ -172,7 +191,8 @@ export class AppComponent implements OnInit {
   }
 
   private navigateBasedOnUser(user: any) {
-    const currentUrl = this.router.url;
+    // router.url is still '/' while the guard holds the first navigation; the browser path is the real target
+    const currentUrl = this.router.navigated ? this.router.url : window.location.pathname;
     
     // Don't redirect if already on legitimate app pages
     if (currentUrl.includes('/tabs/') || 
@@ -181,14 +201,16 @@ export class AppComponent implements OnInit {
         currentUrl.includes('/expert-notes') ||
         currentUrl.includes('/expert-consultations') ||
         currentUrl.includes('/consultation-detail') ||
-        currentUrl.includes('/video-call')) {
+        currentUrl.includes('/video-call') ||
+        currentUrl.includes('/admin')) {
       return;
     }
     
     // Only redirect from login page or root page
     if (currentUrl === '/' || currentUrl.includes('/auth/login')) {
-      // Navigate to dashboard (onboarding temporarily disabled)
-      this.router.navigate(['/tabs/dashboard'], { replaceUrl: true });
+      // Admins land on the admin panel; everyone else (incl. experts) on the dashboard
+      const home = user?.role === 'admin' ? '/admin' : '/tabs/dashboard';
+      this.router.navigate([home], { replaceUrl: true });
     }
   }
 }

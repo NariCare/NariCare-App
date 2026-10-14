@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ModalController, ToastController } from '@ionic/angular';
+import { ModalController, NavController, ToastController } from '@ionic/angular';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { map, tap, switchMap } from 'rxjs/operators';
 import { KnowledgeBaseService } from '../../../services/knowledge-base.service';
 import { AuthService } from '../../../services/auth.service';
 import { Article } from '../../../models/knowledge-base.model';
 import { User } from '../../../models/user.model';
 import { VideoPlayerModalComponent } from '../../../components/video-player-modal/video-player-modal.component';
+import { illustrationForCategory } from '../knowledge-illustrations';
 
 @Component({
   selector: 'app-article-detail',
@@ -18,6 +19,8 @@ import { VideoPlayerModalComponent } from '../../../components/video-player-moda
 export class ArticleDetailPage implements OnInit {
   article$: Observable<Article | undefined>;
   processedArticle$ = new BehaviorSubject<Article | undefined>(undefined);
+  articleMissing = false;
+  relatedArticles$: Observable<Article[]>;
   articleId: string = '';
   user: User | null = null;
   isBookmarked = false;
@@ -35,9 +38,18 @@ export class ArticleDetailPage implements OnInit {
     private knowledgeService: KnowledgeBaseService,
     private authService: AuthService,
     private modalController: ModalController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private navCtrl: NavController
   ) {
     this.article$ = new Observable();
+    this.relatedArticles$ = this.processedArticle$.pipe(
+      switchMap(article => article
+        ? this.knowledgeService.getArticlesByCategory(article.category.id).pipe(
+            map(articles => articles.filter(a => a.id !== article.id).slice(0, 2))
+          )
+        : [[]]
+      )
+    );
     this.initializeSpeechSynthesis();
   }
 
@@ -58,11 +70,13 @@ export class ArticleDetailPage implements OnInit {
               this.processArticleVideos(article);
             } else {
               // Emit undefined if article not found
+              this.articleMissing = true;
               this.processedArticle$.next(undefined);
             }
           },
           error: (error) => {
             console.error('Error loading article:', error);
+            this.articleMissing = true;
             this.processedArticle$.next(undefined);
           }
         });
@@ -85,6 +99,13 @@ export class ArticleDetailPage implements OnInit {
       });
     }
     this.processedArticle$.next(article);
+    // Home's Continue Learning card shows the last article she opened
+    try {
+      localStorage.setItem('naricare_last_article', JSON.stringify({
+        id: article.id, title: article.title, readTime: article.readTime,
+        category: { id: article.category?.id, name: article.category?.name, color: article.category?.color }
+      }));
+    } catch { /* storage blocked */ }
   }
 
   private createSafeVideoUrl(url: string): SafeResourceUrl {
@@ -236,7 +257,9 @@ export class ArticleDetailPage implements OnInit {
     }
   }
   goBack() {
-    this.router.navigate(['/tabs/knowledge']);
+    // Back to the screen she came from (e.g. the Pregnancy list); Knowledge home only when opened directly
+    if ((history.state?.navigationId ?? 1) > 1) this.navCtrl.back();
+    else this.router.navigate(['/tabs/knowledge']);
   }
 
   async toggleBookmark() {
@@ -273,6 +296,7 @@ export class ArticleDetailPage implements OnInit {
       case 'warning': return 'warning';
       case 'success': return 'checkmark-circle';
       case 'danger': return 'alert-circle';
+      case 'tip': return 'bulb';
       default: return 'information-circle';
     }
   }
@@ -309,10 +333,28 @@ export class ArticleDetailPage implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
+  illustrationFor(article: Article): string {
+    return illustrationForCategory(article.category.id);
+  }
+
+  onRelatedArticleSelect(article: Article) {
+    this.router.navigate(['/tabs/knowledge/article', article.id]);
+  }
+
+  /** "milk-coming-in" -> "Milk coming in" */
+  tagLabel(tag: string): string {
+    const words = (tag || '').replace(/-/g, ' ');
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  }
+
   onTagClick(tag: string) {
     this.router.navigate(['/tabs/knowledge/search'], { 
       queryParams: { tag: tag } 
     });
+  }
+
+  openLearn() {
+    this.router.navigate(['/tabs/knowledge']);
   }
 
   ngOnDestroy() {

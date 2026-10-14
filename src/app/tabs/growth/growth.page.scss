@@ -1,9 +1,81 @@
+// Shared design tokens (matches register/onboarding/dashboard/profile)
+$primary: #8383ed;
+$primary-hover: #7676d1;
+$lavender-bg: #f4f2fe;
+$lavender-surface: #f7f5fd;
+$lavender-border: #e2ddf5;
+$ink: #2d3748;
+$muted: #7a73a9;
+$font: var(--ion-font-family, 'Poppins', sans-serif);
+
+.tracker-content {
+  --background: #ffffff;
+}
+
 .content-container {
   padding: 1rem;
-  padding-bottom: 100px; // Bottom padding for tab bar navigation
-  // background: linear-gradient(135deg, #a8dadc, #b8e6e8);
-  min-height: 100vh;
-  background: #f9f9f9;
+  padding-bottom: 88px; // clear the bottom tab bar, no more
+  // No min-height: forcing full viewport height left a large empty gap at the
+  // bottom when the page content is short.
+  background: #ffffff;
+}
+
+/* Hero Header */
+.tracker-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 1.25rem 2rem 1.25rem;
+  background: linear-gradient(180deg, $lavender-bg 0%, #ffffff 100%);
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+}
+
+.tracker-hero-text {
+  flex-shrink: 0;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $ink;
+    font-family: $font;
+    letter-spacing: -0.01em;
+  }
+
+  p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.9rem;
+    color: $muted;
+    font-family: $font;
+  }
+}
+
+.tracker-hero-image {
+  width: 140px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+/* Section heading (Track Today) */
+.section-heading {
+  margin: 0 0.5rem 1rem 0.5rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $ink;
+    font-family: $font;
+  }
+
+  p {
+    margin: 0.2rem 0 0 0;
+    font-size: 0.85rem;
+    color: $muted;
+    font-family: $font;
+  }
 }
 
 /* Tracker Cards Container */
@@ -15,216 +87,450 @@
 /* 2x2 Grid for top row */
 .tracker-cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr)); // minmax(0) stops long words widening a column at 320px
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
 .tracker-card {
+  position: relative;
   background: #ffffff;
-  // border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 18px;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start; // top-aligned so icons line up across cards (was center)
   cursor: pointer;
-  transition: all 0.3s ease;
-  // border: 1px solid transparent;
-  min-height: 120px;
-  font-family: 'Poppins', sans-serif;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  border: 1.5px solid transparent;
+  min-height: 128px;
+  font-family: $font;
 
   &:hover {
-    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(131, 131, 237, 0.12);
   }
 
   &:active {
-    transform: translateY(0);
+    transform: scale(0.98);
   }
 
   .tracker-icon {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   .tracker-svg-icon {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
   }
 
   .tracker-label {
     font-size: 1rem;
-    font-weight: 500;
-    color: #2d3748;
-    text-align: center;
-    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: $ink;
+    text-align: left;
+    font-family: $font;
+    // Break between words only, never mid-word (avoids "Emotion al check-in").
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 
-  // Color-coded backgrounds from Figma
+  .tracker-description {
+    margin-top: 0.2rem;
+    font-size: 0.8rem;
+    color: $muted;
+    text-align: left;
+    font-family: $font;
+    line-height: 1.35;
+    padding-right: 1.75rem; // Reserve space so text never runs under the arrow badge
+  }
+
+  .tracker-arrow-badge {
+    position: absolute;
+    bottom: 0.875rem;
+    right: 0.875rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(131, 131, 237, 0.12);
+    color: $primary;
+    font-size: 0.95rem;
+  }
+
+  // Color-coded backgrounds
   &.feed-card {
-    background: #FFEDF4; // Pink background
+    background: #FFEDF4; // Pink
+
+    .tracker-arrow-badge {
+      background: rgba(219, 39, 119, 0.12);
+      color: #db2777;
+    }
   }
 
   &.diaper-card {
-    background: #EDEDFD; // Purple background
+    background: $lavender-bg; // Lavender
+
+    .tracker-arrow-badge {
+      background: rgba(131, 131, 237, 0.15);
+      color: $primary;
+    }
   }
 
   &.weight-card {
-    background: #FFF0DE; // Yellow background
+    background: #FFF0DE; // Cream
+
+    .tracker-arrow-badge {
+      background: rgba(217, 119, 6, 0.12);
+      color: #d97706;
+    }
   }
 
   &.pump-card {
-    background: #E2F5EF; // Teal background
+    background: #E2F5EF; // Mint
+
+    .tracker-arrow-badge {
+      background: rgba(5, 150, 105, 0.12);
+      color: #059669;
+    }
   }
 
   // Full-width emotional check-in card
   &.emotional-card {
-    background: #FFF7D7; // Yellow background like in Figma
     grid-column: 1 / -1; // Span full width
-    min-height: 80px;
-    padding: 1.5rem;
+    background: linear-gradient(180deg, #FFF0F6 0%, #FDEFF3 100%);
+    border-color: rgba(219, 39, 119, 0.12);
+    padding: 1.125rem 1.25rem;
     margin-top: 0.5rem;
+    min-height: 0;
+
+    &:hover { box-shadow: 0 4px 14px rgba(219, 39, 119, 0.14); }
 
     .emotional-content {
       display: flex;
-      flex-direction: column;
       align-items: center;
+      gap: 0.875rem;
       width: 100%;
     }
 
-    .tracker-icon {
-      margin-bottom: 0.5rem;
+    .emotional-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
     }
 
-    .tracker-label {
-      font-size: 1rem;
-      font-weight: 500;
+    .tracker-label { font-size: 1rem; }
+
+    .tracker-description {
+      margin-top: 0.15rem;
+      padding-right: 0;
+    }
+
+    .emotional-faces {
+      display: flex;
+      gap: 0.375rem;
+      flex-shrink: 1;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 55%; // keep the label readable; chips wrap instead of overflowing at 360px
+    }
+
+    .mood-chip {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      line-height: 1;
+      background: rgba(255, 255, 255, 0.75);
+      box-shadow: 0 1px 3px rgba(219, 39, 119, 0.1);
+    }
+
+    .tracker-arrow-badge {
+      position: static;
+      flex-shrink: 0;
+      background: #db2777;
+      color: #ffffff;
     }
   }
 }
 
-/* Main Tab Selector */
-.main-tab-selector {
-  margin-bottom: 2rem;
-  background: #ffffff;
-  border-radius: 0;
-  padding: 2px;
-  box-shadow: none;
-  border: none;
-  border-bottom: none;
+// 320px: tighter padding, arrow gets its own row so text can use full width
+@media (max-width: 359px) {
+  .tracker-cards-grid { gap: 0.75rem; }
+
+  .tracker-card {
+    padding: 1rem 0.875rem 2.75rem;
+
+    .tracker-description { padding-right: 0; }
+    .tracker-arrow-badge { bottom: 0.75rem; right: 0.75rem; }
+  }
 }
 
-/* Tab styling now handled by global.scss */
+// Text-safe primary: #8383ed on white is ~3.3:1, this is ~4.9:1
+$primary-strong: #6464d3;
+$muted-strong: #5f5890;
+
+/* Track section wrapper */
+.track-section {
+  background: #faf9ff;
+  border: 1px solid $lavender-border;
+  border-radius: 24px;
+  padding: 12px;
+  margin-bottom: 1.5rem;
+}
+
+/* Main Tab Selector */
+.main-tab-selector {
+  margin-bottom: 12px;
+  background: #f1eefd;
+  border: 1px solid $lavender-border;
+  border-radius: 999px;
+  padding: 4px;
+
+  // Scoped override of the app-wide peach segment in global.scss
+  ion-segment.main-tabs-segment {
+    --background: transparent !important;
+    background: transparent !important;
+
+    ion-segment-button {
+      --border-radius: 999px !important;
+      --indicator-color: transparent;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      border-radius: 999px !important;
+      min-height: 44px;
+      --color: #{$muted-strong} !important;
+      color: $muted-strong !important;
+      font-weight: 600 !important;
+      text-transform: none;
+      letter-spacing: 0;
+
+      ion-icon {
+        font-size: 1.15rem;
+        margin: 0 6px 0 0;
+      }
+
+      ion-label {
+        font-size: 0.9rem;
+        white-space: nowrap;
+      }
+
+      &.segment-button-checked {
+        --background: #{$primary-strong} !important;
+        background: $primary-strong !important;
+        --color: #ffffff !important;
+        color: #ffffff !important;
+
+        ion-label,
+        ion-icon {
+          color: #ffffff !important;
+        }
+      }
+
+      &:focus-visible {
+        outline: 2px solid $primary-strong;
+        outline-offset: 2px;
+      }
+    }
+  }
+}
 
 /* Tab Content */
 .tab-content {
-  min-height: 400px;
-  position: relative; // Enable absolute positioning for FAB within this container
-  padding-bottom: 80px; // Add space for FAB within the tab content
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.track-section .tab-content {
+  padding-bottom: 0;
 }
 
 /* My Babies Tab */
 .baby-cards-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 12px;
+}
+
+// Shared button reset for the tappable cards
+.baby-card,
+.add-baby-card {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  font-family: $font;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary-strong;
+    outline-offset: 2px;
+  }
 }
 
 .baby-card {
   background: #ffffff;
-  border-radius: 12px;
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1px solid #f1f5f9;
-  font-family: 'Poppins', sans-serif;
-
-  &:hover {
-    transform: translateY(-1px);
-  }
+  border: 1px solid $lavender-border;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(131, 131, 237, 0.08);
 
   .baby-avatar {
-    width: 44px;
-    height: 44px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
+    background: $lavender-bg;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 1rem;
     flex-shrink: 0;
-
-    ion-icon {
-      font-size: 1.4rem;
-      color: #ffffff;
-    }
   }
 
   .baby-info {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-    h3 {
-      margin: 0 0 0.25rem 0;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #2d3748;
-      font-family: 'Poppins', sans-serif;
-    }
+  .baby-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $ink;
+    overflow-wrap: anywhere;
+  }
 
-    .baby-age {
-      margin: 0;
-      font-size: 0.875rem;
-      color: #6b7280;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .baby-weight {
-      margin: 0;
-      font-size: 0.875rem;
-      color: #6b7280;
-      font-family: 'Poppins', sans-serif;
-    }
+  .baby-age,
+  .baby-weight {
+    font-size: 0.875rem;
+    color: #6b7280;
   }
 
   .baby-arrow {
-    color: #d1d5db;
-    font-size: 1.1rem;
+    flex-shrink: 0;
+    color: $muted;
+    font-size: 1.25rem;
   }
 }
 
-.empty-babies {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #64748b;
+.add-baby-card {
+  margin-top: 12px;
+  background: transparent;
+  border: 1.5px dashed #c9c3ec;
+  border-radius: 20px;
+  padding: 16px;
+  min-height: 72px;
 
-  ion-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: #a8dadc;
+  .add-baby-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: $lavender-bg;
+    color: $primary-strong;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.5rem;
+  }
+
+  .add-baby-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .add-baby-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $primary-strong;
+  }
+
+  .add-baby-subtitle {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .baby-card,
+  .add-baby-card {
+    transition: none;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+.empty-babies,
+.pregnant-tracker-placeholder {
+  text-align: center;
+  padding: 2rem 1.5rem 1rem 1.5rem;
+  color: $muted;
+
+  .empty-babies-image {
+    width: 180px;
+    height: auto;
+    margin-bottom: 0.5rem;
   }
 
   h3 {
     margin: 0 0 0.5rem 0;
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: $ink;
+    font-family: $font;
   }
 
   p {
-    margin: 0;
+    margin: 0 auto 1.5rem auto;
+    max-width: 280px;
     font-size: 0.9rem;
-    line-height: 1.4;
+    line-height: 1.5;
+    color: $muted;
+    font-family: $font;
   }
+}
+
+.add-first-baby-button {
+  --background: #{$primary};
+  --background-hover: #{$primary-hover};
+  --border-radius: 999px;
+  --color: #ffffff;
+  max-width: 260px;
+  margin: 0 auto;
+  height: 52px;
+  font-weight: 600;
+  font-family: $font;
 }
 
 /* Breastfeeding History Tab */
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr)); // minmax(0) stops long words widening a column at 320px
   gap: 1rem;
   margin-bottom: 2rem;
 }
@@ -998,6 +1304,45 @@
   }
 }
 
+// Encouraging empty state for the Mother's Journey sections (mobile-first)
+.journey-empty {
+  text-align: center;
+  padding: 1.75rem 1rem 1.5rem;
+
+  .journey-empty-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 0.85rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    img { width: 30px; height: 30px; }
+    ion-icon { font-size: 1.6rem; color: #E91E63; }
+    &.breastfeeding,
+    &.pumping { background: rgba(168, 218, 220, 0.25); }
+    &.emotion { background: rgba(233, 30, 99, 0.10); }
+  }
+
+  h4 { margin: 0 0 0.35rem; font-size: 1rem; font-weight: 600; color: $ink; }
+
+  p {
+    margin: 0 auto 1rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #64748b;
+    max-width: 30ch;
+  }
+
+  .journey-empty-cta {
+    --border-radius: 10px;
+    --box-shadow: none;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+}
+
 .wellness-tips {
   background: linear-gradient(135deg, rgba(233, 30, 99, 0.05), rgba(240, 98, 146, 0.02));
   border-radius: 12px;
@@ -1087,19 +1432,19 @@
 /* Core Modal Components */
 /* Floating Add Baby Button - Inside Tab */
 .fab-wrapper {
-  position: absolute;
-  bottom: 20px; // Position relative to the tab content
+  // Fixed to the viewport (above the tab bar) so it does not force the tab
+  // content tall and leave an empty gap under a short list.
+  position: fixed;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   right: 20px;
   z-index: 100;
   pointer-events: none;
-  
+
   ion-fab-button {
     pointer-events: all;
   }
-  
-  // Adjust for different screen sizes
+
   @media (max-width: 768px) {
-    bottom: 16px;
     right: 16px;
   }
 }

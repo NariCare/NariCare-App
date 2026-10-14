@@ -27,6 +27,7 @@ export interface Baby {
   birthHeight: number;
   currentWeight?: number;
   currentHeight?: number;
+  createdAt?: string;
 }
 
 export interface UserTier {

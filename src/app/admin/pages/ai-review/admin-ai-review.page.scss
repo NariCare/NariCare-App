@@ -1,0 +1,17 @@
+:host { display: block; max-width: 1100px; }
+
+.air-filter { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--adm-muted); }
+.air-count {
+  margin-left: 8px; padding: 0 8px; border-radius: 999px; font-size: 12px; font-variant-numeric: tabular-nums;
+  background: rgba(93, 95, 122, 0.12);
+}
+[aria-selected='true'] .air-count { background: rgba(255, 255, 255, 0.25); }
+.air-flags { margin-top: 12px; }
+.air-flag-tab ion-icon { margin-right: 6px; vertical-align: -2px; }
+.air-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.adm-pager span:last-child { display: flex; gap: 8px; }
+
+@media (max-width: 639px) {
+  .air-flags { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; button { flex: none; } }
+  .air-filter { width: 100%; select { width: 100%; min-height: 44px; } }
+}

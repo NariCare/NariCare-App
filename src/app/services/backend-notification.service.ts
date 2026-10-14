@@ -219,7 +219,10 @@ export class BackendNotificationService {
       'general': 'General Notification'
     };
     
-    return typeMap[type] || type.charAt(0).toUpperCase() + type.slice(1);
+    if (typeMap[type]) return typeMap[type];
+    // Unmapped server types like "clinical_feeding_frequency" -> "Feeding frequency"
+    const words = (type || '').replace(/^clinical_/i, '').replace(/_/g, ' ').trim().toLowerCase();
+    return words ? words.charAt(0).toUpperCase() + words.slice(1) : 'Notification';
   }
 
   /**

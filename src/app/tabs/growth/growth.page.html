@@ -1,12 +1,16 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Trackers</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="tracker-content">
 
-<ion-content [fullscreen]="true">
+  <!-- Hero Header -->
+  <div class="tracker-hero">
+    <div class="tracker-hero-text">
+      <h1>Trackers</h1>
+      <p>Small updates. Big progress.</p>
+    </div>
+    <img src="assets/images/tracker-hero.webp" alt="" class="tracker-hero-image" aria-hidden="true">
+  </div>
+
   <div class="content-container">
-    
+
     <!-- Onboarding Overlay -->
     <!-- <div *ngIf="!isOnboardingCompleted()" class="onboarding-overlay">
       <div class="overlay-backdrop"></div>
@@ -25,15 +29,31 @@
       </div>
     </div> -->
     
+    <!-- Pregnant mom, no baby yet: tracking and check-ins unlock after the baby arrives -->
+    <div class="pregnant-tracker-placeholder" *ngIf="isPregnantNoBaby()">
+      <img src="assets/images/tracker-empty-baby.webp" alt="" class="empty-babies-image" aria-hidden="true">
+      <h3>You start tracking once your baby arrives</h3>
+      <p>Feeding, growth, and check-ins will be here after you add your baby. For now, explore Learn and Community.</p>
+    </div>
+
     <!-- Tracker Cards Grid -->
-    <div class="tracker-cards-container">
+    <div class="tracker-cards-container" *ngIf="!isPregnantNoBaby()">
+      <div class="section-heading">
+        <h2>Track Today</h2>
+        <p>Log your daily activities and well-being</p>
+      </div>
+
       <!-- Top Row - 2x2 Grid -->
       <div class="tracker-cards-grid">
         <div class="tracker-card feed-card" (click)="onFeed()">
           <div class="tracker-icon">
-            <app-custom-icon trackerType="feed" size="50px"></app-custom-icon>
+            <app-custom-icon trackerType="feed" size="40px"></app-custom-icon>
           </div>
           <span class="tracker-label">Feed</span>
+          <span class="tracker-description">Track breastfeeding, expressed milk, and formula feeds</span>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
 
         <div class="tracker-card diaper-card" (click)="openDiaperLogModal()">
@@ -41,13 +61,21 @@
             <img src="assets/Diaper change.svg" alt="Diaper change" class="tracker-svg-icon">
           </div>
           <span class="tracker-label">Diaper change</span>
+          <span class="tracker-description">Track your baby's pee and poop</span>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
-        
+
         <div class="tracker-card weight-card" (click)="onWeightSize()">
           <div class="tracker-icon">
-            <app-custom-icon trackerType="weight" size="50px"></app-custom-icon>
+            <app-custom-icon trackerType="weight" size="40px"></app-custom-icon>
           </div>
-          <span class="tracker-label">Weight</span>
+          <span class="tracker-label">Growth</span>
+          <span class="tracker-description">Track your baby's weight and height</span>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
 
         <div class="tracker-card pump-card" (click)="openPumpLogModal()">
@@ -55,28 +83,43 @@
             <img src="assets/Pump.svg" alt="Pump" class="tracker-svg-icon">
           </div>
           <span class="tracker-label">Pump</span>
+          <span class="tracker-description">Log your pumping sessions</span>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
       </div>
 
-      <!-- Full-width Emotional Check-in Card -->
+      <!-- Emotional Check-in Card - commented per Komal, keep for later reuse -->
+      <!--
       <div class="tracker-card emotional-card" (click)="onEmotionCheckin()">
         <div class="emotional-content">
-          <div class="tracker-icon">
-            <app-custom-icon trackerType="emotional" size="100px"></app-custom-icon>
+          <div class="emotional-text">
+            <span class="tracker-label">Emotional check-in</span>
+            <span class="tracker-description">How are you feeling today?</span>
           </div>
-          <span class="tracker-label">Emotional check-in</span>
+          <div class="emotional-faces" aria-hidden="true">
+            <span class="mood-chip" *ngFor="let mood of motherMoodOptions">{{ mood.emoji }}</span>
+          </div>
+          <div class="tracker-arrow-badge" aria-hidden="true">
+            <ion-icon name="chevron-forward"></ion-icon>
+          </div>
         </div>
       </div>
+      -->
     </div>
 
-    <!-- Main Tab Selector -->
+    <!-- Track section: toggle + My Babies cards -->
+    <div class="track-section" *ngIf="!isPregnantNoBaby()">
     <div class="main-tab-selector">
       <ion-segment [(ngModel)]="selectedMainTab" (ionChange)="onMainTabChange($event)" class="main-tabs-segment">
-        <ion-segment-button value="my-babies">
+        <ion-segment-button value="my-babies" layout="icon-start">
+          <ion-icon name="happy-outline" aria-hidden="true"></ion-icon>
           <ion-label>My Babies</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="mothers-journey">
-          <ion-label>Mother's Journey</ion-label>
+        <ion-segment-button value="mothers-journey" layout="icon-start">
+          <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+          <ion-label>My Journey</ion-label>
         </ion-segment-button>
       </ion-segment>
     </div>
@@ -84,57 +127,279 @@
     <!-- My Babies Tab Content -->
     <div class="tab-content" *ngIf="selectedMainTab === 'my-babies'">
       <div class="baby-cards-list" *ngIf="user && user.babies && user.babies.length > 0">
-        <div 
+        <button
+          type="button"
           *ngFor="let baby of user.babies"
           class="baby-card"
           [class.selected]="selectedBaby?.id === baby.id"
+          [attr.aria-label]="'Open ' + baby.name + ' details'"
           (click)="selectBaby(baby)">
-          <div class="baby-avatar">
-            <img [src]="getBabyIconUrl(baby.gender)" alt="Baby" style="width: 32px; height: 32px;">
-          </div>
-          <div class="baby-info">
-            <h3>{{ baby.name }}</h3>
-            <p class="baby-age">{{ calculateBabyAgeForBaby(baby.dateOfBirth) }}</p>
-            <p class="baby-weight">{{ baby.currentWeight || baby.birthWeight }}kg</p>
-          </div>
-          <ion-icon name="chevron-forward" class="baby-arrow"></ion-icon>
-        </div>
+          <span class="baby-avatar" aria-hidden="true">
+            <app-custom-icon [babyGender]="baby.gender || 'male'" size="48px"></app-custom-icon>
+          </span>
+          <span class="baby-info">
+            <span class="baby-name">{{ baby.name }}</span>
+            <span class="baby-age">{{ calculateBabyAgeForBaby(baby.dateOfBirth) }}</span>
+            <span class="baby-weight" *ngIf="baby.currentWeight || baby.birthWeight">{{ baby.currentWeight || baby.birthWeight }}kg</span>
+          </span>
+          <ion-icon name="chevron-forward" class="baby-arrow" aria-hidden="true"></ion-icon>
+        </button>
       </div>
-      
+
       <div class="empty-babies" *ngIf="!user || !user.babies || user.babies.length === 0">
-        <app-custom-icon name="Baby boy" size="48px"></app-custom-icon>
+        <img src="assets/images/tracker-empty-baby.webp" alt="" class="empty-babies-image" aria-hidden="true">
         <h3>No babies added yet</h3>
-        <p>Add your baby's information to start tracking growth and feeding</p>
-        <!-- <ion-button 
+        <p>Add your baby's information to start tracking growth and feeding.</p>
+        <!-- Replaced by the add-baby card below
+        <ion-button
           expand="block"
           (click)="openAddBabyModal()"
           class="add-first-baby-button">
           <ion-icon name="add-outline" slot="start"></ion-icon>
-          Add Your First Baby
-        </ion-button> -->
+          Add Baby
+        </ion-button>
+        -->
       </div>
 
-      <!-- Floating Add Baby Button - Inside My Babies Tab -->
-      <div class="fab-wrapper">
-        <ion-fab-button 
+      <button type="button" class="add-baby-card" (click)="openAddBabyModal()">
+        <span class="add-baby-icon" aria-hidden="true"><ion-icon name="add"></ion-icon></span>
+        <span class="add-baby-text">
+          <span class="add-baby-title">{{ user?.babies?.length ? 'Add another baby' : 'Add your baby' }}</span>
+          <span class="add-baby-subtitle">Track each child's journey</span>
+        </span>
+      </button>
+
+      <!-- Floating Add Baby Button, replaced by the add-baby card above
+      <div class="fab-wrapper" *ngIf="user?.babies && user.babies.length > 0">
+        <ion-fab-button
           (click)="openAddBabyModal()"
           class="add-baby-fab">
           <ion-icon name="add"></ion-icon>
         </ion-fab-button>
       </div>
+      -->
+    </div>
     </div>
 
     <!-- Mother's Journey Tab Content -->
-    <div class="tab-content" *ngIf="selectedMainTab === 'mothers-journey'">
-      
-      <!-- Mother's Journey Header -->
-      <div class="mothers-journey-header">
-        <div class="journey-title">
-          <h2>Your Wellness Journey</h2>
-          <p>Track your breastfeeding, pumping, and emotional wellness</p>
-        </div>
-      </div>
+    <div class="tab-content" *ngIf="selectedMainTab === 'mothers-journey' && !isPregnantNoBaby()">
 
+      <!-- My Journey redesign: summary cards, feeding and pumping journeys -->
+      <!-- Baby switcher, only when the account has more than one baby -->
+      <div class="mj-babies" role="radiogroup" aria-label="Show journey for" *ngIf="(user?.babies?.length ?? 0) > 1">
+        <button type="button" class="mj-baby-chip" role="radio" *ngFor="let b of user!.babies; trackBy: trackBaby"
+                [class.active]="b.id === journeyBabyId" [attr.aria-checked]="b.id === journeyBabyId"
+                (click)="selectJourneyBaby(b)">{{ b.name }}</button>
+      </div>
+      <!-- Daily Summary entry for the journey baby -->
+      <app-daily-summary-entry *ngIf="journeyBabyId && (trackerSummary.today$(journeyBabyId!) | async) as s" style="margin-bottom: 12px"
+                               [day]="s.day" [loading]="s.loading" [error]="s.error"
+                               (open)="openDailySummary()" (retry)="trackerSummary.retryToday(journeyBabyId!)"></app-daily-summary-entry>
+
+      <ng-container *ngIf="{ feed: feedJourney$ | async } as vm">
+<!-- Hidden on My Journey 2026-09-25, kept for reuse
+        <div class="mj-summary">
+          <button type="button" class="mj-summary-card mj-pink" (click)="openFeedsSeeAll()"
+                  [attr.aria-label]="(vm.feed?.today ?? 0) + ' feeds today. View all feeds'">
+            <span class="mj-tile" aria-hidden="true"><img src="assets/Fed directly.svg" alt=""></span>
+            <span class="mj-summary-text">
+              <ion-skeleton-text *ngIf="journeyBabyId && !vm.feed" animated class="mj-skel-value"></ion-skeleton-text>
+              <span class="mj-summary-value" *ngIf="!journeyBabyId || vm.feed">{{ vm.feed?.today ?? 0 }}</span>
+              <span class="mj-summary-label">Today's feeds</span>
+            </span>
+          </button>
+          <button type="button" class="mj-summary-card mj-lavender" (click)="openPumpSeeAll()"
+                  [attr.aria-label]="(pumpJourney?.today ?? 0) + ' pump sessions today. View all pump sessions'">
+            <span class="mj-tile" aria-hidden="true"><img src="assets/Pump.svg" alt=""></span>
+            <span class="mj-summary-text">
+              <ion-skeleton-text *ngIf="journeyBabyId && !pumpJourney" animated class="mj-skel-value"></ion-skeleton-text>
+              <span class="mj-summary-value" *ngIf="!journeyBabyId || pumpJourney">{{ pumpJourney?.today ?? 0 }}</span>
+              <span class="mj-summary-label">Pump Sessions</span>
+            </span>
+          </button>
+        </div>
+-->
+
+        <!-- Your Feeding Journey -->
+        <section class="mj-card" aria-labelledby="mj-feed-title">
+          <div class="mj-card-head">
+            <span class="mj-tile mj-pink" aria-hidden="true"><img src="assets/Breastfeeding journey.svg" alt=""></span>
+            <div class="mj-head-text">
+              <h3 id="mj-feed-title" class="mj-card-title">Your Feeding Journey</h3>
+              <p class="mj-card-sub">Track your breastfeeding routine and patterns</p>
+            </div>
+            <button type="button" class="mj-last" (click)="openFeedsSeeAll()"
+                    [attr.aria-label]="'Last feeding ' + (vm.feed?.lastTime ?? '--') + '. View all feeds'">
+              <span class="mj-last-text">
+                <span class="mj-last-label">Last feeding</span>
+                <span class="mj-last-value">{{ vm.feed?.lastTime ?? '--' }}</span>
+              </span>
+              <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+
+          <!-- Skeleton while feeds load -->
+          <div class="mj-skeleton" *ngIf="journeyBabyId && !vm.feed" aria-busy="true" aria-label="Loading feeds">
+            <ion-skeleton-text animated class="mj-skel-ring"></ion-skeleton-text>
+            <div class="mj-skel-lines">
+              <ion-skeleton-text animated></ion-skeleton-text>
+              <ion-skeleton-text animated></ion-skeleton-text>
+              <ion-skeleton-text animated></ion-skeleton-text>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="journey-empty" *ngIf="(!journeyBabyId || vm.feed) && !vm.feed?.days?.length">
+            <div class="journey-empty-icon breastfeeding">
+              <img src="assets/Breastfeeding journey.svg" alt="" aria-hidden="true">
+            </div>
+            <h4>Start your feeding log</h4>
+            <p>Log your first feed to see your rhythm and recent sessions here.</p>
+            <ion-button fill="solid" size="small" class="journey-empty-cta" (click)="onFeed()">
+              <ion-icon name="add" slot="start"></ion-icon>
+              Log first feed
+            </ion-button>
+          </div>
+
+          <ng-container *ngIf="vm.feed?.days?.length">
+            <div class="mj-overview">
+              <div class="mj-ring-wrap" role="img"
+                   [attr.aria-label]="vm.feed!.today + ' feeds today: ' + vm.feed!.direct + ' direct, ' + vm.feed!.milk + ' expressed milk, ' + vm.feed!.formula + ' formula'">
+                <svg viewBox="0 0 100 100" class="mj-ring" aria-hidden="true">
+                  <circle cx="50" cy="50" r="42" class="mj-ring-track"></circle>
+                  <circle *ngFor="let seg of vm.feed!.ring" cx="50" cy="50" r="42" class="mj-ring-seg"
+                          [attr.stroke]="seg.color" [attr.stroke-dasharray]="seg.dash" [attr.stroke-dashoffset]="seg.offset"></circle>
+                </svg>
+                <span class="mj-ring-center" aria-hidden="true">
+                  <span class="mj-ring-value">{{ vm.feed!.today }}</span>
+                  <span class="mj-ring-label">Feeds today</span>
+                </span>
+              </div>
+              <ul class="mj-legend" aria-hidden="true">
+                <li>
+                  <span class="mj-legend-head"><span class="mj-dot mj-dot-direct"></span>Direct<span class="mj-legend-count">{{ vm.feed!.direct }}</span></span>
+                  <span class="mj-bar"><span class="mj-bar-fill mj-dot-direct" [style.width.%]="vm.feed!.today ? vm.feed!.direct / vm.feed!.today * 100 : 0"></span></span>
+                </li>
+                <li>
+                  <span class="mj-legend-head"><span class="mj-dot mj-dot-milk"></span>Expressed milk<span class="mj-legend-count">{{ vm.feed!.milk }}</span></span>
+                  <span class="mj-bar"><span class="mj-bar-fill mj-dot-milk" [style.width.%]="vm.feed!.today ? vm.feed!.milk / vm.feed!.today * 100 : 0"></span></span>
+                </li>
+                <li>
+                  <span class="mj-legend-head"><span class="mj-dot mj-dot-formula"></span>Formula<span class="mj-legend-count">{{ vm.feed!.formula }}</span></span>
+                  <span class="mj-bar"><span class="mj-bar-fill mj-dot-formula" [style.width.%]="vm.feed!.today ? vm.feed!.formula / vm.feed!.today * 100 : 0"></span></span>
+                </li>
+              </ul>
+            </div>
+
+<!-- Hidden on My Journey 2026-09-25, kept for reuse
+            <button type="button" class="mj-add-btn" (click)="onFeed()">
+              <ion-icon name="add" aria-hidden="true"></ion-icon>
+              Add feed record
+            </button>
+-->
+
+            <div class="mj-recent-head">
+              <h4 class="mj-recent-title">Recent Feeds</h4>
+              <button type="button" class="mj-see-all" (click)="openFeedsSeeAll()" aria-label="See all feeds">
+                See all <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+              </button>
+            </div>
+            <p class="mj-recent-sub" *ngIf="vm.feed!.summary">{{ vm.feed!.summary }}</p>
+            <ng-container *ngFor="let day of vm.feed!.days">
+              <span class="mj-date-pill">{{ day.label }}</span>
+              <ul class="mj-rows">
+                <li *ngFor="let row of day.rows; trackBy: trackJourneyRow">
+                  <button type="button" class="mj-row" (click)="onFeedRowTap(row)"
+                          [attr.aria-label]="row.label + (row.value ? ', ' + row.value : '') + ' at ' + row.time + '. Edit or delete'">
+                    <span class="mj-row-time">{{ row.time }}</span>
+                    <span class="mj-row-icon" aria-hidden="true"><img [src]="row.icon" alt=""></span>
+                    <span class="mj-row-label">{{ row.label }}</span>
+                    <span class="mj-row-value" *ngIf="row.value">{{ row.value }}</span>
+                    <ion-icon name="chevron-forward" class="mj-row-chevron" aria-hidden="true"></ion-icon>
+                  </button>
+                </li>
+              </ul>
+            </ng-container>
+          </ng-container>
+        </section>
+      </ng-container>
+
+      <!-- Pumping Journey -->
+      <section class="mj-card" aria-labelledby="mj-pump-title">
+        <div class="mj-card-head">
+          <span class="mj-tile mj-lavender" aria-hidden="true"><img src="assets/Pumping journey.svg" alt=""></span>
+          <div class="mj-head-text">
+            <h3 id="mj-pump-title" class="mj-card-title">Pumping Journey</h3>
+            <p class="mj-card-sub">Track your pumping sessions and milk output</p>
+          </div>
+          <button type="button" class="mj-last" (click)="openPumpSeeAll()"
+                  [attr.aria-label]="'Last pumping ' + (pumpJourney?.lastTime ?? '--') + '. View all pump sessions'">
+            <span class="mj-last-text">
+              <span class="mj-last-label">Last pumping</span>
+              <span class="mj-last-value">{{ pumpJourney?.lastTime ?? '--' }}</span>
+            </span>
+            <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+
+        <!-- Skeleton while pump sessions load -->
+        <div class="mj-skeleton" *ngIf="journeyBabyId && !pumpJourney" aria-busy="true" aria-label="Loading pump sessions">
+          <div class="mj-skel-lines">
+            <ion-skeleton-text animated></ion-skeleton-text>
+            <ion-skeleton-text animated></ion-skeleton-text>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="journey-empty" *ngIf="(!journeyBabyId || pumpJourney) && !pumpJourney?.days?.length">
+          <div class="journey-empty-icon pumping">
+            <img src="assets/Pumping journey.svg" alt="" aria-hidden="true">
+          </div>
+          <h4>No pump sessions yet</h4>
+          <p>Track a session to watch your output and timing build over time.</p>
+<!-- Hidden on My Journey 2026-09-25, kept for reuse
+          <ion-button fill="solid" size="small" class="journey-empty-cta" (click)="openAddPumpingModal()">
+            <ion-icon name="add" slot="start"></ion-icon>
+            Log a session
+          </ion-button>
+-->
+        </div>
+
+        <ng-container *ngIf="pumpJourney?.days?.length">
+          <div class="mj-latest">
+            <span class="mj-latest-icon" aria-hidden="true"><ion-icon name="water"></ion-icon></span>
+            <span class="mj-latest-text">
+              <span class="mj-latest-label">Latest session</span>
+              <span class="mj-latest-value">{{ pumpJourney!.latestMl }} mL</span>
+              <span class="mj-latest-side">{{ pumpJourney!.latestSide }}</span>
+            </span>
+          </div>
+
+          <div class="mj-recent-head">
+            <h4 class="mj-recent-title">Recent Pump Sessions</h4>
+            <button type="button" class="mj-see-all" (click)="openPumpSeeAll()" aria-label="See all pump sessions">
+              See all <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+          <ng-container *ngFor="let day of pumpJourney!.days">
+            <span class="mj-date-pill">{{ day.label }}</span>
+            <ul class="mj-rows">
+              <li *ngFor="let row of day.rows; trackBy: trackJourneyRow">
+                <button type="button" class="mj-row" (click)="onPumpRowTap(row)"
+                        [attr.aria-label]="row.label + ', ' + row.value + ' at ' + row.time + '. Edit or delete'">
+                  <span class="mj-row-time">{{ row.time }}</span>
+                  <span class="mj-row-icon mj-lavender" aria-hidden="true"><img [src]="row.icon" alt=""></span>
+                  <span class="mj-row-label">{{ row.label }}</span>
+                  <span class="mj-row-value">{{ row.value }}</span>
+                  <ion-icon name="chevron-forward" class="mj-row-chevron" aria-hidden="true"></ion-icon>
+                </button>
+              </li>
+            </ul>
+          </ng-container>
+        </ng-container>
+      </section>
+      <!-- Previous My Journey stats, kept for reuse (never rendered) -->
+      <ng-template>
       <!-- Quick Stats Overview -->
       <div class="mothers-stats-grid">
         <div class="stat-card breastfeeding-stat">
@@ -157,6 +422,8 @@
           </div>
         </div>
 
+        <!-- Emotion Check-ins stat - commented per Komal, keep for later reuse -->
+        <!--
         <div class="stat-card emotion-stat">
           <div class="stat-icon">
             <img src="assets/Emotional wellness.svg" alt="Emotional wellness" class="stat-svg-icon">
@@ -166,17 +433,21 @@
             <div class="stat-label">Emotion Check-ins</div>
           </div>
         </div>
+        -->
       </div>
+      </ng-template>
 
       <!-- Journey Sections -->
       <div class="journey-sections">
         
+        <!-- Previous feeding and pumping sections, kept for reuse (never rendered) -->
+        <ng-template>
         <!-- Breastfeeding Section -->
         <div class="journey-section breastfeeding-section">
           <div class="section-header">
             <div class="section-title-icon">
-              <img src="assets/Breastfeeding journey.svg" alt="Breastfeeding Journey" class="section-svg-icon">
-              <h3>Breastfeeding Journey</h3>
+              <img src="assets/Breastfeeding journey.svg" alt="Your Feeding Journey" class="section-svg-icon">
+              <h3>Your Feeding Journey</h3>
             </div>
             <div class="section-summary" *ngIf="selectedBaby">
               <span class="last-feed-time">Last: {{ getLastTrackTime() }}</span>
@@ -184,8 +455,21 @@
           </div>
           
           <div class="section-content">
+            <!-- Empty state -->
+            <div class="journey-empty" *ngIf="!hasFeedActivity()">
+              <div class="journey-empty-icon breastfeeding">
+                <img src="assets/Breastfeeding journey.svg" alt="" aria-hidden="true">
+              </div>
+              <h4>Start your feeding log</h4>
+              <p>Log your first feed to see your rhythm and recent sessions here.</p>
+              <ion-button fill="solid" size="small" class="journey-empty-cta" (click)="onFeed()">
+                <ion-icon name="add" slot="start"></ion-icon>
+                Log first feed
+              </ion-button>
+            </div>
+
             <!-- Last Feed Summary -->
-            <div class="last-activity-card" *ngIf="selectedBaby">
+            <div class="last-activity-card" *ngIf="selectedBaby && hasFeedActivity()">
               <div class="activity-header">
                 <div class="activity-icon breastfeeding">
                   <ion-icon name="ellipse" *ngIf="getLastTrackBreastSide() === 'both'"></ion-icon>
@@ -202,41 +486,50 @@
               </div>
             </div>
             
-            <!-- Recent Feeds -->
-            <div class="recent-activities" *ngIf="recentRecords$ | async as recentRecords; else noRecentFeeds">
+            <!-- Recent Feeds; async subscribes unconditionally -->
+            <ng-container *ngIf="{ log: feedLog$ | async, more: feedHasMore$ | async } as vm">
+              <div class="recent-activities" *ngIf="hasFeedActivity() && vm.log?.rows?.length">
+                <h4 class="activities-title">Recent Feeds</h4>
+                <app-activity-log [rows]="vm.log!.rows" [summary]="vm.log!.summary" [hasMore]="vm.more"
+                                  [loadingMore]="loadingOlderFeeds" (loadMore)="loadOlderFeeds()"></app-activity-log>
+              </div>
+            </ng-container>
+            <!-- Previous feed list, kept for reuse
+             Recent Feeds 
+            <div class="recent-activities" *ngIf="hasFeedActivity() && (recentRecords$ | async) as recentRecords">
               <h4 class="activities-title">Recent Feeds</h4>
               <div class="recent-feeds-list">
                 <div *ngFor="let record of recentRecords | slice:0:3" class="feed-record-wrapper">
                   
-                  <!-- Direct Feed -->
+                   Breast Feed 
                   <div *ngIf="record.directFeedDetails" class="feed-record direct-feed">
                     <div class="feed-time-container">
-                      <div class="feed-time">{{ record.directFeedDetails.startTime || '--' }}</div>
+                      <div class="feed-time">{{ feedMethodTime(record, 'direct') }}</div>
                     </div>
                     <div class="feed-content">
                       <div class="feed-main-info">
                         <div class="feed-icon-label">
-                          <img src="assets/Fed directly.svg" alt="Direct Feed" class="feed-svg-icon">
-                          <span class="feed-type">{{ record.directFeedDetails.breastSide | titlecase }}</span>
+                          <img src="assets/Fed directly.svg" alt="Breast Feed" class="feed-svg-icon">
+                          <span class="feed-type">Breast Feed</span>
                         </div>
                         <div class="feed-metric">
-                          <span class="pain-value">{{ record.directFeedDetails.painLevel || 0 }}/10</span>
+                          <span class="side-value">{{ record.directFeedDetails.breastSide | titlecase }}</span>
                         </div>
                       </div>
                       <div class="feed-date">{{ formatDate(record.date) }}</div>
                     </div>
                   </div>
 
-                  <!-- Expressed Milk Feed -->
+                   Express Milk 
                   <div *ngIf="record.expressedMilkDetails" class="feed-record expressed-feed">
                     <div class="feed-time-container">
-                      <div class="feed-time">{{ formatTime(record.date) }}</div>
+                      <div class="feed-time">{{ feedMethodTime(record, 'expressed') }}</div>
                     </div>
                     <div class="feed-content">
                       <div class="feed-main-info">
                         <div class="feed-icon-label">
-                          <img src="assets/Pump.svg" alt="Expressed Milk" class="feed-svg-icon">
-                          <span class="feed-type">Expressed Milk</span>
+                          <img src="assets/Pump.svg" alt="Express Milk" class="feed-svg-icon">
+                          <span class="feed-type">Express Milk</span>
                         </div>
                         <div class="feed-metric">
                           <span class="volume-value">{{ record.expressedMilkDetails.quantity || 0 }}ml</span>
@@ -246,16 +539,16 @@
                     </div>
                   </div>
 
-                  <!-- Formula Feed -->
+                   Formula Milk 
                   <div *ngIf="record.formulaDetails" class="feed-record formula-feed">
                     <div class="feed-time-container">
-                      <div class="feed-time">{{ formatTime(record.date) }}</div>
+                      <div class="feed-time">{{ feedMethodTime(record, 'formula') }}</div>
                     </div>
                     <div class="feed-content">
                       <div class="feed-main-info">
                         <div class="feed-icon-label">
-                          <img src="assets/Formula.svg" alt="Formula" class="feed-svg-icon">
-                          <span class="feed-type">Formula</span>
+                          <img src="assets/Formula.svg" alt="Formula Milk" class="feed-svg-icon">
+                          <span class="feed-type">Formula Milk</span>
                         </div>
                         <div class="feed-metric">
                           <span class="volume-value">{{ record.formulaDetails.quantity || 0 }}ml</span>
@@ -268,13 +561,8 @@
                 </div>
               </div>
             </div>
+            -->
             
-            <ng-template #noRecentFeeds>
-              <div class="empty-activities">
-                <ion-icon name="body"></ion-icon>
-                <p>No recent feeds tracked</p>
-              </div>
-            </ng-template>
           </div>
         </div>
 
@@ -291,8 +579,21 @@
           </div>
           
           <div class="section-content">
+            <!-- Empty state -->
+            <div class="journey-empty" *ngIf="!hasPumpActivity()">
+              <div class="journey-empty-icon pumping">
+                <img src="assets/Pumping journey.svg" alt="" aria-hidden="true">
+              </div>
+              <h4>No pump sessions yet</h4>
+              <p>Track a session to watch your output and timing build over time.</p>
+              <ion-button fill="solid" size="small" class="journey-empty-cta" (click)="openAddPumpingModal()">
+                <ion-icon name="add" slot="start"></ion-icon>
+                Log a session
+              </ion-button>
+            </div>
+
             <!-- Last Pump Summary -->
-            <div class="last-activity-card">
+            <div class="last-activity-card" *ngIf="hasPumpActivity()">
               <div class="activity-header">
                 <div class="activity-icon pumping">
                   <ion-icon name="ellipse" *ngIf="getLastPumpSide() === 'both'"></ion-icon>
@@ -310,7 +611,13 @@
             </div>
             
             <!-- Recent Pumping Sessions -->
-            <div class="recent-activities" *ngIf="pumpingRecords$ | async as pumpingRecords; else noRecentPumps">
+            <div class="recent-activities" *ngIf="hasPumpActivity() && pumpLog.rows.length">
+              <h4 class="activities-title">Recent Sessions</h4>
+              <app-activity-log [rows]="pumpLog.rows" [summary]="pumpLog.summary"></app-activity-log>
+            </div>
+            <!-- Previous pump session list, kept for reuse
+             Recent Pumping Sessions 
+            <div class="recent-activities" *ngIf="hasPumpActivity() && (pumpingRecords$ | async) as pumpingRecords">
               <h4 class="activities-title">Recent Sessions</h4>
               <div class="activities-list">
                 <div *ngFor="let record of pumpingRecords | slice:0:3" class="activity-item pump-item">
@@ -338,18 +645,14 @@
                 </div>
               </div>
             </div>
+            -->
             
-            <ng-template #noRecentPumps>
-              <div class="empty-activities">
-                <ion-icon name="medical"></ion-icon>
-                <p>No recent pump sessions</p>
-              </div>
-            </ng-template>
           </div>
         </div>
+        </ng-template>
 
-        <!-- Emotional Wellness Section -->
-        <div class="journey-section emotion-section">
+        <!-- Emotional Wellness Section - hidden per Komal, keep for later reuse -->
+        <div class="journey-section emotion-section" *ngIf="false">
           <div class="section-header">
             <div class="section-title-icon">
               <img src="assets/Emotional wellness.svg" alt="Emotional Wellness" class="section-svg-icon">
@@ -399,6 +702,17 @@
             </div>
             
             <ng-template #noRecentEmotions>
+              <div class="journey-empty emotion">
+                <div class="journey-empty-icon emotion">
+                  <ion-icon name="heart"></ion-icon>
+                </div>
+                <h4>How are you feeling?</h4>
+                <p>A quick daily check-in helps you notice patterns in your wellbeing.</p>
+                <ion-button fill="solid" size="small" class="journey-empty-cta" (click)="onEmotionCheckin()">
+                  <ion-icon name="add" slot="start"></ion-icon>
+                  Add check-in
+                </ion-button>
+              </div>
               <!-- Wellness Tips (shown when no check-ins) -->
               <div class="wellness-tips">
                 <h4 class="tips-title">💡 Wellness Tips</h4>
@@ -545,13 +859,10 @@
             
             <div class="form-row">
               <div class="form-group half-width">
-                <label class="field-label">Start</label>
+                <label class="field-label" for="growth-start-time">Start</label>
                 <ion-item lines="none" class="input-item time-input">
-                  <ion-input
-                    formControlName="startTime"
-                    type="time"
-                    [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
-                  </ion-input>
+                  <!-- <ion-input formControlName="startTime" type="time" [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched"> </ion-input> -->
+                  <app-time-field inputId="growth-start-time" label="Start time" formControlName="startTime" [class.error]="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched"></app-time-field>
                 </ion-item>
                 <div class="error-message" *ngIf="addRecordForm.get('startTime')?.invalid && addRecordForm.get('startTime')?.touched">
                   {{ getErrorMessage('startTime') }}
@@ -559,13 +870,10 @@
               </div>
               
               <div class="form-group half-width">
-                <label class="field-label">End</label>
+                <label class="field-label" for="growth-end-time">End</label>
                 <ion-item lines="none" class="input-item time-input">
-                  <ion-input
-                    formControlName="endTime"
-                    type="time"
-                    [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
-                  </ion-input>
+                  <!-- <ion-input formControlName="endTime" type="time" [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched"> </ion-input> -->
+                  <app-time-field inputId="growth-end-time" label="End time" formControlName="endTime" [class.error]="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched"></app-time-field>
                 </ion-item>
                 <div class="error-message" *ngIf="addRecordForm.get('endTime')?.invalid && addRecordForm.get('endTime')?.touched">
                   {{ getErrorMessage('endTime') }}

@@ -3,7 +3,9 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { IonicStorageModule } from '@ionic/storage-angular';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
+import { AuthRefreshInterceptor } from './interceptors/auth-refresh.interceptor';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -48,7 +50,9 @@ if (isFirebaseConfigured) {
   imports: [
     BrowserModule,
     IonicModule.forRoot({
-      mode: 'ios'
+      mode: 'ios',
+      // Android already resizes the viewport for the keyboard; Ionic's extra padding doubled the gap
+      scrollPadding: !/android/i.test(navigator.userAgent)
     }),
     IonicStorageModule.forRoot(),
     AppRoutingModule,
@@ -56,7 +60,10 @@ if (isFirebaseConfigured) {
     ...firebaseImports
   ],
   providers: [
-    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    // AuthRefresh first so the timeout applies to each attempt, not to request + refresh + retry combined
+    { provide: HTTP_INTERCEPTORS, useClass: AuthRefreshInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: TimeoutInterceptor, multi: true }
   ],
   bootstrap: [AppComponent],
 })

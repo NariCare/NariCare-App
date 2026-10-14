@@ -102,7 +102,8 @@
   
 }
 
-/* Dark mode styles */
+/* Dark mode styles (off, see $enable-dark-theme in theme/variables.scss) */
+@if false {
 @media (prefers-color-scheme: dark) {
   :root {
     --ion-color-primary: #9a9aef;
@@ -117,6 +118,7 @@
     --ion-text-color: #000000;
     --ion-text-color-rgb: 0, 0, 0;
   }
+}
 }
 
 /* Typography Scale */
@@ -791,4 +793,22 @@ ion-button.preset-button {
 
 .feed-record.formula-feed .feed-icon-label ion-icon {
   color: #ffa726;
+}
+
+/* Hide the bottom tab bar while the keyboard is open (class set by ai-chat focus / native keyboard events) */
+body.keyboard-open ion-tab-bar {
+  display: none;
+}
+
+// Growth plausibility warnings list one issue per paragraph
+.growth-check-alert .alert-message {
+  white-space: pre-line;
+}
+
+// Validation lists: one error per line, left aligned, with breathing room
+.form-errors-alert .alert-message {
+  white-space: pre-line;
+  text-align: left;
+  line-height: 1.35;   // items are separated by a blank line (ClickUp 14ypx61ybau: space between errors)
+  padding-top: 8px;
 }

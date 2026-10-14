@@ -1,0 +1,66 @@
+// Tokens match baby-detail-growth.scss
+$primary-strong: #6464d3;
+$muted-strong: #5f5890;
+$ink: #2d3748;
+$lavender-border: #ece9fb;
+
+:host { display: block; }
+
+.dse-card {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 12px 12px 14px;
+  background: #ffffff;
+  border: 1px solid $lavender-border;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(100, 100, 211, 0.06);
+  font: inherit;
+  text-align: left;
+  color: $ink;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+}
+
+.dse-tile {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #f4f2fe;
+  color: $primary-strong;
+  font-size: 20px;
+}
+
+.is-error .dse-tile { background: #fdf0f5; color: #a3285f; }
+
+.dse-text { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; }
+.dse-title { font-size: 0.9375rem; font-weight: 700; line-height: 1.25; }
+.dse-sub { margin-left: 4px; font-size: 0.75rem; font-weight: 500; color: $muted-strong; }
+
+.dse-line {
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: $ink;
+  font-variant-numeric: tabular-nums;
+
+  &.is-empty { color: $muted-strong; }
+}
+
+.dse-skel { width: 70%; height: 13px; margin: 2px 0; border-radius: 6px; }
+.dse-chev { flex: 0 0 auto; font-size: 18px; color: $muted-strong; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dse-card { transition: none; &:active { transform: none; } }
+}

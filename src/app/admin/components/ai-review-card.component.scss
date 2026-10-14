@@ -1,0 +1,40 @@
+:host { display: block; }
+
+.airc { display: flex; flex-direction: column; gap: 12px; }
+.airc-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12px;
+  span { display: inline-flex; align-items: center; gap: 4px; }
+}
+.airc-cat { margin-left: auto; select { min-height: 36px; font-size: 13px; } }
+.airc.crisis { border-color: #e7a3a3; box-shadow: 0 0 0 1px #e7a3a3, var(--adm-shadow); }
+.airc-crisis {
+  display: flex; align-items: center; gap: 8px; margin: -18px -18px 0; padding: 10px 18px;
+  border-radius: var(--adm-radius) var(--adm-radius) 0 0; background: #fbe4e4; color: #8f1d1d; font-weight: 600;
+  ion-icon { font-size: 20px; }
+}
+.airc-check { display: flex; flex-wrap: wrap; gap: 6px; }
+// Safety flags may use an alert tone; everything else stays neutral
+.adm-badge.risk-high { background: #fbe4e4; color: #8f1d1d; }
+.adm-badge.risk-medium { background: var(--adm-orange); color: var(--adm-orange-ink); }
+.adm-badge.risk-low { background: #eeeef2; color: #4a4c60; }
+.airc-score { background: #eeeef2; color: #4a4c60; font-variant-numeric: tabular-nums; &.low { background: var(--adm-orange); color: var(--adm-orange-ink); } }
+.airc-flag { background: var(--adm-surface); color: var(--adm-ink); border: 1px solid var(--adm-line); }
+.airc-why { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--adm-line); font-size: 13px; color: var(--adm-muted); overflow-wrap: anywhere; strong { color: var(--adm-ink); } }
+.airc-q { font-size: 15px; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
+.airc-block {
+  padding: 12px 14px; border-radius: 12px; background: var(--adm-bg);
+  h4 { margin: 0 0 4px; font-size: 12px; font-weight: 600; color: var(--adm-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+  &.corrected { background: var(--adm-green); }
+}
+.airc-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; max-height: 320px; overflow-y: auto; }
+.airc-review { font-size: 12px; }
+.airc-edit {
+  display: flex; flex-direction: column; gap: 6px;
+  label { font-size: 12px; font-weight: 600; color: var(--adm-muted); }
+  .notes { min-height: 56px; }
+}
+.airc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+@media (max-width: 639px) {
+  .airc-cat { margin-left: 0; width: 100%; select { width: 100%; min-height: 44px; } }
+}

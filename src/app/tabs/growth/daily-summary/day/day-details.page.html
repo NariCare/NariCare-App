@@ -1,0 +1,116 @@
+<ion-header class="history-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="backHref" text="" aria-label="Back"></ion-back-button>
+    </ion-buttons>
+    <div class="header-text">
+      <h1>Day Details</h1>
+      <p>{{ longDate }}</p>
+    </div>
+    <ion-buttons slot="end">
+      <button type="button" class="ds-share" (click)="share()" [disabled]="loading || error" aria-label="Share day summary">
+        <ion-icon name="share-social-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="history-content">
+  <div class="history-body">
+
+    <nav class="ds-nav" aria-label="Choose day">
+      <button type="button" class="ds-nav-step" (click)="step(-1)" aria-label="Previous day">
+        <ion-icon name="chevron-back" aria-hidden="true"></ion-icon>
+      </button>
+      <label class="ds-nav-date">
+        <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+        <span class="ds-nav-text" aria-hidden="true">
+          <span class="ds-nav-main">{{ navMain }}</span>
+          <span class="ds-nav-sub">{{ navSub }}</span>
+        </span>
+        <input type="date" class="ds-nav-input" [value]="date" [max]="today" (change)="pick($event)"
+               [attr.aria-label]="'Choose day, showing ' + navMain + ', ' + navSub">
+      </label>
+      <button type="button" class="ds-nav-step" (click)="step(1)" [disabled]="isToday" aria-label="Next day">
+        <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
+      </button>
+    </nav>
+
+    <div role="alert" *ngIf="error">
+      <button type="button" class="ds-error" (click)="retry()">
+        <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+        Couldn't load this day. Tap to retry.
+      </button>
+    </div>
+
+    <!-- Daily summary rows -->
+    <section class="gv-card" aria-labelledby="dd-summary-title" *ngIf="!error">
+      <div class="ds-head"><h2 id="dd-summary-title">Daily summary</h2></div>
+      <p class="ds-empty" *ngIf="!loading && !day.hasData">{{ isToday ? 'Nothing logged yet today' : 'Nothing logged on this day' }}</p>
+      <ul class="dd-rows" *ngIf="loading" aria-busy="true" aria-label="Loading day summary">
+        <li *ngFor="let i of [1, 2, 3, 4, 5]">
+          <ion-skeleton-text animated class="dd-skel-tile"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 50%; height: 14px"></ion-skeleton-text>
+        </li>
+      </ul>
+      <ul class="dd-rows" *ngIf="!loading" [class.is-empty]="!day.hasData">
+        <li *ngFor="let m of rows">
+          <span class="ds-tile" [ngClass]="m.tone" aria-hidden="true">
+            <img *ngIf="m.img" [src]="m.img" alt="">
+            <ion-icon *ngIf="m.icon" [name]="m.icon"></ion-icon>
+          </span>
+          <span class="dd-value">{{ m.value }}<small *ngIf="m.unit"> {{ m.unit }}</small></span>
+          <span class="dd-label">{{ m.label }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Timeline -->
+    <section class="gv-card" aria-labelledby="dd-timeline-title" *ngIf="!error">
+      <div class="ds-head">
+        <h2 id="dd-timeline-title">Timeline</h2>
+        <label class="dd-filter">
+          <span class="sr-only">Show</span>
+          <span class="dd-filter-text" aria-hidden="true">{{ filterLabel }}</span>
+          <ion-icon name="chevron-down" aria-hidden="true"></ion-icon>
+          <select (change)="setFilter($event)" [value]="filter">
+            <option *ngFor="let f of filters" [value]="f.id" [selected]="f.id === filter">{{ f.label }}</option>
+          </select>
+        </label>
+      </div>
+
+      <ul class="dd-timeline" *ngIf="loading" aria-busy="true" aria-label="Loading timeline">
+        <li *ngFor="let i of [1, 2, 3]"><ion-skeleton-text animated style="width: 80%; height: 14px"></ion-skeleton-text></li>
+      </ul>
+
+      <p class="ds-empty" *ngIf="!loading && timelineError">Couldn't load the timeline for this day.</p>
+      <p class="ds-empty" *ngIf="!loading && !timelineError && !shown.length">
+        {{ events.length ? 'Nothing in this filter for the day.' : (isToday ? 'No entries yet today.' : 'No entries on this day.') }}
+      </p>
+
+      <ol class="dd-timeline" *ngIf="!loading && shown.length" aria-label="Entries, latest first">
+        <li *ngFor="let e of shown; trackBy: trackEvent">
+          <span class="dd-rail" aria-hidden="true"><span class="dd-dot" [ngClass]="e.tone"></span></span>
+          <span class="ds-tile" [ngClass]="e.tone" aria-hidden="true">
+            <img *ngIf="e.img" [src]="e.img" alt="">
+            <ion-icon *ngIf="e.icon" [name]="e.icon"></ion-icon>
+          </span>
+          <span class="dd-ev-text">
+            <span class="dd-ev-time">{{ e.time12 }}</span>
+            <span class="dd-ev-title">{{ e.title }}</span>
+            <span class="dd-ev-detail" *ngIf="e.detail">{{ e.detail }}</span>
+          </span>
+          <span class="dd-ev-value" *ngIf="e.value">{{ e.value }}</span>
+        </li>
+      </ol>
+    </section>
+
+    <div class="ds-note">
+      <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+      <div>
+        <p>{{ definition }}</p>
+        <p>{{ calendarNote }}</p>
+      </div>
+    </div>
+  </div>
+</ion-content>

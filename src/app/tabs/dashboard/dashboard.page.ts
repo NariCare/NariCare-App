@@ -2,6 +2,8 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } fr
 import { Router } from '@angular/router';
 import { ModalController, ToastController, AlertController } from '@ionic/angular';
 import { Observable, Subscription } from 'rxjs';
+import { App } from '@capacitor/app';
+import { PluginListenerHandle } from '@capacitor/core';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { ChatbotService } from '../../services/chatbot.service';
 import { BabyTimelineService } from '../../services/baby-timeline.service';
@@ -9,6 +11,8 @@ import { ConsultationService } from '../../services/consultation.service';
 import { OnboardingService } from '../../services/onboarding.service';
 import { InsightsService, TodaysInsights } from '../../services/insights.service';
 import { BackendKnowledgeService } from '../../services/backend-knowledge.service';
+import { QuoteService, Quote } from '../../services/quote.service';
+import { SelfCareService, SelfCareTip, TimeBlock } from '../../services/self-care.service';
 import { Article } from '../../models/knowledge-base.model';
 import { BabyTimelineItem, BabyTimelineData } from '../../models/baby-timeline.model';
 import { User } from '../../models/user.model';
@@ -19,6 +23,7 @@ import { SpecificWeekModalComponent } from '../../components/specific-week-modal
 import { ConsultationBookingModalComponent } from '../../components/consultation-booking-modal/consultation-booking-modal.component';
 import { AvailabilitySchedulerModalComponent } from '../../components/availability-scheduler-modal/availability-scheduler-modal.component';
 import { ConsultationReportModalComponent } from '../../components/consultation-report-modal/consultation-report-modal.component';
+import { illustrationForCategory } from '../knowledge/knowledge-illustrations';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,7 +41,12 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   nonUpcomingConsultations: Consultation[] = [];
   experts: Expert[] = [];
   showOnboardingAction = false;
-  
+  quoteOfDay: Quote | null = null;
+  currentTip: SelfCareTip | null = null;
+  private selfCareTips: SelfCareTip[] = [];
+  private currentBlock: TimeBlock | null = null;
+  private resumeListener: PluginListenerHandle | null = null;
+
   // Insights data
   todaysInsights: TodaysInsights | null = null;
   
@@ -62,6 +72,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   isHeaderCollapsed = false;
   private lastScrollTop = 0;
   private scrollTimeout: any = null;
+  private readonly hiddenSections: Array<'timeline' | 'booking' | 'learning' | 'insights'> = ['insights', 'timeline'];
 
   baseQuickActions = [
     {
@@ -110,10 +121,25 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private insightsService: InsightsService,
     private knowledgeService: BackendKnowledgeService,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private quoteService: QuoteService,
+    private selfCareService: SelfCareService
   ) {}
 
   ngOnInit() {
+    this.quoteService.getQuoteOfTheDay().subscribe(quote => {
+      this.quoteOfDay = quote;
+    });
+
+    this.selfCareService.getTipsData().subscribe(tips => {
+      this.selfCareTips = tips;
+      this.refreshTip();
+    });
+
+    this.resumeListener = App.addListener('resume', () => {
+      this.refreshTip();
+    });
+
     // Subscribe to user changes and store subscription for cleanup
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.user = user;
@@ -145,6 +171,59 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     if (this.scrollTimeout) {
       clearTimeout(this.scrollTimeout);
     }
+    if (this.resumeListener) {
+      this.resumeListener.remove();
+    }
+  }
+
+  // Re-picks the self-care tip for whatever time block we're in now.
+  // Called on init, on app resume, and whenever the block changes (per spec).
+  private refreshTip(): void {
+    const block = this.getTimeOfDay();
+    this.currentBlock = block;
+    this.currentTip = this.selfCareService.pickTip(this.selfCareTips, block, this.isPregnantJourney());
+  }
+
+  getTimeOfDay(): TimeBlock {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Morning';
+    if (hour >= 12 && hour < 17) return 'Afternoon';
+    if (hour >= 17 && hour < 21) return 'Evening';
+    if (hour >= 21) return 'Night';
+    return 'Midnight'; // 0-4
+  }
+
+  getGreeting(): string {
+    switch (this.getTimeOfDay()) {
+      case 'Morning': return 'Good morning';
+      case 'Afternoon': return 'Good afternoon';
+      case 'Evening': return 'Good evening';
+      case 'Night': return 'Good night';
+      case 'Midnight': return 'Midnight check-in';
+    }
+  }
+
+  getExpertGreeting(): string {
+    const t = this.getTimeOfDay();
+    return t === 'Morning' ? 'Good morning' : t === 'Afternoon' ? 'Good afternoon' : 'Good evening';
+  }
+
+  getGreetingEmoji(): string {
+    switch (this.getTimeOfDay()) {
+      case 'Morning': return '☀️';
+      case 'Afternoon': return '🌤️';
+      case 'Evening': return '🌙';
+      case 'Night': return '🌛';
+      case 'Midnight': return '🌌';
+    }
+  }
+
+  getQuoteAttribution(): string {
+    return this.quoteService.getAttribution(this.quoteOfDay);
+  }
+
+  hasQuoteAuthor(): boolean {
+    return this.getQuoteAttribution().length > 0;
   }
 
   onContentScroll(event: any) {
@@ -171,10 +250,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
     
     if (scrollTop > scrollThreshold + hysteresis && scrollTop > this.lastScrollTop && !this.isHeaderCollapsed) {
-      // Scrolling down - collapse header
+      // Scrolling down past threshold - collapse header
       this.isHeaderCollapsed = true;
-    } else if ((scrollTop < this.lastScrollTop || scrollTop <= scrollThreshold - hysteresis) && this.isHeaderCollapsed) {
-      // Scrolling up or near top - expand header
+    } else if (scrollTop <= scrollThreshold - hysteresis && this.isHeaderCollapsed) {
+      // Scrolled back near the top - expand header
       this.isHeaderCollapsed = false;
     }
     
@@ -210,6 +289,14 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
           icon: 'calendar',
           action: 'setSchedule',
           color: 'primary',
+          priority: true
+        },
+        {
+          title: 'Review AI answers',
+          description: 'Check NariCare AI replies to mothers',
+          icon: 'chatbubbles',
+          action: 'reviewAi',
+          color: 'success',
           priority: true
         },
         {
@@ -393,6 +480,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  navigateToKnowledge() {
+    this.router.navigate(['/tabs/knowledge']);
+  }
+
   handleQuickAction(action: string) {
     switch (action) {
       case 'openOnboarding':
@@ -408,7 +499,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         this.router.navigate(['/tabs/knowledge']);
         break;
       case 'joinChat':
-        this.router.navigate(['/tabs/chat']);
+        this.router.navigate(['/tabs/chat'], { queryParams: { tab: 'groups' } });
         break;
       // Expert-specific actions
       case 'setSchedule':
@@ -416,6 +507,9 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         break;
       case 'openExpertNotes':
         this.router.navigate(['/expert-notes']);
+        break;
+      case 'reviewAi':
+        this.router.navigate(['/admin/ai-review']);
         break;
       case 'manageClients':
         setTimeout(() => {
@@ -445,18 +539,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - birthDate.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
-  }
-
-  getTimeOfDay(): string {
-    const hour = new Date().getHours();
-    
-    if (hour >= 6 && hour < 12) {
-      return 'morning';
-    } else if (hour >= 12 && hour < 18) {
-      return 'afternoon';
-    } else {
-      return 'evening';
-    }
   }
 
   getFirstName(): string {
@@ -491,55 +573,6 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       day: 'numeric' 
     };
     return today.toLocaleDateString('en-US', options);
-  }
-
-  getBabyAgeOrDueDate(): string {
-    // Priority 1: Baby data (if baby exists, use baby's birth date)
-    if (this.user?.babies && this.user.babies.length > 0) {
-      const baby = this.user.babies[0];
-      
-      if (baby.dateOfBirth) {
-        return AgeCalculatorUtil.calculateBabyAge(baby.dateOfBirth);
-      }
-    }
-    
-    // Priority 2: Due date (if no baby data but due date exists)
-    if (this.user?.dueDate) {
-      const dueDate = new Date(this.user.dueDate);
-      const today = new Date();
-      const diffTime = dueDate.getTime() - today.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays > 0) {
-        // Still pregnant - show countdown to due date
-        if (diffDays < 7) {
-          return `Due in ${diffDays} day${diffDays !== 1 ? 's' : ''}`;
-        } else {
-          const weeksUntilDue = Math.floor(diffDays / 7);
-          const remainingDays = diffDays % 7;
-          if (remainingDays === 0) {
-            return `Due in ${weeksUntilDue} week${weeksUntilDue !== 1 ? 's' : ''}`;
-          }
-          return `Due in ${weeksUntilDue}w ${remainingDays}d`;
-        }
-      } else {
-        // Past due date
-        const daysPastDue = Math.abs(diffDays);
-        if (daysPastDue < 7) {
-          return `${daysPastDue} day${daysPastDue !== 1 ? 's' : ''} overdue`;
-        } else {
-          const weeksPastDue = Math.floor(daysPastDue / 7);
-          const remainingDays = daysPastDue % 7;
-          if (remainingDays === 0) {
-            return `${weeksPastDue} week${weeksPastDue !== 1 ? 's' : ''} overdue`;
-          }
-          return `${weeksPastDue}w ${remainingDays}d overdue`;
-        }
-      }
-    }
-    
-    // No baby data and no due date
-    return '';
   }
 
   getBabyAvatarImage(): string {
@@ -586,45 +619,73 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     return 0;
   }
 
-  getStreakIcon(): string {
-    // If baby exists, show flame (motherhood)
-    if (this.user?.babies && this.user.babies.length > 0) {
-      return 'flame';
-    }
-    
-    // If pregnant (due date exists), show heart for pregnancy journey
-    if (this.user?.dueDate) {
-      return 'heart';
-    }
-    
-    return 'flame'; // default
+  // ============================================================================
+  // JOURNEY CARD
+  // ============================================================================
+
+  hasJourneyCard(): boolean {
+    return !!(this.user?.motherType || this.user?.dueDate || (this.user?.babies && this.user.babies.length > 0));
   }
 
-  getStreakText(): string {
-    // Priority 1: Baby data (motherhood journey)
-    if (this.user?.babies && this.user.babies.length > 0) {
-      const days = this.getBabyAgeInDays();
-      return `${days} days of motherhood`;
+  isPregnantJourney(): boolean {
+    // motherType is the authoritative signal set at registration; babies/dueDate
+    // can be in an inconsistent state (e.g. a new_mom account whose baby record
+    // was never created but an old dueDate is still on file), so trust it first.
+    if (this.user?.motherType) {
+      return this.user.motherType === 'pregnant';
     }
-    
-    // Priority 2: Pregnancy journey
-    if (this.user?.dueDate) {
-      const dueDate = new Date(this.user.dueDate);
-      const today = new Date();
-      const diffTime = dueDate.getTime() - today.getTime();
-      const daysUntilDue = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (daysUntilDue > 0) {
-        // Still pregnant - show countdown
-        return `${daysUntilDue} days until motherhood`;
-      } else {
-        // Overdue - encouraging message
-        const daysPastDue = Math.abs(daysUntilDue);
-        return `Ready to meet your little one! ${daysPastDue} days past due`;
-      }
+    return !(this.user?.babies && this.user.babies.length > 0) && !!this.user?.dueDate;
+  }
+
+  getPregnancyWeeksAndDays(): { weeks: number; days: number } {
+    const pregnancyDays = Math.min(this.getBabyAgeInDays(), 280);
+    return { weeks: Math.floor(pregnancyDays / 7), days: pregnancyDays % 7 };
+  }
+
+  getTrimester(): string {
+    const { weeks } = this.getPregnancyWeeksAndDays();
+    if (weeks <= 13) return 'First Trimester';
+    if (weeks <= 27) return 'Second Trimester';
+    return 'Third Trimester';
+  }
+
+  getPregnancyProgressPercent(): number {
+    const pregnancyDays = Math.min(this.getBabyAgeInDays(), 280);
+    return Math.round((pregnancyDays / 280) * 100);
+  }
+
+  getDaysUntilDue(): number {
+    if (!this.user?.dueDate) return 0;
+    const dueDate = new Date(this.user.dueDate);
+    const today = new Date();
+    const diffDays = Math.floor((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  }
+
+  getBabyAgeText(baby: any = this.user?.babies?.[0]): string {
+    if (baby?.dateOfBirth) {
+      return AgeCalculatorUtil.calculateBabyAge(baby.dateOfBirth);
     }
-    
-    return '';
+    return 'Add your baby to start tracking';
+  }
+
+  // Stable ref: a fresh [{}] per change-detection pass looped *ngFor forever
+  private readonly noBabyJourney: any[] = [{}];
+
+  /** One journey card per baby; a single placeholder card when none are added yet. */
+  journeyBabies(): any[] {
+    return this.user?.babies?.length ? this.user.babies : this.noBabyJourney;
+  }
+
+  trackJourneyBaby = (index: number, baby: any) => baby?.id ?? index;
+
+  openBabyJourney(baby?: any) {
+    if (baby?.id) this.router.navigate(['/tabs/growth/baby-detail', baby.id]);
+    else this.router.navigate(['/tabs/growth']);
+  }
+
+  getBabyFirstName(): string {
+    return this.user?.babies?.[0]?.name || 'your little one';
   }
 
   hasUnreadNotifications(): boolean {
@@ -995,9 +1056,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
 
   shouldHideSection(section: 'timeline' | 'booking' | 'learning' | 'insights'): boolean {
-    if (!this.isExpert()) return false;
-    
-    return ['timeline', 'booking', 'learning', 'insights'].includes(section);
+    // Hidden for everyone via hiddenSections, plus experts never see these sections.
+    return this.hiddenSections.includes(section) || this.isExpert();
   }
 
   /**
@@ -1069,8 +1129,26 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Get the current learning activity to display
    */
+  // Read on each Home visit (ionViewWillEnter), not per change-detection pass
+  private lastOpenedArticle: any = null;
+  ionViewWillEnter() {
+    try { this.lastOpenedArticle = JSON.parse(localStorage.getItem('naricare_last_article') || 'null'); } catch { this.lastOpenedArticle = null; }
+  }
+
   getCurrentLearningActivity(): any {
-    // Priority: bookmarked articles, then recent articles
+    // Priority: last opened article, then bookmarked, then recent
+    const last = this.lastOpenedArticle;
+    if (last?.id) {
+      return {
+        type: 'last-opened',
+        title: last.title,
+        description: `Continue reading${last.readTime ? ` • ${last.readTime} min read` : ''}${last.category?.name ? ` • ${last.category.name}` : ''}`,
+        icon: 'book',
+        article: last,
+        categoryId: last.category?.id,
+        categoryColor: last.category?.color
+      };
+    }
     if (this.bookmarkedArticles.length > 0) {
       const article = this.bookmarkedArticles[0];
       return {
@@ -1079,6 +1157,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         description: `Continue reading • ${article.readTime} min read`,
         icon: 'bookmark',
         article: article,
+        categoryId: article.category.id,
         categoryColor: article.category.color
       };
     }
@@ -1091,6 +1170,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
         description: `New article • ${article.readTime} min read • ${article.category.name}`,
         icon: 'library',
         article: article,
+        categoryId: article.category.id,
         categoryColor: article.category.color
       };
     }
@@ -1101,6 +1181,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
       title: 'Breastfeeding Basics',
       description: 'Start your learning journey with essential topics',
       icon: 'school',
+      categoryId: 'breastfeeding-techniques',
       categoryColor: '#8383ed'
     };
   }
@@ -1124,7 +1205,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
    * Check if user has any learning progress to continue
    */
   hasLearningProgress(): boolean {
-    return this.bookmarkedArticles.length > 0 || this.recentArticles.length > 0;
+    return !!this.lastOpenedArticle?.id || this.bookmarkedArticles.length > 0 || this.recentArticles.length > 0;
   }
 
   /**
@@ -1143,6 +1224,11 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     }
     
     return 'Start your learning journey';
+  }
+
+  getLearningCardIllustration(): string {
+    const activity = this.getCurrentLearningActivity();
+    return illustrationForCategory(activity.categoryId);
   }
 
   /**

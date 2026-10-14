@@ -20,6 +20,8 @@ export interface CreateEmotionCheckinRequest {
   proudOfToday: string | null;
   tomorrowGoal: string | null;
   additionalNotes: string | null;
+  recordDate?: string; // local YYYY-MM-DD so the check-in lands on the right day
+  recordTime?: string; // local HH:MM:SS
 }
 
 export interface EmotionCheckinOptions {

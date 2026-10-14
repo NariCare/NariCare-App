@@ -97,6 +97,7 @@
       <!-- Search Users -->
       <ion-searchbar
         [(ngModel)]="searchQuery"
+        [ngModelOptions]="{ standalone: true }"
         (ionInput)="onSearchChange($event)"
         placeholder="Search users by name"
         show-clear-button="focus"

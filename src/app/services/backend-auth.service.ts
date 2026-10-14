@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap, catchError, tap } from 'rxjs/operators';
@@ -31,13 +31,54 @@ export class BackendAuthService {
     private router: Router,
     private storage: Storage,
     private afAuth: AngularFireAuth,
-    private platform: Platform
+    private platform: Platform,
+    private ngZone: NgZone
   ) {
     this.initializeAuth();
+    document.addEventListener('visibilitychange', this.onAppVisible);
+  }
+
+  // Constructor-time async/await and Firebase callbacks can resolve outside
+  // Angular's zone, silently leaving *ngIf-gated UI stale until an unrelated
+  // click/scroll forces change detection. Route every update through the zone.
+  private setCurrentUser(user: User | null): void {
+    this.ngZone.run(() => this.currentUserSubject.next(user));
+    this.scheduleTokenRefresh(!!user);
+  }
+
+  // Renew the access token a minute before it expires so an open session never lapses mid-use
+  private refreshTimer: ReturnType<typeof setTimeout> | null = null;
+  private scheduleTokenRefresh(signedIn: boolean): void {
+    if (this.refreshTimer) clearTimeout(this.refreshTimer);
+    this.refreshTimer = null;
+    const expiry = this.apiService.getTokenExpiry();
+    if (!signedIn || !expiry || !this.apiService.hasRefreshToken()) return;
+    this.refreshTimer = setTimeout(async () => {
+      if (await this.tryRefreshToken()) this.scheduleTokenRefresh(true);
+    }, Math.max(0, expiry - Date.now() - 60_000));
+  }
+
+  // Phones pause timers in the background, so re-check on return: refresh now if the token is (nearly) expired
+  private readonly onAppVisible = async () => {
+    if (document.visibilityState !== 'visible' || !this.currentUserSubject.value) return;
+    const expiry = this.apiService.getTokenExpiry();
+    if (expiry && expiry - Date.now() < 60_000 && this.apiService.hasRefreshToken()) {
+      await this.tryRefreshToken();
+    }
+    this.scheduleTokenRefresh(true);
+  };
+
+  private async tryRefreshToken(): Promise<boolean> {
+    return !!(await this.apiService.refreshSession());
   }
 
   private async initializeAuth() {
     try {
+      // Expired access token but a valid refresh token: renew instead of signing her out
+      const expiry = this.apiService.getTokenExpiry();
+      if (expiry && expiry <= Date.now() && this.apiService.hasRefreshToken()) {
+        await this.tryRefreshToken();
+      }
       // Check if user is already authenticated synchronously first
       const token = localStorage.getItem('naricare_token');
       if (token && this.apiService.isAuthenticated()) {
@@ -45,7 +86,7 @@ export class BackendAuthService {
           const response = await this.apiService.getUserProfile().toPromise();
           if (response?.success && response.data) {
             const user = this.transformUserData(response.data);
-            this.currentUserSubject.next(user);
+            this.setCurrentUser(user);
             
             // Don't auto-navigate here, let app.component handle it
             console.log('User loaded on initialization:', user.email);
@@ -53,7 +94,7 @@ export class BackendAuthService {
         } catch (error) {
           console.warn('Failed to load user profile on init:', error);
           this.apiService.logout().subscribe();
-          this.currentUserSubject.next(null);
+          this.setCurrentUser(null);
         }
       }
     } finally {
@@ -109,9 +150,10 @@ export class BackendAuthService {
       const response = await this.apiService.register(userData).toPromise();
       
       if (response?.success && response.data) {
-        // API returns user data directly in response.data, not response.data.user
-        const user = this.transformUserData(response.data);
-        this.currentUserSubject.next(user);
+        // Register returns camelCase fields (userId, firstName) that transformUserData can't read; load the real profile
+        const profile = await this.apiService.getUserProfile().toPromise().catch(() => null);
+        const user = this.transformUserData(profile?.success && profile.data ? profile.data : { ...response.data, id: (response.data as any).userId });
+        this.setCurrentUser(user);
         
         // Navigate to dashboard (onboarding temporarily disabled)
         // Only redirect if not already on a valid tabs page
@@ -127,9 +169,9 @@ export class BackendAuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<void> {
+  async login(email: string, password: string, portal?: 'user' | 'admin' | 'lc'): Promise<void> {
     try {
-      const response = await this.apiService.login(email, password).toPromise();
+      const response = await this.apiService.login(email, password, portal).toPromise();
       
       if (response?.success && response.data) {
         if (response.data.requiresTwoFactor) {
@@ -139,11 +181,22 @@ export class BackendAuthService {
           return;
         }
         
-        // Normal login success
-        const user = this.transformUserData(response.data.user);
-        this.currentUserSubject.next(user);
+        // Normal login success. The login endpoint now returns the full profile
+        // (babies/tier/prefs), so currentUser$ is fully populated in one round trip.
+        const loginUser = this.transformUserData(response.data.user);
+        this.setCurrentUser(loginUser);
         this.twoFactorRequiredSubject.next(false);
-        
+
+        // (Commented out) Background profile refetch - redundant now that login
+        // returns the full profile. Kept for reference.
+        // this.apiService.getUserProfile().toPromise()
+        //   .then(profileResponse => {
+        //     if (profileResponse?.success && profileResponse.data) {
+        //       this.setCurrentUser(this.transformUserData(profileResponse.data));
+        //     }
+        //   })
+        //   .catch(profileError => console.warn('Failed to load full profile after login:', profileError));
+
         // Navigate to dashboard (onboarding temporarily disabled)
         // Only redirect if not already on a valid tabs page
         const currentUrl = this.router.url;
@@ -154,7 +207,7 @@ export class BackendAuthService {
         throw new Error(response?.message || 'Login failed');
       }
     } catch (error: any) {
-      throw new Error(this.getErrorMessage(error));
+      throw Object.assign(new Error(this.getErrorMessage(error)), { status: error?.status, code: error?.code, portal: error?.portal });
     }
   }
 
@@ -168,7 +221,7 @@ export class BackendAuthService {
         
         if (profileResponse?.success && profileResponse.data) {
           const user = this.transformUserData(profileResponse.data);
-          this.currentUserSubject.next(user);
+          this.setCurrentUser(user);
           this.twoFactorRequiredSubject.next(false);
           this.pendingEmail = '';
           
@@ -228,18 +281,24 @@ export class BackendAuthService {
   }
 
   async logout(): Promise<void> {
-    try {
-      await this.apiService.logout().toPromise();
-    } catch (error) {
-      console.warn('Logout API call failed, but clearing local state:', error);
-    } finally {
-      // Always clear local state
-      await this.clearAllUserData();
-      this.currentUserSubject.next(null);
-      this.twoFactorRequiredSubject.next(false);
-      this.pendingEmail = '';
-      this.router.navigate(['/auth/login']);
-    }
+    // Each role goes back to its own login page
+    const role = this.getCurrentUser()?.role;
+    const loginUrl = role === 'admin' ? '/auth/login/admin' : role === 'expert' ? '/auth/login/lc' : '/auth/login';
+    // Clear local state and navigate FIRST so logout is instant. The JWT is
+    // stateless (the server logout endpoint just logs and returns 200), so we
+    // don't wait on it - fire it non-blocking afterwards.
+    await this.clearAllUserData();
+    this.apiService.clearAllUserData(); // synchronous token/localStorage clear
+    // Remember the portal so AdminGuard picks the right login page for shared routes
+    try { localStorage.setItem('nc_login_portal', role === 'admin' ? 'admin' : role === 'expert' ? 'lc' : 'user'); } catch { /* storage blocked */ }
+    this.setCurrentUser(null);
+    this.twoFactorRequiredSubject.next(false);
+    this.pendingEmail = '';
+    // Full reload, not router.navigate: in-app navigation from Profile could silently fail and leave the user on the page; a reload also drops in-memory user data
+    window.location.replace(loginUrl);
+
+    this.apiService.logout().toPromise()
+      .catch(error => console.warn('Logout API call failed (local state already cleared):', error));
   }
 
   private async clearAllUserData(): Promise<void> {
@@ -272,7 +331,7 @@ export class BackendAuthService {
       if (response?.success) {
         if (response.data) {
           const updatedUser = this.transformUserData(response.data);
-          this.currentUserSubject.next(updatedUser);
+          this.setCurrentUser(updatedUser);
         }
         // Success with or without data - both are valid
       } else {
@@ -289,7 +348,7 @@ export class BackendAuthService {
       
       if (response?.success && response.data) {
         const user = this.transformUserData(response.data);
-        this.currentUserSubject.next(user);
+        this.setCurrentUser(user);
       } else {
         throw new Error(response?.message || 'Failed to refresh profile');
       }
@@ -307,7 +366,7 @@ export class BackendAuthService {
         const currentUser = this.getCurrentUser();
         if (currentUser) {
           currentUser.notificationPreferences = { ...currentUser.notificationPreferences, ...preferences };
-          this.currentUserSubject.next(currentUser);
+          this.setCurrentUser(currentUser);
         }
       } else {
         throw new Error(response?.message || 'Failed to update notification preferences');
@@ -535,7 +594,7 @@ export class BackendAuthService {
       
       if (response?.success && response.data) {
         const user = this.transformUserData(response.data.user);
-        this.currentUserSubject.next(user);
+        this.setCurrentUser(user);
         
         // Navigate to dashboard (onboarding temporarily disabled)
         // Only redirect if not already on a valid tabs page
@@ -570,7 +629,7 @@ export class BackendAuthService {
       whatsappNumber: apiUser.whatsappNumber || apiUser.whatsapp_number || '',
       motherType: apiUser.motherType || apiUser.mother_type,
       dueDate: apiUser.dueDate || apiUser.due_date ? new Date(apiUser.dueDate || apiUser.due_date) : undefined,
-      profileImage: apiUser.profileImage || apiUser.profile_image,
+      profileImage: apiUser.profileImage || apiUser.profile_image || apiUser.profile_image_url || apiUser.profileImageUrl,
       role: apiUser.role || 'user',
       tier: {
         type: apiUser.tier?.type || apiUser.tier_type || 'basic',

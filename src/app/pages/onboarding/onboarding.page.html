@@ -1,49 +1,48 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="goBack()">
-        <ion-icon name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content class="onboarding-content" [fullscreen]="true">
 
   <div class="onboarding-container">
-    
-    <!-- Header with Progress -->
-    <div class="header-section">
-      <div class="logo-container">
-        <ion-icon name="heart" class="logo-icon"></ion-icon>
-        <h1 class="app-title">Complete Your Assessment</h1>
+
+    <!-- Intro step -->
+    <div class="intro-step" *ngIf="showIntro">
+      <div class="intro-header">
+        <ion-button fill="clear" class="header-back-button" aria-label="Back to dashboard" (click)="exitToDashboard()">
+          <ion-icon slot="icon-only" name="close" aria-hidden="true"></ion-icon>
+        </ion-button>
       </div>
-      
-      <!-- Enhanced Progress indicator -->
+      <div class="intro-top">
+        <div class="intro-icon">
+          <ion-icon name="heart" aria-hidden="true"></ion-icon>
+        </div>
+        <h1 class="intro-title">Complete Your Profile</h1>
+        <p class="intro-subtitle">
+          A few quick questions about you and your baby help our lactation experts personalize your support.
+        </p>
+      </div>
+      <div class="intro-actions">
+        <ion-button expand="block" (click)="showIntro = false" class="next-button">
+          Get started
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Header with Progress -->
+    <div class="header-section" *ngIf="!showIntro">
+      <div class="stepper-top-row">
+        <ion-button fill="clear" class="header-back-button" aria-label="Go back" (click)="progress.currentStep === 1 ? (showIntro = true) : previousStep()">
+          <ion-icon slot="icon-only" name="chevron-back" aria-hidden="true"></ion-icon>
+        </ion-button>
+        <div class="step-counter">{{ progress.currentStep }} of {{ progress.totalSteps }}</div>
+      </div>
       <div class="progress-container">
-        <div class="progress-bar">
+        <div class="progress-track">
           <div class="progress-fill" [style.width.%]="progress.percentComplete"></div>
         </div>
-        <p class="progress-text">Step {{ progress.currentStep }} of {{ progress.totalSteps }}</p>
         <p class="progress-description">{{ getStepTitle(progress.currentStep) }}</p>
-      </div>
-
-      <!-- Step Navigation Dots -->
-      <div class="step-dots">
-        <div 
-          *ngFor="let step of [1,2,3,4,5]" 
-          class="step-dot"
-          [class.completed]="isStepCompleted(step)"
-          [class.current]="progress.currentStep === step"
-          [class.accessible]="canNavigateToStep(step)"
-          (click)="canNavigateToStep(step) && goToStep(step)">
-          <span>{{ step }}</span>
-        </div>
       </div>
     </div>
 
     <!-- Onboarding Form -->
-    <form [formGroup]="onboardingForm" class="onboarding-form">
+    <form [formGroup]="onboardingForm" class="onboarding-form" *ngIf="!showIntro">
 
       <!-- Step 1: Mother's Profile -->
       <div class="form-step" *ngIf="progress.currentStep === 1">
@@ -212,21 +211,6 @@
           </div>
         </div>
 
-        <!-- Is First Child -->
-        <div class="form-group">
-          <label class="input-label">Is this your first child?</label>
-          <ion-radio-group formControlName="isFirstChild" class="horizontal-radio-group">
-            <ion-item lines="none" class="radio-item">
-              <ion-radio slot="start" [value]="true"></ion-radio>
-              <ion-label>Yes</ion-label>
-            </ion-item>
-            <ion-item lines="none" class="radio-item">
-              <ion-radio slot="start" [value]="false"></ion-radio>
-              <ion-label>No</ion-label>
-            </ion-item>
-          </ion-radio-group>
-        </div>
-
         <!-- Breastfeeding Duration -->
         <div class="form-group">
           <label class="input-label">For how long do you want to breastfeed your child?</label>
@@ -245,10 +229,6 @@
             </ion-chip>
           </div>
         </div>
-
-        <ion-button expand="block" (click)="nextStep()" class="next-button">
-          Continue
-        </ion-button>
       </div>
 
       <!-- Step 2: Pregnancy & Birth Information -->
@@ -274,6 +254,21 @@
           </ion-radio-group>
         </div>
 
+        <!-- Is First Child (lives on step 2, where it is validated) -->
+        <div class="form-group">
+          <label class="input-label">Are you a first-time parent?</label>
+          <ion-radio-group formControlName="isFirstChild" class="horizontal-radio-group">
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" [value]="true"></ion-radio>
+              <ion-label>Yes</ion-label>
+            </ion-item>
+            <ion-item lines="none" class="radio-item">
+              <ion-radio slot="start" [value]="false"></ion-radio>
+              <ion-label>No</ion-label>
+            </ion-item>
+          </ion-radio-group>
+        </div>
+
         <div class="form-group" *ngIf="shouldShowField('expectedDueDate')">
           <label class="input-label">Expected Due Date</label>
           <ion-item lines="none" class="input-item">
@@ -290,60 +285,48 @@
         <div class="baby-info-section" *ngIf="shouldShowField('babyInfo')">
           <div class="babies-header">
             <h3 class="subsection-title">Baby Information</h3>
-            <div class="twins-alert">
-              <ion-icon name="alert-circle" color="warning"></ion-icon>
-              <p class="twins-helper-text"><strong>Important:</strong> If you have twins, triplets, or multiple babies, please add ALL of them now. This ensures each baby gets personalized tracking and consultation support.</p>
-            </div>
-            <div class="baby-action-buttons">
-              <ion-button 
-                fill="outline" 
-                size="small" 
-                (click)="addBaby()" 
-                class="add-baby-button">
-                <ion-icon name="add" slot="start"></ion-icon>
-                Add New Baby
-              </ion-button>
-            </div>
+            <p class="twins-helper-text">Have twins or more? Add each baby so every baby gets their own tracking.</p>
           </div>
 
-          <!-- Existing Babies Selection -->
-          <div *ngIf="existingBabies.length > 0" class="existing-babies-section">
-            <h4 class="existing-babies-title">Or select from your existing babies:</h4>
-            <div class="existing-babies-grid">
-              <div 
-                *ngFor="let baby of existingBabies" 
-                class="existing-baby-card"
-                (click)="selectExistingBaby(baby)">
+          <!-- Saved babies show as cards, babies added here show as forms -->
+          <div formArrayName="babies">
+            <div
+              *ngFor="let baby of babiesFormArray.controls; let i = index"
+              [formGroupName]="i"
+              class="baby-entry">
+
+              <div class="existing-baby-card" *ngIf="isExistingBaby(i)">
                 <div class="baby-avatar">
-                  <img [src]="baby.gender === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg'" 
-                       [alt]="baby.gender === 'female' ? 'Baby girl' : 'Baby boy'" 
+                  <img [src]="baby.get('gender')?.value === 'female' ? 'assets/Baby girl.svg' : 'assets/Baby boy.svg'"
+                       alt=""
                        class="baby-icon">
                 </div>
                 <div class="baby-info">
-                  <h5 class="baby-name">{{ baby.name }}</h5>
-                  <p class="baby-age">{{ calculateBabyAge(baby.dateOfBirth || baby.date_of_birth) }}</p>
+                  <h5 class="baby-name">{{ baby.get('name')?.value }}</h5>
+                  <p class="baby-age">{{ calculateBabyAge(baby.get('dateOfBirth')?.value) }}</p>
+                  <p class="baby-needs-details" *ngIf="!isBabyFormOpen(i) && babyErrors(i).length">Tap Edit to add feeding details</p>
                 </div>
-                <ion-icon name="add-circle" class="add-icon"></ion-icon>
+                <ion-button
+                  fill="clear"
+                  class="baby-edit-button"
+                  [attr.aria-expanded]="isBabyFormOpen(i)"
+                  (click)="toggleBabyEdit(i)">
+                  {{ isBabyFormOpen(i) ? 'Done' : 'Edit' }}
+                </ion-button>
               </div>
-            </div>
-          </div>
-          
-          <!-- Multiple babies forms -->
-          <div formArrayName="babies">
-            <div 
-              *ngFor="let baby of babiesFormArray.controls; let i = index" 
-              [formGroupName]="i" 
-              class="baby-form-container">
-              
+
+              <div class="baby-form-container" *ngIf="isBabyFormOpen(i)">
               <div class="baby-form-header">
                 <h4>{{ getBabyTitle(i) }}</h4>
                 <ion-button 
-                  *ngIf="babiesFormArray.length > 1" 
+                  *ngIf="!isExistingBaby(i) && babiesFormArray.length > 1" 
                   fill="clear" 
                   color="danger" 
                   size="small" 
+                  class="remove-baby-button"
+                  aria-label="Remove this baby"
                   (click)="removeBaby(i)">
-                  <ion-icon name="trash" slot="icon-only"></ion-icon>
+                  <ion-icon name="trash" slot="icon-only" aria-hidden="true"></ion-icon>
                 </ion-button>
               </div>
               
@@ -658,11 +641,12 @@
                 </div>
 
               </div>
+              </div>
             </div>
           </div>
           
-          <!-- Twins/Multiple Babies Reminder -->
           <div class="twins-reminder-section">
+            <!-- Replaced by the one-line helper under "Baby Information"
             <ion-card class="reminder-card">
               <ion-card-content>
                 <div class="reminder-content">
@@ -674,26 +658,16 @@
                 </div>
               </ion-card-content>
             </ion-card>
-            
+            -->
             <ion-button 
-              fill="solid" 
+              fill="outline" 
               expand="block"
               (click)="addBaby()" 
-              class="add-another-baby-button"
-              color="secondary">
-              <ion-icon name="add-circle" slot="start"></ion-icon>
-              Add Another Baby
+              class="add-another-baby-button">
+              <ion-icon name="add-circle" slot="start" aria-hidden="true"></ion-icon>
+              Add another baby
             </ion-button>
           </div>
-        </div>
-
-        <div class="button-row">
-          <ion-button fill="outline" (click)="previousStep()" class="back-button">
-            Back
-          </ion-button>
-          <ion-button (click)="nextStep()" class="next-button">
-            Continue
-          </ion-button>
         </div>
       </div>
 
@@ -1098,16 +1072,8 @@
           </div>
         </div>
 
-        <div class="button-row">
-          <ion-button fill="outline" (click)="previousStep()" class="back-button">
-            Back
-          </ion-button>
-          <ion-button (click)="nextStep()" class="next-button">
-            Continue
-          </ion-button>
-        </div>
       </div>
-      
+
       <!-- Step 3: Placeholder for Pregnant Mothers -->
       <div class="form-step" *ngIf="progress.currentStep === 3 && onboardingForm.get('motherType')?.value === 'pregnant'">
         <h2 class="step-title">Almost There!</h2>
@@ -1129,15 +1095,6 @@
               </div>
             </ion-card-content>
           </ion-card>
-        </div>
-        
-        <div class="button-row">
-          <ion-button fill="outline" (click)="previousStep()" class="back-button">
-            Back
-          </ion-button>
-          <ion-button (click)="nextStep()" class="next-button">
-            Continue
-          </ion-button>
         </div>
       </div>
 
@@ -1217,15 +1174,6 @@
             </ion-chip>
           </div>
         </div>
-
-        <div class="button-row">
-          <ion-button fill="outline" (click)="previousStep()" class="back-button">
-            Back
-          </ion-button>
-          <ion-button (click)="nextStep()" class="next-button">
-            Continue
-          </ion-button>
-        </div>
       </div>
 
       <!-- Step 5: Challenges & Expectations -->
@@ -1276,6 +1224,7 @@
               formControlName="expectationsFromProgram"
               [placeholder]="'Ex: I would like to receive evidence based knowledge about breastfeeding and have a support system who will guide me whenever I face an issue and keep me motivated in following the guidelines given to me to help me reach my breastfeeding goals'"
               rows="8"
+              [autoGrow]="true"
               fill="outline">
             </ion-textarea>
           </ion-item>
@@ -1284,18 +1233,58 @@
           </div>
         </div>
 
-        <div class="button-row">
-          <ion-button fill="outline" (click)="previousStep()" class="back-button">
-            Back
-          </ion-button>
-          <ion-button (click)="completeOnboarding()" class="complete-button" [disabled]="!progress.canProceed">
-            <ion-icon name="checkmark-circle" slot="start"></ion-icon>
-            Complete Assessment
-          </ion-button>
+        <p class="summary-section-title">Review your answers</p>
+        <div class="summary-card">
+          <div class="summary-row" *ngIf="onboardingForm.get('city')?.value">
+            <span class="summary-label">Location</span>
+            <span class="summary-value">{{ onboardingForm.get('city')?.value }}, {{ onboardingForm.get('state')?.value }}</span>
+          </div>
+          <div class="summary-row" *ngIf="onboardingForm.get('motherType')?.value">
+            <span class="summary-label">You are</span>
+            <span class="summary-value">{{ onboardingForm.get('motherType')?.value === 'pregnant' ? 'Pregnant' : 'A new mother' }}</span>
+          </div>
+          <div class="summary-row" *ngIf="onboardingForm.get('motherType')?.value === 'pregnant' && onboardingForm.get('expectedDueDate')?.value">
+            <span class="summary-label">Due date</span>
+            <span class="summary-value">{{ getFormattedDate('expectedDueDate') }}</span>
+          </div>
+          <div class="summary-row" *ngIf="babiesFormArray.length && onboardingForm.get('motherType')?.value === 'new_mom'">
+            <span class="summary-label">Babies</span>
+            <span class="summary-value">{{ babiesFormArray.length }}</span>
+          </div>
+          <div class="summary-row" *ngIf="onboardingForm.get('breastfeedingGoals')?.value?.length">
+            <span class="summary-label">Goals</span>
+            <span class="summary-value">{{ onboardingForm.get('breastfeedingGoals')?.value?.length }} selected</span>
+          </div>
+          <div class="summary-row" *ngIf="onboardingForm.get('currentChallenges')?.value?.length">
+            <span class="summary-label">Challenges</span>
+            <span class="summary-value">{{ onboardingForm.get('currentChallenges')?.value?.length }} selected</span>
+          </div>
         </div>
       </div>
 
     </form>
+
+    <!-- In-flow footer so the mobile keyboard can never push it over a field -->
+    <div class="step-footer" *ngIf="!showIntro">
+      <div class="button-row">
+        <ion-button *ngIf="progress.currentStep > 1" fill="outline" (click)="previousStep()" class="back-button">
+          Back
+        </ion-button>
+        <ion-button
+          *ngIf="progress.currentStep < progress.totalSteps"
+          (click)="nextStep()"
+          class="next-button">
+          Continue
+        </ion-button>
+        <ion-button
+          *ngIf="progress.currentStep === progress.totalSteps"
+          (click)="completeOnboarding()"
+          class="complete-button">
+          <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+          Complete Assessment
+        </ion-button>
+      </div>
+    </div>
 
     <!-- Progress Summary Footer -->
     <!-- <div class="progress-footer" *ngIf="progress.completedSteps > 0">

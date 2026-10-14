@@ -6,16 +6,18 @@ export interface MediaContent {
 }
 
 export interface ArticleContentSection {
-  type: 'text' | 'list' | 'callout' | 'table' | 'media' | 'heading';
+  type: 'text' | 'list' | 'callout' | 'table' | 'media' | 'heading' | 'quote' | 'benefits' | 'steps';
   content?: string | string[] | MediaContent | any;
   title?: string;
   variant?: string;
   level?: number;
   style?: string;
-  items?: string[];
+  items?: any[]; // strings for list/callout, objects for benefits/steps
   headers?: string;
   rows?: any;
   media?: any;
+  mediaType?: 'image' | 'video';
+  author?: string;
 }
 
 export interface ArticleContent {
@@ -27,6 +29,7 @@ export interface Article {
   title: string;
   content: ArticleContent;
   summary: string;
+  quickTake?: string;
   category: ArticleCategory;
   tags: string[];
   author: string;

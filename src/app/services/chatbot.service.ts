@@ -372,8 +372,15 @@ export class ChatbotService {
       timestamp: new Date(apiMessage.created_at),
       isPlaying: false,
       formattedContent: this.parseStructuredContent(apiMessage.content),
-      followUpOptions: apiMessage.follow_up_options ? this.convertFollowUpOptions(apiMessage.follow_up_options) : undefined
+      followUpOptions: apiMessage.follow_up_options && !this.isOutOfScopeReply(apiMessage.content) ? this.convertFollowUpOptions(apiMessage.follow_up_options) : undefined
     };
+  }
+
+  // The backend answers off-topic questions with this fixed line (NariCare-Service openaiService STRICT SCOPE); no suggestions after it
+  private isOutOfScopeReply(content: string | undefined): boolean {
+    const text = (content || '').replace(/[\u2018\u2019\u02BC]/g, "'");   // the model sometimes writes curly apostrophes
+    // The refusal half only: "here to help with breastfeeding" alone also opens normal answers
+    return /(can'?t|cannot|can not) help with other topics/i.test(text);
   }
 
   /**
@@ -459,7 +466,7 @@ export class ChatbotService {
           sender: 'bot',
           created_at: new Date().toISOString(),
           timestamp: new Date(),
-          followUpOptions: this.generateFollowUpOptions(content),
+          followUpOptions: this.isOutOfScopeReply(response.text) ? undefined : this.generateFollowUpOptions(content),
           isPlaying: false
         };
 
@@ -781,11 +788,8 @@ export class ChatbotService {
     };
 
     this.messagesSubject.next([...messagesWithoutTyping, errorMessage]);
-    
-    // Speak error message
-    setTimeout(() => {
-      this.speakMessage(errorMessage.id, errorMessage.content);
-    }, 500);
+    // Error message is shown on screen only. It is never spoken aloud, even in
+    // voice/auto-speak mode, so users don't hear an error read out on app open.
   }
 
   // Voice Mode Methods
@@ -934,11 +938,13 @@ export class ChatbotService {
     };
 
     this.messagesSubject.next([...this.messagesSubject.value, expertMessage]);
-    
-    // Speak expert help message
-    setTimeout(() => {
-      this.speakMessage(expertMessage.id, expertMessage.content);
-    }, 500);
+
+    // Only speak when the user has opted into auto-speak.
+    if (this.autoSpeakEnabled) {
+      setTimeout(() => {
+        this.speakMessage(expertMessage.id, expertMessage.content);
+      }, 500);
+    }
   }
 
   addSystemMessage(content: string): void {

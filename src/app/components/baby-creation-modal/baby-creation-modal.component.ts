@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors }
 import { ModalController, ToastController, LoadingController } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-baby-creation-modal',
@@ -28,7 +29,7 @@ export class BabyCreationModalComponent implements OnInit {
       dateOfBirth: ['', [Validators.required, this.noFutureDateValidator]],
       gender: ['', [Validators.required]],
       birthWeight: ['', [Validators.required, Validators.min(0.5), Validators.max(10)]],
-      birthHeight: ['', [Validators.required, Validators.min(20), Validators.max(80)]]
+      birthHeight: ['', [Validators.required, Validators.min(20), Validators.max(70)]] // match server cap
     });
   }
 
@@ -55,15 +56,21 @@ export class BabyCreationModalComponent implements OnInit {
           dateOfBirth: defaultDate
         });
       }
-      
-      console.log('Defaulted DOB and units from existing baby:', firstBaby.dateOfBirth);
     }
   }
 
   async onSubmit() {
     if (this.babyForm.valid && !this.isSubmitting) {
+      const dobError = DateOnlyUtil.invalidDateMessage(this.formatDateForApi(this.babyForm.get('dateOfBirth')?.value));
+      if (dobError) {
+        const t = await this.toastController.create({
+          message: dobError, duration: 3000, color: 'danger', position: 'top'
+        });
+        await t.present();
+        return;
+      }
       this.isSubmitting = true; // Prevent multiple submissions
-      
+
       const loading = await this.loadingController.create({
         message: 'Adding baby...',
         translucent: true
@@ -194,7 +201,7 @@ export class BabyCreationModalComponent implements OnInit {
   }
 
   getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
   }
 
   // Custom validator to prevent future dates
@@ -203,7 +210,7 @@ export class BabyCreationModalComponent implements OnInit {
       return null; // Let required validator handle empty values
     }
     
-    const selectedDate = new Date(control.value);
+    const selectedDate = DateOnlyUtil.parseLocalDate(control.value);
     const today = new Date();
     today.setHours(23, 59, 59, 999); // Set to end of today to allow today's date
     
@@ -215,8 +222,13 @@ export class BabyCreationModalComponent implements OnInit {
   }
 
   private formatDateForApi(dateValue: string): string {
-    // ion-input with type="date" returns YYYY-MM-DD format, which is perfect for API
-    return dateValue;
+    // Normalize to YYYY-MM-DD; some platforms surface the date input as DD/MM/YYYY.
+    if (!dateValue) { return dateValue; }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) { return dateValue; }
+    const dmy = dateValue.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (dmy) { return `${dmy[3]}-${dmy[2]}-${dmy[1]}`; }
+    const d = new Date(dateValue);
+    return isNaN(d.getTime()) ? dateValue : d.toISOString().split('T')[0];
   }
   
 }

@@ -1,10 +1,20 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingController, ToastController, ModalController } from '@ionic/angular';
 import { BackendAuthService } from '../../../services/backend-auth.service';
 import { ApiService } from '../../../services/api.service';
 import { Subscription } from 'rxjs';
+
+export type Portal = 'user' | 'admin' | 'lc';
+
+const LOGIN_URL: Record<Portal, string> = { user: '/auth/login', admin: '/auth/login/admin', lc: '/auth/login/lc' };
+const COPY: Record<Portal, { title: string; subtitle: string; panelTitle: string; panelText: string }> = {
+  user: { title: 'Welcome!', subtitle: "Your breastfeeding journey matters.\nWe're here for you.", panelTitle: '', panelText: '' },
+  admin: { title: 'NariCare Admin', subtitle: 'Sign in to the admin panel.', panelTitle: 'NariCare Admin', panelText: 'Mothers, activity and AI answer reviews in one place.' },
+  lc: { title: 'Lactation Consultant sign in', subtitle: 'Sign in to review AI answers and support mothers.', panelTitle: 'Lactation Consultant', panelText: 'Review NariCare AI answers and help every mother get the right advice.' }
+};
+export const LC_FORGOT_NOTE = 'Please ask your NariCare admin to reset your password.';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +28,12 @@ export class LoginPage implements OnInit, OnDestroy {
   show2FA = false;
   pendingEmail = '';
   showBetaTag = false;
+  readonly portal: Portal;
+  readonly copy: typeof COPY[Portal];
+  readonly lcForgotNote = LC_FORGOT_NOTE;
+  submitted = false;
+  showLcForgot = false;
+  portalError: { message: string; link?: string; linkLabel?: string } | null = null;
   private subscriptions = new Subscription();
 
   constructor(
@@ -27,8 +43,11 @@ export class LoginPage implements OnInit, OnDestroy {
     private router: Router,
     private loadingController: LoadingController,
     private toastController: ToastController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    route: ActivatedRoute
   ) {
+    this.portal = (route.snapshot.data['portal'] as Portal) || 'user';
+    this.copy = COPY[this.portal];
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
@@ -76,7 +95,9 @@ export class LoginPage implements OnInit, OnDestroy {
 
   private redirectAuthenticatedUser(user: any) {
     // Navigate based on onboarding status
-    if (true || user.isOnboardingCompleted) {
+    if (user.role === 'admin') {
+      this.router.navigate(['/admin'], { replaceUrl: true });
+    } else if (true || user.isOnboardingCompleted) {
       this.router.navigate(['/tabs/dashboard'], { replaceUrl: true });
     } else {
       this.router.navigate(['/onboarding'], { replaceUrl: true });
@@ -87,7 +108,15 @@ export class LoginPage implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
+  /** Errors show only after the user typed and left the field, or tried to submit. */
+  showError(field: string): boolean {
+    const c = this.loginForm.get(field);
+    return !!c && c.invalid && (this.submitted || (c.touched && c.dirty));
+  }
+
   async onSubmit() {
+    this.submitted = true;
+    this.portalError = null;
     if (this.loginForm.valid) {
       const loading = await this.loadingController.create({
         message: 'Signing in...',
@@ -97,11 +126,20 @@ export class LoginPage implements OnInit, OnDestroy {
 
       try {
         const { email, password } = this.loginForm.value;
-        await this.backendAuthService.login(email, password);
-        await loading.dismiss();
+        await this.backendAuthService.login(email, password, this.portal);
+        try { localStorage.setItem('nc_login_portal', this.portal); } catch { /* storage blocked */ }
       } catch (error: any) {
         console.log(error);
-        await loading.dismiss();
+        if (error?.code === 'WRONG_PORTAL' || error?.status === 403) {
+          // Signed in on the wrong page: explain inline and link to the right one
+          const target = error?.portal as Portal | undefined;
+          this.portalError = {
+            message: error.message,
+            link: target && target !== this.portal ? LOGIN_URL[target] : undefined,
+            linkLabel: target === 'admin' ? 'Go to admin sign in' : target === 'lc' ? 'Go to Lactation Consultant sign in' : 'Go to NariCare sign in'
+          };
+          return;
+        }
         const toast = await this.toastController.create({
           message: error.message || 'Login failed. Please try again.',
           duration: 3000,
@@ -109,6 +147,9 @@ export class LoginPage implements OnInit, OnDestroy {
           position: 'top'
         });
         await toast.present();
+      } finally {
+        // dismiss in finally so a fast login/navigation never orphans the overlay
+        await loading.dismiss();
       }
     } else {
       this.markFormGroupTouched();
@@ -124,6 +165,8 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   navigateToForgotPassword() {
+    // LC passwords are reset by an admin only
+    if (this.portal === 'lc') { this.showLcForgot = true; return; }
     this.router.navigate(['/auth/forgot-password']);
   }
 
@@ -138,9 +181,7 @@ export class LoginPage implements OnInit, OnDestroy {
       try {
         const { otp } = this.otpForm.value;
         await this.backendAuthService.verify2FA(otp);
-        await loading.dismiss();
       } catch (error: any) {
-        await loading.dismiss();
         const toast = await this.toastController.create({
           message: error.message || 'OTP verification failed. Please try again.',
           duration: 3000,
@@ -148,6 +189,8 @@ export class LoginPage implements OnInit, OnDestroy {
           position: 'top'
         });
         await toast.present();
+      } finally {
+        await loading.dismiss();
       }
     } else {
       this.markOTPFormTouched();
@@ -163,8 +206,6 @@ export class LoginPage implements OnInit, OnDestroy {
 
     try {
       await this.backendAuthService.resendOTP();
-      await loading.dismiss();
-      
       const toast = await this.toastController.create({
         message: 'OTP sent successfully to your email.',
         duration: 3000,
@@ -173,7 +214,6 @@ export class LoginPage implements OnInit, OnDestroy {
       });
       await toast.present();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Failed to resend OTP. Please try again.',
         duration: 3000,
@@ -181,6 +221,8 @@ export class LoginPage implements OnInit, OnDestroy {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 
@@ -198,9 +240,7 @@ export class LoginPage implements OnInit, OnDestroy {
 
     try {
       await this.backendAuthService.signInWithGoogle();
-      await loading.dismiss();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Google sign-in not available. Please use email/password.',
         duration: 3000,
@@ -208,6 +248,8 @@ export class LoginPage implements OnInit, OnDestroy {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 
@@ -220,9 +262,7 @@ export class LoginPage implements OnInit, OnDestroy {
 
     try {
       await this.backendAuthService.signInWithFacebook();
-      await loading.dismiss();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Facebook sign-in not available. Please use email/password.',
         duration: 3000,
@@ -230,6 +270,8 @@ export class LoginPage implements OnInit, OnDestroy {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 

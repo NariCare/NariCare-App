@@ -525,6 +525,7 @@ ion-header {
 }
 
 // Dark mode support
+@if false { // dark theme off app-wide (see $enable-dark-theme in theme/variables.scss)
 @media (prefers-color-scheme: dark) {
   .consultation-content {
     .tab-content {
@@ -539,4 +540,4 @@ ion-header {
       }
     }
   }
-}
+}}

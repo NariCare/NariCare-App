@@ -1,26 +1,74 @@
-.weight-chart-modal-container {
-  padding: 1rem;
-  background: #f8fafc;
-  min-height: 100%;
+ion-toolbar {
+  --background: #ffffff;
+  --color: #1e293b;
+  --border-width: 0;
+  --padding-start: 16px;
+  --padding-end: 8px;
 }
 
-/* Ensure the chart component takes full width in modal */
-app-weight-chart {
-  display: block;
-  width: 100%;
+.gm-title {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+  min-width: 0;
+
+  h2 { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.2; }
+  .gm-sub { font-size: 13px; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 
-/* Modal specific styling */
-ion-header {
-  ion-toolbar {
-    --background: linear-gradient(135deg, #8383ed 0%, #8383ed 100%);
-    --color: #ffffff;
-    --border-width: 0;
+.gm-seg-bar {
+  --padding-top: 0;
+  --padding-bottom: 8px;
+  --padding-end: 16px;
+
+  ion-segment { --background: #f1f5f9; }
+  ion-segment-button {
+    --indicator-color: #8383ed;
+    --color: #475569;
+    --color-checked: #ffffff;
+    min-height: 40px;
+    font-weight: 500;
+    text-transform: none;
   }
 }
 
+.gm-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 8px 12px calc(12px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+app-weight-chart {
+  flex: 1;
+  min-height: 0;
+}
+
+.gm-source {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+}
+
 @media (min-width: 768px) {
-  .weight-chart-modal-container {
-    padding: 2rem;
+  .gm-body { padding: 16px 24px 24px; }
+}
+
+.gm-back {
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; margin: 0 10px 0 4px; border: 0; border-radius: 50%;
+  background: #f4f2fe; color: #4b4bb3; font-size: 22px; cursor: pointer;
+  &:focus-visible { outline: 2px solid #6464d3; outline-offset: 2px; }
+}
+.gm-tabs {
+  display: flex; gap: 4px; margin: 0 16px 8px; padding: 4px;
+  border-radius: 999px; background: #f4f2fe; border: 1px solid #e2ddf5;
+  button {
+    flex: 1; min-height: 40px; border: 0; border-radius: 999px; background: transparent;
+    font: inherit; font-size: 15px; font-weight: 600; color: #5f5890; cursor: pointer;
+    &.on { background: #6464d3; color: #ffffff; }
+    &:focus-visible { outline: 2px solid #6464d3; outline-offset: 2px; }
   }
 }

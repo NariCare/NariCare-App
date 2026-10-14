@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { GrowthRecord, FeedType, PainLevel } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 interface PredefinedNote {
   id: string;
@@ -31,6 +32,8 @@ export class FeedLogModalComponent implements OnInit {
   @Input() prefilledData?: Partial<GrowthRecord>;
   @Input() isFastFeed: boolean = false;
   @Input() selectedBaby?: Baby;
+  private babyPassedIn = false;
+  @Input() editRecord?: any; // mapped feed record; when set, the form saves via PUT instead of create
 
   feedForm: FormGroup;
   user: User | null = null;
@@ -116,7 +119,7 @@ export class FeedLogModalComponent implements OnInit {
   ) {
     this.feedForm = this.formBuilder.group({
       selectedBaby: ['', [Validators.required]],
-      date: [new Date().toISOString().split('T')[0], [Validators.required]],
+      date: [DateOnlyUtil.formatLocalDate(), [Validators.required]],
       feedTypes: [[], [Validators.required]],
       // Direct feeding fields
       startTime: [this.getCurrentTime()],
@@ -124,8 +127,10 @@ export class FeedLogModalComponent implements OnInit {
       duration: [15, [Validators.min(1), Validators.max(120)]],
       painLevel: [0, [Validators.min(0), Validators.max(4)]],
       // Expressed milk fields
+      expressedStartTime: [this.getCurrentTime()],
       ebmQuantity: [0, [Validators.min(1), Validators.max(500)]],
       // Formula fields
+      formulaStartTime: [this.getCurrentTime()],
       formulaQuantity: [0, [Validators.min(1), Validators.max(500)]],
       // Notes
       notes: ['']
@@ -139,6 +144,8 @@ export class FeedLogModalComponent implements OnInit {
     // Try backend auth service first, fallback to legacy auth service
     const authService = this.backendAuthService.getCurrentUser() ? this.backendAuthService : this.authService;
     
+    // selectedBaby doubles as the picked baby, so remember whether the caller passed one in
+    this.babyPassedIn = !!this.selectedBaby;
     authService.currentUser$.subscribe(user => {
       this.user = user;
       if (user && user.babies && user.babies.length > 0) {
@@ -157,6 +164,10 @@ export class FeedLogModalComponent implements OnInit {
       this.applyPrefilledData();
     }
 
+    if (this.editRecord) {
+      this.applyEditRecord();
+    }
+
     // Set up form validation
     this.setupFormValidation();
   }
@@ -167,8 +178,7 @@ export class FeedLogModalComponent implements OnInit {
   }
 
   getCurrentDate(): string {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
   }
 
   getDateLabel(date: Date): string {
@@ -263,15 +273,16 @@ export class FeedLogModalComponent implements OnInit {
         this.resetOtherOption();
         return;
       case 'custom':
-        // If clicking on a custom date option, don't change anything
+        // Tapping the picked-date chip reopens (or closes) the picker so the date can be changed again
+        this.showDatePicker = !this.showDatePicker;
         return;
       default:
         selectedDate = new Date(today);
     }
     
     this.selectedDate = selectedDate;
-    this.feedForm.patchValue({ 
-      date: selectedDate.toISOString().split('T')[0] 
+    this.feedForm.patchValue({
+      date: DateOnlyUtil.formatLocalDate(selectedDate)
     });
     this.showDatePicker = false;
   }
@@ -315,6 +326,48 @@ export class FeedLogModalComponent implements OnInit {
         duration: 15,
         painLevel: 0
       });
+    }
+  }
+
+  // Accepts the mapped shape (feedTypes/directFeedDetails) or a raw row (feed_types/direct_*).
+  private applyEditRecord() {
+    const r = this.editRecord;
+    const hhmm = (v: any) => (v ? String(v).slice(0, 5) : '');
+    const d = r.directFeedDetails || (r.direct_duration || r.direct_start_time
+      ? { startTime: r.direct_start_time, breastSide: r.direct_breast_side, duration: r.direct_duration, painLevel: r.direct_pain_level } : undefined);
+    const ebm = r.expressedMilkDetails?.quantity ?? r.expressed_quantity;
+    const formula = r.formulaDetails?.quantity ?? r.formula_quantity;
+    const types: ('direct' | 'expressed' | 'formula')[] = [...(r.feedTypes || r.feed_types || [])];
+    const dateStr = String(r.recordDate || r.record_date || '').slice(0, 10) || DateOnlyUtil.formatLocalDate();
+
+    this.selectedFeedTypes = types;
+    this.selectedBreastSide = d?.breastSide || null;
+    this.selectedPainLevel = d?.painLevel ?? 0;
+    this.feedForm.patchValue({
+      selectedBaby: this.selectedBaby?.id || r.babyId || r.baby_id,
+      date: dateStr,
+      feedTypes: types,
+      startTime: hhmm(d?.startTime) || this.getCurrentTime(),
+      breastSide: d?.breastSide || '',
+      duration: d?.duration || 15,
+      painLevel: d?.painLevel ?? 0,
+      expressedStartTime: hhmm(r.expressedMilkDetails?.startTime || r.expressed_start_time) || this.getCurrentTime(),
+      ebmQuantity: ebm || 0,
+      formulaStartTime: hhmm(r.formulaDetails?.startTime || r.formula_start_time) || this.getCurrentTime(),
+      formulaQuantity: formula || 0,
+      notes: r.notes || ''
+    });
+    this.updateValidation(types);
+
+    // Reflect the record's day in the date chips
+    this.selectedDate = DateOnlyUtil.parseLocalDate(dateStr);
+    const offset = Math.round((DateOnlyUtil.parseLocalDate(DateOnlyUtil.formatLocalDate()).getTime() - this.selectedDate.getTime()) / 86400000);
+    const preset = ['today', 'yesterday', 'dayBefore'][offset];
+    if (preset) {
+      this.selectedDateOption = preset;
+    } else {
+      this.selectedDateOption = 'custom';
+      this.updateDateOptionsWithCustomDate();
     }
   }
 
@@ -452,11 +505,11 @@ export class FeedLogModalComponent implements OnInit {
             painLevel: this.selectedPainLevel
           } : undefined,
           expressedMilkDetails: this.selectedFeedTypes.includes('expressed') ? {
-            startTime: formValue.startTime,
+            startTime: formValue.expressedStartTime,
             quantity: formValue.ebmQuantity
           } : undefined,
           formulaDetails: this.selectedFeedTypes.includes('formula') ? {
-            startTime: formValue.startTime,
+            startTime: formValue.formulaStartTime,
             quantity: formValue.formulaQuantity
           } : undefined,
           notes: formValue.notes,
@@ -465,15 +518,17 @@ export class FeedLogModalComponent implements OnInit {
 
         // Try backend service first, fallback to local storage
         const isBackendUser = this.backendAuthService.getCurrentUser();
-        
-        if (isBackendUser) {
+
+        if (this.editRecord) {
+          await this.backendGrowthService.updateFeedRecord(this.editRecord.id, this.selectedBaby.id, record, formValue.date);
+        } else if (isBackendUser) {
           await this.backendGrowthService.addFeedRecord(record);
         } else {
           await this.growthService.addGrowthRecord(record);
         }
         
         const toast = await this.toastController.create({
-          message: 'Feed log saved successfully!',
+          message: this.editRecord ? 'Feed log updated' : 'Feed log saved successfully!',
           duration: 2000,
           color: 'success',
           position: 'top'
@@ -515,8 +570,8 @@ export class FeedLogModalComponent implements OnInit {
       return false;
     }
     
-    // If a baby was passed as input (@Input selectedBaby), don't show selection
-    if (this.selectedBaby) {
+    // Only a baby passed in by the caller hides the picker; picking one here must keep the list visible
+    if (this.babyPassedIn) {
       return false;
     }
     

@@ -4,9 +4,12 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { GrowthTrackingService } from '../../services/growth-tracking.service';
 import { AuthService } from '../../services/auth.service';
 import { BackendPumpingService, CreatePumpingRecordRequest } from '../../services/backend-pumping.service';
+import { BackendGrowthService } from '../../services/backend-growth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { PumpingRecord, PumpingSide } from '../../models/growth-tracking.model';
 import { User, Baby } from '../../models/user.model';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
+import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
 
 interface PredefinedNote {
   id: string;
@@ -20,6 +23,8 @@ interface PredefinedNote {
   styleUrls: ['./pumping-log-modal.component.scss']
 })
 export class PumpingLogModalComponent implements OnInit {
+  @Input() editRecord?: any; // pumping_records row; when set, the form saves via PUT instead of create
+  @Input() babyId?: string;
 
   pumpingForm: FormGroup;
   user: User | null = null;
@@ -57,10 +62,11 @@ export class PumpingLogModalComponent implements OnInit {
     private growthService: GrowthTrackingService,
     private authService: AuthService,
     private backendPumpingService: BackendPumpingService,
+    private backendGrowthService: BackendGrowthService,
     private backendAuthService: BackendAuthService
   ) {
     this.pumpingForm = this.formBuilder.group({
-      date: [new Date().toISOString().split('T')[0], [Validators.required]],
+      date: [DateOnlyUtil.formatLocalDate(), [Validators.required]],
       time: [this.getCurrentTime(), [Validators.required]],
       pumpingSide: ['', [Validators.required]],
       totalOutput: [0, [Validators.required, Validators.min(0), Validators.max(500)]],
@@ -88,6 +94,47 @@ export class PumpingLogModalComponent implements OnInit {
     });
 
     this.pumpingSideOptions = this.growthService.pumpingSideOptions;
+
+    if (this.editRecord) {
+      this.applyEditRecord();
+    }
+  }
+
+  // Accepts snake_case API rows or the camelCase local shape.
+  private applyEditRecord() {
+    const r = this.editRecord;
+    const dateStr = String(r.record_date || r.recordDate || r.date || '').slice(0, 10) || DateOnlyUtil.formatLocalDate();
+    const side = r.pumping_side || r.pumpingSide || null;
+    this.selectedPumpingSide = side;
+    this.pumpingForm.patchValue({
+      date: dateStr,
+      time: String(r.record_time || r.time || this.getCurrentTime()).slice(0, 5),
+      pumpingSide: side || '',
+      totalOutput: Number(r.total_output ?? r.totalOutput ?? 0),
+      duration: Number(r.duration_minutes ?? r.duration ?? 0),
+      notes: r.notes || ''
+    });
+
+    this.selectedDate = DateOnlyUtil.parseLocalDate(dateStr);
+    const offset = Math.round((DateOnlyUtil.parseLocalDate(DateOnlyUtil.formatLocalDate()).getTime() - this.selectedDate.getTime()) / 86400000);
+    const preset = ['today', 'yesterday', 'dayBefore'][offset];
+    if (preset) {
+      this.selectedDateOption = preset;
+    } else {
+      this.selectedDateOption = 'custom';
+      this.updateDateOptionsWithCustomDate();
+    }
+  }
+
+  // Baby the save path writes to (edit: record's baby, create: first baby)
+  get displayBaby(): Baby | undefined {
+    const babies = this.user?.babies || [];
+    const id = this.editRecord ? (this.editRecord.baby_id || this.editRecord.babyId || this.babyId) : undefined;
+    return babies.find(b => b.id === id) || babies[0];
+  }
+
+  calculateBabyAge(baby: Baby): string {
+    return AgeCalculatorUtil.calculateBabyAge(baby.dateOfBirth);
   }
 
   getCurrentTime(): string {
@@ -96,8 +143,7 @@ export class PumpingLogModalComponent implements OnInit {
   }
 
   getCurrentDate(): string {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
   }
 
   getDateLabel(date: Date): string {
@@ -208,15 +254,16 @@ export class PumpingLogModalComponent implements OnInit {
         this.resetOtherOption();
         return;
       case 'custom':
-        // If clicking on a custom date option, don't change anything
+        // Tapping the picked-date chip reopens (or closes) the picker so the date can be changed again
+        this.showDatePicker = !this.showDatePicker;
         return;
       default:
         selectedDate = new Date(today);
     }
     
     this.selectedDate = selectedDate;
-    this.pumpingForm.patchValue({ 
-      date: selectedDate.toISOString().split('T')[0] 
+    this.pumpingForm.patchValue({
+      date: DateOnlyUtil.formatLocalDate(selectedDate)
     });
     this.showDatePicker = false;
   }
@@ -372,8 +419,23 @@ export class PumpingLogModalComponent implements OnInit {
         // Try backend API first, fallback to local storage
         const backendUser = this.backendAuthService.getCurrentUser();
         const isBackendAuth = !!backendUser;
-        
-        if (isBackendAuth) {
+
+        if (this.editRecord) {
+          const babyId = this.editRecord.baby_id || this.editRecord.babyId || this.babyId || this.user.babies?.[0]?.id;
+          const times = this.calculateStartEndTime(formValue.time, formValue.duration);
+          await this.backendPumpingService.updatePumpingRecord(this.editRecord.id, {
+            babyId,
+            recordDate: formValue.date,
+            recordTime: formValue.time,
+            pumpingSide: this.selectedPumpingSide,
+            totalOutput: formValue.totalOutput,
+            durationMinutes: formValue.duration || undefined, // backend rejects 0
+            startTime: times.startTime || undefined,
+            endTime: times.endTime || undefined,
+            notes: formValue.notes || ''
+          }).toPromise();
+          this.backendGrowthService.refreshPumping(babyId);
+        } else if (isBackendAuth) {
           // Use backend API - require at least one baby from API
           const firstBaby = this.user.babies?.[0];
           if (!firstBaby?.id) {
@@ -397,6 +459,9 @@ export class PumpingLogModalComponent implements OnInit {
           };
 
           await this.backendPumpingService.createPumpingRecord(requestData).toPromise();
+          // Push the new session into the shared cache so the dashboard and
+          // baby-detail update immediately instead of after a manual reload.
+          this.backendGrowthService.refreshPumping(firstBaby.id);
         } else {
           // Use local storage (legacy) - use baby-123 fallback for local storage compatibility
           const record: Omit<PumpingRecord, 'id' | 'createdAt'> = {
@@ -417,7 +482,7 @@ export class PumpingLogModalComponent implements OnInit {
         }
         
         const toast = await this.toastController.create({
-          message: 'Pumping log saved successfully!',
+          message: this.editRecord ? 'Pumping session updated' : 'Pumping log saved successfully!',
           duration: 2000,
           color: 'success',
           position: 'top'

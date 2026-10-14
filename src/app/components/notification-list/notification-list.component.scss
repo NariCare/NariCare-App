@@ -62,7 +62,7 @@ ion-label h2 {
 
 ion-label p {
   margin: 4px 0 8px 0;
-  color: var(--ion-color-medium-shade);
+  color: #4b4b5c;   // medium-shade grey was hard to read
   font-size: 0.9em;
   line-height: 1.4;
   display: -webkit-box;
@@ -79,16 +79,17 @@ ion-label p {
   font-size: 0.8em;
 }
 
+// Fixed brand colours: theme light/dark vars swap under OS dark mode and made this white-on-grey
 .notification-type {
-  background: var(--ion-color-light);
-  color: var(--ion-color-dark);
+  background: rgba(131, 131, 237, 0.12);
+  color: #4f46b8;
   padding: 2px 8px;
   border-radius: 12px;
   font-weight: 500;
 }
 
 .notification-time {
-  color: var(--ion-color-medium);
+  color: #6b6b7b;
   font-weight: 400;
 }
 
@@ -132,13 +133,9 @@ ion-infinite-scroll-content {
 }
 
 /* Dark mode adjustments */
+@if false { // dark theme off app-wide (see $enable-dark-theme in theme/variables.scss)
 @media (prefers-color-scheme: dark) {
-  .notification-type {
-    background: var(--ion-color-dark);
-    color: var(--ion-color-light);
-  }
-  
   ion-item.unread {
     --background: rgba(var(--ion-color-primary-rgb), 0.1);
   }
-}
+}}

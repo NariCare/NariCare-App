@@ -2,6 +2,8 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } fr
 import { Router } from '@angular/router';
 import { AlertController, ModalController } from '@ionic/angular';
 import { Observable } from 'rxjs';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
+import { Keyboard } from '@capacitor/keyboard';
 import { ChatbotService } from '../../services/chatbot.service';
 import { ChatbotMessageUI, ChatAttachment } from '../../models/chatbot.model';
 import { AuthService } from '../../services/auth.service';
@@ -19,6 +21,8 @@ import { VideoPlayerModalComponent } from '../video-player-modal/video-player-mo
 export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('messagesContainer', { static: false }) messagesContainer!: ElementRef;
   @ViewChild('messageInputContainer', { static: false }) messageInputContainer!: ElementRef;
+  @ViewChild('messageTextarea', { static: false }) messageTextarea!: ElementRef;
+  private keyboardListeners: PluginListenerHandle[] = [];
 
   chatbotMessages$: Observable<ChatbotMessageUI[]>;
   messageText = '';
@@ -26,15 +30,16 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   isInitializing = false;
   expertBannerDismissed = false;
   showDisclaimer = true;
+  private isComposing = false;
+  private initializedForUser: string | null = null;
   
   // Expert notes integration
   showQuickAccess = false;
   quickAccessNotes: ExpertNote[] = [];
   quickAccessLinks: ExpertLink[] = [];
 
-  // Keyboard handling
-  private keyboardVisible = false;
-  private lastKeyboardHeight = 0;
+  // ponytail: display-only timestamp for the static welcome bubble
+  readonly welcomeTime = new Date();
 
   constructor(
     private chatbotService: ChatbotService,
@@ -61,8 +66,9 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
     authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       
-      // Initialize chatbot if user is available
-      if (user) {
+      // Initialize once per user; currentUser$ re-emits on profile refresh and used to re-run init
+      if (user && user.uid !== this.initializedForUser) {
+        this.initializedForUser = user.uid;
         this.initializeChatbot();
       }
     });
@@ -87,137 +93,46 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.setupKeyboardHandling();
+    this.fullHeight = window.innerHeight; // keyboard-closed height, before any focus
+    // Layout is CSS; body.keyboard-open only flips once per focus/keyboard change, never per keystroke.
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener('keyboardWillShow', () => this.setKeyboardOpen(true)).then(h => this.keyboardListeners.push(h));
+      Keyboard.addListener('keyboardWillHide', () => this.setKeyboardOpen(false)).then(h => this.keyboardListeners.push(h));
+    }
   }
 
   ngOnDestroy() {
+    this.keyboardListeners.forEach(h => h.remove());
+    window.removeEventListener('resize', this.onWindowResize);
+    this.setKeyboardOpen(false);
   }
 
-  private setupKeyboardHandling() {
-    // Enhanced keyboard handling for mobile devices
-    if (typeof window !== 'undefined') {
-      // Focus and blur events are more reliable for keyboard detection
-      setTimeout(() => {
-        const textarea = document.querySelector('.message-textarea');
-        if (textarea) {
-          textarea.addEventListener('focus', () => {
-            // Keyboard is about to show
-            setTimeout(() => {
-              this.handleKeyboardShow();
-            }, 300); // Wait for keyboard animation
-          });
-
-          textarea.addEventListener('blur', () => {
-            // Keyboard is about to hide
-            setTimeout(() => {
-              this.handleKeyboardHide();
-            }, 100);
-          });
-        }
-      }, 1000);
-
-      // Backup detection using visual viewport (more accurate)
-      if ('visualViewport' in window) {
-        let initialHeight = (window as any).visualViewport.height;
-        
-        (window as any).visualViewport.addEventListener('resize', () => {
-          const currentHeight = (window as any).visualViewport.height;
-          const heightDiff = initialHeight - currentHeight;
-          
-          // Only trigger if height difference is significant (keyboard-related)
-          if (heightDiff > 150 && !this.keyboardVisible) {
-            this.handleKeyboardShow();
-          } else if (heightDiff < 50 && this.keyboardVisible) {
-            this.handleKeyboardHide();
-          }
-        });
-      }
-    }
+  onComposerFocus() {
+    this.fullHeight = Math.max(this.fullHeight, window.innerHeight);
+    // Keyboard may already be up (refocus right after sending), so the shrink happened before this focus
+    this.sawShrink = window.innerHeight < this.fullHeight - 150;
+    window.addEventListener('resize', this.onWindowResize);
+    this.setKeyboardOpen(true);
+    this.scrollToBottom(); // once per focus, after the viewport settles
   }
 
-  private handleKeyboardShow() {
-    if (!this.keyboardVisible && typeof window !== 'undefined') {
-      this.keyboardVisible = true;
-      
-      // Calculate keyboard height
-      const windowHeight = window.innerHeight;
-      const viewportHeight = (window as any).visualViewport?.height || windowHeight;
-      const keyboardHeight = windowHeight - viewportHeight;
-      
-      // Store the height for consistency
-      this.lastKeyboardHeight = Math.max(keyboardHeight, 300); // Minimum 300px
-      
-      // Add keyboard-visible class to body
-      document.body.classList.add('keyboard-visible');
-      
-      // Adjust input container to stay above keyboard
-      this.adjustInputForKeyboard(this.lastKeyboardHeight);
-    }
+  onComposerBlur() {
+    window.removeEventListener('resize', this.onWindowResize);
+    this.sawShrink = false;
+    this.setKeyboardOpen(false);
   }
 
-  private handleKeyboardHide() {
-    if (this.keyboardVisible) {
-      this.keyboardVisible = false;
-      this.lastKeyboardHeight = 0;
-      
-      // Remove keyboard-visible class
-      document.body.classList.remove('keyboard-visible');
-      this.resetInputPosition();
-    }
-  }
+  // Android back button hides the keyboard without blurring; resize fires once per keyboard show/hide, not per keystroke
+  private fullHeight = 0;
+  private sawShrink = false; // iOS Safari never shrinks the layout viewport, so it keeps relying on blur
+  private onWindowResize = () => {
+    const shrunk = window.innerHeight < this.fullHeight - 150;
+    if (shrunk) this.sawShrink = true;
+    if (this.sawShrink) this.setKeyboardOpen(shrunk);
+  };
 
-  private adjustInputForKeyboard(keyboardHeight: number) {
-    const inputContainer = this.messageInputContainer?.nativeElement;
-    if (inputContainer) {
-      // Simply adjust the bottom position to account for keyboard
-      // The element already has fixed positioning from CSS
-      const keyboardOffset = Math.max(keyboardHeight * 0.8, 260); // Keep input well above keyboard
-      inputContainer.style.bottom = `${keyboardOffset}px`;
-      inputContainer.style.transition = 'bottom 0.25s ease-out';
-    }
-
-    // Hide expert banner when keyboard is open to prevent overlap
-    const expertBanner = document.querySelector('.expert-help-banner') as HTMLElement;
-    if (expertBanner) {
-      expertBanner.style.position = 'absolute';
-      expertBanner.style.top = '-1000px'; // Move off screen
-      expertBanner.style.zIndex = '-1';
-    }
-
-    // Adjust messages container to prevent content from being hidden
-    if (this.messagesContainer) {
-      const messagesElement = this.messagesContainer.nativeElement;
-      const paddingOffset = Math.min(keyboardHeight + 40, 280); // Reduced max padding
-      messagesElement.style.paddingBottom = `${paddingOffset}px`;
-      messagesElement.style.transition = 'padding-bottom 0.25s ease-out';
-      
-      // Delay scroll to ensure layout is updated
-      setTimeout(() => {
-        this.scrollToBottom();
-      }, 100);
-    }
-  }
-
-  private resetInputPosition() {
-    const inputContainer = this.messageInputContainer?.nativeElement;
-    if (inputContainer) {
-      // Reset bottom position to original CSS value
-      inputContainer.style.bottom = '0';
-      inputContainer.style.transition = 'bottom 0.25s ease-out';
-    }
-
-    if (this.messagesContainer) {
-      const messagesElement = this.messagesContainer.nativeElement;
-      messagesElement.style.paddingBottom = '10rem';
-      messagesElement.style.transition = 'padding-bottom 0.25s ease-out';
-    }
-
-    // Ensure banner is visible when keyboard closes
-    const expertBanner = document.querySelector('.expert-help-banner') as HTMLElement;
-    if (expertBanner) {
-      expertBanner.style.position = 'static';
-      expertBanner.style.zIndex = '1';
-    }
+  private setKeyboardOpen(open: boolean) {
+    document.body.classList.toggle('keyboard-open', open);
   }
 
   private async initializeChatbot() {
@@ -225,7 +140,7 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isInitializing = true;
       
       try {
-        const babyAge = this.currentUser.babies.length > 0 ? 
+        const babyAge = this.currentUser.babies?.length ? 
           this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
         
         // Try to use backend API first
@@ -242,7 +157,7 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
       } catch (error) {
         console.error('Failed to initialize chatbot:', error);
         // Fallback to legacy initialization
-        const babyAge = this.currentUser.babies.length > 0 ? 
+        const babyAge = this.currentUser.babies?.length ? 
           this.calculateBabyAge(this.currentUser.babies[0].dateOfBirth) : undefined;
         this.chatbotService.initializeChat(this.currentUser.uid, babyAge);
       } finally {
@@ -254,10 +169,12 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private calculateBabyAge(birthDate: Date): number {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - birthDate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 7));
+  // Weeks since birth, or undefined when unknown, in the future (due date) or past the API's 0-260 range
+  private calculateBabyAge(birthDate: Date | string): number | undefined {
+    const born = new Date(birthDate);
+    if (isNaN(born.getTime())) return undefined;
+    const weeks = Math.floor((Date.now() - born.getTime()) / (1000 * 60 * 60 * 24 * 7));
+    return weeks >= 0 && weeks <= 260 ? weeks : undefined;
   }
 
 
@@ -416,10 +333,46 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  onCompositionStart() {
+    this.isComposing = true;
+  }
+
+  onCompositionEnd() {
+    this.isComposing = false;
+    this.resizeMessageTextarea();
+  }
+
+  onMessageInput() {
+    // Resizing the textarea mid-composition reverses committed text on Android IMEs.
+    if (this.isComposing) {
+      return;
+    }
+    this.resizeMessageTextarea();
+  }
+
+  private resizeMessageTextarea() {
+    const host = this.messageTextarea?.nativeElement as HTMLElement | undefined;
+    const textarea = host?.shadowRoot?.querySelector('textarea') as HTMLTextAreaElement | undefined;
+    if (!textarea) {
+      return;
+    }
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+  }
+
+  private resetMessageTextarea() {
+    const host = this.messageTextarea?.nativeElement as HTMLElement | undefined;
+    const textarea = host?.shadowRoot?.querySelector('textarea') as HTMLTextAreaElement | undefined;
+    if (textarea) {
+      textarea.style.height = 'auto';
+    }
+  }
+
   async sendMessage() {
     if (this.messageText.trim()) {
       const messageToSend = this.messageText.trim();
       this.messageText = ''; // Clear input immediately
+      this.resetMessageTextarea();
       
       try {
         await this.chatbotService.sendMessage(messageToSend);
@@ -483,6 +436,21 @@ export class AiChatComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // Expert help methods
+  // Starter questions follow the mother type (ClickUp 14ypx61yb2n); new-mom set from Gayathri
+  get quickQuestions(): { text: string; icon: string; tone: string }[] {
+    return this.currentUser?.motherType === 'pregnant'
+      ? [
+          { text: 'How can I prepare for breastfeeding before my baby arrives?', icon: 'heart-outline', tone: 'icon-blush' },
+          { text: 'What should feeding look like in the first hour after birth?', icon: 'time-outline', tone: 'icon-lavender' },
+          { text: 'What breastfeeding essentials should I pack for the hospital?', icon: 'bag-handle-outline', tone: 'icon-mint' }
+        ]
+      : [
+          { text: 'What are the best positions to get a deep, pain-free latch?', icon: 'water', tone: 'icon-blush' },
+          { text: 'How many wet and dirty diapers should I look for each day?', icon: 'happy-outline', tone: 'icon-lavender' },
+          { text: 'What should newborn feeding look like in the first 48 hours?', icon: 'bar-chart-outline', tone: 'icon-mint' }
+        ];
+  }
+
   async handleFollowUpAction(action: string, text: string) {
     switch (action) {
       case 'positioning':

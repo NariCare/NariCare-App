@@ -3,7 +3,11 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, ToastController, LoadingController, AlertController } from '@ionic/angular';
 import { ApiService } from '../../services/api.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
+import { BackendGrowthService } from '../../services/backend-growth.service';
 import { Baby } from '../../models/user.model';
+import { firstValueFrom } from 'rxjs';
+import { confirmGrowthEntry, growthWarnings, toGrowthPoints } from '../../shared/utils/growth-plausibility.util';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 
 @Component({
   selector: 'app-baby-edit-modal',
@@ -25,7 +29,8 @@ export class BabyEditModalComponent implements OnInit {
     private loadingController: LoadingController,
     private alertController: AlertController,
     private apiService: ApiService,
-    private backendAuthService: BackendAuthService
+    private backendAuthService: BackendAuthService,
+    private backendGrowthService: BackendGrowthService
   ) {
     this.babyForm = this.formBuilder.group({
       name: ['', [Validators.required, Validators.minLength(1)]],
@@ -36,7 +41,7 @@ export class BabyEditModalComponent implements OnInit {
       currentWeight: ['', [Validators.min(0.5), Validators.max(50)]],
       currentHeight: ['', [Validators.min(20), Validators.max(150)]],
       // New fields for weight log tracking
-      weightDate: [new Date().toISOString().split('T')[0]], // Today's date in YYYY-MM-DD format
+      weightDate: [DateOnlyUtil.formatLocalDate()], // Today's date in YYYY-MM-DD format
       weightTime: [this.getCurrentTime()]
     });
   }
@@ -80,14 +85,34 @@ export class BabyEditModalComponent implements OnInit {
         currentWeight: this.baby.currentWeight || '',
         currentHeight: this.baby.currentHeight || '',
         // Initialize date/time for potential weight log
-        weightDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+        weightDate: DateOnlyUtil.formatLocalDate(), // Today's date in YYYY-MM-DD format
         weightTime: this.getCurrentTime()
       });
     }
   }
 
+  // Same trend checks as Log Growth, only when current weight/height is changed here
+  private async confirmGrowthChange(): Promise<boolean> {
+    const f = this.babyForm.value;
+    const weight = f.currentWeight ? parseFloat(f.currentWeight) : null;
+    const height = f.currentHeight ? parseFloat(f.currentHeight) : null;
+    const changedWeight = weight !== null && weight !== this.originalWeight ? weight : null;
+    const changedHeight = height !== null && height !== this.originalHeight ? height : null;
+    if (!this.baby || (changedWeight === null && changedHeight === null)) return true;
+
+    const response = await firstValueFrom(this.apiService.getWeightRecords(this.baby.id, 1, 30)).catch(() => null);
+    const baby = { ...this.baby, dateOfBirth: f.dateOfBirth || this.baby.dateOfBirth, gender: f.gender, birthWeight: parseFloat(f.birthWeight), birthHeight: parseFloat(f.birthHeight) };
+    const warnings = growthWarnings(baby, toGrowthPoints(response?.data), {
+      date: DateOnlyUtil.parseLocalDate(String(f.weightDate).slice(0, 10)),
+      weight: changedWeight,
+      height: changedHeight
+    });
+    return confirmGrowthEntry(this.alertController, warnings);
+  }
+
   async onSubmit() {
     if (this.babyForm.valid && this.baby) {
+      if (!(await this.confirmGrowthChange())) return;
       const loading = await this.loadingController.create({
         message: 'Updating baby information...',
         translucent: true
@@ -138,10 +163,13 @@ export class BabyEditModalComponent implements OnInit {
                 weight: newWeight || this.originalWeight || 0,
                 height: newHeight || this.originalHeight,
                 notes: '', // Keep notes empty as requested
-                date: weightDateTime.toISOString()
+                date: weightDateTime.toISOString(),
+                // Backend reads recordDate; without it the picked date was ignored
+                recordDate: String(formValue.weightDate).slice(0, 10)
               };
               
-              await this.apiService.createWeightRecord(weightRecord).toPromise();
+              // Through the growth service so the cached growth list and chart refresh without a reload
+              await this.backendGrowthService.addWeightRecord(weightRecord);
               
               // Show additional success message for weight log
               const weightToast = await this.toastController.create({

@@ -1,70 +1,178 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
+import { Keyboard } from '@capacitor/keyboard';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 import { BackendAuthService } from '../../../services/backend-auth.service';
+import { ApiService } from '../../../services/api.service';
+import { DateOnlyUtil } from '../../../shared/utils/date-only.util';
+import { LegalDocModalComponent } from '../../../components/legal-doc-modal/legal-doc-modal.component';
+
+interface StepDefinition {
+  id: string;
+  title: string;
+  controls: string[];
+}
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
 })
-export class RegisterPage implements OnInit {
+export class RegisterPage implements OnInit, OnDestroy {
   registerForm: FormGroup;
   showPassword = false;
   showConfirmPassword = false;
+  currentStep = 1;
+  submitting = false;
+
+  // Precomputed once so ion-datetime min/max bindings are stable across change detection (avoids calendar re-render lag)
+  readonly todayDate = this.getTodayDate();
+  readonly maxDueDate = this.getMaxDueDate();
+  readonly minDeliveryDate = this.getMinDeliveryDate();
+
+  steps: StepDefinition[] = [
+    { id: 'welcome', title: 'Welcome to NariCare', controls: [] },
+    { id: 'name', title: 'What should we call you?', controls: ['fullName'] },
+    { id: 'phone', title: 'Phone number', controls: ['phoneNumber'] },
+    { id: 'email', title: 'Your email address', controls: ['email'] },
+    { id: 'password', title: 'Create a password', controls: ['password', 'confirmPassword'] },
+    { id: 'stage', title: 'Where are you in your journey?', controls: ['motherType'] },
+    { id: 'date', title: '', controls: ['dueDate', 'deliveryDate'] },
+    { id: 'goals', title: 'What do you want to focus on?', controls: ['goals'] },
+    { id: 'finish', title: 'Almost there', controls: ['tierType', 'agreeToTerms'] }
+  ];
+
+  goalsOptions = [
+    { key: 'learn_basics', label: 'Learn the basics of breastfeeding', icon: 'Feed.svg' },
+    { key: 'feeding_help', label: 'Get help with feeding pain or problems', icon: 'Fed directly.svg' },
+    { key: 'track_feeds', label: 'Track my baby\u2019s feeds and growth', icon: 'Tracker.svg' }
+  ];
+
+  // Copy from Gayathri for moms who are still pregnant
+  pregnantGoalsOptions = [
+    { key: 'learn_basics', label: 'Learn the basics of breastfeeding', icon: 'Feed.svg' },
+    { key: 'prenatal_help', label: 'Find breastfeeding help before baby arrives', icon: 'Prenatal help.svg' },
+    { key: 'prepare_support', label: 'Gather breastfeeding essentials & build your support system', icon: 'Support system.svg' }
+  ];
+
+  get visibleGoals() {
+    return this.registerForm.get('motherType')?.value === 'pregnant' ? this.pregnantGoalsOptions : this.goalsOptions;
+  }
+
+  motherTypes = [
+    { key: 'pregnant', label: 'I\u2019m pregnant', icon: 'images/pregnant-choice.webp' },
+    { key: 'new_mom', label: 'I\u2019m a new mother', icon: 'images/new-mom-choice.webp' }
+  ];
+
+  countryCodeOptions = ['+91', '+1', '+44', '+61', '+971', '+65'];
+  selectedCountryCode = '+91';
 
   constructor(
     private formBuilder: FormBuilder,
     private backendAuthService: BackendAuthService,
+    private apiService: ApiService,
     private router: Router,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private modalController: ModalController,
+    private host: ElementRef<HTMLElement>
   ) {
     this.registerForm = this.formBuilder.group({
+      fullName: ['', [Validators.required, this.nameInputValidator]],
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       email: ['', [Validators.required, this.emailValidator]],
       phoneNumber: ['', [Validators.required, this.phoneNumberValidator]],
-      whatsappSameAsPhone: [true], // Checkbox for WhatsApp same as phone
-      whatsappNumber: ['', [this.phoneNumberValidator]], // Conditional WhatsApp number field
-      motherType: [''], // Optional
-      dueDate: [''], // Conditional - required for pregnant mothers
-      password: ['', [Validators.required, Validators.minLength(6), this.passwordStrengthValidator]],
+      whatsappSameAsPhone: [true],
+      whatsappNumber: ['', [this.phoneNumberValidator]],
+      motherType: [''],
+      dueDate: [''],
+      deliveryDate: [''],
+      goals: [[], [this.minOneGoalValidator]],
+      password: ['', [Validators.required, Validators.minLength(8), this.passwordStrengthValidator]],
       confirmPassword: ['', [Validators.required]],
       tierType: ['basic', [Validators.required]],
       agreeToTerms: [false, [Validators.requiredTrue]]
     }, { validators: [this.passwordMatchValidator, this.conditionalValidator] });
   }
 
+  // Opens as a modal so the half-filled register form is not lost.
+  async openLegalDoc(doc: 'privacy' | 'terms', event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const modal = await this.modalController.create({
+      component: LegalDocModalComponent,
+      componentProps: { doc }
+    });
+    await modal.present();
+  }
+
+  // iOS (Safari, Chrome on iPhone, native app with Keyboard.resize "none") never shrinks the page for the
+  // keyboard, so a lower field like Confirm password sat under it. Pad the step by the covered height and
+  // scroll the focused field into view.
+  private keyboardInset = 0;
+  private keyboardListeners: PluginListenerHandle[] = [];
+  private readonly onViewportResize = () => {
+    const vv = window.visualViewport;
+    if (!vv || Capacitor.isNativePlatform()) return;
+    this.setKeyboardInset(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+  };
+  private readonly onFocusIn = (event: FocusEvent) => {
+    const field = event.target as HTMLElement;
+    if (!(field instanceof HTMLInputElement) && !(field instanceof HTMLTextAreaElement)) return;
+    // Wait for the keyboard to finish opening before measuring and scrolling
+    setTimeout(() => {
+      this.onViewportResize();
+      field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 300);
+  };
+
+  private setKeyboardInset(px: number): void {
+    if (Math.abs(px - this.keyboardInset) < 1) return;
+    this.keyboardInset = px;
+    this.host.nativeElement.style.setProperty('--keyboard-inset', `${px}px`);
+  }
+
+  ngOnDestroy() {
+    window.visualViewport?.removeEventListener('resize', this.onViewportResize);
+    this.host.nativeElement.removeEventListener('focusin', this.onFocusIn);
+    this.keyboardListeners.forEach(h => h.remove());
+  }
+
   ngOnInit() {
-    // Auto-split full name into firstName and lastName
-    this.registerForm.get('firstName')?.valueChanges.subscribe((fullName) => {
+    window.visualViewport?.addEventListener('resize', this.onViewportResize);
+    this.host.nativeElement.addEventListener('focusin', this.onFocusIn);
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener('keyboardWillShow', info => this.setKeyboardInset(info.keyboardHeight)).then(h => this.keyboardListeners.push(h));
+      Keyboard.addListener('keyboardWillHide', () => this.setKeyboardInset(0)).then(h => this.keyboardListeners.push(h));
+    }
+
+    // Goal lists differ per mother type, so a switch clears picks from the other list
+    this.registerForm.get('motherType')?.valueChanges.subscribe(() => this.registerForm.get('goals')?.setValue([]));
+
+    this.registerForm.get('fullName')?.valueChanges.subscribe((fullName) => {
       if (fullName && fullName.trim().includes(' ')) {
-        const nameParts = fullName.trim().split(' ');
-        const firstName = nameParts.slice(0, -1).join(' ');
-        const lastName = nameParts[nameParts.length - 1];
-        
-        // Prevent infinite loop by checking if values are different
-        if (this.registerForm.get('firstName')?.value !== firstName) {
-          this.registerForm.get('firstName')?.setValue(firstName, { emitEvent: false });
+        const first = this.extractFirstName(fullName);
+        const last = this.extractLastName(fullName);
+
+        if (this.registerForm.get('firstName')?.value !== first) {
+          this.registerForm.get('firstName')?.setValue(first, { emitEvent: false });
         }
-        if (this.registerForm.get('lastName')?.value !== lastName) {
-          this.registerForm.get('lastName')?.setValue(lastName, { emitEvent: false });
+        if (this.registerForm.get('lastName')?.value !== last) {
+          this.registerForm.get('lastName')?.setValue(last, { emitEvent: false });
         }
       }
     });
 
-    // Listen for motherType changes to trigger conditional validation
     this.registerForm.get('motherType')?.valueChanges.subscribe(() => {
-      // Clear conditional fields when mother type changes
       this.registerForm.get('dueDate')?.setValue('');
-      
-      // Trigger validation update
+      this.registerForm.get('deliveryDate')?.setValue('');
       this.registerForm.updateValueAndValidity();
     });
 
-    // Listen for phone number changes to auto-fill WhatsApp number
     this.registerForm.get('phoneNumber')?.valueChanges.subscribe((phoneNumber) => {
       const whatsappSameAsPhone = this.registerForm.get('whatsappSameAsPhone')?.value;
       if (whatsappSameAsPhone && phoneNumber) {
@@ -72,7 +180,6 @@ export class RegisterPage implements OnInit {
       }
     });
 
-    // Listen for WhatsApp checkbox changes
     this.registerForm.get('whatsappSameAsPhone')?.valueChanges.subscribe((sameAsPhone) => {
       if (sameAsPhone) {
         const phoneNumber = this.registerForm.get('phoneNumber')?.value;
@@ -83,103 +190,308 @@ export class RegisterPage implements OnInit {
     });
   }
 
+  get stepCount(): number {
+    return this.steps.length;
+  }
+
+  get progressPercent(): number {
+    return (this.currentStep / (this.steps.length - 1)) * 100;
+  }
+
+  get isWelcomeStep(): boolean {
+    return this.currentStep === 0;
+  }
+
+  get isLastStep(): boolean {
+    return this.currentStep === this.steps.length - 1;
+  }
+
+  get stepTitle(): string {
+    return this.steps[this.currentStep].title;
+  }
+
+  // Date step (6) needs a stage-specific title; every other step's title is static.
+  get dateStepTitle(): string {
+    return this.isPregnant ? 'When is your due date?' : 'When did your baby arrive?';
+  }
+
+  get isPregnant(): boolean {
+    return this.registerForm.get('motherType')?.value === 'pregnant';
+  }
+
+  get selectedGoals(): string[] {
+    return this.registerForm.get('goals')?.value || [];
+  }
+
+  isStepValid(stepIndex: number): boolean {
+    const step = this.steps[stepIndex];
+    switch (step.id) {
+      case 'welcome':
+        return true;
+      case 'name':
+        return this.isControlValid('fullName');
+      case 'phone':
+        return this.isControlValid('phoneNumber');
+      case 'email':
+        return this.isControlValid('email');
+      case 'password':
+        return this.isControlValid('password') && this.isControlValid('confirmPassword');
+      case 'stage':
+        return Boolean(this.registerForm.get('motherType')?.value);
+      case 'date':
+        return this.isPregnant
+          ? this.isControlValid('dueDate')
+          : this.isControlValid('deliveryDate');
+      case 'goals':
+        return Boolean(this.selectedGoals.length);
+      case 'finish':
+        return this.isControlValid('tierType') && Boolean(this.registerForm.get('agreeToTerms')?.value);
+      default:
+        return true;
+    }
+  }
+
+  canGoNext(): boolean {
+    return this.isStepValid(this.currentStep) && !this.isWelcomeStep && !this.submitting;
+  }
+
+  canGoBack(): boolean {
+    return this.currentStep > 0 && !this.submitting;
+  }
+
+  checkingEmail = false;
+
+  async nextStep() {
+    if (!this.isStepValid(this.currentStep)) {
+      this.markStepFieldsTouched(this.currentStep);
+      return;
+    }
+    // Catch an existing account here instead of at the final "Create my account"
+    if (this.steps[this.currentStep].id === 'email') {
+      if (this.checkingEmail) return;
+      if (await this.emailAlreadyRegistered()) return;
+    }
+    if (!this.isLastStep) {
+      this.currentStep += 1;
+    } else {
+      this.onSubmit();
+    }
+  }
+
+  private async emailAlreadyRegistered(): Promise<boolean> {
+    const control = this.registerForm.get('email');
+    this.checkingEmail = true;
+    try {
+      const res = await firstValueFrom(this.apiService.checkEmail(String(control?.value || '').trim()));
+      if (res?.data?.exists) {
+        control?.setErrors({ ...(control.errors || {}), emailTaken: true });
+        control?.markAsTouched();
+        return true;
+      }
+    } catch {
+      // Network or rate-limit error: let her continue; register still rejects a duplicate at the end
+    } finally {
+      this.checkingEmail = false;
+    }
+    return false;
+  }
+
+  goToStep(stepIndex: number) {
+    if (stepIndex >= 0 && stepIndex < this.steps.length && !this.submitting) {
+      this.currentStep = stepIndex;
+    }
+  }
+
+  backStep() {
+    if (!this.canGoBack()) {
+      return;
+    }
+    if (this.currentStep === 1) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+    this.currentStep -= 1;
+  }
+
+  selectMotherType(key: string) {
+    this.registerForm.get('motherType')?.setValue(key);
+  }
+
+  toggleGoal(key: string) {
+    const goals = [...this.selectedGoals];
+    const index = goals.indexOf(key);
+    if (index >= 0) {
+      goals.splice(index, 1);
+    } else {
+      goals.push(key);
+    }
+    this.registerForm.get('goals')?.setValue(goals);
+    this.registerForm.get('goals')?.markAsTouched();
+  }
+
+  onCountryChange(event: any) {
+    this.selectedCountryCode = event.detail.value;
+    this.registerForm.get('phoneNumber')?.updateValueAndValidity();
+    this.registerForm.get('whatsappNumber')?.updateValueAndValidity();
+  }
+
   emailValidator(control: any) {
     const value = control.value;
     if (!value) return null;
-    
-    // Comprehensive email validation pattern
-    // This pattern ensures:
-    // - Valid characters before @
-    // - @ symbol
-    // - Valid domain name
-    // - At least one dot after domain
-    // - Valid top-level domain (2-4 characters)
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    
-    if (!emailPattern.test(value)) {
+
+    const email = value.trim();
+
+    if (email.length > 254) {
       return { invalidEmail: true };
     }
-    
-    // Additional check: ensure domain has at least one dot and proper TLD
-    const parts = value.split('@');
-    if (parts.length !== 2) {
+
+    const atIndex = email.lastIndexOf('@');
+    if (atIndex <= 0 || atIndex === email.length - 1) {
       return { invalidEmail: true };
     }
-    
-    const domain = parts[1];
-    const domainParts = domain.split('.');
-    
-    // Domain must have at least 2 parts (domain.tld)
-    if (domainParts.length < 2) {
+
+    const local = email.slice(0, atIndex);
+    const domain = email.slice(atIndex + 1);
+
+    if (local.length > 64) {
       return { invalidEmail: true };
     }
-    
-    // Last part (TLD) must be at least 2 characters
-    const tld = domainParts[domainParts.length - 1];
-    if (tld.length < 2) {
+
+    if (!/^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~.-]+$/.test(local)) {
       return { invalidEmail: true };
     }
-    
-    return null; // Valid
+    if (local.startsWith('.') || local.endsWith('.') || /\.{2,}/.test(local)) {
+      return { invalidEmail: true };
+    }
+
+    if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?)+$/.test(domain)) {
+      return { invalidEmail: true };
+    }
+
+    const tld = domain.split('.').pop() || '';
+    if (tld.length < 2 || !/^[a-zA-Z]+$/.test(tld)) {
+      return { invalidEmail: true };
+    }
+
+    return null;
   }
 
-  phoneNumberValidator(control: any) {
+  phoneNumberValidator = (control: any): { [key: string]: boolean } | null => {
     const value = control.value;
-    if (!value) return null; // Allow empty for optional fields
-    
-    // Remove any non-digit characters for validation
+    if (!value) return null;
+
     const digitsOnly = value.replace(/\D/g, '');
-    
-    // Check if it contains only digits (after cleaning)
+    const isIndia = this.selectedCountryCode === '+91';
+
     if (!/^\d+$/.test(digitsOnly)) {
       return { invalidFormat: true };
     }
-    
-    // Check length (10 digits for most phone numbers)
+
+    if (isIndia) {
+      if (digitsOnly.length !== 10) {
+        return { indRequiredTenDigits: true };
+      }
+      if (!/^[6-9]/.test(digitsOnly)) {
+        return { indMustStartWith69: true };
+      }
+      return null;
+    }
+
     if (digitsOnly.length < 10) {
       return { tooShort: true };
     }
-    
-    if (digitsOnly.length > 15) { // International standard max length
+
+    if (digitsOnly.length > 15) {
       return { tooLong: true };
     }
-    
-    return null; // Valid
+
+    return null;
+  };
+
+  nameInputValidator(control: any) {
+    const value = control.value;
+    if (!value) return null;
+
+    const name = `${value}`;
+    const trimmed = name.trim();
+
+    if (!trimmed) {
+      return { required: true };
+    }
+
+    const normalized = trimmed.replace(/[ \t\r\n]+/g, ' ');
+    const words = normalized.split(/[\s]+/).filter(Boolean);
+
+    if (words.length < 2) {
+      return { requireFullName: true };
+    }
+
+    if (!/^[\p{L}]+(?:[ \-'][\p{L}]+)*$/u.test(normalized)) {
+      return { invalidCharacters: true };
+    }
+
+    if (normalized.length > 50) {
+      return { nameTooLong: true };
+    }
+
+    return null;
+  }
+
+  extractFirstName(fullName: string): string {
+    const parts = `${fullName}`.trim().replace(/[ \t\r\n]+/g, ' ').split(' ');
+    return parts.slice(0, -1).join(' ') || '';
+  }
+
+  extractLastName(fullName: string): string {
+    const parts = `${fullName}`.trim().replace(/[ \t\r\n]+/g, ' ').split(' ');
+    return parts.length > 1 ? parts[parts.length - 1] : '';
+  }
+
+  minOneGoalValidator(control: any) {
+    const value = control.value;
+    if (!value || !Array.isArray(value) || value.length === 0) {
+      return { noGoals: true };
+    }
+    return null;
   }
 
   passwordStrengthValidator(control: any) {
     const value = control.value;
     if (!value) return null;
 
+    if (/\s/.test(value)) {
+      return { passwordContainsSpace: true };
+    }
+
     const hasUpperCase = /[A-Z]/.test(value);
     const hasLowerCase = /[a-z]/.test(value);
     const hasNumber = /[0-9]/.test(value);
 
     if (hasUpperCase && hasLowerCase && hasNumber) {
-      return null; // Valid
+      return null;
     }
 
-    return { passwordStrength: true }; // Invalid
+    return { passwordStrength: true };
   }
 
   passwordMatchValidator(form: FormGroup) {
     const password = form.get('password');
     const confirmPassword = form.get('confirmPassword');
-    
+
     if (password && confirmPassword && password.value !== confirmPassword.value) {
       confirmPassword.setErrors({ mismatch: true });
     } else if (confirmPassword?.hasError('mismatch')) {
       confirmPassword.setErrors(null);
     }
-    
+
     return null;
   }
 
   conditionalValidator(form: FormGroup) {
     const motherType = form.get('motherType')?.value;
     const dueDate = form.get('dueDate');
+    const deliveryDate = form.get('deliveryDate');
 
-    // Helper function to clear conditional errors while preserving other errors
     const clearConditionalError = (control: any, errorType: string) => {
       if (control?.hasError(errorType)) {
         const errors = { ...control.errors };
@@ -188,24 +500,38 @@ export class RegisterPage implements OnInit {
       }
     };
 
-    // Clear existing conditional errors first
     clearConditionalError(dueDate, 'conditionalRequired');
     clearConditionalError(dueDate, 'pastDate');
+    clearConditionalError(deliveryDate, 'conditionalRequired');
+    clearConditionalError(deliveryDate, 'futureDate');
 
-    // Apply conditional validation
     if (motherType === 'pregnant') {
       if (!dueDate?.value) {
         const errors = dueDate?.errors || {};
         dueDate?.setErrors({ ...errors, conditionalRequired: true });
       } else {
-        // Check if due date is in the past
         const selectedDate = new Date(dueDate.value);
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-        
+        today.setHours(0, 0, 0, 0);
+
         if (selectedDate < today) {
           const errors = dueDate?.errors || {};
           dueDate?.setErrors({ ...errors, pastDate: true });
+        }
+      }
+    } else if (motherType === 'new_mom') {
+      if (!deliveryDate?.value) {
+        const errors = deliveryDate?.errors || {};
+        deliveryDate?.setErrors({ ...errors, conditionalRequired: true });
+      } else {
+        // new Date('YYYY-MM-DD') is UTC midnight (05:30 IST), so today always failed against local midnight
+        const selectedDate = DateOnlyUtil.parseLocalDate(deliveryDate.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate > today) {
+          const errors = deliveryDate?.errors || {};
+          deliveryDate?.setErrors({ ...errors, futureDate: true });
         }
       }
     }
@@ -213,9 +539,9 @@ export class RegisterPage implements OnInit {
     return null;
   }
 
-
   async onSubmit() {
-    if (this.registerForm.valid) {
+    if (this.registerForm.valid && !this.submitting) {
+      this.submitting = true;
       const loading = await this.loadingController.create({
         message: 'Creating your account...',
         translucent: true
@@ -225,31 +551,36 @@ export class RegisterPage implements OnInit {
       try {
         const formValue = this.registerForm.value;
         const registrationData: any = {
-          email: formValue.email,
+          email: formValue.email?.trim().toLowerCase(),
           password: formValue.password,
           firstName: formValue.firstName,
           lastName: formValue.lastName,
           phoneNumber: formValue.phoneNumber,
+          countryCode: this.selectedCountryCode,
           motherType: formValue.motherType,
           tier: formValue.tierType
         };
 
-        // Handle WhatsApp number
         if (formValue.whatsappSameAsPhone && formValue.phoneNumber) {
           registrationData.whatsappNumber = formValue.phoneNumber;
         } else if (!formValue.whatsappSameAsPhone && formValue.whatsappNumber) {
           registrationData.whatsappNumber = formValue.whatsappNumber;
         }
 
-        // Add conditional fields based on mother type
         if (formValue.motherType === 'pregnant' && formValue.dueDate) {
           registrationData.dueDate = this.formatDateForApi(formValue.dueDate);
         }
 
+        const isNewMom = formValue.motherType === 'new_mom' && formValue.deliveryDate;
+
         await this.backendAuthService.register(registrationData);
-        
-        await loading.dismiss();
-        
+
+        if (isNewMom) {
+          await this.persistNewMomOnboarding(formValue.deliveryDate, formValue.goals);
+        } else if (formValue.motherType === 'pregnant' && Array.isArray(formValue.goals) && formValue.goals.length > 0) {
+          await this.persistPregnantOnboarding(formValue.goals);
+        }
+
         const toast = await this.toastController.create({
           message: 'Account created successfully! Welcome to NariCare.',
           duration: 3000,
@@ -259,19 +590,15 @@ export class RegisterPage implements OnInit {
         await toast.present();
 
       } catch (error: any) {
-        await loading.dismiss();
-        
         let errorMessage = 'Registration failed. Please try again.';
-        
-        // Handle API validation errors
+
         if (error.error && error.error.details && Array.isArray(error.error.details)) {
-          // Extract validation error messages
           const validationErrors = error.error.details.map((detail: any) => detail.message).join(', ');
           errorMessage = validationErrors;
         } else if (error.message) {
           errorMessage = error.message;
         }
-        
+
         const toast = await this.toastController.create({
           message: errorMessage,
           duration: 4000,
@@ -279,9 +606,47 @@ export class RegisterPage implements OnInit {
           position: 'top'
         });
         await toast.present();
+      } finally {
+        // dismiss in finally so a fast register/navigation never orphans the overlay
+        await loading.dismiss();
+        this.submitting = false;
       }
     } else {
-      this.markFormGroupTouched();
+      this.markStepFieldsTouched(this.currentStep);
+    }
+  }
+
+  private async persistPregnantOnboarding(goals: string[]) {
+    try {
+      await firstValueFrom(this.apiService.saveOnboardingData({
+        pregnancyInfo: {
+          motherType: 'pregnant',
+          expectedDueDate: this.registerForm.get('dueDate')?.value || null
+        },
+        challengesAndExpectationsInfo: {
+          breastfeedingGoals: goals
+        }
+      }));
+    } catch {
+      // Registration already succeeded; onboarding data is best-effort.
+    }
+  }
+
+  private async persistNewMomOnboarding(deliveryDate: string, goals: string[]) {
+    try {
+      await firstValueFrom(this.apiService.saveOnboardingData({
+        pregnancyInfo: {
+          motherType: 'new_mom',
+          babies: [{
+            dateOfBirth: this.formatDateForApi(deliveryDate)
+          }]
+        },
+        challengesAndExpectationsInfo: {
+          currentChallenges: goals
+        }
+      }));
+    } catch {
+      // Registration already succeeded; onboarding data is best-effort.
     }
   }
 
@@ -306,9 +671,7 @@ export class RegisterPage implements OnInit {
 
     try {
       await this.backendAuthService.signInWithGoogle();
-      await loading.dismiss();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Google sign-up failed. Please try again.',
         duration: 3000,
@@ -316,6 +679,8 @@ export class RegisterPage implements OnInit {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 
@@ -328,9 +693,7 @@ export class RegisterPage implements OnInit {
 
     try {
       await this.backendAuthService.signInWithFacebook();
-      await loading.dismiss();
     } catch (error: any) {
-      await loading.dismiss();
       const toast = await this.toastController.create({
         message: error.message || 'Facebook sign-up failed. Please try again.',
         duration: 3000,
@@ -338,19 +701,20 @@ export class RegisterPage implements OnInit {
         position: 'top'
       });
       await toast.present();
+    } finally {
+      await loading.dismiss();
     }
   }
 
-  private markFormGroupTouched() {
-    Object.keys(this.registerForm.controls).forEach(key => {
-      this.registerForm.get(key)?.markAsTouched();
+  private markStepFieldsTouched(stepIndex: number) {
+    this.steps[stepIndex].controls.forEach(field => {
+      this.registerForm.get(field)?.markAsTouched();
     });
   }
 
-  private markFieldsAsTouched(fields: string[]) {
-    fields.forEach(field => {
-      this.registerForm.get(field)?.markAsTouched();
-    });
+  isControlValid(field: string): boolean {
+    const control = this.registerForm.get(field);
+    return Boolean(control?.value) && control?.valid === true;
   }
 
   getErrorMessage(field: string): string {
@@ -361,17 +725,32 @@ export class RegisterPage implements OnInit {
     if (control?.hasError('conditionalRequired')) {
       return `${this.getFieldLabel(field)} is required`;
     }
+    if (control?.hasError('requireFullName')) {
+      return 'Please enter your full name (first and last name)';
+    }
+    if (control?.hasError('invalidCharacters')) {
+      return 'Name can only contain letters, spaces, hyphens, and apostrophes';
+    }
+    if (control?.hasError('nameTooLong')) {
+      return 'Name cannot exceed 50 characters';
+    }
     if (control?.hasError('pastDate')) {
       return 'Due date cannot be in the past';
     }
-    if (control?.hasError('email')) {
-      return 'Please enter a valid email address';
+    if (control?.hasError('futureDate')) {
+      return 'Delivery date cannot be in the future';
+    }
+    if (control?.hasError('emailTaken')) {
+      return 'An account with this email already exists.';
     }
     if (control?.hasError('invalidEmail')) {
       return 'Please enter a valid email address with proper domain (e.g., user@example.com)';
     }
     if (control?.hasError('minlength')) {
-      return `${this.getFieldLabel(field)} must be at least 6 characters`;
+      return `${this.getFieldLabel(field)} must be at least 8 characters`;
+    }
+    if (control?.hasError('passwordContainsSpace')) {
+      return 'Password cannot contain spaces';
     }
     if (control?.hasError('passwordStrength')) {
       return 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
@@ -382,24 +761,35 @@ export class RegisterPage implements OnInit {
     if (control?.hasError('invalidFormat')) {
       return 'Phone number must contain only digits';
     }
+    if (control?.hasError('indRequiredTenDigits')) {
+      return 'Indian phone numbers must be exactly 10 digits';
+    }
+    if (control?.hasError('indMustStartWith69')) {
+      return 'Indian mobile numbers must start with 6, 7, 8, or 9';
+    }
     if (control?.hasError('tooShort')) {
       return 'Phone number must be at least 10 digits';
     }
     if (control?.hasError('tooLong')) {
       return 'Phone number cannot exceed 15 digits';
     }
+    if (control?.hasError('noGoals')) {
+      return 'Select at least one goal to continue';
+    }
     return '';
   }
 
   private getFieldLabel(field: string): string {
     const labels: { [key: string]: string } = {
-      firstName: 'First name',
+      firstName: 'Full name',
       lastName: 'Last name',
+      fullName: 'Full name',
       email: 'Email',
       phoneNumber: 'Phone number',
       whatsappNumber: 'WhatsApp number',
       motherType: 'Mother type',
       dueDate: 'Due date',
+      deliveryDate: 'Delivery date',
       password: 'Password',
       confirmPassword: 'Confirm password',
       tierType: 'Program type',
@@ -409,25 +799,54 @@ export class RegisterPage implements OnInit {
   }
 
   formatPhoneNumber(event: any, fieldName: string) {
-    let value = event.detail.value;
-    
-    // Remove all non-digit characters
+    const value = event.detail.value;
+
     const digitsOnly = value.replace(/\D/g, '');
-    
-    // Limit to 15 digits (international standard)
-    const limitedDigits = digitsOnly.substring(0, 15);
-    
-    // Update the form control with digits only (no formatting for now)
-    // This ensures the backend receives clean phone numbers
+
+    const maxDigits = this.selectedCountryCode === '+91' ? 10 : 15;
+
+    const limitedDigits = digitsOnly.substring(0, maxDigits);
+
     this.registerForm.get(fieldName)?.setValue(limitedDigits, { emitEvent: false });
   }
 
   getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
+  }
+
+  getMaxDueDate(): string {
+    const max = new Date();
+    max.setFullYear(max.getFullYear() + 1);
+    return DateOnlyUtil.formatLocalDate(max);
+  }
+
+  getMinDeliveryDate(): string {
+    const min = new Date();
+    min.setFullYear(min.getFullYear() - 3);
+    return DateOnlyUtil.formatLocalDate(min);
+  }
+
+  onDateSelect(event: any, fieldName: string) {
+    const value = event.detail.value;
+    this.registerForm.get(fieldName)?.setValue(value);
+    this.registerForm.get(fieldName)?.markAsTouched();
+  }
+
+  formatDisplayDate(value: string): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  getGoalsLabel(keys: string[]): string {
+    return keys
+      .map(key => this.goalsOptions.find(goal => goal.key === key)?.label || key)
+      .join(', ');
   }
 
   private formatDateForApi(dateValue: string): string {
-    // ion-input with type="date" returns YYYY-MM-DD format directly, which is perfect for API
-    return dateValue;
+    if (!dateValue) return dateValue;
+    return dateValue.includes('T') ? dateValue.split('T')[0] : dateValue;
   }
 }

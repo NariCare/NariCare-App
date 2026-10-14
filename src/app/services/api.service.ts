@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
+import { Observable, BehaviorSubject, throwError, of, firstValueFrom } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -77,10 +77,11 @@ export interface FeedRecordRequest {
 
 export interface WeightRecordRequest {
   babyId: string;
-  weight: number;
+  weight?: number; // optional when height is sent
   height?: number;
   notes?: string;
   date?: string; // ISO date string for when the measurement was taken
+  recordDate?: string; // local YYYY-MM-DD, read by the backend
 }
 
 export interface StoolRecordRequest {
@@ -352,6 +353,12 @@ export class ApiService {
   // AUTHENTICATION ENDPOINTS
   // ============================================================================
 
+  /** Public: whether an account already uses this email (register email step). */
+  checkEmail(email: string): Observable<ApiResponse<{ exists: boolean }>> {
+    return this.http.post<ApiResponse<{ exists: boolean }>>(`${this.baseUrl}/auth/check-email`, { email })
+      .pipe(catchError(this.handleError));
+  }
+
   register(userData: {
     firstName: string;
     lastName: string;
@@ -369,19 +376,19 @@ export class ApiService {
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
-            this.setToken(response.data.token);
+            this.storeSession(response.data);
           }
         }),
         catchError(this.handleError)
       );
   }
 
-  login(email: string, password: string): Observable<ApiResponse<LoginResponse>> {
-    return this.http.post<ApiResponse<LoginResponse>>(`${this.baseUrl}/auth/login`, { email, password })
+  login(email: string, password: string, portal?: 'user' | 'admin' | 'lc'): Observable<ApiResponse<LoginResponse>> {
+    return this.http.post<ApiResponse<LoginResponse>>(`${this.baseUrl}/auth/login`, portal ? { email, password, portal } : { email, password })
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
-            this.setToken(response.data.token);
+            this.storeSession(response.data);
           }
         }),
         catchError(this.handleError)
@@ -399,7 +406,7 @@ export class ApiService {
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
-            this.setToken(response.data.token);
+            this.storeSession(response.data);
           }
         }),
         catchError(this.handleError)
@@ -438,7 +445,7 @@ export class ApiService {
       .pipe(
         tap(response => {
           if (response.success && response.data?.token) {
-            this.setToken(response.data.token);
+            this.storeSession(response.data);
           }
         }),
         catchError(this.handleError)
@@ -451,17 +458,28 @@ export class ApiService {
     }).pipe(catchError(this.handleError));
   }
 
-  refreshToken(): Observable<ApiResponse<{ token: string }>> {
-    return this.http.post<ApiResponse<{ token: string }>>(`${this.baseUrl}/auth/refresh`, {}, {
-      headers: this.getAuthHeaders()
-    }).pipe(
+  refreshToken(): Observable<ApiResponse<{ token: string; refreshToken?: string }>> {
+    const refreshToken = localStorage.getItem('naricare_refresh_token');
+    if (!refreshToken) return throwError(() => new Error('No refresh token'));
+    return this.http.post<ApiResponse<{ token: string; refreshToken?: string }>>(`${this.baseUrl}/auth/refresh-token`, { refreshToken }).pipe(
       tap(response => {
         if (response.success && response.data?.token) {
-          this.setToken(response.data.token);
+          this.storeSession(response.data);
         }
       }),
       catchError(this.handleError)
     );
+  }
+
+  // One shared refresh for the resume handler, the pre-expiry timer and the 401 retry interceptor
+  private refreshInFlight: Promise<string | null> | null = null;
+  /** Renews the session once; resolves to the new access token, or null if it could not be renewed. */
+  refreshSession(): Promise<string | null> {
+    this.refreshInFlight ??= firstValueFrom(this.refreshToken())
+      .then(response => response?.data?.token ?? null)
+      .catch(() => null)
+      .finally(() => { this.refreshInFlight = null; });
+    return this.refreshInFlight;
   }
 
   logout(): Observable<any> {
@@ -561,13 +579,28 @@ export class ApiService {
     }).pipe(catchError(this.handleError));
   }
 
-  getFeedRecords(babyId: string, limit: number = 20): Observable<ApiResponse<any[]>> {
+  // Paginated full history, newest first. Response carries `pagination: { page, limit, total, totalPages }`.
+  getFeedRecords(babyId: string, limit: number = 20, page: number = 1): Observable<ApiResponse<any[]>> {
     const params = new HttpParams()
-      .set('limit', limit.toString());
+      .set('limit', limit.toString())
+      .set('page', page.toString());
 
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/recent/${babyId}`, {
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/feed/${babyId}`, {
       headers: this.getAuthHeaders(),
       params
+    }).pipe(catchError(this.handleError));
+  }
+
+  // Flat camelCase fields (directStartTime, expressedQuantity, ...); null clears a column.
+  updateFeedRecord(id: string, data: Record<string, any>): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/tracker/feed/${id}`, data, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  deleteFeedRecord(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/tracker/feed/${id}`, {
+      headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
@@ -577,9 +610,26 @@ export class ApiService {
     }).pipe(catchError(this.handleError));
   }
 
-  getWeightRecords(babyId: string): Observable<ApiResponse<any[]>> {
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/weight/${babyId}`, {
+  updateWeightRecord(id: string, weightData: Partial<WeightRecordRequest>): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/tracker/weight/${id}`, weightData, {
       headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  deleteWeightRecord(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/tracker/weight/${id}`, {
+      headers: this.getAuthHeaders()
+    }).pipe(catchError(this.handleError));
+  }
+
+  getWeightRecords(babyId: string, page?: number, limit?: number): Observable<ApiResponse<any[]>> {
+    let params = new HttpParams();
+    if (page) params = params.set('page', page.toString());
+    if (limit) params = params.set('limit', limit.toString());
+
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/weight/${babyId}`, {
+      headers: this.getAuthHeaders(),
+      params
     }).pipe(catchError(this.handleError));
   }
 
@@ -599,17 +649,14 @@ export class ApiService {
   }
 
   createPumpingRecord(pumpingData: PumpingRecordRequest): Observable<ApiResponse<any>> {
-    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/tracker/pumping-records`, pumpingData, {
+    return this.http.post<ApiResponse<any>>(`${this.baseUrl}/pumping-records`, pumpingData, {
       headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
   getPumpingRecords(babyId: string): Observable<ApiResponse<any[]>> {
-    const params = new HttpParams().set('babyId', babyId);
-
-    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/tracker/pumping-records`, {
-      headers: this.getAuthHeaders(),
-      params
+    return this.http.get<ApiResponse<any[]>>(`${this.baseUrl}/pumping-records/baby/${babyId}`, {
+      headers: this.getAuthHeaders()
     }).pipe(catchError(this.handleError));
   }
 
@@ -1207,8 +1254,29 @@ export class ApiService {
     this.tokenSubject.next(token);
   }
 
+  // Login, register, 2FA and refresh all return a refresh token alongside the access token
+  private storeSession(data: { token?: string; refreshToken?: string }): void {
+    if (data.refreshToken) localStorage.setItem('naricare_refresh_token', data.refreshToken);
+    if (data.token) this.setToken(data.token);
+  }
+
+  /** Access-token expiry in ms since epoch, or null if there is no readable token. */
+  getTokenExpiry(): number | null {
+    try {
+      const payload = JSON.parse(atob(String(this.tokenSubject.value).split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return typeof payload.exp === 'number' ? payload.exp * 1000 : null;
+    } catch {
+      return null;
+    }
+  }
+
+  hasRefreshToken(): boolean {
+    return !!localStorage.getItem('naricare_refresh_token');
+  }
+
   private clearToken(): void {
     localStorage.removeItem('naricare_token');
+    localStorage.removeItem('naricare_refresh_token');
     this.tokenSubject.next(null);
   }
 
@@ -1278,7 +1346,10 @@ export class ApiService {
     
     if (error.error) {
       // Check for API response structure - prioritize 'error' field first since that's what your API uses
-      if (error.error.error) {
+      if (error.error.details && Array.isArray(error.error.details) && error.error.details.length) {
+        // Validation format: { error: "Validation failed", details: [{ field, message }] }
+        errorMessage = error.error.details.map((d: any) => d.message).filter(Boolean).join('. ');
+      } else if (error.error.error) {
         // API error format: { success: false, error: "Error message" }
         errorMessage = error.error.error;
       } else if (error.error.message) {
@@ -1308,7 +1379,8 @@ export class ApiService {
     
     // Don't override 500 errors if we already extracted a specific error message
     
-    return throwError(() => new Error(errorMessage));
+    // Keep status/code/portal so callers can react to e.g. WRONG_PORTAL
+    return throwError(() => Object.assign(new Error(errorMessage), { status: error.status, code: error.error?.code, portal: error.error?.portal }));
   };
 
   // ============================================================================

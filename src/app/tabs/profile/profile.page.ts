@@ -14,6 +14,7 @@ import { BabyCreationModalComponent } from '../../components/baby-creation-modal
 import { NotificationListComponent } from '../../components/notification-list/notification-list.component';
 import { NotificationPreferencesComponent } from '../../components/notification-preferences/notification-preferences.component';
 import { BabySelectionModalComponent } from '../../components/baby-selection-modal/baby-selection-modal.component';
+import { LegalDocModalComponent } from '../../components/legal-doc-modal/legal-doc-modal.component';
 
 // Version Info Interface
 export interface VersionInfo {
@@ -57,13 +58,14 @@ export class ProfilePage implements OnInit {
     this.backendAuthService.currentUser$.subscribe(user => {
       this.user = user;
       if (user) {
-        this.loadUpcomingConsultations();
+        // Consultations display disabled; skip the fetch so we don't pull data nothing renders.
+        // this.loadUpcomingConsultations();
         this.initializeNotifications();
         this.updateProfileSections();
       }
     });
-    
-    this.loadExperts();
+
+    // this.loadExperts();  // re-enable with consultation UI
     this.loadVersionInfo();
   }
 
@@ -82,7 +84,7 @@ export class ProfilePage implements OnInit {
   private updateProfileSections() {
     console.log('Profile Page - updateProfileSections called for user:', this.user);
     const accountItems: any[] = [
-      { label: 'Personal Information', icon: 'person-outline', action: 'editProfile' }
+      { label: 'Personal Information', subtitle: 'Manage your details', icon: 'person-outline', iconColor: 'purple', action: 'editProfile' }
     ];
 
     // Check if user is an expert
@@ -106,39 +108,44 @@ export class ProfilePage implements OnInit {
       }
 
       // Determine the add baby label based on existing babies
-      const addBabyLabel = (this.user?.babies && this.user.babies.length > 0) 
-        ? 'Add Another Baby' 
+      const addBabyLabel = (this.user?.babies && this.user.babies.length > 0)
+        ? 'Add Another Baby'
         : 'Add New Baby';
 
-      accountItems.push({ label: addBabyLabel, icon: 'add-circle-outline', action: 'addBaby' });
+      accountItems.push({ label: addBabyLabel, subtitle: 'Start tracking your little one', icon: 'add-circle-outline', iconColor: 'pink', action: 'addBaby' });
     }
 
-    // Add notifications for all users
-    accountItems.push(
-      { label: 'Notifications', icon: 'notifications-outline', action: 'viewNotifications', badge: this.unreadNotificationCount }
-    );
+    // LCs review AI answers in the admin queue
+    if (this.user?.role === 'expert') {
+      accountItems.push({ label: 'Review AI answers', subtitle: 'Approve, reject or correct NariCare AI', icon: 'chatbubbles-outline', iconColor: 'green', action: 'reviewAi' });
+    }
+
+    // ponytail: Notifications hidden until tapping one opens its screen (phase 2, ClickUp 14ypx61z05g)
+    // accountItems.push(
+    //   { label: 'Notifications', subtitle: 'Manage reminders and updates', icon: 'notifications-outline', iconColor: 'yellow', action: 'viewNotifications', badge: this.unreadNotificationCount }
+    // );
 
     // Create support items based on user role
     const supportItems: any[] = [
-      { label: 'Contact Support', icon: 'mail-outline', action: 'contact' },
-      { label: 'Privacy Policy', icon: 'shield-outline', action: 'privacy' }
+      { label: 'Contact Support', icon: 'mail-outline', iconColor: 'green', action: 'contact' },
+      { label: 'Privacy Policy', icon: 'shield-checkmark-outline', iconColor: 'purple', action: 'privacy' },
+      { label: 'Terms of Service', icon: 'document-text-outline', iconColor: 'purple', action: 'terms' }
     ];
 
-    // Only add help center and book consultation for non-expert users
-    if (!isExpert) {
-      supportItems.unshift(
-        { label: 'Help Center', icon: 'help-circle-outline', action: 'help' },
-        { label: 'Book Expert Consultation', icon: 'videocam-outline', action: 'bookConsultation' }
-      );
-    }
+    // ponytail: Help Center hidden until FAQ content exists; restore the unshift below
+    // if (!isExpert) {
+    //   supportItems.unshift(
+    //     { label: 'Help Center', icon: 'help-circle-outline', iconColor: 'blue', action: 'help' }
+    //   );
+    // }
 
     this.profileSections = [
       {
-        title: 'Account',
+        title: 'My Account',
         items: accountItems
       },
       {
-        title: 'Support',
+        title: 'Support & Resources',
         items: supportItems
       }
     ];
@@ -320,7 +327,13 @@ export class ProfilePage implements OnInit {
         this.contactSupport();
         break;
       case 'privacy':
-        this.viewPrivacyPolicy();
+        this.openLegalDoc('privacy');
+        break;
+      case 'terms':
+        this.openLegalDoc('terms');
+        break;
+      case 'reviewAi':
+        this.router.navigate(['/admin/ai-review']);
         break;
     }
   }
@@ -392,28 +405,9 @@ export class ProfilePage implements OnInit {
   }
 
   private editProfile() {
-    console.log('Profile Page - editProfile method called');
-    console.log('Profile Page - Current user:', this.user);
-    console.log('Profile Page - Current route:', this.router.url);
-    console.log('Profile Page - Navigating to personal-info');
-    
-    // Simple direct navigation first
-    console.log('Profile Page - Attempting direct navigation to /personal-info');
-    this.router.navigateByUrl('/personal-info').then(success => {
-      console.log('Profile Page - Direct navigation result:', success);
-      if (!success) {
-        console.error('Profile Page - Direct navigation failed, trying alternative');
-        // Alternative approach with manual URL change
-        setTimeout(() => {
-          console.log('Profile Page - Forcing navigation with location.href');
-          window.location.href = '/personal-info';
-        }, 100);
-      }
-    }).catch(error => {
-      console.error('Profile Page - Navigation error:', error);
-      // Force navigation
-      window.location.href = '/personal-info';
-    });
+    // A hard location.href fallback here used to reload the app to Home when the
+    // guard briefly blocked the first navigation, so keep it to a clean route.
+    this.router.navigate(['/personal-info']);
   }
 
   private async editBaby() {
@@ -468,7 +462,7 @@ export class ProfilePage implements OnInit {
       if (result.data?.created) {
         // Baby was created successfully, user data is already refreshed in the modal
         this.updateProfileSections(); // Refresh profile sections to show baby information item
-        this.showSuccessToast(`Baby added successfully! 👶`);
+        // Modal already toasts "<name> has been added successfully"
       }
     });
 
@@ -538,8 +532,30 @@ export class ProfilePage implements OnInit {
     window.open(whatsappUrl, '_blank');
   }
 
-  private viewPrivacyPolicy() {
-    console.log('View privacy policy');
+  private async openLegalDoc(doc: 'privacy' | 'terms') {
+    const modal = await this.modalController.create({
+      component: LegalDocModalComponent,
+      componentProps: { doc }
+    });
+    await modal.present();
+  }
+
+  async shareApp() {
+    const shareData = {
+      title: 'NariCare',
+      text: 'Help other mothers by sharing NariCare',
+      url: 'https://naricare.app'
+    };
+    if ((navigator as any).share) {
+      try {
+        await (navigator as any).share(shareData);
+      } catch {
+        // user cancelled share sheet, no-op
+      }
+    } else {
+      await navigator.clipboard.writeText(shareData.url);
+      this.showSuccessToast('Link copied to clipboard!');
+    }
   }
 
   async logout() {

@@ -3,14 +3,15 @@
     // --background: linear-gradient(135deg, #a8dadc 0%, #b8e6e8 100%);
     --color: #ffffff;
     --border-width: 0;
-    --min-height: 120px;
-    padding: 1rem 0;
+    --min-height: 88px;
+    padding: 0.5rem 0;
   }
 }
 
 .header-title {
   text-align: center;
   color: #ffffff;
+  white-space: normal; // subtitle wraps on narrow phones instead of truncating
 
   h1 {
     margin: 0 0 0.25rem 0;
@@ -29,6 +30,13 @@
     margin: 0;
     font-size: 0.9rem;
     opacity: 0.8;
+  }
+
+  .header-sub {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.4;
   }
 }
 
@@ -62,6 +70,11 @@
   padding: 2rem 1rem;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+
+  // Compact variant: tighter padding so sub-tabs sit higher
+  &.compact {
+    padding: 0.625rem 1rem;
+  }
 }
 
 .baby-avatar-large {
@@ -79,14 +92,149 @@
     font-size: 3rem;
     color: #ffffff;
   }
+
+  // Compact avatar circle sized to the 44px icon
+  .compact & {
+    width: 56px;
+    height: 56px;
+    border-width: 2px;
+
+    ion-icon {
+      font-size: 1.75rem;
+    }
+  }
 }
 
+// Text-safe primary, matches growth.page $primary-strong (~4.9:1 on white)
+$primary-strong: #6464d3;
+$muted-strong: #5f5890;
+$ink: #2d3748;
+$lavender-border: #ece9fb;
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Baby summary card */
+.baby-summary-card {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 32px);
+  margin: 16px 16px 0;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid $lavender-border;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(100, 100, 211, 0.08);
+  font: inherit;
+  text-align: left;
+  color: $ink;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+}
+
+.summary-avatar {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #f1eefd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.summary-meta {
+  flex: 0 1 auto;
+  max-width: 45%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 0.8125rem;
+  color: $muted-strong;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-chevron { flex: 0 0 auto; font-size: 20px; color: $muted-strong; }
+
+/* Sub-tabs: rounded pill segmented control */
 .sub-tabs-container {
-  // background: linear-gradient(135deg, #a8dadc 0%, #b8e6e8 100%);
+  margin: 16px 16px 0;
+  padding: 4px;
+  background: #f1eefd;
+  border: 1px solid $lavender-border;
+  border-radius: 999px;
+}
+
+// Scoped override of the app-wide peach segment in global.scss
+ion-segment.sub-tabs-segment {
+  --background: transparent !important;
+  background: transparent !important;
+
+  ion-segment-button {
+    --border-radius: 999px !important;
+    --indicator-color: transparent;
+    --padding-start: 6px;
+    --padding-end: 6px;
+    --background-focused: transparent !important;
+    --background-activated: transparent !important;
+    border-radius: 999px !important;
+    margin: 0 !important;
+    min-height: 44px !important;
+    --color: #{$muted-strong} !important;
+    color: $muted-strong !important;
+    font-weight: 600 !important;
+    text-transform: none;
+    letter-spacing: 0;
+
+    ion-label { font-size: 0.875rem !important; white-space: nowrap; }
+
+    &.ion-focused:not(.segment-button-checked),
+    &.ion-activated:not(.segment-button-checked) {
+      --background: transparent !important;
+      background: transparent !important;
+    }
+
+    &.segment-button-checked {
+      --background: #{$primary-strong} !important;
+      background: $primary-strong !important;
+      --color: #ffffff !important;
+      color: #ffffff !important;
+
+      ion-label { color: #ffffff !important; }
+    }
+
+    &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+  }
+}
+
+/* Previous sub-tab styles, kept for reuse
+.sub-tabs-container {
   padding: 2px;
   background: white;
 }
-
 .sub-tabs-segment {
   --background: rgba(255, 255, 255, 0.2);
   --color-checked: #2d3748;
@@ -95,31 +243,220 @@
   --indicator-color: transparent;
   border-radius: 12px;
   overflow: hidden;
-
-  ion-segment-button {
-    --color: rgba(255, 255, 255, 0.8);
-    --color-checked: #2d3748;
-    --background-checked: #ffffff;
-    --border-radius: 8px;
-    font-weight: 600;
-    margin: 0.25rem;
-    min-height: 44px;
-    transition: all 0.2s ease;
-
-    ion-label {
-      font-size: 0.9rem;
-    }
-
-    &:hover {
-      --color: #ffffff;
-    }
-  }
 }
+*/
 
 .tab-content {
-  padding: 1.5rem 1rem;
+  padding: 1.5rem 12px;
   min-height: 400px;
 }
+
+/* Growth tab: overview */
+.overview-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 12px;
+}
+
+.overview-title { margin: 0; font-size: 1.0625rem; font-weight: 700; color: $ink; }
+.overview-updated { font-size: 0.75rem; color: $muted-strong; }
+
+.growth-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.growth-stat {
+  appearance: none;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  font: inherit;
+  text-align: left;
+  color: $ink;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+
+  &:active { transform: scale(0.98); }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+
+  &.weight, &.pink { background: #fdf0f5; border-color: #f8dde8; }
+  &.height, &.lavender { background: #f4f2fe; border-color: $lavender-border; }
+
+  // Info-only card: same box as the button cards, no press affordance
+  &.is-static { cursor: default; &:active { transform: none; } }
+}
+
+.growth-stat-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+
+  ion-icon { font-size: 1.125rem; }
+  .height-svg { width: 1.125rem; height: 1.125rem; }
+  img { width: 20px; height: 20px; }
+
+  .weight &, .pink & { background: #f9d5e3; color: #a3285f; }
+  .height &, .lavender & { background: #e0dbfa; color: $primary-strong; }
+}
+
+.growth-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.growth-stat-label { font-size: 0.8125rem; font-weight: 600; line-height: 1.3; color: $muted-strong; }
+
+.growth-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.growth-stat-date, .growth-stat-delta { font-size: 0.75rem; line-height: 1.35; color: $muted-strong; }
+.growth-stat-pct { white-space: nowrap; } // wraps as one unit on narrow cards
+.growth-stat-delta { font-variant-numeric: tabular-nums; }
+
+// Delta crowds the ~140px card at 320px, so hide it on the smallest phones
+@media (max-width: 359px) { .growth-stat-delta { display: none; } }
+
+.growth-stat-go {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: $muted-strong;
+
+  ion-icon { font-size: 16px; }
+}
+
+.add-growth-button {
+  --border-color: #{$primary-strong};
+  --color: #{$primary-strong};
+  --border-radius: 14px;
+  --border-width: 1.5px;
+  margin: 16px 0;
+  height: 48px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Growth history card */
+.records-section.history-card {
+  padding: 16px 10px;
+  border-radius: 20px;
+  border-color: $lavender-border;
+  box-shadow: 0 4px 16px rgba(100, 100, 211, 0.06);
+}
+
+.history-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.history-titles { min-width: 0; }
+.history-title { margin: 0; font-size: 1.0625rem; font-weight: 700; color: $ink; }
+.history-sub { margin: 2px 0 0; font-size: 0.8125rem; color: $muted-strong; font-variant-numeric: tabular-nums; }
+
+.view-chart-link {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  margin: -10px -6px 0 0;
+  padding: 0 6px;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $primary-strong;
+  cursor: pointer;
+
+  ion-icon { font-size: 16px; }
+  &:focus-visible { outline: 2px solid $primary-strong; outline-offset: 2px; }
+}
+
+.growth-chart {
+  margin: 8px 0 0;
+
+  svg { display: block; height: auto; overflow: visible; }
+
+  .grid { stroke: #eeecf8; stroke-width: 1; }
+  .line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  .line.weight { stroke: $primary-strong; }
+  .line.height { stroke: #8f84d9; stroke-dasharray: 5 4; }
+  .dot { stroke: #ffffff; stroke-width: 1.5; }
+  .dot.weight { fill: $primary-strong; }
+  .dot.height { fill: #8f84d9; }
+  .tag.weight { fill: $primary-strong; }
+  .tag.height { fill: #ece9fb; stroke: #8f84d9; stroke-width: 1; }
+  .tag-text { fill: #ffffff; font-size: 11px; font-weight: 700; }
+  .tag-text.height { fill: #4f4598; }
+  .tick { fill: $muted-strong; font-size: 11px; }
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: $muted-strong;
+}
+
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+
+  &.weight { background: $primary-strong; }
+  &.height { background: #ece9fb; border: 2px dashed #8f84d9; }
+  &.primary { background: $primary-strong; border-radius: 3px; }
+  &.lavender { background: #8f84d9; border-radius: 3px; }
+}
+
+/* 7-day bar chart (Feed + Diaper tabs), shares .growth-chart grid + tick styles */
+.week-chart {
+  .bar.primary { fill: $primary-strong; }
+  .bar.lavender { fill: #8f84d9; }
+  .bar.zero { fill: #e6e3f6; }
+  .bar-value { fill: $ink; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tick.today { fill: $primary-strong; font-weight: 700; }
+}
+
+.recent-title { margin: 20px 0 8px; font-size: 0.9375rem; font-weight: 700; color: $ink; }
 
 .tab-actions-section {
   margin-bottom: 2rem;
@@ -178,48 +515,72 @@
 .current-stats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
   margin-bottom: 2rem;
   padding: 0 1rem;
+  align-items: stretch; // equal-height cards
 }
 
 .stat-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 1.5rem;
+  background: #f4f2fe; // $lavender-bg
+  border-radius: 14px;
+  padding: 1.25rem 1rem;
   text-align: center;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2ddf5; // $lavender-border
+  box-shadow: 0 2px 8px rgba(131, 131, 237, 0.08); // soft shadow
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   .stat-icon {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
-    // background: linear-gradient(135deg, #a8dadc, #b8e6e8);
+    background: #8383ed; // $primary
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1rem auto;
+    margin: 0 auto 0.75rem auto;
 
     ion-icon {
-      font-size: 1.5rem;
+      font-size: 1.375rem;
+      color: #ffffff;
+    }
+
+    .height-svg {
+      width: 1.375rem;
+      height: 1.375rem;
       color: #ffffff;
     }
   }
 
   .stat-content {
-    .stat-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #2d3748;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    // Label sits above the value: small, muted, uppercase-ish
+    .stat-label {
+      font-size: 0.7rem;
+      color: #7a73a9; // $muted
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
       margin-bottom: 0.25rem;
     }
 
-    .stat-label {
-      font-size: 0.8rem;
-      color: #64748b;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
+    .stat-value {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #2d3748; // $ink
+      line-height: 1.1;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-date {
+      font-size: 0.72rem;
+      color: #7a73a9; // $muted
+      font-weight: 500;
     }
   }
 }
@@ -235,6 +596,81 @@
   border: 1px solid #f1f5f9;
 }
 
+/* One card per feed session, methods grouped inside */
+.recent-feeds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.feed-session-card {
+  background: #faf9ff;
+  border: 1px solid #e2ddf5;
+  border-radius: 14px;
+  padding: 0.75rem 0.875rem;
+
+  .feed-session-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+
+    .feed-session-time {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #2d3748;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .feed-session-date {
+      font-size: 0.75rem;
+      color: #7a73a9;
+    }
+
+    .feed-session-badge {
+      margin-left: auto;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #8383ed;
+      background: #ece9fb;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+    }
+  }
+
+  .feed-session-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .feed-method-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .feed-method-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .feed-method-name {
+      font-size: 0.85rem;
+      color: #2d3748;
+      font-weight: 500;
+    }
+
+    .feed-method-detail {
+      margin-left: auto;
+      font-size: 0.85rem;
+      color: #7a73a9;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}
+
 .section-title {
   margin: 0 0 1.5rem 0;
   font-size: 1.1rem;
@@ -246,6 +682,44 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+// Lavender-tinted shimmer skeletons shown while records load
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-row {
+  height: 64px;
+  border-radius: 12px;
+  border: 1px solid #e2ddf5; // $lavender-border
+  background: linear-gradient(
+    90deg,
+    #f4f2fe 25%,
+    #e2ddf5 37%,
+    #f4f2fe 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+// Reduced motion: static grey block, no shimmer
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-row {
+    animation: none;
+    background: #eceaf6;
+  }
 }
 
 .record-item {
@@ -903,3 +1377,18 @@
 
   // Feed record styles moved to global.scss to bypass ViewEncapsulation
 }
+// Growth cards: icon + label row, big value with small unit, meta line
+.growth-stat.gs-v {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 12px 14px;
+}
+.gs-head { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; .growth-stat-tile { width: 30px; height: 30px; border-radius: 9px; } }
+.gs-value {
+  font-size: 1.5rem; font-weight: 700; line-height: 1.15; color: $ink; font-variant-numeric: tabular-nums;
+  small { font-size: 0.875rem; font-weight: 600; color: $muted-strong; }
+}
+.gs-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.75rem; color: $muted-strong; }
+.gs-pct { padding: 1px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.75); font-weight: 600; white-space: nowrap; }
+.gs-delta { font-size: 0.75rem; color: $muted-strong; font-variant-numeric: tabular-nums; }

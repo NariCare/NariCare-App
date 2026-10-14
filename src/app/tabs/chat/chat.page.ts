@@ -39,12 +39,18 @@ export class ChatPage implements OnInit {
       this.currentUser = user;
     });
 
-    // Check if we should open AI chat directly
-    this.route.queryParams.subscribe(params => {
-      if (params['tab'] === 'ai') {
-        this.selectedTab = 'ai';
-      }
-    });
+  }
+
+  // Ionic keeps this page alive, so pick the segment on every entry: ?tab=groups (dashboard "Join Chat") or AI
+  ionViewWillEnter() {
+    this.selectedTab = this.route.snapshot.queryParamMap.get('tab') === 'groups' ? 'groups' : 'ai';
+  }
+
+  // Drop ?tab so the Ask NariCare tab button doesn't return to /tabs/chat?tab=groups
+  ionViewDidEnter() {
+    if (this.route.snapshot.queryParamMap.has('tab')) {
+      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+    }
   }
 
   onTabChange(event: any) {

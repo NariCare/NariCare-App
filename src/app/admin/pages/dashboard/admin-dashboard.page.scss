@@ -1,0 +1,10 @@
+:host { display: block; }
+
+.dash-tiles { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+.adm-tile.grey { background: #f1f1f5; }
+.adm-tile.alert { background: #fbe9e9; .ic { color: #8f1d1d; } }
+.dash-link {
+  text-decoration: none; color: inherit; border: 1px solid transparent; transition: border-color 0.15s ease;
+  &:hover { border-color: #e7a3a3; }
+  span ion-icon { vertical-align: -2px; }
+}

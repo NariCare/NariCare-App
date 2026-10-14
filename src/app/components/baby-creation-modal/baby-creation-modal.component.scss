@@ -75,6 +75,13 @@
   --padding-end: 16px;
   --min-height: 48px;
   margin-bottom: 0.5rem;
+  // lines="none" drops Ionic's border, so draw one to match the gender chips
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+
+  &:focus-within {
+    border-color: #8383ed;
+  }
 
   &.error {
     --border-color: #ef4444;
@@ -100,6 +107,13 @@
   margin-top: 4px;
 }
 
+.field-hint {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  margin-left: 16px;
+  margin-top: 4px;
+}
+
 .field-label {
   display: block;
   font-size: 0.95rem;
@@ -107,6 +121,12 @@
   color: #374151;
   margin-bottom: 0.75rem;
   margin-left: 0.25rem;
+
+  // Always-visible label above an input (placeholders vanish on typing, native date ignores them)
+  &.compact {
+    font-size: 0.85rem;
+    margin-bottom: 0.35rem;
+  }
 }
 
 .gender-selection-grid {
@@ -189,16 +209,29 @@
 // Unit suffix styling
 .weight-input,
 .height-input {
+  // Tighten start icon + let the input shrink in the half-width column.
+  --padding-start: 12px;
+  --padding-end: 8px;
+
+  .input-icon {
+    display: none;   // the label above already says Weight / Height; the icon squeezed "e.g. 50" out of the half-width box
+  }
+
+  ion-input {
+    min-width: 0;
+    flex: 1;
+  }
+
   .unit-suffix {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: #8383ed;
     background: rgba(131, 131, 237, 0.1);
-    padding: 0.4rem 0.7rem;
+    padding: 0.35rem 0.5rem;
     border-radius: 6px;
-    margin-left: 0.5rem;
+    margin-left: 0.35rem;
     border: 1px solid rgba(131, 131, 237, 0.2);
-    min-width: 32px;
+    min-width: 28px;
     text-align: center;
     flex-shrink: 0;
   }

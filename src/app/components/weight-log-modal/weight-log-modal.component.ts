@@ -1,13 +1,16 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { ModalController, ToastController } from '@ionic/angular';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { firstValueFrom } from 'rxjs';
 import { BackendGrowthService } from '../../services/backend-growth.service';
 import { BackendAuthService } from '../../services/backend-auth.service';
 import { AuthService } from '../../services/auth.service';
 import { WeightRecord } from '../../models/growth-tracking.model';
 import { WeightRecordRequest } from '../../services/api.service';
+import { DateOnlyUtil } from '../../shared/utils/date-only.util';
 import { User, Baby } from '../../models/user.model';
 import { AgeCalculatorUtil } from '../../shared/utils/age-calculator.util';
+import { confirmGrowthEntry, growthWarnings, toGrowthPoints } from '../../shared/utils/growth-plausibility.util';
 
 interface PredefinedWeightNote {
   id: string;
@@ -23,12 +26,15 @@ interface PredefinedWeightNote {
 export class WeightLogModalComponent implements OnInit {
   @Input() prefilledData?: Partial<WeightRecord>;
   @Input() selectedBaby?: Baby;
+  /** Existing weight_records row: opens the modal in edit mode. */
+  @Input() editRecord?: any;
 
   weightForm: FormGroup;
   user: User | null = null;
   selectedWeightBaby: Baby | null = null;
   selectedPredefinedWeightNotes: string[] = [];
   isSubmitting = false; // Track submission state
+  showEmptyError = false;
 
   weightPredefinedNotes: PredefinedWeightNote[] = [
     { id: '1', text: 'Growth spurt period', indicator: 'yellow' },
@@ -49,13 +55,16 @@ export class WeightLogModalComponent implements OnInit {
     private toastController: ToastController,
     private backendGrowthService: BackendGrowthService,
     private authService: AuthService,
-    private backendAuthService: BackendAuthService
+    private backendAuthService: BackendAuthService,
+    private alertController: AlertController
   ) {
     this.weightForm = this.formBuilder.group({
       selectedBaby: ['', [Validators.required]],
       date: [this.getCurrentDate()],
       time: [this.getCurrentTime()],
-      weight: ['', [Validators.required, this.weightValidator]],
+      // Weight and height are each optional; canSave() requires at least one
+      weight: ['', [this.weightValidator]],
+      height: ['', [Validators.min(20), Validators.max(150)]],
       notes: ['']
     });
   }
@@ -82,11 +91,31 @@ export class WeightLogModalComponent implements OnInit {
     if (this.prefilledData) {
       this.applyPrefilledData();
     }
+    if (this.editRecord) {
+      const r = this.editRecord;
+      this.weightForm.patchValue({
+        date: String(r.record_date || r.recordDate || '').slice(0, 10) || this.getCurrentDate(),
+        weight: r.weight != null ? parseFloat(r.weight) : '',
+        height: r.height != null ? parseFloat(r.height) : '',
+        notes: r.notes || ''
+      });
+    }
   }
 
   getCurrentDate(): string {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
+    return DateOnlyUtil.formatLocalDate();
+  }
+
+  // Growth can't be logged before the selected baby was born
+  getMinDate(): string {
+    // API sends DOB as 'YYYY-MM-DDT00:00:00.000Z' (DB is UTC); the date part is the birth day in any timezone
+    const dob: any = this.getSelectedWeightBaby()?.dateOfBirth;
+    if (!dob) return '2020-01-01';
+    return typeof dob === 'string' ? dob.slice(0, 10) : DateOnlyUtil.formatLocalDate(dob);
+  }
+
+  isBeforeBirth(): boolean {
+    return String(this.weightForm.get('date')?.value || '').slice(0, 10) < this.getMinDate();
   }
 
   getCurrentTime(): string {
@@ -102,12 +131,16 @@ export class WeightLogModalComponent implements OnInit {
         updates.weight = this.prefilledData.weight;
       }
       
+      if (this.prefilledData.height) {
+        updates.height = this.prefilledData.height;
+      }
+
       if (this.prefilledData.notes) {
         updates.notes = this.prefilledData.notes;
       }
       
       if (this.prefilledData.date) {
-        updates.date = new Date(this.prefilledData.date).toISOString().split('T')[0];
+        updates.date = DateOnlyUtil.formatLocalDate(new Date(this.prefilledData.date));
         updates.time = new Date(this.prefilledData.date).toTimeString().slice(0, 5);
       }
       
@@ -226,16 +259,37 @@ export class WeightLogModalComponent implements OnInit {
       return false;
     }
     
-    const weightValue = this.weightForm.get('weight')?.value;
-    if (!weightValue || this.weightForm.get('weight')?.invalid) {
+    // const weightValue = this.weightForm.get('weight')?.value;
+    // if (!weightValue || this.weightForm.get('weight')?.invalid) {
+    //   return false;
+    // }
+    const weight = this.weightForm.get('weight'), height = this.weightForm.get('height');
+    if (weight?.invalid || height?.invalid) {
       return false;
     }
-    
-    return true;
+
+    return this.hasGrowthValue();
+  }
+
+  private hasValue(name: 'weight' | 'height'): boolean {
+    const v = this.weightForm.get(name)?.value;
+    return v !== '' && v != null && !isNaN(parseFloat(v));
+  }
+
+  hasGrowthValue(): boolean {
+    return this.hasValue('weight') || this.hasValue('height');
+  }
+
+  // Save stays enabled when both fields are empty; only a baby or a range error blocks it
+  canSubmit(): boolean {
+    const weight = this.weightForm.get('weight'), height = this.weightForm.get('height');
+    return !!this.getSelectedWeightBaby() && !weight?.invalid && !height?.invalid;
   }
 
   async saveWeightRecord() {
-    if (this.weightForm.valid && this.user && !this.isSubmitting) {
+    this.showEmptyError = !this.hasGrowthValue();
+    if (this.showEmptyError || this.isBeforeBirth()) return;
+    if (this.weightForm.valid && this.canSave() && this.user && !this.isSubmitting) {
       this.isSubmitting = true; // Prevent multiple submissions
       
       const selectedBaby = this.getSelectedWeightBaby();
@@ -247,20 +301,33 @@ export class WeightLogModalComponent implements OnInit {
       try {
         const formValue = this.weightForm.value;
         
-        // Combine date and time into a single Date object
-        const dateTimeString = `${formValue.date}T${formValue.time}:00`;
-        const recordDate = new Date(dateTimeString);
-        
+        const weight = this.hasValue('weight') ? parseFloat(formValue.weight) : undefined;
+        const height = this.hasValue('height') ? parseFloat(formValue.height) : undefined;
+        const recordDate = String(formValue.date).slice(0, 10);
+        const all = await firstValueFrom(this.backendGrowthService.getWeightRecords(selectedBaby.id)).catch(() => [] as any[]);
+        // An edited record must not be compared with its own old value
+        const history = toGrowthPoints(this.editRecord ? all.filter((r: any) => r.id !== this.editRecord.id) : all);
+        const warnings = growthWarnings(selectedBaby, history, { date: DateOnlyUtil.parseLocalDate(recordDate), weight, height });
+        if (!(await confirmGrowthEntry(this.alertController, warnings))) {
+          this.isSubmitting = false;
+          return;
+        }
+
         const record: WeightRecordRequest = {
           babyId: selectedBaby.id,
-          weight: parseFloat(formValue.weight),
+          recordDate, // was built but never sent, so every entry landed on today
+          ...(weight === undefined ? {} : { weight }),
+          ...(height === undefined ? {} : { height }),
           notes: formValue.notes || '',
         };
 
         // Use backend service for authenticated users
         const isBackendUser = this.backendAuthService.getCurrentUser();
         
-        if (isBackendUser) {
+        if (isBackendUser && this.editRecord) {
+          // Explicit nulls so clearing a field on edit actually clears it
+          await this.backendGrowthService.updateWeightRecord(this.editRecord.id, { ...record, weight: weight ?? null, height: height ?? null } as any);
+        } else if (isBackendUser) {
           const response = await this.backendGrowthService.addWeightRecord(record);
           console.log('Weight record saved successfully:', response);
         } else {
@@ -268,7 +335,7 @@ export class WeightLogModalComponent implements OnInit {
         }
         
         const toast = await this.toastController.create({
-          message: 'Weight record saved successfully!',
+          message: this.editRecord ? 'Growth record updated' : 'Growth record saved successfully!',
           duration: 2000,
           color: 'success',
           position: 'top'
@@ -278,14 +345,14 @@ export class WeightLogModalComponent implements OnInit {
         await this.modalController.dismiss({ 
           saved: true, 
           babyId: selectedBaby.id,
-          newWeight: parseFloat(formValue.weight)
+          newWeight: weight
         });
 
       } catch (error: any) {
         console.error('Error saving weight record:', error);
         this.isSubmitting = false; // Re-enable submission on error
         
-        let errorMessage = 'Failed to save weight record. Please try again.';
+        let errorMessage = 'Failed to save growth record. Please try again.';
         if (error?.message) {
           errorMessage = error.message;
         }
