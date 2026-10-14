@@ -3,7 +3,7 @@
 <ion-content class="register-content" [scrollY]="true">
   <div class="register-container">
     <!-- Header with Back and Progress -->
-    <div class="stepper-header" *ngIf="!isWelcomeStep">
+    <div class="stepper-header" *ngIf="!isWelcomeStep && !verifyingEmail">
       <div class="stepper-top-row">
         <ion-button fill="clear" class="back-button" (click)="backStep()">
           <ion-icon slot="icon-only" name="chevron-back"></ion-icon>
@@ -63,13 +63,45 @@
     </div>
 
     <!-- Steps 1+: question form -->
-    <form *ngIf="!isWelcomeStep" [formGroup]="registerForm" (ngSubmit)="nextStep()" class="register-form">
+    <!-- Email code: shown after the account is created -->
+    <form *ngIf="verifyingEmail" (ngSubmit)="verifyEmailCode()" class="register-form">
+      <div class="step-heading">
+        <h2 class="step-title">Check your email</h2>
+        <p class="step-subtitle">We sent a 6-digit code to <strong>{{ registerForm.get('email')?.value }}</strong>. Enter it to finish creating your account.</p>
+      </div>
+      <div class="step-body">
+        <div class="input-container">
+          <ion-input
+            [formControl]="emailCode"
+            type="text"
+            inputmode="numeric"
+            maxlength="6"
+            autocomplete="one-time-code"
+            placeholder="6-digit code"
+            aria-label="Verification code"
+            class="custom-input"
+            fill="outline"
+            (keyup.enter)="verifyEmailCode()"
+            [class.error]="emailCode.invalid && emailCode.touched">
+          </ion-input>
+          <div class="error-message" role="alert" *ngIf="emailCode.invalid && emailCode.touched">Enter the 6-digit code from your email.</div>
+        </div>
+        <p class="step-subtitle">Didn't get it? Check spam, or <button type="button" class="inline-link" (click)="resendEmailCode()">send a new code</button>.</p>
+      </div>
+      <div class="step-footer">
+        <ion-button expand="block" type="submit" [disabled]="emailCode.invalid || verifying" class="primary-button continue-button">
+          Verify and continue
+        </ion-button>
+      </div>
+    </form>
+
+    <form *ngIf="!isWelcomeStep && !verifyingEmail" [formGroup]="registerForm" (ngSubmit)="nextStep()" class="register-form">
       <div class="step-heading">
         <h2 class="step-title">{{ currentStep === 6 ? dateStepTitle : stepTitle }}</h2>
         <p class="step-subtitle" *ngIf="currentStep === 1">We'll use this to personalize your experience.</p>
         <p class="step-subtitle" *ngIf="currentStep === 2">We'll store this securely. It helps us keep you safe.</p>
         <p class="step-subtitle" *ngIf="currentStep === 3">This is where you'll receive your OTP to log in.</p>
-        <p class="step-subtitle" *ngIf="currentStep === 4">At least 6 characters, with a capital letter and a number.</p>
+        <p class="step-subtitle" *ngIf="currentStep === 4">At least 8 characters, with a capital letter and a number.</p>
         <p class="step-subtitle" *ngIf="currentStep === 6 && isPregnant">Your due date helps us show the right help at the right time.</p>
         <p class="step-subtitle" *ngIf="currentStep === 6 && !isPregnant">When your little one arrived. This personalizes your feed tracking.</p>
         <p class="step-subtitle" *ngIf="currentStep === 7">You can pick more than one.</p>

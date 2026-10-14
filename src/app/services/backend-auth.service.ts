@@ -145,10 +145,16 @@ export class BackendAuthService {
     birthDate?: string;
     babyGender?: 'male' | 'female' | 'other';
     tier?: 'basic' | 'one-month' | 'three-month';
-  }): Promise<void> {
+  }): Promise<boolean> {
     try {
       const response = await this.apiService.register(userData).toPromise();
-      
+
+      // New accounts verify their email with a code before any session exists
+      if (response?.success && (response.data as any)?.requiresEmailVerification) {
+        this.pendingEmail = userData.email;
+        return true;
+      }
+
       if (response?.success && response.data) {
         // Register returns camelCase fields (userId, firstName) that transformUserData can't read; load the real profile
         const profile = await this.apiService.getUserProfile().toPromise().catch(() => null);
@@ -161,6 +167,7 @@ export class BackendAuthService {
         if (!currentUrl.startsWith('/tabs/')) {
           this.router.navigate(['/tabs/dashboard']);
         }
+        return false;
       } else {
         throw new Error(response?.message || 'Registration failed');
       }
@@ -211,14 +218,35 @@ export class BackendAuthService {
     }
   }
 
-  async verify2FA(otp: string): Promise<void> {
+  // Registration answers wait here until the email is verified, so a reload on the code step doesn't lose them
+  parkOnboarding(email: string, payload: any | null) {
     try {
-      const response = await this.apiService.verify2FA(this.pendingEmail, otp).toPromise();
+      if (payload) localStorage.setItem(`pending_onboarding:${email.toLowerCase()}`, JSON.stringify(payload));
+    } catch { /* storage blocked */ }
+  }
+
+  private async saveParkedOnboarding(email: string) {
+    const key = `pending_onboarding:${email.toLowerCase()}`;
+    let payload: any = null;
+    try { payload = JSON.parse(localStorage.getItem(key) || 'null'); } catch { /* ignore */ }
+    if (!payload) return;
+    await this.apiService.saveOnboardingData(payload).toPromise().catch(() => null);
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  }
+
+  async verify2FA(otp: string, navigate = true): Promise<void> {
+    try {
+      const response = await this.apiService.verify2FA(this.pendingEmail, String(otp).trim()).toPromise();
       
       if (response?.success && response.data?.token) {
+        await this.saveParkedOnboarding(this.pendingEmail);
+
         // Get user profile after successful 2FA
         const profileResponse = await this.apiService.getUserProfile().toPromise();
-        
+        if (!(profileResponse?.success && profileResponse.data)) {
+          throw new Error('Signed in, but we could not load your profile. Please log in again.');
+        }
+
         if (profileResponse?.success && profileResponse.data) {
           const user = this.transformUserData(profileResponse.data);
           this.setCurrentUser(user);
@@ -228,7 +256,7 @@ export class BackendAuthService {
           // Navigate based on onboarding status
           // Only redirect if not already on a valid page
           const currentUrl = this.router.url;
-          if (!currentUrl.startsWith('/tabs/') && !currentUrl.startsWith('/onboarding')) {
+          if (navigate && !currentUrl.startsWith('/tabs/') && !currentUrl.startsWith('/onboarding')) {
             if (user.isOnboardingCompleted) {
               this.router.navigate(['/tabs/dashboard']);
             } else {

@@ -365,6 +365,12 @@ $font: var(--ion-font-family, 'Poppins', sans-serif);
   overflow: hidden;
 }
 
+.install-icon {
+  font-size: 1.75rem;
+  color: $primary;
+  margin-bottom: 0.5rem;
+}
+
 .share-hearts {
   display: flex;
   justify-content: center;
