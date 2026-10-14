@@ -16,7 +16,7 @@ const ADDRESS = 'Sagex, 47-10-6 Sripada Diamond Towers, Shop 11, 2nd Floor, Diam
 
 export const PRIVACY_POLICY: LegalDoc = {
   title: 'Privacy Policy',
-  dates: ['Effective Date: January 15, 2025', 'Last Updated: January 15, 2025'],
+  dates: ['Effective Date: January 15, 2025', 'Last Updated: October 15, 2026'],
   blocks: [
     { h: '1. Introduction' },
     { p: 'Sagex (a partnership firm registered under the Indian Partnership Act, 1932, with principal place of business at 47-10-6 Sripada Diamond Towers, Shop 11, 2nd Floor, Diamond Park, Visakhapatnam-530016, Andhra Pradesh, India) ("Company," "we," "us," or "NariCare") operates a digital health platform specializing in maternal and infant care, specifically focused on breastfeeding support and postpartum wellness.' },
@@ -204,7 +204,7 @@ export const PRIVACY_POLICY: LegalDoc = {
     { ul: ['Primary service area: India, with focus on Indian healthcare regulations', 'International access: Available but subject to local law compliance', 'Service modifications: May be limited in certain jurisdictions due to regulatory requirements', 'Currency and payments: Primarily INR, with limited international payment options'] },
     { sub: '12.2 Cross-Border Considerations' },
     { p: 'Data Processing:', bold: true },
-    { ul: ["Indian data residency for Indian users' critical personal data", 'International service providers used with appropriate safeguards', 'Local law compliance responsibility for international users', 'Jurisdiction limitations for dispute resolution and legal processes'] },
+    { ul: ['Our servers and databases, including your account and health records, are located in India (Amazon Web Services, Hyderabad region)', 'International service providers used with appropriate safeguards', 'Local law compliance responsibility for international users', 'Jurisdiction limitations for dispute resolution and legal processes'] },
 
     { h: '13. Contact Information and Data Protection' },
     { sub: '13.1 Privacy Inquiries' },
