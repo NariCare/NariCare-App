@@ -65,9 +65,7 @@ export class SocketService {
     
     return new Promise((resolve, reject) => {
       // Determine the API URL
-      const apiUrl = environment.production 
-        ? 'https://beta-api.naricare.com' 
-        : 'http://localhost:3000';
+      const apiUrl = environment.apiUrl.replace(/\/api$/, '');
 
       this.socket = io(apiUrl, {
         auth: { token },
