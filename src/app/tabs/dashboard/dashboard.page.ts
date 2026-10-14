@@ -683,7 +683,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   openBabyJourney(baby?: any) {
     if (baby?.id) this.router.navigate(['/tabs/growth/baby-detail', baby.id]);
-    else this.router.navigate(['/tabs/growth']);
+    else this.router.navigate(['/tabs/growth'], { fragment: 'add-baby' }); // tracker scrolls to the Add baby card
   }
 
   getBabyFirstName(): string {
