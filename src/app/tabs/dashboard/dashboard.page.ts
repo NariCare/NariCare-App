@@ -10,7 +10,8 @@ import { BabyTimelineService } from '../../services/baby-timeline.service';
 import { ConsultationService } from '../../services/consultation.service';
 import { OnboardingService } from '../../services/onboarding.service';
 import { InsightsService, TodaysInsights } from '../../services/insights.service';
-import { BackendKnowledgeService } from '../../services/backend-knowledge.service';
+// Same static source the Learn tab and article page open, so Home never links to a missing article
+import { KnowledgeBaseService } from '../../services/knowledge-base.service';
 import { QuoteService, Quote } from '../../services/quote.service';
 import { SelfCareService, SelfCareTip, TimeBlock } from '../../services/self-care.service';
 import { Article } from '../../models/knowledge-base.model';
@@ -119,7 +120,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private consultationService: ConsultationService,
     private onboardingService: OnboardingService,
     private insightsService: InsightsService,
-    private knowledgeService: BackendKnowledgeService,
+    private knowledgeService: KnowledgeBaseService,
     private toastController: ToastController,
     private alertController: AlertController,
     private quoteService: QuoteService,
@@ -143,6 +144,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     // Subscribe to user changes and store subscription for cleanup
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.user = user;
+      this.readLastOpenedArticle();
       // Reset cached actions when user changes
       this._quickActions = null;
       
@@ -1132,7 +1134,13 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   // Read on each Home visit (ionViewWillEnter), not per change-detection pass
   private lastOpenedArticle: any = null;
   ionViewWillEnter() {
-    try { this.lastOpenedArticle = JSON.parse(localStorage.getItem('naricare_last_article') || 'null'); } catch { this.lastOpenedArticle = null; }
+    this.readLastOpenedArticle();
+  }
+
+  // Per-user key outside the naricare_ prefix, so sign-out keeps it and accounts on one phone don't share it
+  private readLastOpenedArticle() {
+    const uid = this.user?.uid;
+    try { this.lastOpenedArticle = uid ? JSON.parse(localStorage.getItem(`last_opened_article:${uid}`) || 'null') : null; } catch { this.lastOpenedArticle = null; }
   }
 
   getCurrentLearningActivity(): any {

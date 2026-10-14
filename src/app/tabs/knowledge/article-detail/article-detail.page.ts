@@ -101,7 +101,8 @@ export class ArticleDetailPage implements OnInit {
     this.processedArticle$.next(article);
     // Home's Continue Learning card shows the last article she opened
     try {
-      localStorage.setItem('naricare_last_article', JSON.stringify({
+      if (!this.user?.uid) return;
+      localStorage.setItem(`last_opened_article:${this.user.uid}`, JSON.stringify({
         id: article.id, title: article.title, readTime: article.readTime,
         category: { id: article.category?.id, name: article.category?.name, color: article.category?.color }
       }));
