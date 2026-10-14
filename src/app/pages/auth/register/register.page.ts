@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnDestroy, OnInit } from '@angular/core';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
@@ -32,6 +32,11 @@ export class RegisterPage implements OnInit, OnDestroy {
   readonly todayDate = this.getTodayDate();
   readonly maxDueDate = this.getMaxDueDate();
   readonly minDeliveryDate = this.getMinDeliveryDate();
+
+  // Shown after the account is created, until the emailed code is verified
+  verifyingEmail = false;
+  verifying = false;
+  readonly emailCode = new FormControl('', [Validators.required, Validators.pattern(/^\d{6}$/)]);
 
   steps: StepDefinition[] = [
     { id: 'welcome', title: 'Welcome to NariCare', controls: [] },
@@ -571,23 +576,15 @@ export class RegisterPage implements OnInit, OnDestroy {
           registrationData.dueDate = this.formatDateForApi(formValue.dueDate);
         }
 
-        const isNewMom = formValue.motherType === 'new_mom' && formValue.deliveryDate;
+        const needsCode = await this.backendAuthService.register(registrationData);
 
-        await this.backendAuthService.register(registrationData);
-
-        if (isNewMom) {
-          await this.persistNewMomOnboarding(formValue.deliveryDate, formValue.goals);
-        } else if (formValue.motherType === 'pregnant' && Array.isArray(formValue.goals) && formValue.goals.length > 0) {
-          await this.persistPregnantOnboarding(formValue.goals);
+        if (needsCode) {
+          this.verifyingEmail = true;
+          this.emailCode.reset('');
+          return;
         }
 
-        const toast = await this.toastController.create({
-          message: 'Account created successfully! Welcome to NariCare.',
-          duration: 3000,
-          color: 'success',
-          position: 'top'
-        });
-        await toast.present();
+        await this.finishSignup();
 
       } catch (error: any) {
         let errorMessage = 'Registration failed. Please try again.';
@@ -613,6 +610,62 @@ export class RegisterPage implements OnInit, OnDestroy {
       }
     } else {
       this.markStepFieldsTouched(this.currentStep);
+    }
+  }
+
+  // Onboarding answers need the session, so they are saved after the code is verified
+  private async finishSignup() {
+    const formValue = this.registerForm.value;
+    if (formValue.motherType === 'new_mom' && formValue.deliveryDate) {
+      await this.persistNewMomOnboarding(formValue.deliveryDate, formValue.goals);
+    } else if (formValue.motherType === 'pregnant' && Array.isArray(formValue.goals) && formValue.goals.length > 0) {
+      await this.persistPregnantOnboarding(formValue.goals);
+    }
+
+    const toast = await this.toastController.create({
+      message: 'Account created successfully! Welcome to NariCare.',
+      duration: 3000,
+      color: 'success',
+      position: 'top'
+    });
+    await toast.present();
+  }
+
+  async verifyEmailCode() {
+    if (this.emailCode.invalid || this.verifying) {
+      this.emailCode.markAsTouched();
+      return;
+    }
+    this.verifying = true;
+    const loading = await this.loadingController.create({ message: 'Verifying...', translucent: true });
+    await loading.present();
+    try {
+      await this.backendAuthService.verify2FA(this.emailCode.value as string, false);
+      await this.finishSignup();
+      this.verifyingEmail = false;
+      this.router.navigate(['/tabs/dashboard']);
+    } catch (error: any) {
+      const toast = await this.toastController.create({
+        message: error?.message || 'That code didn\u2019t work. Please try again.',
+        duration: 4000,
+        color: 'danger',
+        position: 'top'
+      });
+      await toast.present();
+    } finally {
+      await loading.dismiss();
+      this.verifying = false;
+    }
+  }
+
+  async resendEmailCode() {
+    try {
+      await this.backendAuthService.resendOTP();
+      const toast = await this.toastController.create({ message: 'We sent a new code to your email.', duration: 3000, color: 'success', position: 'top' });
+      await toast.present();
+    } catch (error: any) {
+      const toast = await this.toastController.create({ message: error?.message || 'Could not resend the code.', duration: 4000, color: 'danger', position: 'top' });
+      await toast.present();
     }
   }
 

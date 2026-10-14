@@ -145,10 +145,16 @@ export class BackendAuthService {
     birthDate?: string;
     babyGender?: 'male' | 'female' | 'other';
     tier?: 'basic' | 'one-month' | 'three-month';
-  }): Promise<void> {
+  }): Promise<boolean> {
     try {
       const response = await this.apiService.register(userData).toPromise();
-      
+
+      // New accounts verify their email with a code before any session exists
+      if (response?.success && (response.data as any)?.requiresEmailVerification) {
+        this.pendingEmail = userData.email;
+        return true;
+      }
+
       if (response?.success && response.data) {
         // Register returns camelCase fields (userId, firstName) that transformUserData can't read; load the real profile
         const profile = await this.apiService.getUserProfile().toPromise().catch(() => null);
@@ -161,6 +167,7 @@ export class BackendAuthService {
         if (!currentUrl.startsWith('/tabs/')) {
           this.router.navigate(['/tabs/dashboard']);
         }
+        return false;
       } else {
         throw new Error(response?.message || 'Registration failed');
       }
@@ -211,9 +218,9 @@ export class BackendAuthService {
     }
   }
 
-  async verify2FA(otp: string): Promise<void> {
+  async verify2FA(otp: string, navigate = true): Promise<void> {
     try {
-      const response = await this.apiService.verify2FA(this.pendingEmail, otp).toPromise();
+      const response = await this.apiService.verify2FA(this.pendingEmail, String(otp).trim()).toPromise();
       
       if (response?.success && response.data?.token) {
         // Get user profile after successful 2FA
@@ -228,7 +235,7 @@ export class BackendAuthService {
           // Navigate based on onboarding status
           // Only redirect if not already on a valid page
           const currentUrl = this.router.url;
-          if (!currentUrl.startsWith('/tabs/') && !currentUrl.startsWith('/onboarding')) {
+          if (navigate && !currentUrl.startsWith('/tabs/') && !currentUrl.startsWith('/onboarding')) {
             if (user.isOnboardingCompleted) {
               this.router.navigate(['/tabs/dashboard']);
             } else {

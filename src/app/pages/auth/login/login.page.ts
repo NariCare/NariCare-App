@@ -54,7 +54,7 @@ export class LoginPage implements OnInit, OnDestroy {
     });
     
     this.otpForm = this.formBuilder.group({
-      otp: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
+      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
     });
   }
 
@@ -317,7 +317,7 @@ export class LoginPage implements OnInit, OnDestroy {
       }
       return `${field.charAt(0).toUpperCase() + field.slice(1)} must be at least 6 characters`;
     }
-    if (control?.hasError('maxlength')) {
+    if (control?.hasError('maxlength') || control?.hasError('pattern')) {
       if (field === 'otp') {
         return 'OTP must be 6 digits';
       }
