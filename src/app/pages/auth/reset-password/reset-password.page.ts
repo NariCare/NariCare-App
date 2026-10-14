@@ -85,8 +85,13 @@ export class ResetPasswordPage implements OnInit {
           this.showInvalidTokenError();
         }
       },
+      // Only a 400 means the link is bad; otherwise let her try the reset instead of bouncing her away
       error: async (error) => {
-        this.showInvalidTokenError();
+        if (error?.status === 400) {
+          this.showInvalidTokenError();
+        } else {
+          this.isValidToken = true;
+        }
       }
     });
   }

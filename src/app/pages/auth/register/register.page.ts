@@ -37,6 +37,10 @@ export class RegisterPage implements OnInit, OnDestroy {
   verifyingEmail = false;
   verifying = false;
   readonly emailCode = new FormControl('', [Validators.required, Validators.pattern(/^\d{6}$/)]);
+  private readonly digitsOnly = this.emailCode.valueChanges.subscribe(value => {
+    const digits = String(value ?? '').replace(/\D/g, '').slice(0, 6);
+    if (digits !== value) this.emailCode.setValue(digits, { emitEvent: false });
+  });
 
   steps: StepDefinition[] = [
     { id: 'welcome', title: 'Welcome to NariCare', controls: [] },
@@ -579,12 +583,18 @@ export class RegisterPage implements OnInit, OnDestroy {
         const needsCode = await this.backendAuthService.register(registrationData);
 
         if (needsCode) {
+          this.backendAuthService.parkOnboarding(registrationData.email, this.onboardingPayload());
           this.verifyingEmail = true;
           this.emailCode.reset('');
           return;
         }
 
-        await this.finishSignup();
+        // Older API that still returns a session at register
+        const payload = this.onboardingPayload();
+        if (payload) {
+          await firstValueFrom(this.apiService.saveOnboardingData(payload)).catch(() => null);
+        }
+        await this.welcomeToast();
 
       } catch (error: any) {
         let errorMessage = 'Registration failed. Please try again.';
@@ -613,15 +623,7 @@ export class RegisterPage implements OnInit, OnDestroy {
     }
   }
 
-  // Onboarding answers need the session, so they are saved after the code is verified
-  private async finishSignup() {
-    const formValue = this.registerForm.value;
-    if (formValue.motherType === 'new_mom' && formValue.deliveryDate) {
-      await this.persistNewMomOnboarding(formValue.deliveryDate, formValue.goals);
-    } else if (formValue.motherType === 'pregnant' && Array.isArray(formValue.goals) && formValue.goals.length > 0) {
-      await this.persistPregnantOnboarding(formValue.goals);
-    }
-
+  private async welcomeToast() {
     const toast = await this.toastController.create({
       message: 'Account created successfully! Welcome to NariCare.',
       duration: 3000,
@@ -637,11 +639,12 @@ export class RegisterPage implements OnInit, OnDestroy {
       return;
     }
     this.verifying = true;
-    const loading = await this.loadingController.create({ message: 'Verifying...', translucent: true });
-    await loading.present();
+    let loading: HTMLIonLoadingElement | undefined;
     try {
+      loading = await this.loadingController.create({ message: 'Verifying...', translucent: true });
+      await loading.present();
       await this.backendAuthService.verify2FA(this.emailCode.value as string, false);
-      await this.finishSignup();
+      await this.welcomeToast();
       this.verifyingEmail = false;
       this.router.navigate(['/tabs/dashboard']);
     } catch (error: any) {
@@ -653,7 +656,7 @@ export class RegisterPage implements OnInit, OnDestroy {
       });
       await toast.present();
     } finally {
-      await loading.dismiss();
+      await loading?.dismiss();
       this.verifying = false;
     }
   }
@@ -669,38 +672,22 @@ export class RegisterPage implements OnInit, OnDestroy {
     }
   }
 
-  private async persistPregnantOnboarding(goals: string[]) {
-    try {
-      await firstValueFrom(this.apiService.saveOnboardingData({
-        pregnancyInfo: {
-          motherType: 'pregnant',
-          expectedDueDate: this.registerForm.get('dueDate')?.value || null
-        },
-        challengesAndExpectationsInfo: {
-          breastfeedingGoals: goals
-        }
-      }));
-    } catch {
-      // Registration already succeeded; onboarding data is best-effort.
+  // Answers from the date and goals steps, in the shape saveOnboardingData expects
+  private onboardingPayload(): any | null {
+    const { motherType, deliveryDate, dueDate, goals } = this.registerForm.value;
+    if (motherType === 'new_mom' && deliveryDate) {
+      return {
+        pregnancyInfo: { motherType: 'new_mom', babies: [{ dateOfBirth: this.formatDateForApi(deliveryDate) }] },
+        challengesAndExpectationsInfo: { currentChallenges: goals }
+      };
     }
-  }
-
-  private async persistNewMomOnboarding(deliveryDate: string, goals: string[]) {
-    try {
-      await firstValueFrom(this.apiService.saveOnboardingData({
-        pregnancyInfo: {
-          motherType: 'new_mom',
-          babies: [{
-            dateOfBirth: this.formatDateForApi(deliveryDate)
-          }]
-        },
-        challengesAndExpectationsInfo: {
-          currentChallenges: goals
-        }
-      }));
-    } catch {
-      // Registration already succeeded; onboarding data is best-effort.
+    if (motherType === 'pregnant' && Array.isArray(goals) && goals.length > 0) {
+      return {
+        pregnancyInfo: { motherType: 'pregnant', expectedDueDate: dueDate || null },
+        challengesAndExpectationsInfo: { breastfeedingGoals: goals }
+      };
     }
+    return null;
   }
 
   togglePasswordVisibility(field: 'password' | 'confirmPassword') {

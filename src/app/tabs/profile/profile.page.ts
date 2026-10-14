@@ -63,9 +63,9 @@ export class ProfilePage implements OnInit {
   async installApp() {
     const prompt = (window as any).deferredInstallPrompt;
     if (prompt) {
+      (window as any).deferredInstallPrompt = null; // single use; a second tap mid-dialog would throw
       prompt.prompt();
       const { outcome } = await prompt.userChoice;
-      (window as any).deferredInstallPrompt = null;
       if (outcome === 'accepted') this.showInstallCard = false;
       return;
     }

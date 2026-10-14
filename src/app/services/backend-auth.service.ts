@@ -218,14 +218,35 @@ export class BackendAuthService {
     }
   }
 
+  // Registration answers wait here until the email is verified, so a reload on the code step doesn't lose them
+  parkOnboarding(email: string, payload: any | null) {
+    try {
+      if (payload) localStorage.setItem(`pending_onboarding:${email.toLowerCase()}`, JSON.stringify(payload));
+    } catch { /* storage blocked */ }
+  }
+
+  private async saveParkedOnboarding(email: string) {
+    const key = `pending_onboarding:${email.toLowerCase()}`;
+    let payload: any = null;
+    try { payload = JSON.parse(localStorage.getItem(key) || 'null'); } catch { /* ignore */ }
+    if (!payload) return;
+    await this.apiService.saveOnboardingData(payload).toPromise().catch(() => null);
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  }
+
   async verify2FA(otp: string, navigate = true): Promise<void> {
     try {
       const response = await this.apiService.verify2FA(this.pendingEmail, String(otp).trim()).toPromise();
       
       if (response?.success && response.data?.token) {
+        await this.saveParkedOnboarding(this.pendingEmail);
+
         // Get user profile after successful 2FA
         const profileResponse = await this.apiService.getUserProfile().toPromise();
-        
+        if (!(profileResponse?.success && profileResponse.data)) {
+          throw new Error('Signed in, but we could not load your profile. Please log in again.');
+        }
+
         if (profileResponse?.success && profileResponse.data) {
           const user = this.transformUserData(profileResponse.data);
           this.setCurrentUser(user);
