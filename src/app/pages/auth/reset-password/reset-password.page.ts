@@ -28,7 +28,8 @@ export class ResetPasswordPage implements OnInit {
     private apiService: ApiService
   ) {
     this.resetPasswordForm = this.formBuilder.group({
-      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      // Same rule the server enforces on reset and registration
+      newPassword: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)\S+$/)]],
       confirmPassword: ['', [Validators.required]]
     }, { validator: this.passwordMatchValidator });
   }
@@ -39,8 +40,8 @@ export class ResetPasswordPage implements OnInit {
       this.token = params['token'] || '';
       
       if (this.token) {
-        // Show form directly - token validation can be done on submit
-        this.isValidToken = true;
+        // Check the link first so an expired one doesn't fail only after typing a new password
+        this.validateToken();
       } else {
         this.showInvalidTokenError();
       }
@@ -116,6 +117,9 @@ export class ResetPasswordPage implements OnInit {
     }
     if (field?.hasError('minlength')) {
       return 'Password must be at least 8 characters long';
+    }
+    if (field?.hasError('pattern')) {
+      return 'Use at least one capital letter, one small letter and one number, with no spaces';
     }
     if (field?.hasError('passwordMismatch')) {
       return 'Passwords do not match';
