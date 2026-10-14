@@ -13,6 +13,13 @@
       </button> -->
     </div>
 
+    <!-- Install app (web only) -->
+    <div class="share-card install-card" *ngIf="showInstallCard">
+      <ion-icon name="phone-portrait-outline" class="install-icon" aria-hidden="true"></ion-icon>
+      <p class="share-text">Add NariCare to your home screen for quick access</p>
+      <button type="button" class="share-button" (click)="installApp()">Install app</button>
+    </div>
+
     <!-- Profile Header -->
     <div class="profile-header" *ngIf="user" [style.background-image]="'url(assets/images/profile-hero.webp)'">
       <div class="profile-header-scrim"></div>
@@ -89,13 +96,6 @@
       <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
       Password is managed by your NariCare admin.
     </p>
-
-    <!-- Install app (web only) -->
-    <div class="share-card install-card" *ngIf="showInstallCard">
-      <ion-icon name="phone-portrait-outline" class="install-icon" aria-hidden="true"></ion-icon>
-      <p class="share-text">Add NariCare to your home screen for quick access</p>
-      <button type="button" class="share-button" (click)="installApp()">Install app</button>
-    </div>
 
     <!-- Share the Care -->
     <div class="share-card">

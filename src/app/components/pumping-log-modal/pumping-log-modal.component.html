@@ -51,8 +51,8 @@
               </button>
             </div>
             
-            <!-- Custom Date Picker - Only shown when "Other" is selected -->
-            <div class="custom-date-picker" *ngIf="showDatePicker && selectedDateOption === 'other'">
+            <!-- Custom Date Picker: opened by "Other" or by tapping the picked date to change it -->
+            <div class="custom-date-picker" *ngIf="showDatePicker">
               <ion-item lines="none" class="input-item date-input">
                 <!-- <ion-label position="stacked">Select Date</ion-label> -->
                 <ion-datetime
