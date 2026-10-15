@@ -1,3 +1,4 @@
+import { DateFieldComponent } from '../../components/date-field/date-field.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -10,6 +11,7 @@ import { PersonalInfoPage } from './personal-info.page';
 
 @NgModule({
   imports: [
+    DateFieldComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

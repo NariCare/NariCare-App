@@ -866,12 +866,6 @@ export class RegisterPage implements OnInit, OnDestroy {
     return DateOnlyUtil.formatLocalDate(min);
   }
 
-  onDateSelect(event: any, fieldName: string) {
-    const value = event.detail.value;
-    this.registerForm.get(fieldName)?.setValue(value);
-    this.registerForm.get(fieldName)?.markAsTouched();
-  }
-
   formatDisplayDate(value: string): string {
     if (!value) return '';
     const date = new Date(value);

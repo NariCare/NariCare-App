@@ -42,13 +42,7 @@
         <label class="field-label compact">Date of birth</label>
         <ion-item lines="none" class="input-item">
           <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-          <ion-input
-            formControlName="dateOfBirth"
-            type="date"
-            placeholder="Select date of birth"
-            [max]="getTodayDate()"
-            [class.error]="babyForm.get('dateOfBirth')?.invalid && babyForm.get('dateOfBirth')?.touched">
-          </ion-input>
+          <app-date-field formControlName="dateOfBirth" placeholder="Select date of birth" [max]="getTodayDate()" label="Date of birth"></app-date-field>
         </ion-item>
         <div class="error-message" *ngIf="babyForm.get('dateOfBirth')?.invalid && babyForm.get('dateOfBirth')?.touched">
           {{ getErrorMessage('dateOfBirth') }}
