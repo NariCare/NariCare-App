@@ -272,21 +272,13 @@
       </div>
 
       <!-- Step: Date -->
-      <!-- Native date input (opens the OS calendar, renders instantly); field
-           switches on pregnant vs new-mom. -->
+      <!-- Shared NariCare calendar (app-date-field); field switches on pregnant vs new-mom. -->
       <div class="step-body" *ngIf="currentStep === 6">
         <div class="input-container datetime-container" *ngIf="isPregnant">
           <label class="date-label">Due date</label>
           <ion-item lines="none" class="input-item">
             <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-input
-              type="date"
-              placeholder="Select due date"
-              [value]="registerForm.get('dueDate')?.value"
-              [min]="todayDate"
-              [max]="maxDueDate"
-              (ionChange)="onDateSelect($event, 'dueDate')">
-            </ion-input>
+            <app-date-field formControlName="dueDate" placeholder="Select due date" [min]="todayDate" [max]="maxDueDate" label="Due date"></app-date-field>
           </ion-item>
           <div class="error-message" *ngIf="registerForm.get('dueDate')?.invalid && registerForm.get('dueDate')?.touched">
             {{ getErrorMessage('dueDate') }}
@@ -297,14 +289,7 @@
           <label class="date-label">Delivery date</label>
           <ion-item lines="none" class="input-item">
             <ion-icon name="calendar-outline" slot="start" class="input-icon"></ion-icon>
-            <ion-input
-              type="date"
-              placeholder="Select delivery date"
-              [value]="registerForm.get('deliveryDate')?.value"
-              [min]="minDeliveryDate"
-              [max]="todayDate"
-              (ionChange)="onDateSelect($event, 'deliveryDate')">
-            </ion-input>
+            <app-date-field formControlName="deliveryDate" placeholder="Select delivery date" [min]="minDeliveryDate" [max]="todayDate" label="Delivery date"></app-date-field>
           </ion-item>
           <div class="error-message" *ngIf="registerForm.get('deliveryDate')?.invalid && registerForm.get('deliveryDate')?.touched">
             {{ getErrorMessage('deliveryDate') }}
