@@ -451,10 +451,11 @@ export class BabyDetailPage implements OnInit, OnDestroy {
       };
     });
     // Birth weight lives on the baby profile, not in weight_records. One record
-    // per date: skip the birth row when a saved record already covers that day.
+    // per date: skip the birth row when a saved record with a weight already
+    // covers that day (a height-only record must not hide the birth weight).
     if (this.baby?.birthWeight && this.baby.dateOfBirth) {
       const birthAt = recordAt(this.baby.dateOfBirth);
-      if (!rows.some(r => DateOnlyUtil.isSameLocalDay(r.at, birthAt))) {
+      if (!(records || []).some(r => r.weight != null && DateOnlyUtil.isSameLocalDay(recordAt(r.record_date || r.date), birthAt))) {
         const bh = this.baby.birthHeight;
         rows.push({ icon: 'assets/Weight.svg', iconAlt: 'Birth', at: birthAt, label: 'Birth record', value: `${this.baby.birthWeight} kg${bh ? ` · ${bh} cm` : ''}` });
       }
@@ -925,7 +926,7 @@ export class BabyDetailPage implements OnInit, OnDestroy {
     // Also skipped when a saved record already covers the birth date (one point per day).
     if (b?.dateOfBirth && age != null && age <= 60 && (num(b.birthWeight) || num(b.birthHeight))) {
       const birthAt = recordAt(b.dateOfBirth);
-      if (!pts.some(p => DateOnlyUtil.isSameLocalDay(new Date(p.at), birthAt))) {
+      if (!pts.some(p => p.w != null && DateOnlyUtil.isSameLocalDay(new Date(p.at), birthAt))) {
         pts.push({ at: birthAt.getTime(), w: num(b.birthWeight), h: num(b.birthHeight) });
       }
     }
