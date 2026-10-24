@@ -7,7 +7,7 @@ This file contains long-term context and design decisions for the NariCare breas
 **App Name**: NariCare  
 **Tagline**: "Your breast friend"  
 **Purpose**: Comprehensive breastfeeding support app for new mothers  
-**Tech Stack**: Ionic 7 + Angular 17, Firebase, Capacitor  
+**Tech Stack**: Ionic 7 + Angular 17, NariCare REST API (Node/Express, MySQL), Firebase (Google sign-in + FCM web push only), Capacitor  
 
 ## Brand Identity & Design System
 
@@ -76,8 +76,8 @@ Step 400: #d4d0e5    Step 950: #2f2777
 ## Architecture Insights
 
 ### Key Features
-- **Authentication**: Firebase Auth with 2FA support
-- **Real-time Data**: Firestore for live updates
+- **Authentication**: REST API email/password auth (JWT) with 2FA support; Google sign-in via Firebase ID token verified by the API
+- **Data**: All app data goes through the REST API (MySQL). Firestore is not used
 - **Multi-baby Support**: Track multiple children
 - **Growth Charts**: Highcharts integration
 - **AI Integration**: OpenAI GPT for support
@@ -133,15 +133,15 @@ src/app/
 - ✅ Fixed background colors and step gradients
 
 ### Current Branch Status
-- **Working Branch**: `ux-mockup`
-- **Main Branch**: `master`
-- **Last Commits**: Consultation module updates, chat WebSocket implementation
+- **Base Branch**: `staging` (Beta, https://beta-app.naricare.com). Feature branches come from `staging` and PR back into it
+- **Production Branch**: `master` (Prod, https://app.naricare.com), updated by PR from `staging`
+- **Hosting**: Netlify sites `naricare-app` (Beta) and `naricare-prod` (Prod), auto-built on merge
 
 ### Key Considerations
 - Mobile-first responsive design
 - PWA capabilities with offline support
 - iOS/Android native builds via Capacitor  
-- Firebase security rules for data isolation
+- Data isolation enforced by the REST API (JWT auth)
 - Encrypted OpenAI API integration
 
 ## User Experience Flow

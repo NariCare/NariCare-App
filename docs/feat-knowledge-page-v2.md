@@ -92,7 +92,7 @@ Data: `src/assets/data/knowledge-base.json`, `src/app/models/knowledge-base.mode
 - No backend/API changes; data stays in the local `knowledge-base.json`.
 - No new npm dependencies.
 - Search page got a visual-only restyle (SCSS tokens to match hero/pill design), no logic/template changes. Category-detail page is not touched.
-- Firestore integration remains untouched (`backend-knowledge.service.ts` not used by these pages currently).
+- The API-backed `backend-knowledge.service.ts` remains untouched (not used by these pages currently).
 
 ## Testing
 

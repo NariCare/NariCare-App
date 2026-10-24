@@ -1,171 +1,69 @@
 # Firebase Setup Guide for NariCare App
 
-## 🔥 Firebase Configuration Required
+Firebase is already configured. This page explains what it is used for and where the settings live, so you know what to keep enabled.
 
-The application is currently showing a Firebase configuration error because it needs to be connected to a real Firebase project. Follow these steps to set up Firebase:
+## What Firebase is used for
 
-## Step 1: Create a Firebase Project
+NariCare uses Firebase for exactly two things:
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Click "Create a project" or "Add project"
-3. Enter project name: `NariCare-app` (or your preferred name)
-4. Enable Google Analytics (optional)
-5. Click "Create project"
+1. **Google sign-in (web).** The app opens the Google popup, gets a Firebase ID token and posts it to `POST /api/auth/social` with `provider: "google"`. The API verifies the token and logs the user in (creating or linking the MySQL user).
+2. **Firebase Cloud Messaging (web push).** The app registers an FCM token and sends it to the API, which sends pushes.
 
-## Step 2: Add Web App to Firebase Project
+Firebase is **not** the database. All app data and email/password login go through the NariCare REST API (Node/Express, MySQL). Firestore and Firebase Hosting are not used.
 
-1. In your Firebase project dashboard, click the **Web** icon (`</>`)
-2. Register your app with nickname: `NariCare Web App`
-3. **Don't** check "Set up Firebase Hosting" for now
-4. Click "Register app"
-5. Copy the Firebase configuration object
+## Project
 
-## Step 3: Update Environment Files
+- Project ID: `naricare-app` (project number 382548282570)
+- Auth domain: `naricare-app.firebaseapp.com`
+- Web app ID: `1:382548282570:web:3d735a09a72507813ef833`
 
-Replace the placeholder values in both environment files with your actual Firebase config:
+## Where the config lives
 
-### File: `src/environments/environment.ts`
-```typescript
-export const environment = {
-  production: false,
-  firebase: {
-    apiKey: "AIzaSyC...", // Your actual API key
-    authDomain: "your-project-id.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project-id.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef123456"
-  },
-  openaiApiKey: "sk-..." // Your OpenAI API key (optional for now)
-};
-```
+| File | Contains |
+|---|---|
+| `src/environments/environment.ts` | Web config + VAPID key (local) |
+| `src/environments/environment.beta.ts` | Web config + VAPID key (Beta) |
+| `src/environments/environment.prod.ts` | Web config + VAPID key (Prod) |
+| `src/firebase-messaging-sw.js` | Web config for the push service worker |
 
-### File: `src/environments/environment.prod.ts`
-```typescript
-// Same configuration as above but with production: true
-```
+If the web config ever changes, update all four files together.
 
-## Step 4: Enable Firebase Services
+## Console settings to keep
 
-### Authentication
-1. In Firebase Console, go to **Authentication** > **Sign-in method**
-2. Enable **Email/Password** provider
-3. Click "Save"
+**Authentication > Sign-in method**
+- Google: enabled (required).
+- Email/Password also shows enabled, but the app does not use Firebase for email/password login.
+- Facebook: not used. The Facebook buttons are hidden on the login and register screens.
 
-### Firestore Database
-1. Go to **Firestore Database**
-2. Click "Create database"
-3. Choose **Start in test mode** (for development)
-4. Select a location close to your users
-5. Click "Done"
+**Authentication > Settings > Authorized domains**
+- `localhost`
+- `naricare-app.firebaseapp.com`
+- `naricare-app.web.app`
+- `beta-app.naricare.com`
+- `app.naricare.com`
 
-### Cloud Messaging (for Push Notifications)
-1. Go to **Cloud Messaging**
-2. No additional setup needed initially
+Add a domain here before serving the app from a new host, or Google sign-in fails on it.
 
-## Step 5: Set Up Firestore Security Rules
+**Cloud Messaging**
+- The Web Push certificate (VAPID key) is already generated and set as `vapidKey` in the environment files.
 
-In Firestore Database > Rules, replace the default rules with:
+## Browser API key restriction
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Users can read/write their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Chat rooms are readable by authenticated users
-    match /chat-rooms/{roomId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid in resource.data.participants;
-      
-      match /messages/{messageId} {
-        allow read, write: if request.auth != null;
-      }
-    }
-    
-    // Articles are readable by all authenticated users
-    match /articles/{articleId} {
-      allow read: if request.auth != null;
-    }
-    
-    // Growth records are private to the user
-    match /growth-records/{recordId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.recordedBy;
-    }
-    
-    // Consultations are private to the user
-    match /consultations/{consultationId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-  }
-}
-```
+The browser API key is restricted by HTTP referrer to:
 
-## Step 6: Optional - Add Sample Data
+- `beta-app.naricare.com`
+- `app.naricare.com`
+- `naricare-app.firebaseapp.com`
+- `localhost:8100`
+- `localhost:4200`
 
-You can add some sample data to test the app:
+If you run the app on another host or port, add it to the key restriction in Google Cloud Console > APIs & Services > Credentials.
 
-### Sample Article Categories
-Go to Firestore > Start collection > `article-categories`:
+## Server side (NariCare-Service)
 
-```json
-{
-  "id": "breastfeeding-basics",
-  "name": "Breastfeeding Basics",
-  "description": "Essential information for new mothers",
-  "icon": "heart",
-  "color": "#8383ed"
-}
-```
+- The API uses the service account `naricare-server@naricare-app.iam.gserviceaccount.com` (Firebase Auth admin and FCM admin roles) through firebase-admin.
+- Its JSON key is read from the env var `FIREBASE_SERVICE_ACCOUNT` (minified, one line). Never commit it.
 
-### Sample Chat Room
-Go to Firestore > Start collection > `chat-rooms`:
+## Mobile apps (later)
 
-```json
-{
-  "id": "newborn-support",
-  "name": "Newborn Support Group",
-  "description": "Support for mothers with newborns (0-3 months)",
-  "topic": "newborn",
-  "isPrivate": false,
-  "participants": [],
-  "moderators": [],
-  "createdAt": "2025-01-01T00:00:00.000Z"
-}
-```
-
-## Step 7: Test the Configuration
-
-1. Save your environment files
-2. Restart the development server: `ionic serve`
-3. Try to register a new account
-4. Check Firebase Console > Authentication to see if users are being created
-
-## 🔑 OpenAI API Key (Optional)
-
-To enable the AI chatbot feature:
-
-1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)
-2. Create a new API key
-3. Add it to your environment files as `openaiApiKey`
-
-## 🚨 Security Notes
-
-- Never commit your actual API keys to version control
-- Use environment variables in production
-- Consider using Firebase App Check for additional security
-- Review and update Firestore security rules based on your needs
-
-## 📱 Mobile App Setup (Later)
-
-For iOS/Android apps, you'll need to:
-1. Add iOS/Android apps in Firebase Console
-2. Download configuration files (GoogleService-Info.plist / google-services.json)
-3. Follow Capacitor Firebase setup guides
-
----
-
-After completing these steps, your app should connect to Firebase successfully and all authentication and database features will work properly.
+For native iOS/Android builds you will need to add the apps to the `naricare-app` project and download `GoogleService-Info.plist` / `google-services.json`. See `PUSH_NOTIFICATIONS_SETUP.md`.

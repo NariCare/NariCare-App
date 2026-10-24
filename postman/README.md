@@ -198,7 +198,7 @@ This directory contains the Postman collection and environment files for testing
    - Ensure all required environment variables are set
 
 4. **2FA Issues**
-   - Make sure SendGrid is properly configured
+   - Make sure SMTP (or the SendGrid fallback) is properly configured
    - Check your email for OTP codes
    - Verify OTP hasn't expired (5 minutes)
 
@@ -216,9 +216,16 @@ DB_NAME=naricare_db
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=24h
 
-# SendGrid
+# Email via Google Workspace SMTP (used when SMTP_USER and SMTP_PASS are set)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=your_mailbox@example.com
+SMTP_PASS=your_google_app_password
+
+# SendGrid (fallback when SMTP is not set; FROM values apply to both paths)
 SENDGRID_API_KEY=your_sendgrid_api_key
 SENDGRID_FROM_EMAIL=noreply@naricare.app
+SENDGRID_FROM_NAME=NariCare
 
 # Server
 PORT=3000

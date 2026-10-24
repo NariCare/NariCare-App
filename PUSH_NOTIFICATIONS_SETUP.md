@@ -4,8 +4,8 @@ This guide covers setting up push notifications for **Web**, **Android**, and **
 
 ## 📋 Prerequisites
 
-1. Firebase project with Cloud Messaging enabled
-2. VAPID key generated for web push notifications
+1. Firebase project `naricare-app` with Cloud Messaging enabled (done)
+2. VAPID key for web push (done, set in the environment files)
 3. Android/iOS projects generated (if targeting mobile)
 
 ## 🌐 Web Setup (Already Complete)
@@ -14,15 +14,16 @@ This guide covers setting up push notifications for **Web**, **Android**, and **
 ✅ **Angular Config**: Updated `angular.json` to include service worker
 ✅ **Push Service**: `src/app/services/push-notification.service.ts`
 
-### Generate VAPID Key (Required for Web):
-1. Go to Firebase Console → Project Settings → Cloud Messaging
-2. In "Web configuration" section, click "Generate key pair"
-3. Copy the key and update `push-notification.service.ts`:
+✅ **VAPID Key**: configured for project `naricare-app`
+
+### VAPID Key (Configured):
+The key is set as `firebase.vapidKey` in `src/environments/environment.ts`, `environment.beta.ts` and `environment.prod.ts`. `push-notification.service.ts` reads it from there:
 ```typescript
 const token = await getToken(this.messaging, {
-  vapidKey: 'YOUR_VAPID_KEY_HERE' // Replace with your actual VAPID key
+  vapidKey: environment.firebase.vapidKey
 });
 ```
+If the key is ever rotated (Firebase Console → Project Settings → Cloud Messaging → Web Push certificates), update all three environment files.
 
 ## 📱 Android Setup
 
@@ -190,8 +191,7 @@ ios/
 
 ## 📝 Next Steps
 
-1. Generate VAPID key and update web configuration
-2. Set up Android/iOS projects if targeting mobile
-3. Implement backend API for token management
-4. Test on all target platforms
-5. Configure notification categories and rich notifications
+1. Set up Android/iOS projects if targeting mobile
+2. Implement backend API for token management
+3. Test on all target platforms
+4. Configure notification categories and rich notifications

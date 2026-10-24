@@ -22,8 +22,8 @@ A comprehensive cross-platform breastfeeding support application built with Ioni
 ## 🛠️ Technology Stack
 
 - **Frontend**: Ionic 7 with Angular 17
-- **Backend**: Firebase/Firestore for real-time data
-- **Authentication**: Firebase Auth
+- **Backend**: NariCare REST API (Node/Express, MySQL)
+- **Authentication**: REST API email/password with JWT; Google sign-in via Firebase
 - **AI Integration**: OpenAI GPT API
 - **Push Notifications**: Firebase Cloud Messaging
 - **Mobile**: Capacitor for iOS and Android
@@ -56,10 +56,9 @@ A comprehensive cross-platform breastfeeding support application built with Ioni
    npm install
    ```
 
-3. **Configure Firebase**
-   - Create a Firebase project at https://console.firebase.google.com
-   - Enable Authentication, Firestore, and Cloud Messaging
-   - Update `src/environments/environment.ts` with your Firebase config
+3. **Firebase (already configured)**
+   - The environment files already point at the `naricare-app` Firebase project, used only for Google sign-in and web push
+   - No Firestore setup is needed. See [FIREBASE_SETUP.md](./FIREBASE_SETUP.md)
 
 4. **Configure OpenAI**
    - Get an API key from https://platform.openai.com
@@ -146,7 +145,8 @@ export const environment = {
     projectId: "your-project-id",
     storageBucket: "your-project.appspot.com",
     messagingSenderId: "123456789",
-    appId: "your-app-id"
+    appId: "your-app-id",
+    vapidKey: "your-vapid-key"
   },
   openaiApiKey: "your-openai-api-key"
 };
@@ -185,18 +185,24 @@ npm run lint
 
 - **Data Encryption**: All sensitive data is encrypted
 - **HIPAA Compliance**: Medical data handling follows privacy regulations
-- **Secure Authentication**: Firebase Auth with proper session management
+- **Secure Authentication**: JWT access and refresh tokens issued by the REST API
 - **API Security**: Secure endpoints with proper authentication
 
 ## 🌐 Deployment
 
-### Firebase Hosting
+### Netlify
+The web app is hosted on Netlify and builds automatically when a PR is merged.
+
+| Env | Netlify site | URL | Branch | Build |
+|-----|--------------|-----|--------|-------|
+| Beta | `naricare-app` | https://beta-app.naricare.com | `staging` | `npm run build:beta` |
+| Prod | `naricare-prod` | https://app.naricare.com | `master` | `npm run build:prod` |
+
+Flow: feature branch from `staging`, PR into `staging` (Beta), then PR `staging` into `master` (Prod).
+
+Manual fallback, after building into `dist/`:
 ```bash
-npm install -g firebase-tools
-firebase login
-firebase init hosting
-ionic build --prod
-firebase deploy
+npx -p netlify-cli netlify deploy --prod --no-build --dir dist --site <site>
 ```
 
 ### App Stores

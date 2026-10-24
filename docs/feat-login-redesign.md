@@ -17,6 +17,7 @@ Rebuilt the sign-in screen to match the approved mockup, using `Designs/NariCare
   - The form is vertically centred in the space between the brand panel and the footer.
 - **Footer:** lavender wave with "Healthier babies ♡ Brighter tomorrows".
 - **Hidden, not deleted:** Google/Facebook buttons and the LC sign-in link are commented out in `login.page.html`. Restore them once new social credentials exist.
+  - **Update 2026-10-24:** The "Continue with Google" button is back on the login and register screens, now backed by the new Firebase project `naricare-app`. Facebook and the LC sign-in link stay hidden.
 
 ## Brand tokens (login.page.scss)
 

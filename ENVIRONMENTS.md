@@ -102,27 +102,40 @@ if (!environment.production) {
 - **Purpose**: Local development
 - **API**: Points to localhost backend
 - **Features**: Full debugging, source maps, hot reload
-- **Firebase**: Uses development Firebase project
+- **Firebase**: Uses the `naricare-app` project (same for all environments)
 
 ### Beta Environment  
 - **Purpose**: Staging/testing before production
 - **API**: Points to beta API server
 - **Features**: Production-like optimizations with source maps for debugging
-- **Firebase**: Uses same Firebase project as production (with beta data)
-- **Deployment**: Can be deployed to staging servers
+- **Firebase**: Uses the `naricare-app` project (same as production)
+- **Deployment**: Netlify site `naricare-app`, https://beta-app.naricare.com, built from `staging`
 
 ### Production Environment
 - **Purpose**: Live production application
 - **API**: Points to production API server
 - **Features**: Full optimizations, no source maps, minified
-- **Firebase**: Uses production Firebase project
-- **Deployment**: Deployed to production servers
+- **Firebase**: Uses the `naricare-app` project
+- **Deployment**: Netlify site `naricare-prod`, https://app.naricare.com, built from `master`
 
 ## Deployment Workflow
 
-1. **Local Development**: Develop and test features locally
-2. **Beta Testing**: Deploy to beta environment for staging tests
-3. **Production Release**: Deploy to production after beta approval
+The app is hosted on Netlify. Each site auto-builds when its branch changes.
+
+| Env | Netlify site | URL | Branch | Build |
+|-----|--------------|-----|--------|-------|
+| Beta | `naricare-app` | https://beta-app.naricare.com | `staging` | `npm run build:beta` |
+| Production | `naricare-prod` | https://app.naricare.com | `master` | `npm run build:prod` |
+
+1. **Local Development**: Create a feature branch from `staging` and test locally
+2. **Beta Testing**: Open a PR into `staging`; on merge, Netlify deploys Beta
+3. **Production Release**: After Beta approval, open a PR from `staging` into `master`; on merge, Netlify deploys Prod
+
+Manual fallback (after building into `dist/`):
+
+```bash
+npx -p netlify-cli netlify deploy --prod --no-build --dir dist --site <site>
+```
 
 ## Environment Variables
 
