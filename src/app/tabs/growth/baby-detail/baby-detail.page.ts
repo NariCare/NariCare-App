@@ -450,10 +450,15 @@ export class BabyDetailPage implements OnInit, OnDestroy {
         onClick: r.id ? () => this.zone.run(() => this.recordActions.openGrowthActions(r, this.babyId)) : undefined
       };
     });
-    // Birth weight lives on the baby profile, not in weight_records.
+    // Birth weight lives on the baby profile, not in weight_records. One record
+    // per date: skip the birth row when a saved record with a weight already
+    // covers that day (a height-only record must not hide the birth weight).
     if (this.baby?.birthWeight && this.baby.dateOfBirth) {
-      const bh = this.baby.birthHeight;
-      rows.push({ icon: 'assets/Weight.svg', iconAlt: 'Birth', at: recordAt(this.baby.dateOfBirth), label: 'Birth record', value: `${this.baby.birthWeight} kg${bh ? ` · ${bh} cm` : ''}` });
+      const birthAt = recordAt(this.baby.dateOfBirth);
+      if (!(records || []).some(r => r.weight != null && DateOnlyUtil.isSameLocalDay(recordAt(r.record_date || r.date), birthAt))) {
+        const bh = this.baby.birthHeight;
+        rows.push({ icon: 'assets/Weight.svg', iconAlt: 'Birth', at: birthAt, label: 'Birth record', value: `${this.baby.birthWeight} kg${bh ? ` · ${bh} cm` : ''}` });
+      }
     }
     rows.sort((a, b) => b.at.getTime() - a.at.getTime());
     return { rows, summary: rows.length ? `Latest ${rows[0].value}` : '' };
@@ -917,9 +922,13 @@ export class BabyDetailPage implements OnInit, OnDestroy {
     const num = (v: any) => (+v > 0 ? +v : null);
     const pts: GrowthPt[] = (records || []).map(r => ({ at: recordAt(r.record_date || r.date).getTime(), w: num(r.weight), h: num(r.height) }));
     const b = this.baby, age = this.babyAgeMonths();
-    // Birth point squashes the axis for babies over 5 years, so it is skipped there
+    // Birth point squashes the axis for babies over 5 years, so it is skipped there.
+    // Also skipped when a saved record already covers the birth date (one point per day).
     if (b?.dateOfBirth && age != null && age <= 60 && (num(b.birthWeight) || num(b.birthHeight))) {
-      pts.push({ at: recordAt(b.dateOfBirth).getTime(), w: num(b.birthWeight), h: num(b.birthHeight) });
+      const birthAt = recordAt(b.dateOfBirth);
+      if (!pts.some(p => p.w != null && DateOnlyUtil.isSameLocalDay(new Date(p.at), birthAt))) {
+        pts.push({ at: birthAt.getTime(), w: num(b.birthWeight), h: num(b.birthHeight) });
+      }
     }
     const sorted = pts.filter(p => !isNaN(p.at)).sort((a, c) => a.at - c.at);
     const last8 = (key: 'w' | 'h') => sorted.filter(p => p[key] != null).slice(-8).map(p => p[key] as number);

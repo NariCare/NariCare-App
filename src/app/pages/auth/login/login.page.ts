@@ -94,6 +94,13 @@ export class LoginPage implements OnInit, OnDestroy {
   }
 
   private redirectAuthenticatedUser(user: any) {
+    // Ionic keeps this page alive in the router stack after login, so this also
+    // fires on later profile refreshes; only redirect while actually on an auth page.
+    // On cold start router.url can still be '/', so fall back to the browser path.
+    const currentUrl = this.router.navigated ? this.router.url : window.location.pathname;
+    if (!(currentUrl === '/auth' || currentUrl.startsWith('/auth/'))) {
+      return;
+    }
     // Navigate based on onboarding status
     if (user.role === 'admin') {
       this.router.navigate(['/admin'], { replaceUrl: true });
