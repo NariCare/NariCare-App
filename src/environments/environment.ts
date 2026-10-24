@@ -3,14 +3,13 @@ export const environment = {
   beta: false,
   local: true,
   firebase: {
-    apiKey: "AIzaSyC8d-hqyjz-cPO9O2srlFp0UCWivB-4T_s",
-    authDomain: "naricare-afb05.firebaseapp.com",
-    projectId: "naricare-afb05",
-    storageBucket: "naricare-afb05.firebasestorage.app",
-    messagingSenderId: "367456865327",
-    appId: "1:367456865327:web:b68a3d7914199803658ada",
-    measurementId: "G-PYV60K3B2D",
-    vapidKey: "BE7j98jUJE3meGBM2cBBxKVYUgGHzA6q3o1Rxj-UGFKiigSZQb4l1KbYy_d6eQQEvjsBQT3IykmwBGUbHUL5qjI" // Replace with actual VAPID key from Firebase Console
+    apiKey: "AIzaSyCEy2gdTUlAxXOmeL2hLxBSk6BF38RB6dU",
+    authDomain: "naricare-app.firebaseapp.com",
+    projectId: "naricare-app",
+    storageBucket: "naricare-app.firebasestorage.app",
+    messagingSenderId: "382548282570",
+    appId: "1:382548282570:web:3d735a09a72507813ef833",
+    vapidKey: "BAQllRUKhBFunJM1QOZc_dmgEELQhietF3ll61fnClPDMMBcZtxx4FdUT1nRiKKRPkX94mGcDyGVjQmnhWmShPM" // Replace with actual VAPID key from Firebase Console
   },
   // Local Development API URL
   apiUrl: 'http://localhost:3000/api',
